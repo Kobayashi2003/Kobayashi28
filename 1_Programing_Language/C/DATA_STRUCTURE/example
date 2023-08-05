@@ -1,0 +1,66 @@
+struct Node
+{
+    int data;//数据
+    struct Node *next;//指针
+};
+
+静态链表
+#include<stdio.h>
+struct Node
+{
+    int data;
+    struct Node *next;
+}
+int main()
+{
+    struct Node Node1={1,NULL};
+    struct Node Node2={2,NULL};
+    struct Node Node3={3,NULL};
+    Node1.next=&Node2;
+    Node2.next=&Node3;
+}
+
+动态链表
+{
+    1.创建链表
+    2.创建结点
+    3.插入结点
+    {
+        1.头插法
+        2.尾插法
+    }
+    4.删除节点
+}
+//创造头结点(头结点内一般不储存data)
+struct Node* createHeadNode()
+{
+    struct Node *headNode=(struct Node*)malloc(sizeof(struct Node));
+    headNode->next=NULL;
+    return headNode;
+}
+//创造非头结点
+struct Node* createNode(int data)
+{
+    struct Node *newNode=(struct Node*)malloc(sizeof(struct Node));
+    new->data=data;
+    newNode->next=NULL;
+}
+//链表的打印
+void printList(struct Node*headList)
+{
+    struct Node *pMove=headNode->next;
+    while(pMove)
+    {
+        printf("%d",pMove->data);
+        pMove=pMove->next;
+    }
+    putchar('\n');
+}
+//插入函数(头插法)
+void insertNodeByhead(struct Node *headNode)
+{
+    struct Node *newNode=creatNode(data);
+    newNode->next=headNode->next;
+    headNode->next=newNode;
+}
+

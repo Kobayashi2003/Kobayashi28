@@ -1,0 +1,36 @@
+//typedef：
+typedef是用于定义新的类型名,在编程中可以用typedef来定义新的类型名来代替已有的类型名 格式: typedef 已有类型名 新的类型名
+
+
+ typedef是类型定义的意思。typedef struct 是为了使用这个结构体方便。具体区别在于:
+
+    若struct node{ }这样来定义结构体的话。在定义 node 的结构体变量时，需要这样写:struct node n;
+    若用typedef，可以这样写：typedef struct node{}NODE; 。在申请变量时就可以这样写：NODE n;其实就相当于 NODE 是node 的别名。区别就在于使用时，是否可以省去struct这个关键字。 有些时候，typedef struct NODE{ }NODE;还是可以直接NODE n；定义一个NODE类型的结构体。
+————————————————
+用法举例1：在C中定义一个结构体类型时如果要用typedef:
+typedef struct Student
+{
+   int no;
+   char name[12];
+}Stu,student;
+于是在声明变量的时候就可：Stu stu1;或者：student stu2;(Stu 和student 同时为Student的别名)
+
+用法举例2：如果没有typedef，传统定义一个结构体：
+struct Student
+{
+   int no;
+   char name[12];
+}Stu;
+此时说明已经定义了一个结构体Stu变量，如果要重新新建，就必须用struct Student stu1;
+
+用法举例3：如果使用了typedef，另外这里也可以不写Student（于是也不能struct Student stu1;了）
+typedef struct
+{
+   int no;
+   char name[12];
+}Stu;
+
+用法举例4：typedef 还可以掩饰复合类型，如指针和数组。定义一个 typedef，每当要用到相同类型和大小的数组时，可以这样：
+
+typedef char Line[81]; 
+此时Line类型即代表了具有81个元素的字符数组，使用方法，例如Line text, secondline;

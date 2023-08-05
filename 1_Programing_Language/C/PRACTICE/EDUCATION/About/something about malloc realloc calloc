@@ -1,0 +1,214 @@
+一：总结：
+
+原型： 　
+
+void * realloc ( void * ptr, size_t size );
+
+#include<stdlib.h>或#include <malloc.h>
+
+
+指针名=（数据类型*）realloc（要改变内存大小的指针名，新的大小）。//新的大小一定要大于原来的大小，不然的话会导致数据丢失！
+
+Pointer to a memory block previously allocated with malloc, calloc or realloc, or a null pointer(to allocate a new block).
+
+先判断当前的指针是否有足够的连续空间，如果有，扩大mem_address指向的地址，并且将mem_address返回，如果空间不够，先按照newsize指定的大小分配空间，将原有数据从头到尾拷贝到新分配的内存区域，而后释放原来mem_address所指内存区域，同时返回新分配的内存区域的首地址。即重新分配存储器块的地址。
+
+百科中总结的关于realloc的用法
+
+1. realloc失败的时候，返回NULL
+2. realloc失败的时候，原来的内存不改变，不会释放也不会移动
+3. 假如原来的内存后面还有足够多剩余内存的话，realloc的内存=原来的内存+剩余内存,realloc还是返回原来内存的地址; 假如原来的内存后面没有足够多剩余内存的话，realloc将申请新的内存，然后把原来的内存数据拷贝到新内存里，原来的内存将被free掉,realloc返回新内存的地址
+4. 如果size为0，效果等同于free()。这里需要注意的是只对指针本身进行释放，例如对二维指针**a，对a调用realloc时只会释放一维，使用时谨防内存泄露。
+5. 传递给realloc的指针必须是先前通过malloc(), calloc(), 或realloc()分配的,或者是NULL
+6.传递给realloc的指针可以为空，等同于malloc。
+
+
+
+二：详解
+
+realloc
+原型：extern void *realloc(void *mem_address, unsigned int newsize);
+用法：#include <stdlib.h> 有些编译器需要#include <alloc.h>
+功能：改变mem_address所指内存区域的大小为newsize长度。
+说明：如果重新分配成功则返回指向被分配内存的指针，否则返回空指针NULL。
+当内存不再使用时，应使用free()函数将内存块释放。
+注意：这里原始内存中的数据还是保持不变的。
+举例：
+// realloc.c
+#include <syslib.h>
+#include <alloc.h>
+main()
+{
+char *p;
+clrscr(); // clear screen
+p=(char *)malloc(100);
+if(p)
+printf("Memory Allocated at: %x",p);
+else
+printf("Not Enough Memory!/n");
+getchar();
+p=(char *)realloc(p,256);
+if(p)
+printf("Memory Reallocated at: %x",p);
+else
+printf("Not Enough Memory!/n");
+free(p);
+getchar();
+return 0;
+}
+详细说明及注意要点：
+1、如果有足够空间用于扩大mem_address指向的内存块，则分配额外内存，并返回mem_address
+这里说的是“扩大”，我们知道，realloc是从堆上分配内存的，当扩大一块内存空间时， realloc()试图直接从堆上现存的数据后面的那些字节中获得附加的字节，如果能够满足，自然天下太平。也就是说，如果原先的内存大小后面还有足够的空闲空间用来分配，加上原来的空间大小＝ newsize。那么就ok。得到的是一块连续的内存。
+2、如果原先的内存大小后面没有足够的空闲空间用来分配，那么从堆中另外找一块newsize大小的内存。
+并把原来大小内存空间中的内容复制到newsize中。返回新的mem_address指针。（数据被移动了）。
+老块被放回堆上。
+例如：
+#include <malloc.h>
+char *p，*q;
+p = (char * ) malloc (10);
+q=p;
+p = (char * ) realloc (p,20);
+…………………………
+这段程序也许在编译器中没有办法通过，因为编译器可能会为我们消除一些隐患！在这里我们只是增加了一个记录原来内存地址的指针q，然后记录了原来的内存地址p，如果不幸的话，数据发生了移动，那么所记录的原来的内存地址q所指向的内存空间实际上已经放回到堆上了!这样一来，我们应该终于意识到问题的所在和可怕了吧！
+3、返回情况
+返回的是一个void类型的指针，调用成功。（这就再你需要的时候进行强制类型转换）
+返回NULL，当需要扩展的大小（第二个参数）为0并且第一个参数不为NULL，此时原内存变成了“freed（游离）”的了。
+返回NULL，当没有足够的空间可供扩展的时候，此时，原内存空间的大小维持不变。
+4、特殊情况
+如果mem_address为null，则realloc()和malloc()类似。分配一个newsize的内存块，返回一个指向该内存块的指针。
+如果newsize大小为0，那么释放mem_address指向的内存，并返回null。
+如果没有足够可用的内存用来完成重新分配（扩大原来的内存块或者分配新的内存块），则返回null.而原来的内存块保持不变。
+
+==============================================================
+
+
+
+void* malloc(unsigned size); void* calloc(size_t nelem, size_t elsize); 和void* realloc(void* ptr, unsigned newsize);都在stdlib.h函数库内，是C语言的标准内存分配函数。
+1. 函数malloc()和calloc()都可以用来动态分配内存空间。malloc()函数有一个参数，即要分配的内存空间的大小，malloc 在分配内存时会保留一定的空间用来记录分配情况，分配的次数越多，这些记录占用的空间就越多。另外，根据 malloc 实现策略的不同，malloc 每次在分配的时候，可能分配的空间比实际要求的多些，多次分配会导致更多的这种浪费。当然，这些都和 malloc 的实现有关；calloc()函数有两个参数，分别为元素的数目和每个元素的大小，这两个参数的乘积就是要分配的内存空间的大小。如果调用成功，它们都将返回所分配内存空间的首地址。
+2. 函数malloc()和函数calloc()的主要区别是前者不能初始化所分配的内存空间，而后者能。
+3. realloc可以对给定的指针所指的空间进行扩大或者缩小，无论是扩张或是缩小，原有内存的中内容将保持不变。当然，对于缩小，则被缩小的那一部分的内容会丢失。
+4. realloc 并不保证调整后的内存空间和原来的内存空间保持同一内存地址。相反，realloc 返回的指针很可能指向一个新的地址。所以在代码中，我们必须将realloc返回的值，重新赋值给 p :
+p = (int *) realloc (p, sizeof(int) *15);
+
+
+
+==================================================================
+真正认识 realloc 的工作方式。
+Posted on 2008-11-20 13:12 啊夏 阅读(142) 评论(0)  编辑 收藏 网摘 所属分类: c/c++
+
+realloc 用过很多次了。无非就是将已经存在的一块内存扩大。
+
+char* p = malloc(1024);
+char* q = realloc(p,2048);
+
+现在的问题是我们应该如何处理指针 p。 刚开始按照我最直观的理解，如果就是直接将 p = NULL;。 到最后只需要释放 q的空间就可以了。
+
+因为最近在做个封装。结果在做单元测试的时候发现。有时候我在 free(q); 的时候会出错。这样我就郁闷了。
+
+后来仔细一跟踪，发现 realloc 完以后 q 和 p 的指针地址是一样。不过有时候又不一样。
+
+仔细查了下资料。得到如下信息：
+
+       1.如果 当前连续内存块足够 realloc 的话，只是将p所指向的空间扩大，并返回p的指针地址。 这个时候 q 和 p 指向的地址是一样的。
+
+       2.如果 当前连续内存块不够长度，再找一个足够长的地方，分配一块新的内存，q，并将 p指向的内容 copy到 q，返回 q。并将p所指向的内存空间删除。
+
+这样也就是说 realloc 有时候会产生一个新的内存地址 有的时候不会。所以在分配完成后。我们需要判断下 p 是否等于 q。并做相应的处理。
+
+这里有点要注意的是要避免 p = realloc(p,2048); 这种写法。有可能会造成 realloc 分配失败后，p原先所指向的内存地址丢失。
+
+
+
+=========================================
+
+关于realloc函数说明的补充：
+函数定义：
+void *realloc(void *ptr, size_t size);
+上面的分析基本没有问题，但有两点要注意：
+1.返回值可能与ptr的值不同，如果是不同的话，那么realloc函数完成后，ptr指向的旧内存已被free掉了。
+2。如果返回NULL值，则分配不成功，而原来的ptr指向的内存还没有被free掉，要求程序显式free.
+
+故p = (int *) realloc (p, sizeof(int) *15);语句有这么一个问题，
+调用前p指向一个已分配成功的内存,而调用realloc时却失败（即返回NULL），此时，p原来指向的内存还没有free掉，而现在又找不到地址，这样就出现memory leak了。
+
+关于这一点的确要注意，最好如下：
+int *q
+q = (int *) realloc (p, sizeof(int) *15);
+
+if(!q) p =q;
+
+======================================================
+
+首先看一下下面的C程序片断：
+
+
+
+#include <malloc.h>
+
+char  *p;
+
+p = (char * ) malloc (10);
+
+p = (char * ) realloc (p,20);
+
+…………………………
+
+
+
+    这段程序的意思很简单，只有稍有点C基础的人都可以看懂。函数首先定义了一个字符型的指针p，然后为指针p分配了一个10个字节大小的内存空间，接着将这个内存块的大小增加到20个字节。
+
+
+
+    这里有什么问题吗？上机运行一下，好像没有问题！
+
+
+
+    是的，这样上机运行是没有问题的，但是这里存在着也许我们不太注意的隐患！隐患在那里？这就是我在本文中要详细说明的realloc（）函数了。
+
+
+
+    再看一下下面一段来自MSDN的话：
+
+realloc returns a void pointer to the reallocated (and possibly moved) memory block. The return value isNULL if the size is zero and the buffer argument is not NULL, or if there is not enough available memory to expand the block to the given size. In the first case, the original block is freed. In the second, the original block is unchanged. The return value points to a storage space that is guaranteed to be suitably aligned for storage of any type of object. To get a pointer to a type other than void, use a type cast on the return value.
+
+这段E文还不算是晦涩难懂，所以我就不翻译了，大致的意思是说关于realloc返回值的。但是这里对他的返回值分了几种情况：
+
+1、  返回void * 指针，调用成功。
+
+2、  返回NULL，当需要扩展的大小（第二个参数）为0并且第一个参数不为NULL，此时原内存变成了“freed（游离）”的了。
+
+3、  返回NULL，当没有足够的空间可供扩展的时候，此时，原内存空间的大小维持不变。
+
+
+
+第一种情况告诉了我们在得到需要的内存空间后需要做类型转换的工作；
+
+第二种情况可能只有傻瓜才会去使用吧！
+
+第三种情况，内存空间不够的时候就会维持未来的大小不变。
+
+
+
+        MSDN上面说内存空间不够的时候就不会扩展原来的内存空间的大小，这话固然没有错，但是有点含糊，似乎遗漏了一种情况！我们知道，realloc是从堆上分配内存的，当扩大一块内存空间时， realloc()试图直接从堆上现存的数据后面的那些字节中获得附加的字节，如果能够满足，自然天下太平；可如果数据后面的字节不够的话，问题就出来了，那么就使用堆上第一个有足够大小的自由块，现存的数据然后就被拷贝至新的位置，而老块则放回到堆上。这句话传递的一个重要的信息就是数据可能被移动！看到这里，也许我们已经发现一开始我给出的程序的问题了。为了更清楚地说明问题，可以将上面的程序改成下面的形式：
+
+
+
+#include <malloc.h>
+
+char  *p，*q;
+
+p = (char * ) malloc (10);
+
+q=p;
+
+p = (char * ) realloc (p,20);
+
+…………………………
+
+
+
+    这段程序也许在编译器中没有办法通过，因为编译器可能会为我们消除一些隐患！在这里我们只是增加了一个记录原来内存地址的指针q，然后记录了原来的内存地址p，如果不幸的话，数据发生了移动，那么所记录的原来的内存地址q所指向的内存空间实际上已经放回到堆上了!这样一来，我们应该终于意识到问题的所在和可怕了吧！
+
+
+
+    这个问题似乎有点牛角尖的味道，因为我们也许从来不曾遇上过，但是我们应该明白这样的事情的始终存在，只有这样，在万一我们碰上的时候才会去有意识的去避免这种隐患，否则，一旦这样的隐患一旦发作，程序崩溃不说，恐怕查错也不是一件容易的事！

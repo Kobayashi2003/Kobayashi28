@@ -1,0 +1,77 @@
+#include<stdio.h>
+int main()
+{
+    int num,num1,a,b,c,d,e;
+    scanf("%d",&num);
+    num1=num;
+     if(num>=10000)
+    {
+        e=num/10000;
+        printf("万分位的数字为%d\n",e);
+        num=num%10000;
+        if(num<1000)
+        {
+        a=0;
+        printf("千分位的数字为%d\n",a);
+        }
+        if(num<100)
+        {
+        b=0;
+        printf("百分位的数字为%d\n",b);
+        }
+        if(num<10)
+        {
+        c=0;
+        printf("十分位的数字为%d\n",c);
+        }
+    }
+    if(num>=1000)
+    {
+        a=num/1000;
+        printf("千分位的数字为%d\n",a);
+        num=num%1000;
+        if(num<100)
+        {
+        b=0;
+        printf("百分位的数字为%d\n",b);
+        }
+        if(num<10)
+        {
+        c=0;
+        printf("十分位的数字为%d\n",c);
+        }
+    }
+    if(num>=100)
+    {
+        b=num/100;
+        printf("百分位的数字为%d\n",b);
+        num=num%100;
+        if(num<10)
+        {
+        b=0;
+        printf("十分位的数字为%d\n",c);
+        }
+    }
+    if(num>=10)
+    {
+        c=num/10;
+        printf("十分位的数字为%d\n",c);
+        num=num%10;
+    }
+    if(num<10)
+    {
+        d=num;
+        printf("个位的数字为%d\n",d);
+     }
+if(num1>=10000)
+printf("该数为五位数\n其逆序数为%d%d%d%d%d\n",d,c,b,a,e);
+if(num1>=1000&&num1<10000)
+printf("该数为四位数\n其逆序数为%d%d%d%d\n",d,c,b,a);
+if(num1>=100&&num1<1000)
+printf("该数为三位数\n其逆序数为%d%d%d\n",d,c,b);
+if(num1>=10&&num1<100)
+printf("该数为二位数\n其逆序数为%d%d\n",d,c);
+if(num1>=0&&num1<10)
+printf("该数为个位数\n其逆序数为%d\n",d);
+return 0;
+}

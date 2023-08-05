@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS</title>
+    <style>
+        /*0 2 0 0*/
+        #father #son {
+            color:blue;
+        }
+
+        /*0 1 1 1*/
+        #father p.c2 {
+            color:black;
+        }
+
+        /*0 0 2 2*/
+        div.c1 p.c2 {
+            color:red;
+        }
+
+        /* inherit */
+        #father {
+            color:green !important;
+        }
+
+        /* inherit */
+        div#father.c1 {
+            color:yellow;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="father" class="c1">
+        <p id="son" class="c2">content</p>
+    </div> 
+</body>
+</html>

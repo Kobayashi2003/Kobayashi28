@@ -1,0 +1,153 @@
+在讨论链表(linked-list)之前，需要明确几个概念：线性表（顺序表, list, linear list）, 数组(array)，链表(linked-list)。
+
+线性表：在中文里，线性表也叫作顺序表。在英文中，它称为list, linear list等。它是最基础、最简单、最常用的一种基本数据结构，线性表总存储的每个数据称为一个元素，各个元素及其索引是一一对应的关系。线性表有两种存储方式：顺序存储方式和链式存储方式。
+
+数组(array)：数组就是线性表的顺序存储方式。数组的内存是连续分配的，并且是静态分配的，即在使用数组之前需要分配固定大小的空间。可以通过索引直接得到数组中的而元素，即获取数组中元素的时间复杂度为O(1)。
+
+链表(linked-list)：链表就是线性表的链式存储方式。链表的内存是不连续的，前一个元素存储地址的下一个地址中存储的不一定是下一个元素。链表通过一个指向下一个元素地址的引用将链表中的元素串起来
+——————————————
+
+链表分类
+
+单向链表
+
+单向链表是最简单的链表形式。我们将链表中最基本的数据称为节点(node)，每一个节点包含了数据块和指向下一个节点的指针。
+
+typedef struct node
+
+{
+    int val;
+    struct node *next;
+}Node;
+
+
+头结点
+单向链表有时候也分为有头结点和无头结点。有头结点的链表实现比较方便(每次插入新元素的时候，不需要每次判断第一个节点是否为空)，并且可以直接在头结点的数据块部分存储链表的长度，而不用每次都遍历整个链表。
+
+// create a new node with a value
+Node* CreateNode(int val)
+{
+    Node *newNode = (Node*)malloc(sizeof(Node));
+    if (newNode == NULL) 
+    {
+        printf("out of memory!\n");
+        return NULL;
+    } else
+    {
+        newNode->val = val;
+        newNode->next = NULL;
+        return newNode;
+    }
+}
+
+int main(){
+
+    Node *head = CreateNode(0);
+
+    //insert new value into list, end with END_INPUT(999)
+    int value;
+    while (scanf("%d", &value) && value != END_INPUT)
+    {
+        Insert(head, value);
+    }
+
+    return 0;
+}
+
+
+插入
+
+在链表中插入一个新的元素有两种方式：后插和前插。后插就是每次在链表的末尾插入新元素，前插就是在链表的头插入新元素。
+
+后插法比较符合平常的思维方式，并且保证插入数据的先后顺序。但是由于只保存了头结点，所以每次插入新元素必须重新遍历到链表末尾。为了解决这个问题，考虑增加一个尾指针，指向链表的最后一个节点。
+
+void Insert(Node *head, Node *tail, int val)
+{
+    Node *newNode = CreateNode(val);
+    tail->next = newNode;
+    tail = tail->next;
+    head->val ++;
+} 
+
+void Insert(Node *head, int val)
+{
+    Node *newNode = CreateNode(val);
+    newNode->next = head->next;
+    head->next = newNode;
+    head->val ++;
+} 
+
+
+
+由于单向链表只存储了头指针，所以删除单向链表中的元素时，需要找到目标节点的前驱节点。
+
+删除节点
+
+void DeleteByVal(Node *head, int val)
+{
+    if (head->next == NULL)
+    {
+        printf("empty list!\n");
+        return;
+    }
+
+    //find target node and its precursor
+    Node *cur = head->next, *pre = head;
+    while(cur)
+    {
+        if (cur->val == val)
+            break;
+        else {
+            cur = cur->next;
+            pre = pre->next;
+        }
+    }
+
+    //delete target node
+    pre->next = cur->next;
+    free(cur);
+    head->val--;
+}
+
+
+清空链表
+
+由于链表里面的内存是手动分配的，当不再使用这些内存时需要手动删除。
+
+void Free(Node *head)
+{
+    for (Node *temp = head; temp != NULL; temp = head->next) 
+    {
+        head = head->next;
+        free(temp);
+    }
+}
+
+
+Node* Reverse (Node* head) {
+
+    if (head == NULL || head->next == NULL)
+        return head;
+    else {
+
+        Node *cur = head->next,
+             *pre = NULL,
+             *next = NULL;
+
+        while (cur != NULL) {
+
+            next = cur->next;
+            cur->next = pre;
+            pre = cur;
+            cur = next;
+        }
+
+        head->next = pre;
+
+        return head;
+    }        
+}
+ 
+
+双向链表
+循环链表

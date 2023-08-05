@@ -1,0 +1,57 @@
+Name,Chinese,Math,English,Physics,Chemistry,Biology,Total
+Henry VII,81,82,75,77,80,78,473
+Elizabeth II,77,79,80,81,78,80,475
+William the Conqueror,72,74,70,69,71,75,431
+Edmund Burke,78,80,79,83,81,82,483
+William Tyndale,75,73,81,83,80,81,473
+John Wesley,82,80,85,74,78,82,481
+Isaac Newton,87,89,83,81,85,82,507
+Margaret Thatcher,72,71,80,76,78,74,451
+Jane Austen,82,81,86,80,82,78,489
+William Shakespeare,73,75,70,70,73,78,439
+Charles Darwin,82,83,78,77,82,85,487
+Oliver Cromwell,73,77,74,71,73,80,448
+Queen Victoria,75,72,78,82,79,80,466
+John Locke,81,84,80,84,83,82,494
+Henry VIII,68,72,70,76,73,77,436
+Charles Dickens,76,73,78,75,79,73,454
+John Milton,79,80,76,82,83,79,479
+Florence Nightingale,69,72,79,80,76,79,455
+Robert Boyle,85,88,82,78,85,83,501
+Benjamin Disraeli,80,85,82,80,83,81,491
+David Hume,77,79,76,78,77,81,468
+John Keats,71,74,72,82,85,77,461
+James Watt,84,81,79,82,83,85,494
+John Ruskin,76,73,75,77,80,73,454
+Edward VI,70,72,76,79,75,72,444
+Robert Walpole,79,76,82,77,81,85,480
+George IV,76,78,73,77,74,76,454
+William Pitt the Younger,80,79,81,80,78,82,480
+Mary Shelley,77,74,79,80,77,81,468
+Thomas More,72,76,73,70,76,79,446
+Thomas Hobbes,74,78,72,75,76,78,453
+George Eliot,78,80,76,79,78,83,474
+Alfred the Great,72,70,78,81,80,79,460
+Florence Nightingale,75,72,81,83,80,82,473
+John Wesley,83,85,80,84,82,84,498
+Queen Elizabeth I,82,84,79,83,81,80,489
+Charles Darwin,81,80,83,85,83,81,493
+Isambard Kingdom Brunel,75,76,79,77,78,81,466
+Ada Lovelace,80,81,87,81,83,86,498
+James Clerk Maxwell,82,84,85,87,83,84,505
+Winston Churchill,76,79,74,78,81,71,459
+Robert Burns,73,72,76,78,75,79,453
+Emily Bronte,71,73,78,79,75,76,452
+William Wordsworth,77,79,81,78,80,82,477
+George III,68,70,74,77,76,69,434
+Edmund Spenser,78,80,77,79,81,83,478
+John Donne,81,79,84,83,82,80,489
+Jane Goodall,73,71,77,80,75,82,458
+Robert Peel,76,78,75,72,74,77,452
+Virginia Woolf,77,79,80,84,81,83,484
+Christopher Wren,79,81,76,78,82,80,476
+John Milton,78,80,79,81,82,83,483
+David Livingstone,71,73,77,80,76,75,452
+Roger Bacon,82,85,78,80,83,81,489
+Thomas Hardy,75,74,80,78,77,76,460
+John Knox,72,74,71,76,73,78,444
