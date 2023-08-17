@@ -256,7 +256,7 @@ def fun16():
     # ClipRectangle: PySMALL_RECT
     #   Rectangle that limits display area affected, can be None
     # DestinationOrigin: PyCOORD
-    #   The position to which ScrollRectangle wil be moved
+    #   The position to which ScrollRectangle will be moved
     # FillCharacter: PyUNICODE
     #   Character to fill in the area left blank by scrolling operation
     # FillAttribute: int
@@ -383,4 +383,4 @@ def fun21():
 
 
 if __name__ == '__main__':
-    fun18()
+    fun16()

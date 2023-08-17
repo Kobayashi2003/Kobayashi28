@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{dir_name}}</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #fff;
+        }
+        img {
+            display: block;
+            margin: 0 auto;
+            width: 70%;
+        }
+    </style>
+</head>
+<body>
+    {%for img in files%}
+        <img src="../static/images/{{dir_name}}/{{img}}" alt="{{dir_name}}">
+    {%endfor%}
+</body>
+</html>
