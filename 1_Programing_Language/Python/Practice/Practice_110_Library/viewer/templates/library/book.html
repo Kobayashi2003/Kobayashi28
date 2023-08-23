@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}{{ book['title'] }}{% endblock %}
+
+{% block content %}
+
+
+<div class="book">
+    <nav class="top-navbar">
+        <a href="/">CLICK HERE TO HOME</a>
+    </nav>
+
+    <div class="main-top"></div>
+
+    <div class="pages">
+        {% for relpath in book['pages_relpath'] %}
+            <img src="{{ url_for('library.static', filename=relpath) }}">
+        {% endfor %}
+    </div>
+
+</div>
+
+{% endblock %}
