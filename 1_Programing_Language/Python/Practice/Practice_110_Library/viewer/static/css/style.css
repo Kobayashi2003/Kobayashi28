@@ -19,7 +19,7 @@ body {
 } @media (min-width: 360px) {
     .register { width: 100%; }
 } @media (min-height: 480px) {
-    .register { height: 100vh; }
+    .register { min-height: 100vh; }
 }
 
 .register .top-navbar {
@@ -178,7 +178,7 @@ body {
 } @media (min-width: 360px) {
     .login { width: 100%; }
 } @media (min-height: 480px) {
-    .login { height: 100vh; }
+    .login { min-height: 100vh; }
 }
 
 .login .top-navbar {
