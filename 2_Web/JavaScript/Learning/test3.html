@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TEST</title>
+</head>
+<body>
+    <script>
+        var person = {
+            firstName: "John",
+            lastName : "Doe",
+            id       : 5566,
+            fullName : function() {
+                return this.firstName + " " + this.lastName;
+            }
+        };
+        console.log(person.firstName);
+        console.log(person["lastName"]);
+        console.log(person.fullName());
+        console.log(person.fullName)
+
+
+        var x = new String();
+        var y = new Number();
+        var z = new Boolean();
+
+        console.log(typeof x);
+        console.log(typeof y);
+        console.log(typeof z);
+
+
+    </script> 
+</body>
+</html>

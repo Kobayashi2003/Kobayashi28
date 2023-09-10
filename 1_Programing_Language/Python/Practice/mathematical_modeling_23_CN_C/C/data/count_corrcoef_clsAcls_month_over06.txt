@@ -1,0 +1,5 @@
+flower_leaf 103
+flower_cauliflower 58
+eggplant 33
+pepper 22
+water_root 45

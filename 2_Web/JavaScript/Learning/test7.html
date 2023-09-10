@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TEST</title>
+</head>
+<body>
+    <script>
+        console.log(1 / "2");
+        console.log(1 * "4");
+        console.log(1 + "5");
+        console.log(1 - "6");
+        console.log(1 / 0);
+        console.log(1 / -0)
+        console.log(1 / "a");
+
+        console.log(typeof NaN);
+        console.log(typeof Infinity);
+
+        var num = 128;
+        console.log(num.toString(16));
+        console.log(num.toString(8));
+        console.log(num.toString(2));
+
+
+        let x = 1234567890123456789012345n;
+        let y = BigInt(1234567890123456789012345);
+
+        console.log(x);
+        console.log(typeof x);
+
+        // JS 支持的数据类型总数为 8 种
+        // String Number BigInt Boolean Undefined Null Symbol Object
+
+        // 不允许在 BigInt 和 Number 之间进行算数运算（类型转换会丢失信息）
+        // BigInt 无法进行无符号右移运算（>>>)，因为它没有固定的宽度
+
+        // BigInt 不能有小数
+
+
+        console.log(Number.MAX_SAFE_INTEGER);
+        console.log(Number.MIN_SAFE_INTEGER); 
+
+        console.log(Number.isSafeInteger(1));
+        console.log(Number.isSafeInteger(1.2));
+        console.log(Number.isSafeInteger(9007199254740992));
+    </script>
+</body>
+</html>
