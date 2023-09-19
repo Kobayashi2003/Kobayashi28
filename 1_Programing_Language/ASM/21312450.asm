@@ -19,7 +19,7 @@ CALCULATE:
 
     XOR AX,AX
     LEA BX,STRING1
-    MVO AL,[BX+SI]
+    MOV AL,[BX+SI]
     CALL print_decimal
 
 
