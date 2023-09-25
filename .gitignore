@@ -1,10 +1,14 @@
+# Unimportant floder
 .vscode/
-# 3_Misc/
 4_From_Github/
 5_Others/
 6_Gadget/
 
+# Temporary data
 Debug/
 Temp/
 WorkPlace/
+
+# Big data
+largeFile.txt
 15_Computer_Organization_and_Design/计算机组成与设计硬件软件接口原书第5版.pdf

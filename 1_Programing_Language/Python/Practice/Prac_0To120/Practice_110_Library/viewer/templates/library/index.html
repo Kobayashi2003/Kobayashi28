@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Library{% endblock %}
+
+{% block content %}
+
+<div class="contianer index">
+    <nav class="navbar navbar-dark navbar-expand-lg bg-body-tertiary">
+        <div class="container-fluid">
+
+            <a class="navbar-brand" href="/">
+                <h3>HOME</h3>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+                aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    {% if not g.user %}
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/user/login">LOGIN</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/user/register">REGISTER</a>
+                    </li>
+                    {% endif %}
+                    {% if g.user %}
+                    
+                    <li class="nav-item">
+                        <!-- TODO -->
+                        <!-- <div>test</div> -->
+                        <a class="nav-link active" href="/user/{{ g.user['username'] }}">{{ g.user['username'] }}</a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/user/logout">LOGOUT</a>
+                    </li>
+                    {% endif %}
+                </ul>
+
+                <form class="d-flex" role="search" method="post">
+                    <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" id="title" name="title"
+                        value="{{ request.form['title'] }}">
+                    <button class="btn btn-outline-success" type="submit">Search</button>
+                </form>
+            </div>
+
+        </div>
+    </nav>
+
+    <div class="main-top"></div>
+
+    <div class="main-content">
+        <div class="bookshelf row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">
+            {% for book in books %}
+            <div class="col">
+                <div class="card h-100">
+                    <a href="/{{ book['title'] }}" style="text-decoration: none; color: azure;">
+                        <img src="{{ url_for('library.static', filename=book['cover']) }}" alt="{{ book['title'] }}"
+                            style="width: 100%;">
+                        <div class="card-body">
+                            <h6 class="card-title" style="color:#588888">TITLE: {{ book['title'] }}</h6>
+                            <p class="card-text">PAGES: {{ book['page_count'] }}</p>
+                            <p class="card-text">CREATE TIME: {{ book['ctime'] }}</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="footer">KOBAYASHI</div>
+</div>
+
+{% endblock %}

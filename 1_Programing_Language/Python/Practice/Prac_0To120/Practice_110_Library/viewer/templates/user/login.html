@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block header %}
+    <h1 style="display: none">{% block title %}Login{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<div class="login">
+    <nav class="top-navbar">
+        <a href="/">CLICK HERE TO HOME</a>
+    </nav>
+    <div class="bg">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+    <div class="glass">
+        <div class="text">Login</div>
+        <form action="" method="post">
+            <input type="text" placeholder="UserName" name="username" required>
+            <input type="password" placeholder="Password" name="password" required>
+            <button type="submit">-></button>
+        </form>
+    </div>
+</div>
+
+    
+{% endblock %}

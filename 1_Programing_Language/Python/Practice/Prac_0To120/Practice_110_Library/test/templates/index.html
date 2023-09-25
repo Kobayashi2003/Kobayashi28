@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>index</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #fff;
+        }
+        .wraper {
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 auto;
+        }
+        .cover {
+            width: 10%;
+            margin: 10px;
+        }
+        .cover img {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="wraper">
+        {%for dir in dirs%}
+            <div class="cover">
+                <a href="{{dir[0]}}">
+                    <img src="./static/images/{{dir[0]}}/{{dir[2]}}" alt="{{dir[0]}}">
+                </a>
+                <p>Total: {{dir[1]}}</p>
+            </div>
+        {%endfor%}
+    </div>
+</body>
+</html>
