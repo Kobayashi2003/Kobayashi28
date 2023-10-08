@@ -7,12 +7,21 @@
 
 using namespace std;
 
+int PRIORTY(char op) {
+    switch (op) {
+        case '+': return 1;
+        case '-': return 1;
+        case '*': return 2;
+        case '/': return 2;
+        case '^': return 3;
+        default: return 0;
+    }
+}
 
 double calculate(string expr) {
     stack<double> nums;
     stack<char> ops;
     int len = expr.size();
-    enum PRIORTY {ADD = 1, SUB = 1, MUL = 2, DIV = 2, POW = 3};
     for (int i = 0; i < len; ++i) {
         if (expr[i] == ' ') continue;
         if (isdigit(expr[i])) {
