@@ -10,4 +10,7 @@ int *arr = new int[10];
 *(int(*)[10])arr
 // or
 *arr@10
+
+*(int(*)[100][2])areas
+**areas@100@2
 ```
