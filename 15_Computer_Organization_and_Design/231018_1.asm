@@ -7,7 +7,7 @@ begin:
     mov dl, '0'
     jmp EXIT
 NEXT:
-    mov al, '1'
+    mov dl, '1'
 EXIT:
     mov ah, 2
     int 21h
