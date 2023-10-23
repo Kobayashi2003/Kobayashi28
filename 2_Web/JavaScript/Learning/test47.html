@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div id="demo"></div>
+
+    <button onclick="window.history.back()">back</button>
+    <button onclick="window.history.forward()">forward</button>
+
+
+    <script>
+        txt = ""
+        var w = window.innerWidth
+        || document.documentElement.clientWidth
+        || document.body.clientWidth;
+
+        var h = window.innerHeight
+        || document.documentElement.clientHeight
+        || document.body.clientHeight; 
+
+        txt += "<p>浏览器内部窗口的宽度: " + w + "</p>";
+        txt += "<p>浏览器内部窗口的高度: " + h + "</p>";
+
+        txt += "<p>屏幕分辨率的宽度: " + screen.width + "</p>";
+        txt += "<p>屏幕分辨率的高度: " + screen.height + "</p>";
+
+        txt += "<p>屏幕可用工作区宽度: " + screen.availWidth + "</p>";
+        txt += "<p>屏幕可用工作区高度: " + screen.availHeight + "</p>";
+
+        document.getElementById("demo").innerHTML = txt;
+    </script> 
+</body>
+</html>

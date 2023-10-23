@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div id="div1">
+        <p id="id1">this is the first paragraph</p>
+        <p id="id2">this is the second paragraph</p>
+    </div>
+
+    <script>
+        var para = document.createElement("p");
+        var node = document.createTextNode("this is the third paragraph");
+        para.appendChild(node);
+
+        var element = document.getElementById("div1");
+        element.appendChild(para);
+
+        var para2 = document.createElement("p");
+        var node2 = document.createTextNode("this is the fourth paragraph");
+        var child = document.getElementById("id1");
+        element.insertBefore(node2, child);
+
+        // 删除可用remove()
+        // 对于不支持remove()的浏览器，可以使用removeChild(),您必须首先识别要删除的子节点的父节点
+
+        // 替换可用replaceChild()
+
+    </script>
+</body>
+</html>
