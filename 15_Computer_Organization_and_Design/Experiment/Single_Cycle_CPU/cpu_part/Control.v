@@ -25,32 +25,32 @@ module Control(
     );
 
     // R-type 
-    wire type_r, add, subu, _and, _or, _nor, slt, sll;
+    wire type_r, inst_add, inst_subu, inst_and, inst_or, inst_nor, inst_slt, inst_sll;
     // I-type
-    wire lui, addiu, lw, sw, beq;
+    wire inst_lui, inst_addiu, inst_lw, inst_sw, inst_beq;
     // J-type
-    wire j;
+    wire inst_j;
 
     // Whether instruction is R-Type 
     assign type_r   = (opcode == `INST_R_TYPE && func != `INST_SYSCALL) ? 1 : 0;
     // R-type instructions
-    assign add      = (type_r && func == `FUNC_ADD) ? 1 : 0;
-    assign subu     = (type_r && func == `FUNC_SUBU) ? 1 : 0;
-    assign _and     = (type_r && func == `FUNC_AND) ? 1 : 0;
-    assign _or      = (type_r && func == `FUNC_OR) ? 1 : 0;
-    assign _nor     = (type_r && func == `FUNC_NOR) ? 1 : 0;
-    assign slt      = (type_r && func == `FUNC_SLT) ? 1 : 0;
-    assign sll      = (type_r && func == `FUNC_SLL) ? 1 : 0;
+    assign inst_add      = (type_r && func == `FUNC_ADD) ? 1 : 0;
+    assign inst_subu     = (type_r && func == `FUNC_SUBU) ? 1 : 0;
+    assign inst_and      = (type_r && func == `FUNC_AND) ? 1 : 0;
+    assign inst_or       = (type_r && func == `FUNC_OR) ? 1 : 0;
+    assign inst_nor      = (type_r && func == `FUNC_NOR) ? 1 : 0;
+    assign inst_slt      = (type_r && func == `FUNC_SLT) ? 1 : 0;
+    assign inst_sll      = (type_r && func == `FUNC_SLL) ? 1 : 0;
 
     // I-type instructions
-    assign lui      = (opcode == `INST_LUI) ? 1 : 0;
-    assign addiu    = (opcode == `INST_ADDIU) ? 1 : 0;
-    assign lw       = (opcode == `INST_LW) ? 1 : 0;
-    assign sw       = (opcode == `INST_SW) ? 1 : 0;
-    assign beq      = (opcode == `INST_BEQ) ? 1 : 0;
+    assign inst_lui      = (opcode == `INST_LUI) ? 1 : 0;
+    assign inst_addiu    = (opcode == `INST_ADDIU) ? 1 : 0;
+    assign inst_lw       = (opcode == `INST_LW) ? 1 : 0;
+    assign inst_sw       = (opcode == `INST_SW) ? 1 : 0;
+    assign inst_beq      = (opcode == `INST_BEQ) ? 1 : 0;
 
     // J-type instructions
-    assign j        = (opcode == `INST_J) ? 1 : 0;
+    assign inst_j        = (opcode == `INST_J) ? 1 : 0;
 
     // Halt instruction
     assign halt     = (opcode == `INST_HALT) ? 1 : 0;
@@ -59,44 +59,44 @@ module Control(
     assign syscall  = (func == `INST_SYSCALL) ? 1 : 0;
 
     // Determine control signals
-    assign alu_ctrl =   (add || addiu || lw || sw)  ? `ALU_CTRL_ADD :    // Addition in ALU
-                        (subu || beq)               ? `ALU_CTRL_SUB :    // Subtraction in ALU
-                        (_and)                      ? `ALU_CTRL_AND :    // Bitwise AND in ALU
-                        (_or)                       ? `ALU_CTRL_OR :     // Bitwise OR in ALU
-                        (_nor)                      ? `ALU_CTRL_NOR :    // Bitwise NOR in ALU
-                        (slt)                       ? `ALU_CTRL_SLT :    // Set less than in ALU
-                        (sll)                       ? `ALU_CTRL_SHIFT_L: // Shift left in ALU 
-                                                      `ALU_CTRL_DEFAULT; // Default ALU operand (output the second ALU input)
+    assign alu_ctrl =   (inst_add || inst_addiu || inst_lw || inst_sw)  ? `ALU_CTRL_ADD :    // Addition in ALU
+                        (inst_subu || inst_beq)         ? `ALU_CTRL_SUB :    // Subtraction in ALU
+                        (inst_and)                      ? `ALU_CTRL_AND :    // Bitwise AND in ALU
+                        (inst_or)                       ? `ALU_CTRL_OR :     // Bitwise OR in ALU
+                        (inst_nor)                      ? `ALU_CTRL_NOR :    // Bitwise NOR in ALU
+                        (inst_slt)                      ? `ALU_CTRL_SLT :    // Set less than in ALU
+                        (inst_sll)                      ? `ALU_CTRL_SHIFT_L: // Shift left in ALU 
+                                                          `ALU_CTRL_DEFAULT; // Default ALU operand (output the second ALU input)
 
     // RegDst signal
-    assign reg_dst  =   (add || subu || _and || _or || _nor || slt || sll) ? 1 : 0;
+    assign reg_dst  =   (inst_add || inst_subu || inst_and || inst_or || inst_nor || inst_slt || inst_sll) ? 1 : 0;
     // ALUSrc1 signal
-    assign alu_src1 =   (sll) ? 1 : 0;
+    assign alu_src1 =   (inst_sll) ? 1 : 0;
     // ALUSrc2 signal
-    assign alu_src2 =   (addiu || lw || sw || sll) ? 1 : 0;
+    assign alu_src2 =   (inst_addiu || inst_lw || inst_sw || inst_sll) ? 1 : 0;
 
     // Write signals
-    assign reg_write =  ( lui || type_r || add  || subu || 
-                         _and ||   _or  || _nor ||  slt || 
-                        addiu ||   lw   ||
+    assign reg_write =  ( inst_lui || type_r || inst_add  || inst_subu || 
+                         inst_and ||   inst_or  || inst_nor ||  inst_slt || 
+                        inst_addiu ||   inst_lw   ||
                         (syscall && (sys_op == `SYSCALL_INPUT_INT))) ? 1 : 0;
 
-    assign mem_write =  (sw) ? 1 : 0;
+    assign mem_write =  (inst_sw) ? 1 : 0;
 
-    assign reg_src   =  (lui)                          ? `REG_SRC_IMM :    // Source: Extended immediate
-                        (addiu || add || subu || _and 
-                        || _or || _nor || slt || sll)  ? `REG_SRC_ALU :    // Source: ALU result
-                        (lw)                           ? `REG_SRC_MEM :
-                                                         `REG_SRC_DEFAULT; // Source: Data memory
+    assign reg_src   =  (inst_lui)                                       ? `REG_SRC_IMM :    // Source: Extended immediate
+                        (inst_addiu || inst_add || inst_subu || inst_and 
+                        || inst_or || inst_nor || inst_slt || inst_sll)  ? `REG_SRC_ALU :    // Source: ALU result
+                        (inst_lw)                                        ? `REG_SRC_MEM :
+                                                                           `REG_SRC_DEFAULT; // Source: Data memory
 
-    assign ext_op    =  (lui)       ? `EXT_OP_SFT16 :       // Extend module operation: shift left 16
-                        (addiu)     ? `EXT_OP_SIGNED :      // Extend module operation: signed extend
-                        (lw || sw)  ? `EXT_OP_UNSIGNED :    // Extend module operation: unsigned extend
-                                      `EXT_OP_DEFAULT;      // Extend module operation: default operation (unsigned extend)
+    assign ext_op    =  (inst_lui)            ? `EXT_OP_SFT16 :       // Extend module operation: shift left 16
+                        (inst_addiu)          ? `EXT_OP_SIGNED :      // Extend module operation: signed extend
+                        (inst_lw || inst_sw)  ? `EXT_OP_UNSIGNED :    // Extend module operation: unsigned extend
+                                                `EXT_OP_DEFAULT;      // Extend module operation: default operation (unsigned extend)
 
-    assign npc_op    =  (j)             ? `NPC_OP_JUMP :    // Jump
-                        (beq && zero)   ? `NPC_OP_OFFSET :  // Branch equal
-                        (beq && ~zero)  ? `NPC_OP_DEFAULT : // Branch not equal
-                        (halt)          ? `NPC_OP_HALT :    // Halt
-                                          `NPC_OP_NEXT;     // Next instruction: normal
+    assign npc_op    =  (inst_j)             ? `NPC_OP_JUMP :    // Jump
+                        (inst_beq && zero)   ? `NPC_OP_OFFSET :  // Branch equal
+                        (inst_beq && ~zero)  ? `NPC_OP_DEFAULT : // Branch not equal
+                        (halt)               ? `NPC_OP_HALT :    // Halt
+                                               `NPC_OP_NEXT;     // Next instruction: normal
 endmodule

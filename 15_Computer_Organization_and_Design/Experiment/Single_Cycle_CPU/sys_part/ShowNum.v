@@ -48,5 +48,6 @@ module ShowNum(
             default: a_to_g = `SEG_VAL_DEF;
         endcase
         if (rst) a_to_g = rst;
+        if (num == 16'hffff) a_to_g = 16'hfffe;
     end
 endmodule

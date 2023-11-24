@@ -58,3 +58,102 @@ Windows 中查看端口占用
 
 > sudo apt-get install fish
 > chsh -s /usr/bin/fish
+
+
+# fish shell 的配置文件
+
+fish shell 的配置文件是 `~/.config/fish/config.fish`，每次fish运行时都会加载这个配置文件。
+
+同时，fish还提供了一个Web界面的配置工具，可以通过 `fish_config` 命令来打开。
+
+fish_promt 配置文件是 `~/.config/fish/functions/fish_prompt.fish`，可以通过 `funced fish_prompt` 命令来打开。
+
+
+# BrokPipeError: in fish shell
+
+```shell
+❯ Exception ignored in: <_io.TextIOWrapper name='<stdout>' mode='w' encoding='utf-8'>                                    (base)
+BrokenPipeError: [Errno 32] Broken pipe
+```
+
+If you got error as above in your fish terminal when using Conda, just adding status is-interactive && into your config.fish will this problem.
+
+```fish
+# >>> conda initialize >>>
+# !! Contents within this block are managed by 'conda init' !!
+if test -f /Users/keonabut/miniconda3/bin/conda
+  status is-interactive && eval /Users/keonabut/miniconda3/bin/conda "shell.fish" "hook" $argv | source
+end
+# <<< conda initialize <<<
+```
+
+# oh-my-fish 
+
+[oh-my-fish](https://github.com/oh-my-fish/oh-my-fish)
+
+oh-my-fish 是 Fish 的主题核插件管理工具
+
+- Install 
+  
+```shell
+curl -L https://get.oh-my.fish | fish
+```
+
+# fish shell 中使用 fasd
+
+[congfig](https://github.com/fishgretel/fasd)
+
+
+# fish shell 使用 vi 模式
+
+在 Fish 2.3.0 及以上版本中，可以使用 `fish_vi_key_bindings` 命令来启用 vi 模式。
+
+```shell
+$ fish_vi_key_bindings # start vi mode
+$ fish_default_key_bindings # back to default mode
+```
+
+如果想将 vi 模式设置为默认模式，可以在 `~/.config/fish/config.fish` 中添加如下内容：
+
+```shell
+fish_vi_key_bindings
+```
+
+我的配置如下：
+
+```shell
+# fish_vi_mode
+function my_vi_bindings
+    fish_vi_key_bindings
+    bind -M insert -m default 'jk' backward-char force-repaint
+    bind -M insert -m default 'kj' backward-char force-repaint
+    set  -g fish_cursor_insert line
+    set  -g fish_cursor_visual blck
+    set  -g fish_cursor_replace_one underscore
+end
+set -g fish_ke_bindings my_vi_bindings
+```
+
+
+**对于其他shell**
+
+- Bash: `set -o vi`
+- Zsh:  `bindkey -V`
+
+
+# wsl 使用 windows 的本地代理
+
+[microsoft参考](https://learn.microsoft.com/zh-cn/windows/wsl/wsl-config)
+
+**对于WSL2**
+
+在windows用户目录下的`.wslconfig`文件中添加如下内容：
+
+```txt
+[experimental]
+autoMemoryReclaim=gradual
+networkingMode=mirrored
+dnsTunneling=true
+firewall=true
+autoProxy=true
+```
