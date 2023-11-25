@@ -32,6 +32,34 @@ set editing-mode vi
 比如，在这个设置模式下，Python REPL 会支持Vim快捷键
 
 
-## 其它
+**其它**
 
 甚至有 Vim 的网页浏览快捷键 [browsers](http://vim.wikia.com/wiki/Vim_key_bindings_for_web_browsers), 受欢迎的有 用于 Google Chrome 的 [Vimium](https://chrome.google.com/webstore/detail/vimium/dbepggeogbaibhgnhhndojpepiihcmeb?hl=en) 和用于 Firefox 的 [Tridactyl](https://github.com/tridactyl/tridactyl)。 你甚至可以在 [Jupyter notebooks](https://github.com/lambdalisue/jupyter-vim-binding) 中用 Vim 快捷键。 [这个列表](https://reversed.top/2016-08-13/big-list-of-vim-like-software) 中列举了支持类 vim 键位绑定的软件。
+
+
+## Vim进阶
+
+**搜索核替换**
+
+`:s` （替换）命令（[文档](http://vim.wikia.com/wiki/Search_and_replace)）
+
+- `%s/foo/bar/g`
+  - 在整个文件中将 `foo` 全局替换成 `bar`
+- `%s/\[.*\](\(.*\))/\1/g`
+  - 将有命名的 Markdown 链接替换成简单URLs
+
+**多窗口**
+
+- `:sp` （水平分割）和 `:vsp` （垂直分割）
+- 同一个缓存可以在多个窗口中显示
+
+**宏**
+
+- q{字符} 来开始在寄存器{字符}中录制宏
+- q停止录制
+- @{字符} 重放宏
+- 宏的执行遇错误会停止
+- {计数}@{字符}执行一个宏{计数}次
+- 宏可以递归
+  - 首先用q{字符}q清除宏
+  - 录制该宏，用 @{字符} 来递归调用该宏 （在录制完成之前不会有任何操作）
