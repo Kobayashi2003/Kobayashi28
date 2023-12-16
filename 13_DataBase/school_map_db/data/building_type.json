@@ -1,0 +1,24 @@
+{
+  "RECODES": [
+    {
+      "building_type_id": 1,
+      "building_type": "教学科研办公"
+    },
+    {
+      "building_type_id": 2,
+      "building_type": "宿舍公寓"
+    },
+    {
+      "building_type_id": 3,
+      "building_type": "公共配套设施"
+    },
+    {
+      "building_type_id": 4,
+      "building_type": "规划在建"
+    },
+    {
+      "building_type_id": 5,
+      "building_type": "其他"
+    }
+  ]
+}

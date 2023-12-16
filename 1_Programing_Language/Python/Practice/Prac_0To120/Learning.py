@@ -480,7 +480,7 @@
 
 ## JSON （JavaScript Object Notation）
 
-## 使用 json.dump() 和 json,load() ##
+## 使用 json.dump() 和 json.load() ##
 
 # import os, sys, json
 # os.chdir(sys.path[0])
