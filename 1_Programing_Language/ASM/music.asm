@@ -43,6 +43,7 @@ NEXT:
 DONE:
         MOV AH,4CH ; 返回控制面板
         INT 21H
+
 DELAY PROC
         PUSH AX
 AGAIN1:
@@ -59,15 +60,16 @@ AGAIN:
         POP AX
         RET
 DELAY ENDP
+
 DELAY2 PROC
         MOV CX,1328
-REPEAT:
+R:
         IN AL,61H
         AND AL,10H
         CMP AL,AH
-        JE REPEAT
+        JE R
         MOV AH,AL
-        LOOP REPEAT
+        LOOP R
         RET
 DELAY2 ENDP
 CODE ENDS
