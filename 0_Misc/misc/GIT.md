@@ -75,3 +75,17 @@ Accordingly, the solution is to either:
 
 - `git pull`, so that the remote changes are merged on to my local work, or
 - `git push -f`, a force push to update the remote (origin) branch
+
+
+# Large files detected. You may want to try Git Large File Storage.
+
+```bash
+git lfs install
+git lfs track "*.psd"
+git add .gitattributes
+git add file.psd
+git commit -m "Add design file"
+git push origin master
+```
+
+[参考](https://git-lfs.github.com/)
