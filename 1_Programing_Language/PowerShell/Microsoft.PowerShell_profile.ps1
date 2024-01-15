@@ -2,8 +2,9 @@
 $My_Script_Path = $MyInvocation.MyCommand.Definition
 $My_Script_Dir  = Split-Path $My_Script_Path
 $My_History_Path = $My_Script_Dir + "\my-history.txt"
-$My_Git_Path = "" # the path of the git remote repository
 $Conda_Path  = "" # the path of conda.exe
+$Remote_Repository_Path = "" # the path of the remote repository of git
+$Branch_Name = "" # the name of the branch of git
 
 
 ##### -- Function Start -- #####
@@ -605,7 +606,7 @@ function My-Git {
     $date = Get-Date -Format "yyMMdd"
     git commit -m $date
     # git push origin main
-    git push $My_Git_Path
+    git push $Remote_Repository_Path $Branch_Name
 }
 
 
