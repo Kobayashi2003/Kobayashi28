@@ -1,13 +1,9 @@
-using namespace System.Management.AutomationMy-Script
-using namespace System.Management.Automation.Language
 
 $My_Script_Path = $MyInvocation.MyCommand.Definition
 $My_Script_Dir  = Split-Path $My_Script_Path
 $My_History_Path = $My_Script_Dir + "\my-history.txt"
-
-# TODO
-#      7.try to write a function to manage the history message
-
+$My_Git_Path = "" # the path of the git remote repository
+$Conda_Path  = "" # the path of conda.exe
 
 
 ##### -- Function Start -- #####
@@ -15,17 +11,11 @@ $My_History_Path = $My_Script_Dir + "\my-history.txt"
 
 #region conda initialize
 # !! Contents within this block are managed by 'conda init' !!
-function Conda-Init { param ( [bool] $sience = $false )
+function Conda-Init {
     try {
-        (& "D:\Program\anaconda3\Scripts\conda.exe" "shell.powershell" "hook") | Out-String | Invoke-Expression
+        (& $Conda_Path "shell.powershell" "hook") | Out-String | Invoke-Expression
     } catch {
-        if ($sience -eq $false) {
-            Write-Debug "[ERROR] Conda cannot be initialized"
-        }
         return $false
-    }
-    if ($sience -eq $false) {
-        Write-Debug "[OK] Conda is initialized"
     }
     return $true
 }
@@ -37,8 +27,6 @@ $default_title = "Windows PowerShell"
 $default_color = "White"
 $default_background_color = "Black"
 
-$defalut_pading = 80
-
 $current_title = $Host.UI.RawUI.WindowTitle
 $current_color = $Host.UI.RawUI.ForegroundColor
 $current_background_color = $Host.UI.RawUI.BackgroundColor
@@ -48,183 +36,372 @@ $uisize  = $Host.UI.RawUI.WindowSize
 
 
 function Format-Status {
+    [CmdletBinding()]
     param (
-        $Message,
-        $Status,
-        [System.ConsoleColor]
-        $ForegroundColor,
-        $BackgroundColor,
-        [int]
-        $Pading = $defalut_pading
+        [Parameter(Mandatory=$true)]
+        [Alias('m')]
+        [string] $Message,
+
+        [Parameter(Mandatory=$true, ParameterSetName="Task")]
+        [Alias('t')]
+        [scriptblock] $Task,
+
+        [Parameter(Mandatory=$true, ParameterSetName="Status")]
+        [Alias('s')]
+        [bool] $Status,
+
+        [Alias('ff')]
+        [System.ConsoleColor] $ForegroundColorFalse = "Red",
+
+        [Alias('bf')]
+        [System.ConsoleColor] $BackgroundColorFalse = $current_background_color,
+
+        [Alias('ft')]
+        [System.ConsoleColor] $ForegroundColorTrue = "Green",
+
+        [Alias('bt')]
+        [System.ConsoleColor] $BackgroundColorTrue = $current_background_color,
+
+        [Alias('p')]
+        [int] $Pading = 80,
+
+        [Alias('mf')]
+        [string] $MessageFalse = "ERROR",
+
+        [Alias('mt')]
+        [string] $MessageTrue = "OK",
+
+        [switch] $ReturnStatus
     )
 
-    if ($Pading + $status.Length + 4 -gt $uisize.Width) {
-        $Pading = $uisize.Width - $status.Length - 5
+    Write-Host $message -NoNewline
+
+    if ($PSCmdlet.ParameterSetName -eq "Task") {
+        try {
+            $Status = & $Task
+        } catch {
+            $Status = $false
+        }
     }
 
-    Write-Host $message.PadRight($Pading), "[ " -NoNewline
-    if ($ForegroundColor -and $BackgroundColor) {
-        Write-Host $Status -ForegroundColor:$ForegroundColor -BackgroundColor:$BackgroundColor -NoNewline
-    } elseif ($ForegroundColor) {
-        Write-Host $Status -ForegroundColor:$ForegroundColor -NoNewline
-    } elseif ($BackgroundColor) {
-        Write-Host $Status -BackgroundColor:$BackgroundColor -NoNewline
+
+    if ($Status) {
+        $status_message = $MessageTrue
+        $ForegroundColor = $ForegroundColorTrue
+        $BackgroundColor = $BackgroundColorTrue
     } else {
-        Write-Host $Status -NoNewline
+        $status_message = $MessageFalse
+        $ForegroundColor = $ForegroundColorFalse
+        $BackgroundColor = $BackgroundColorFalse
+    }
+
+    $Pading = $Pading - $Message.Length
+    if ($Pading + $Message.Length + $status_message.Length + 4 -gt $bufsize.Width) {
+        $Pading = $bufsize.Width - $Message.Length - $status_message.Length - 5
+    }
+    if ($Pading -lt 0) {
+        $Pading = 0
+    }
+
+    Write-Host "".PadRight($Pading), "[ " -NoNewline
+
+    if ($ForegroundColor -and $BackgroundColor) {
+        Write-Host $status_message -ForegroundColor:$ForegroundColor -BackgroundColor:$BackgroundColor -NoNewline
+    } elseif ($ForegroundColor) {
+        Write-Host $status_message -ForegroundColor:$ForegroundColor -NoNewline
+    } elseif ($BackgroundColor) {
+        Write-Host $status_message -BackgroundColor:$BackgroundColor -NoNewline
+    } else {
+        Write-Host $status_message -NoNewline
     }
 
     Write-Host " ]"
+
+    if ($ReturnStatus) {
+        return $Status
+    }
 }
 
-function Foarmat-Color {
-    # [CmdletBinding()]
-    # param (
-    #     [Parameter(ValueFromPipline, ParameterSetName = 'Formatter')]
-    #     [Alias()]
-    # )
+function Format-Color {
+    # https://duffney.io/usingansiescapesequencespowershell/#text-styling
+    [CmdletBinding()]
+    param (
+        [Parameter(ValueFromPipeline=$true, ParameterSetName='Formatter')]
+        [Alias('m')]
+        [string]
+        $Message,
 
+        [Parameter(ParameterSetName="Formatter")]
+        [Alias("f")] # foreground color
+        [ArgumentCompleter({ param (
+            $commandName,
+            $parameterName,
+            $wordToComplete,
+            $commandAst,
+            $fakeBoundParameters )
+            @(
+                "Black"   , "DarkRed"    , "DarkGreen", "DarkYellow",
+                "DarkBlue", "DarkMagenta", "DarkCyan" , "Gray",
+                "DarkGray", "Red"        , "Green"    , "Yello",
+                "Blue"    , "Magenta"    , "Cyan"     , "White"
+            ) | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object { $_ } })]
+        $ForegroundColor,
 
+        [Parameter(ParameterSetName="Formatter")]
+        [Alias("b")] # background color
+        [ArgumentCompleter({ param (
+            $commandName,
+            $parameterName,
+            $wordToComplete,
+            $commandAst,
+            $fakeBoundParameters )
+            @(
+                "Black"   , "DarkRed"    , "DarkGreen", "DarkYellow",
+                "DarkBlue", "DarkMagenta", "DarkCyan" , "Gray",
+                "DarkGray", "Red"        , "Green"    , "Yello",
+                "Blue"    , "Magenta"    , "Cyan"     , "White"
+            ) | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object { $_ } })]
+        $BackgroundColor,
+
+        [Parameter(ParameterSetName="ShowColorTable")]
+        [switch]
+        $ShowColorTable
+    )
+
+    begin {
+
+        $colorMapping = @{
+            "Black"   = 30; "DarkRed"    = 31; "DarkGreen" = 32; "DarkYellow" = 33
+            "DarkBlue"= 34; "DarkMagenta"= 35; "DarkCyan"  = 36; "Gray"       = 37
+            "DarkGray"= 90; "Red"        = 91; "Green"     = 92; "Yellow"      = 93
+            "Blue"    = 94; "Magenta"    = 95; "Cyan"      = 96; "White"      = 97
+        }
+
+        function Get-ColorTable {
+            $esc = $([char]27)
+            Write-Host "`n$esc[1;4m256-Color Foreground & Background Charts$esc[0m"
+            foreach ($fgbg in 38, 48) { # background/foreground switch
+                foreach ($color in 0..255) {
+                    # color range
+                    # Display the colors
+                    $field = "color".PadLeft(4) # pad the chart boxes with spaces
+                    Write-Host -NoNewLine "$esc[$fgbg;5;${color}m$field $esc[0m"
+                    # Display 8 colors per line
+                    if ( ($color + 1) % 8 -eq 0 ) { Write-Host } # new line
+                }
+                Write-Host
+            }
+        }
+
+        function ParseColor { param ($value)
+            if ($null -eq $value) {
+                throw "The color is empty"
+            }
+            elseif ($value -is [string]) {
+                if ($colorMapping.ContainsKey($value)) {
+                    Write-Output $colorMapping[$value]
+                }
+            }
+            elseif ($value -is [int]) {
+                if ($value -ge 0 -and $value -le 255) {
+                    Write-Output $value
+                } else {
+                    throw "The color number should be between 0 and 255"
+                }
+            }
+            elseif ($value -is [System.ConsoleColor]) {
+                Write-Output $colorMapping[$value.ToString()]
+            }
+            else {
+                throw "The color is not ligal"
+            }
+        }
+
+        $colorMapping = @{
+            "Black"   = 30; "DarkRed"    = 31; "DarkGreen" = 32; "DarkYellow" = 33
+            "DarkBlue"= 34; "DarkMagenta"= 35; "DarkCyan"  = 36; "Gray"       = 37
+            "DarkGray"= 90; "Red"        = 91; "Green"     = 92; "Yellow"      = 93
+            "Blue"    = 94; "Magenta"    = 95; "Cyan"      = 96; "White"      = 97
+        }
+
+        $esc = $([char]27)
+        $backgroundSwitch = 48
+        $foregroundSwitch = 38
+
+        $ansiParam = @()
+        if ($null -ne $PSBoundParameters["ForegroundColor"]) {
+            if ($ForegroundColor -is [string]) {
+                $ansiParam += "5;$(ParseColor $ForegroundColor)".Trim()
+            }
+            else {
+                $ansiParam += "$foregroundSwitch;5;$(ParseColor $ForegroundColor)".Trim()
+            }
+        }
+        if ($null -ne $PSBoundParameters["BackgroundColor"]) {
+            if ($BackgroundColor -is [string]) {
+                $ansiParam += "5;$((ParseColor $BackgroundColor)+10)".Trim()
+            }
+            elseif ($BackgroundColor -is [int]) {
+                $ansiParam += "$backgroundSwitch;5;$((ParseColor $BackgroundColor))".Trim()
+            }
+            elseif ($BackgroundColor -is [System.ConsoleColor]) {
+                $ansiParam += "5;$((ParseColor $BackgroundColor)+10)".Trim()
+            }
+        }
+    }
+
+    process {
+        $current = $_
+        if ($PSCmdlet.ParameterSetName -eq "ShowColorTable") {
+            Get-ColorTable
+        } else {
+            if ([string]::IsNullOrEmpty($current)) {
+                $current = $Message
+            }
+            if ($ansiParam.Count -gt 0) {
+                Write-Output "$esc[$($ansiParam -join ';')m$current$esc[0m"
+            }
+            else {
+                Write-Output $current
+            }
+        }
+    }
+
+    end {}
 }
 
-function My-Check-Admin { param ( [bool] $sience = $false )
+function My-Check-Admin {
     $admin = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
     if ($admin.IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator") -eq $false) {
-        if ($sience -eq $false) {
-            Write-Debug "You are not running this script as an administrator"
-        }
         return $false
-    }
-    if ($sience -eq $false) {
-        Write-Debug "This script is running as an administrator"
     }
     return $true
 }
 
+function My-Check-Module {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]
+        $module_name
+    )
+    $module = Get-Module -ListAvailable | Where-Object { $_.Name -eq $module_name }
+    if ($null -eq $module) {
+        return $false
+    }
+    return $true
+}
+
+function My-Get-UI-Infor {
+    $info = (Get-Host).UI.RawUI
+    foreach ($prop in $info | Get-Member -MemberType Property) {
+        $name = $prop.Name
+        $value = $info.$name
+        $name = '| RawUI.' + $name.PadRight(25) + ' |'
+        if ($value -ne $null) {
+            Format-Status -Message $name -Status $true -MessageTrue $value -ForegroundColorTrue "Cyan"
+        } else {
+            Format-Status -Message $name -Status $false -MessageFalse "null" -ForegroundColorFalse "Red"
+        }
+    }
+}
+
 function My-Check-Environment {
-    $esc=([char]27)
+    $esc = $([char]27)
     Write-Host "$esc[1;3;4;$(93)mChecking Environment...$esc[0m"
 
-    $message = "Checking Script Path..."
-    $status = "OK"
-    $ForegroundColor = "Green"
-    $BackgroundColor = $current_background_color
-    if ($My_Script_Path -eq "") {
-        $status = "ERROR"
-        $ForegroundColor = "Red"
-        $BackgroundColor = $current_background_color
-        Format-Status $message $status $ForegroundColor $BackgroundColor
-        Write-Debug "The script path is not exist"
-        return
-    }
-    Format-Status $message $status $ForegroundColor $BackgroundColor
-
-    $message = "Checking Script Directory..."
-    $status = "OK"
-    $ForegroundColor = "Green"
-    $BackgroundColor = $current_background_color
-    if ($My_Script_Dir -eq "") {
-        $status = "ERROR"
-        $ForegroundColor = "Red"
-        $BackgroundColor = $current_background_color
-        Format-Status $message $status $ForegroundColor $BackgroundColor
-        Write-Debug "The script directory is empty"
-        return
-    }
-    Format-Status $message $status $ForegroundColor $BackgroundColor
-
     $message = "Checking Admin Permission..."
-    $status = My-Check-Admin -sience $true
-    if ($status -eq $false) {
-        $status = "Not Admin"
-        $ForegroundColor = "Red"
-        $BackgroundColor = $current_background_color
-    } else {
-        $status = "Admin"
-        $ForegroundColor = "Green"
-        $BackgroundColor = $current_background_color
+    Format-Status -Message $message -Task { My-Check-Admin } -MessageTrue "Admin" -MessageFalse "User"
+
+    $modules2check = @(
+        "Get-ChildItemColor",
+        "PSReadline",
+        "PSColor"
+    )
+    $modules2install = @()
+
+    foreach ($module in $modules2check) {
+        $message = "Checking Module $module..."
+        $status = Format-Status -Message $message -Task { My-Check-Module -module_name $module } -MessageTrue "Installed" -MessageFalse "Not Installed" -ReturnStatus
+        if (-not $status) {
+            $modules2install += $module
+        }
     }
-    Format-Status $message $status $ForegroundColor $BackgroundColor
+
+    if ($modules2install.Length -gt 0) {
+        $message = "Installing Modules..."
+        Format-Status -Message $message -Task { Install-Module -Name $modules2install -Scope CurrentUser -Force } -MessageTrue "Installed" -MessageFalse "Error"
+    }
 
     $message = "Initializing Conda..."
-    Write-Host $message -NoNewline
-    $status = Conda-Init -sience $true
-    if ($status -eq $false) {
-        $status = "ERROR"
-        $ForegroundColor = "Red"
-        $BackgroundColor = $current_background_color
-    } else {
-        $status = "INIT"
-        $ForegroundColor = "Green"
-        $BackgroundColor = $current_background_color
-    }
-    $pading = $defalut_pading - $message.Length
-    if ($defalut_pading + $status.Length + 4 -gt $uisize.Width) {
-        $pading = $uisize.Width - $status.Length - 5 - $message.Length
-    }
-    Write-Host "".PadRight($pading), "[ " -NoNewline
-    Write-Host $status -ForegroundColor:$ForegroundColor -BackgroundColor:$BackgroundColor -NoNewline
-    Write-Host " ]"
+    Format-Status -Message $message -Task { Conda-Init } -MessageTrue "Init" -MessageFalse "Error"
+
+    My-Get-UI-Infor
 
     Write-Host "$esc[1;3;4;$(93)mWelcome to Windows PowerShell, $env:USERNAME!$esc[0m"
 }
 My-Check-Environment
 
-function My-Init {
-    My-Set-Title $default_title
-    My-Set-Color $default_color
-    My-Set-BackgroundColor $default_background_color
-}
 
-function My-Get-UI-Infor {
-    $info = (Get-Host).UI.RawUI
-    $info | Write-Output
-}
-
-function My-Set-Title { param ( [string] $title )
-    if ($title -eq "") {
-        $host.ui.RawUI.WindowTitle = $default_title
-    }
+function My-Set-Title {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string] $title
+    )
     try {
         $host.ui.RawUI.WindowTitle = $title
     } catch {
         $host.ui.RawUI.WindowTitle = $default_title
-        Write-Output "The title is not ligal, the title is set to default"
+        throw "The title is not ligal, the title is set to default"
     }
 }
 
-function My-Set-Color { param ( [string] $color )
-    if ($color -eq "") {
-        $host.ui.RawUI.ForegroundColor = $default_color
-    }
+function My-Set-Color {
+    param (
+        [Parameter(Mandatory=$true)]
+        [ArgumentCompleter({ param (
+            $commandName,
+            $parameterName,
+            $wordToComplete,
+            $commandAst,
+            $fakeBoundParameters )
+            @(
+                "Black"   , "DarkBlue", "DarkGreen", "DarkCyan",
+                "DarkRed" , "DarkMagenta", "DarkYellow", "Gray",
+                "DarkGray", "Blue"    , "Green"    , "Cyan",
+                "Red"     , "Magenta" , "Yellow"   , "White"
+            ) | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object { $_ } })]
+        [string] $color
+    )
     try {
         $host.ui.RawUI.ForegroundColor = $color
     } catch {
         $host.ui.RawUI.ForegroundColor = $default_color
-        Write-Output "The color is not ligal, the color is set to default.`n
-            Do you want to see the color list? (Y/[N])"
-        $judge = Read-Host
-        if ($judge -eq "Y") {
-            $colors = @("Black", "DarkBlue", "DarkGreen", "DarkCyan", "DarkRed", "DarkMagenta", "DarkYellow", "Gray", "DarkGray", "Blue", "Green", "Cyan", "Red", "Magenta", "Yellow", "White")
-            $colors | Write-Output
-        }
+        throw "The color is not ligal, the color is set to default."
     }
 }
 
 function My-Set-BackgroundColor { param ( [string] $color )
-    if ($color -eq "") {
-        $host.ui.RawUI.BackgroundColor = $default_background_color
-    }
+    param (
+        [Parameter(Mandatory=$true)]
+        [ArgumentCompleter({ param (
+            $commandName,
+            $parameterName,
+            $wordToComplete,
+            $commandAst,
+            $fakeBoundParameters )
+            @(
+                "Black"   , "DarkBlue", "DarkGreen", "DarkCyan",
+                "DarkRed" , "DarkMagenta", "DarkYellow", "Gray",
+                "DarkGray", "Blue"    , "Green"    , "Cyan",
+                "Red"     , "Magenta" , "Yellow"   , "White"
+            ) | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object { $_ } })]
+        [string] $color
+    )
     try {
         $host.ui.RawUI.BackgroundColor = $color
     } catch {
         $host.ui.RawUI.BackgroundColor = $default_background_color
-        Write-Output "The background color is not ligal, the background color is set to default.`n
-            Do you want to see the color list? (Y/[N])"
-        $judge = Read-Host
-        if ($judge -eq "Y") {
-            $colors = @("Black", "DarkBlue", "DarkGreen", "DarkCyan", "DarkRed", "DarkMagenta", "DarkYellow", "Gray", "DarkGray", "Blue", "Green", "Cyan", "Red", "Magenta", "Yellow", "White")
-            $colors | Write-Output
-        }
+        throw "The background color is not ligal, the background color is set to default."
     }
 }
 
@@ -242,14 +419,11 @@ function My-Start-or-Kill {
 
     $app_name = ($app_path.Split("\")[-1]).Split(".")[-2]
     if ($state -eq "start") { # Start Process
-        # Start-Process
         Start-Process $app_path
-        # Write-Output "$app_name Run"
-        Format-Status "$app_name" "Run" "Green" $current_background_color
+        Format-Status -Message $app_name -Status $true -MessageTrue "Run" -ForegroundColorTrue "Green" -BackgroundColorTrue $current_background_color
     } elseif ($state.startswith("k")) { # Kill Process
         Stop-Process -ProcessName $app_name
-        # Write-Output "$app_name Kill"
-        Format-Status "$app_name" "Kill" "Red" $current_background_color
+        Format-Status -Message $app_name -Status $false -MessageFalse "Kill" -ForegroundColorFalse "Red" -BackgroundColorFalse $current_background_color
     } elseif ($state.startswith("p")) { # show the paths
         Write-Output $app_path
     }
@@ -260,7 +434,7 @@ function My-Start-or-Kill {
 
 # A function for editing this Sctipt
 function My-Script {
-    powershell_ise $My_Script_Path
+    Get-Item -Path $My_Script_Path | Select-Object -Property * | Format-List -Property * | Write-Output
 }
 
 
@@ -268,9 +442,10 @@ function My-Script {
 
 function My-Show-Applications {
     # echo $My_Script_Path
-    Write-Output "===================="
-    (Get-Content -Path $My_Script_Path -Raw).Split(";")[-1] | Write-Output
-    Write-Output "===================="
+    # Write-Output "===================="
+    # (Get-Content -Path $My_Script_Path -Raw).Split(";")[-1] | Write-Output
+    # Write-Output "===================="
+    (Get-Item Function:) | Where-Object { $_.Name -like "App-*" } | Write-Output
 }
 
 
@@ -279,26 +454,27 @@ function My-Show-Applications {
 # A funtion for deleting Paths
 function My-Delete-App {
     param (
+        [parameter(Mandatory=$true)]
         [string]
         $app_name
     )
-    # clc -Path C:\Users\KOBAYASHI\Desktop\test.ps1 -Include "function"
     if ($app_name -eq "") {
-        Format-Status "You have to enter an app name" "ERROR" "Red" $current_background_color
-        return
+        throw "You have to enter an application name"
     }
     $app_name = "App-" + $app_name
     $pattern1 = "# $app_name"
     $content1 = Select-String -Path $My_Script_Path -Pattern $pattern1
-    $line1 = $content1.ToString().Split(":")[-2] - 1
-
     $pattern2 = "# END $app_name"
     $content2 = Select-String -Path $My_Script_Path -Pattern $pattern2
+
+    if ($null -eq $content1 -or $null -eq $content2) {
+        throw "The application is not found"
+    }
+
+    $line1 = $content1.ToString().Split(":")[-2] - 1
     $line2 = $content2.ToString().Split(":")[-2] - 1
 
     $len = $line2 - $line1 + 1
-
-    # echo $line1 $line2 $len
 
     $old_content = Get-Content -Path $My_Script_Path -ReadCount 0
     $new_content = @()
@@ -309,9 +485,9 @@ function My-Delete-App {
             $new_content += $old_content[$i]
         }
     }
-    # echo $new_content
     Set-Content -Path $My_Script_Path -Value $new_content
-    Format-Status "Path Deleted" "OK" "Green" $current_background_color
+
+    Format-Color -Message "Delete $app_name" -ForegroundColor "Green" -BackgroundColor $current_background_color
 }
 
 
@@ -320,34 +496,26 @@ function My-Delete-App {
 # A function for adding new Paths
 function My-Add-App {
     param (
-        [string]
-        $app_name,
-        [string]
-        $app_path
-    )
-
-    if ($app_name -eq "") {
-        Format-Status "You have to enter an application name" "ERROR" "Red" $current_background_color
-        return
-    }
-    if($app_path -eq "") {
-        Format-Status "You have to enter an application path" "ERROR" "Red" $current_background_color
-        return
-    }
-
+        [parameter(Mandatory=$true)]
+        [string] $app_name,
+        [parameter(Mandatory=$true)]
+        [string] $app_path
+        )
+    $app_name_tmp = $app_name
     $app_name = "App-" + $app_name
     $content = Get-Content $My_Script_Path
     if ("# $app_name" -in $content) {
         Write-Output "This path already exists. Do you want to overwrite it? (Y/[N])"
         $judge = Read-Host
         if ($judge -eq "Y") {
-            My-Delete-App $app_name
+            My-Delete-App $app_name_tmp
         } else {
+            Format-Status -Message "Add $app_name" -Status "False" -MessageFalse "Fail" -ForegroundColorFalse "Red" -BackgroundColorFalse $current_background_color
             return
         }
     }
     Add-Content $My_Script_Path "`n# $app_name`nfunction $app_name(`$state`=`"start`") {`n    `$app_path = `'$app_path`'`n    My-Start-or-Kill `$app_path `$state`n}`n`# END $app_name"
-    Format-Status "Path Added" "OK" "Green" $current_background_color
+    Format-Status -Message "Add $app_name" -Status "True" -MessageTrue "Success" -ForegroundColorTrue "Green" -BackgroundColorTrue $current_background_color
 }
 
 
@@ -355,7 +523,9 @@ function My-Add-App {
 
 # A function to make a new file and go to the file
 function My-Mkdir-and-CD {
-    param ( [string] $dirname )
+    param (
+        [parameter(Mandatory=$true)]
+        [string] $dirname )
     mkdir $dirname
     Set-Location $dirname
 }
@@ -426,12 +596,16 @@ function My-Go-Hook {
 
 # Git
 function My-Git {
+    if ($null -eq $My_Git_Path) {
+        Write-Output "You have to set the git path first"
+        return
+    }
     git add .
     # get current date
     $date = Get-Date -Format "yyMMdd"
     git commit -m $date
     # git push origin main
-    git push git@github.com:Kobayashi2003/Kobayashi28 main
+    git push $My_Git_Path
 }
 
 
@@ -472,31 +646,23 @@ Set-Alias    -Name cputemp  -Value My-Get-CPU-Temperature
 ##### -- My Scripts Start -- #####
 
 # accept all the parameters then pass them to the script $My_Script_Dir\main.py
-function My-ImgAsst {
-    python.exe $My_Script_Dir\ImgAsst\main.py $args
-    # param(
-    #     [parameter(Mandatory=$true, ValueFromPipeline=$true)]
-    #     [string]
-    #     $values
-    # )
-    # BEGIN {}
-    # # pass the parameters to the script
-    # PROCESS {
-    #     # if values exists, then pass it to the script
-    #     if ($values) {
-    #         # change the values from list to a line
-    #         python.exe $My_Script_Dir\ImgAsst\main.py $values
-    #     }
-    #     # if values does not exist, then pass the args to the script
-    #     else {
-    #         python.exe $My_Script_Dir\ImgAsst\main.py $args
-    #     }
-    # }
-    # END {}
+function My-ImgAsst { # TODO
+    param(
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [Alias('v')]
+        [string]
+        $values
+    )
+    BEGIN {}
+    # pass the parameters to the script
+    PROCESS {
+        python.exe $My_Script_Dir\ImgAsst\main.py $values
+    }
+    END {}
 }
 
 
-function My-FileExplorer {
+function My-FileExplorer { # TODO
     python.exe $My_Script_Dir\FileExplorer\main.py
 }
 
@@ -638,7 +804,7 @@ Set-PSReadLineOption -Colors @{
 Set-PSReadLineOption -HistorySavePath $My_History_Path
 
 function My-History {
-    notepad $My_History_Path
+    more $My_History_Path
 }
 
 # Set the source
@@ -1393,47 +1559,3 @@ Set-PSReadLineKeyHandler -Key F3 `
 
 ;
 ### User's Paths ###
-
-# Clash for Windows (abaondoned)
-function App-Clash($state="start") {
-    $app_path = 'D:\Item\Clash for Windows\Clash for Windows.exe'
-    My-Start-or-Kill $app_path $state > $null
-}
-# END Clash for Windows
-
-
-# Free Download Manager (abandoned)
-function App-FDM($state="start") {
-    $app_path = 'D:\Item\Free Download Manager\fdm.exe'
-    My-Start-or-Kill $app_path $state
-}
-# END Free Download Manager
-
-
-# Everything
-function App-Everything($state="start") {
-    $app_path = 'D:\Item\Everything\Everything.exe'
-    My-Start-or-Kill $app_path $state
-}
-# END Everything
-
-
-# ShareMouse (abandoned)
-function App-ShareMouse($state="start") {
-    if ($state -eq "KEY") {
-        Write-Output "SMOENT-DO-AAGEMY-1299-UN-KKPX-QTSX-X9JHRR1LXHX5ZXTB-FEEB32EF75C43CE5F220B324678701CB" | Set-Clipboard
-        return
-    }
-    $app_path = 'C:\Program Files (x86)\ShareMouse\ShareMouse.exe'
-    My-Start-or-Kill $app_path $state
-}
-# END ShareMouse
-
-
-# CodeServer (abandoned)
-function App-CodeServer { # the application in wsl
-    wsl.exe -- /mnt/d/Program/code-server-3.10.2-linux-amd64/code-server /mnt/d/Program/Code
-}
-# End CodeServer
-
-

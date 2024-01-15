@@ -1,0 +1,201 @@
+Format-Color --ShowColorTable
+Format-Color -b
+"" | Format-Color -b
+"hello world" | Format-Color -ForegroundColor:Red
+"hello world" | Format-Color -BackgroundColor Cyan
+Format-Color -ShowColorTable
+format-Color -ShowColorTable
+Get-Process  | select Id,Handles,@{ n="CPU"; e= {`
+        if ($_.CPU -lt 20) {`
+            "$(Format-Color -Message  "$($_.CPU)" -ForegroundColor:Green )"`
+        }`
+        elseif ($_.CPU -lt 50 -and $_.CPU -ge 20) {`
+            "$(Format-Color -Message  "$($_.CPU)" -ForegroundColor:Yello )"`
+        }else {`
+            "$(Format-Color -Message  "$($_.CPU)" -ForegroundColor:Red )"`
+        }`
+    }`
+},Name | Format-Table
+Get-Process
+Get-Process  | select Id,Handles,@{ n="CPU"}
+Get-Process  | select Id,Handles
+Get-Process  | select Id,Handles,@{ n="CPU"; e= {`
+        if ($_.CPU -lt 20) {`
+            "$(Format-Color -Message  "$($_.CPU)" -ForegroundColor:Green )"`
+        }`
+        elseif ($_.CPU -lt 50 -and $_.CPU -ge 20) {`
+            "$(Format-Color -Message  "$($_.CPU)" -ForegroundColor:Yello )"`
+        }else {`
+            "$(Format-Color -Message  "$($_.CPU)" -ForegroundColor:Red )"`
+        }`
+    }`
+},Name | Format-Table
+Get-Process  | select Id,Handles,@{ n="CPU"; e= {`
+        if ($_.CPU -lt 20) {`
+            "$(Format-Color -Message  "$($_.CPU)" -ForegroundColor:Green )"`
+        }`
+        elseif ($_.CPU -lt 50 -and $_.CPU -ge 20) {`
+            "$(Format-Color -Message  "$($_.CPU)" -ForegroundColor:Yello )"`
+        }else {`
+            "$(Format-Color -Message  "$($_.CPU)" -ForegroundColor:Red )"`
+        }`
+    }`
+}
+Get-Process  | select Id,Handles,@{ n="CPU"; e= {`
+        if ($_.CPU -lt 20) {`
+            "$(Format-Color -Message  "$($_.CPU)" -ForegroundColor:Green )"`
+        }`
+        elseif ($_.CPU -lt 50 -and $_.CPU -ge 20) {`
+            "$(Format-Color -Message  "$($_.CPU)" -ForegroundColor:Yello )"`
+        }else {`
+            "$(Format-Color -Message  "$($_.CPU)" -ForegroundColor:Red )"`
+        }`
+    }`
+},Name | select -First 1 | fl
+format-Color "hello world" -f DarkYellow
+format-Color -m "hello world" -f DarkYellow
+format-Color -m "hello world" -f DarkBlue
+format-Color -m "hello world" -f:DarkBlue
+format-Color -m "hello world" -ForegroundColor:DarkGreen
+"hello world" | format-Color -ForegroundColor:DarkGreen
+"hello world" | format-Color -BackgroundColor:DarkRed
+"hello world" | format-Color -ForegroundColor:DarkRed
+format-Color -m "hello world" -ForegroundColor:DarkGreen
+Get-Process  | select Id,Handles,@{ n="CPU"; e= {`
+        if ($_.CPU -lt 20) {`
+            "$(Format-Color -Message  "$($_.CPU)" -ForegroundColor:Green )"`
+        }`
+        elseif ($_.CPU -lt 50 -and $_.CPU -ge 20) {`
+            "$(Format-Color -Message  "$($_.CPU)" -ForegroundColor:Yello )"`
+        }else {`
+            "$(Format-Color -Message  "$($_.CPU)" -ForegroundColor:Red )"`
+        }`
+    }`
+},Name | select -First 1 | fl
+Get-Process  | select Id,Handles,@{ n="CPU"; e= {`
+        if ($_.CPU -lt 20) {`
+            "$(Format-Color -Message  "$($_.CPU)" -ForegroundColor:Green )"`
+        }`
+        elseif ($_.CPU -lt 50 -and $_.CPU -ge 20) {`
+            "$(Format-Color -Message  "$($_.CPU)" -ForegroundColor:Yello )"`
+        }else {`
+            "$(Format-Color -Message  "$($_.CPU)" -ForegroundColor:Red )"`
+        }`
+    }`
+},Name | Format-Table
+get-item 
+Get-Item "function:"
+Write-Host "hello".PadRight(5) + "world"
+Write-Host "hello".PadRight(2) + "world"
+Write-Host "hello".PadRight(4) + "world"
+Write-Host "hello".PadRight(7) + "world"
+write-host "hello" + "world"
+write-host "hello""world"
+write-host ("hello" + "world")
+write-host ("hello".PadRight(5) + "world")
+write-host ("hello".PadRight(6) + "world")
+write-host ("hello".PadRight(2) + "world")
+""
+"false".Length
+Write-Host ("".PadRight(5) + "hello")
+"".ToType()
+"".GetType(`
+)
+1.gettype()
+Get-TypeData(1)
+(Get-Item function:Get-Item)
+Get-Item function:Get-Item
+Get-Item function:
+Get-Item function:Get
+Get-Item function
+Get-Item function:
+(Get-Item function:)[1]
+((Get-Item function:)[1]).ToString()
+Get-Item function:
+Get-Item Function:\App-FDM
+(Get-Item Function:\App-FDM).GetType()
+"".ToType()
+"".GetType()
+format-color -ForegroundColor Black -ShowColorTable
+format-color -ForegroundColor Black
+format-color -ForegroundColor Black -ShowColorTable
+Conda-Init
+(& "D:\Program\anaconda3\Scripts\conda.exe" "shell.powershell" "hook") | Out-String | Invoke-Expression
+My-Get-UI-Infor
+My-Set-Title
+my-Get-UI-Infor
+My-Set-Title
+My-Set-Title ""
+My-Set-Title ""
+My-Set-Color hello
+My-Set-Color hello
+. 'D:\Program\Code\Kobayashi28\1_Programing_Language\PowerShell\Microsoft.PowerShell_profile.ps1'
+my-Set-Color hello
+Format-Status -Message "hello world"
+Format-Status -Message "hello world" -Status $true
+Format-Status hello $true
+Format-Status -m hello -s $true
+mkcd
+Get-Module -ListAvailable
+Uninstall-Module Get-ChildItemColor
+Install-Module -Name get-childitemcolor  -Scope CurrentUser -Force
+Get-Module -ListAvailable
+Get-Process -help
+Get-Process /?
+My-Get-Process
+my-get-p
+My-Get-Process
+Get-Process  | select Id,Handles,@{ n="CPU"; e= {`
+        if ($_.CPU -lt 20) {`
+            "$(Format-Color -Message  "$($_.CPU)" -ForegroundColor:Green )"`
+        }`
+        elseif ($_.CPU -lt 50 -and $_.CPU -ge 20) {`
+            "$(Format-Color -Message  "$($_.CPU)" -ForegroundColor:Yello )"`
+        }else {`
+            "$(Format-Color -Message  "$($_.CPU)" -ForegroundColor:Red )"`
+        }`
+    }`
+},Name | Format-Table
+My-Get-Process
+My-Get-Process
+Get-Process $args | Select-Object Id, Handles, CPU, Name
+Get-Process | Select-Object Id, Handles, CPU, Name
+My-Get-Process
+get-process
+My-Get-Process
+$current_background_color
+$current_background_color.GetType()
+$current_background_color
+$colorMapping[$current_background_color.ToString()]
+        $colorMapping = @{`
+            "Black"   = 30; "DarkRed"    = 31; "DarkGreen" = 32; "DarkYellow" = 33`
+            "DarkBlue"= 34; "DarkMagenta"= 35; "DarkCyan"  = 36; "Gray"       = 37`
+            "DarkGray"= 90; "Red"        = 91; "Green"     = 92; "Yello"      = 93`
+            "Blue"    = 94; "Magenta"    = 95; "Cyan"      = 96; "White"      = 97`
+        }
+$colorMapping[$current_background_color.ToString()]
+Format-Color -Message "Checking Environment..." -ForegroundColor "Yellow"
+Format-Color -Message "Checking Environment..." -ForegroundColor "red"
+Format-Color -Message "Checking Environment..." -ForegroundColor "yellow"
+ d
+Format-Color -Message "Checking Environment..." -ForegroundColor "yellow" -BackgroundColor $current_background_color
+Format-Color -Message "Checking Environment..." -ForegroundColor "yellow" -BackgroundColor Black
+$current_background_color
+Format-Color -Message "Checking Environment..." -ForegroundColor "yellow" -BackgroundColor $current_background_color.ToString()
+Format-Color -Message "Checking Environment..." -ForegroundColor "yellow" -BackgroundColor $current_background_color
+format-Color -Message "Checking Environment..." -ForegroundColor "yellow" -BackgroundColor $current_background_color.ToString()
+format-Color -Message "Checking Environment..." -ForegroundColor "yellow" -BackgroundColor $current_background_color
+format-Color -Message "Checking Environment..." -ForegroundColor "yellow" -BackgroundColor $current_background_color.ToString()
+format-Color -Message "Checking Environment..." -ForegroundColor "yellow" -BackgroundColor $current_background_color
+My-Show-Applications
+Get-Item Function:\APP-
+Get-Item Function:\APP-*
+My-Show-Applications
+Get-Item Function: | Where-Object { $_.Name -like "App-*" }
+(Get-Item Functiona:) | Where-Object { $_.Name -like "App-*" }
+(Get-Item Function:) | Where-Object { $_.Name -like "App-*" }
+My-Show-Applications
+My-Add-App test test
+My-Delete-App test
+My-History
+My-Get-CPU-Temperature
