@@ -749,6 +749,8 @@ def main_loop():
     workpath = os.path.abspath(workpath)
     img_files = fd_files(workpath, depth=MAX_DEPTH)
     elem_count = len(img_files)
+    if elem_count == 0:
+        raise ValueError('No image files found')
 
     for i, img_file in enumerate(img_files):
         args = (img_file, )

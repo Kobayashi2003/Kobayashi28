@@ -169,7 +169,7 @@ def get_proc_args():
 
     parser = argparse.ArgumentParser(description='Image Assistant')
     parser.add_argument('path', type=str, nargs='?', default=None, help='the path of the image')
-    parser.add_argument('-p', '--path', type=str, default=None, help='the path of the image')
+    # parser.add_argument('-p', '--path', type=str, default=None, help='the path of the image')
     parser.add_argument('-f', '--fit',  type=int, default=3, help='the fit mode of the image')
     parser.add_argument('-m', '--mode', type=str, default='RGB', help='the mode of the image')
     parser.add_argument('-s', '--size', type=int, nargs=2, default=None, help='the size of the image')

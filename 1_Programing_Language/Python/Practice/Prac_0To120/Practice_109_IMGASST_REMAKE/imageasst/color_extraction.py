@@ -248,6 +248,8 @@ def simple_main_loop():
     # image path
     work_dir = os.path.abspath(args_path) if args_path is not None else os.getcwd()
     img_list = fd_files(work_dir, depth=MAX_DEPTH, filter=(NAME_FILTER(r'.*\.(jpg|jpeg|png|bmp|ico|tiff?)$') & PATH_FILTER(r'.*') & SIZE_FILTER(0, 1e10)), sorter=NATURAL_SORT())
+    if len(img_list) == 0:
+        raise ValueError('Error: no image file found in the path: {}'.format(work_dir))
 
     pos = (0, 0)
 
