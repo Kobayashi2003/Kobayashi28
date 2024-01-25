@@ -89,3 +89,23 @@ git push origin master
 ```
 
 [参考](https://git-lfs.github.com/)
+
+
+# 解决使用git时遇到Failed to connect to github.com port 443 after 21090 ms: Couldn‘t connect to server
+
+- 挂梯子时出现报错，一般为挂VPN导致本机系统端口号与git的端口号不一致造成
+
+解决方法：
+
+1. 查看本机端口号
+2. 设置git端口号与本机端口号一致
+
+```bash
+git config --global http.proxy 127.0.0.1:7890
+
+git config --global https.proxy 127.0.0.1:7890
+```
+
+3. 再次push
+
+[参考](https://blog.csdn.net/qq_40296909/article/details/134285451)

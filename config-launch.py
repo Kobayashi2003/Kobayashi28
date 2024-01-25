@@ -1,7 +1,8 @@
 import json
 import os, sys
 
-path = "D:/Program/Code/.vscode/launch.json"
+# path = "D:/Program/Code/.vscode/launch.json"
+path = os.curdir + "/.vscode/launch.json"
 data = None
 with open(path, 'r', encoding="UTF=8") as f:
     if f is None:
@@ -41,7 +42,7 @@ while True:
 
     elif func_num == 1:
         # console or externalcosole
-        if "console" in data['configurations'][index]: 
+        if "console" in data['configurations'][index]:
             console_type_now = data['configurations'][index]['console']
             if console_type_now == "integratedTerminal":
                 data['configurations'][index]['console'] = "externalTerminal"
@@ -71,8 +72,8 @@ while True:
 
     elif func_num == 3:
         print(json.dumps(data['configurations'][index], indent=4))
-        
-# write the data to the file 
+
+# write the data to the file
 if update_flg:
     with open(path, 'w', encoding='UTF-8') as f:
         json.dump(data, f, indent=4)
