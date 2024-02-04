@@ -1,10 +1,12 @@
+using namespace System.Management.Automation
+using namespace System.Management.Automation.Language
 
-$My_Script_Path = $MyInvocation.MyCommand.Definition
-$My_Script_Dir  = Split-Path $My_Script_Path
+$My_Script_Path  = $MyInvocation.MyCommand.Definition
+$My_Script_Dir   = Split-Path $My_Script_Path
 $My_History_Path = $My_Script_Dir + "\my-history.txt"
-$Conda_Path  = "D:\Program\anaconda3\Scripts\conda.exe" # the path of conda.exe
-$Remote_Repository_Path = "https://github.com/Kobayashi2003/Kobayashi28.git" # the path of the remote repository of git
-$Branch_Name = "main" # the name of the branch of git
+$Conda_Path      = "" # the path of conda.exe
+$Remote_Repository_Path = "" # the path of the remote repository of git
+$Branch_Name     = "" # the name of the branch of git
 
 
 ##### -- Function Start -- #####
@@ -808,8 +810,11 @@ If (-Not (Test-Path Variable:PSise)) {  # Only run this in the console and not i
 
 # [F3]: ShowBinding (show the binding of the current key)
 
+
 # import the module
 Import-Module PSReadline
+
+Set-PSReadLineOption -EditMode Emacs
 
 # The color option
 Set-PSReadLineOption -Colors @{
@@ -825,7 +830,6 @@ Set-PSReadLineOption -Colors @{
 }
 
 # set the file path to save the history
-# $My_History_Path = "C:\Users\KOBAYASHI\Documents\WindowsPowerShell\my-history.txt"
 Set-PSReadLineOption -HistorySavePath $My_History_Path
 Set-PSReadLineOption -HistorySaveStyle SaveIncrementally
 
@@ -837,19 +841,14 @@ function My-History {
 Set-PSReadLineOption -PredictionSource History
 Set-PSReadLineOption -PredictionViewStyle ListView
 
-# other options
-Set-PSReadLineOption -HistoryNoDuplicates
-Set-PSReadLineOption -HistorySearchCursorMovesToEnd
-
 # Shows navigable menu of all options when hitting Tab
 Set-PSReadLineKeyHandler -Key Tab -Function MenuComplete
 
 # Autocompletion for arrow keys
+Set-PSReadLineOption -HistoryNoDuplicates
+Set-PSReadLineOption -HistorySearchCursorMovesToEnd
 Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
 Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
-
-# It will move the cursor to the end of the line when using the arrow keys to navigate through history
-Set-PsReadLineOption -HistorySearchCursorMovesToEnd
 
 # Alt + w to save the current command in the history but do not execute it
 $parmeters = @{
@@ -958,7 +957,6 @@ Set-PSReadLineKeyHandler -Key Alt+b -Function ShellBackwardWord
 Set-PSReadLineKeyHandler -Key Alt+f -Function ShellForwardWord
 Set-PSReadLineKeyHandler -Key Alt+B -Function SelectShellBackwardWord
 Set-PSReadLineKeyHandler -Key Alt+F -Function SelectShellForwardWord
-
 
 #region Smart Insert/Delete
 
