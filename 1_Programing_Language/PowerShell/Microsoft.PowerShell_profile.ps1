@@ -2,9 +2,9 @@
 $My_Script_Path = $MyInvocation.MyCommand.Definition
 $My_Script_Dir  = Split-Path $My_Script_Path
 $My_History_Path = $My_Script_Dir + "\my-history.txt"
-$Conda_Path  = "" # the path of conda.exe
-$Remote_Repository_Path = "" # the path of the remote repository of git
-$Branch_Name = "" # the name of the branch of git
+$Conda_Path  = "D:\Program\anaconda3\Scripts\conda.exe" # the path of conda.exe
+$Remote_Repository_Path = "https://github.com/Kobayashi2003/Kobayashi28.git" # the path of the remote repository of git
+$Branch_Name = "main" # the name of the branch of git
 
 
 ##### -- Function Start -- #####
@@ -283,12 +283,26 @@ function My-Check-Module {
     param (
         [Parameter(Mandatory=$true)]
         [string]
-        $module_name
+        $module_name,
+
+        [Parameter(Mandatory=$false)]
+        [string]
+        $module_version = $null
     )
     $module = Get-Module -ListAvailable | Where-Object { $_.Name -eq $module_name }
+    if ($module.Count -gt 1) {
+        $module = $module | Sort-Object -Property Version -Descending | Select-Object -First 1
+    }
+
     if ($null -eq $module) {
         return $false
     }
+    if ($null -ne $module_version -and $module_version -ne "") {
+        if ($module.Version -lt $module_version) {
+            return $false
+        }
+    }
+
     return $true
 }
 
@@ -318,19 +332,29 @@ function My-Check-Environment {
         "PSReadline",
         "PSColor"
     )
-    $modules2install = @()
+
+    $modules_version = @{
+        "PSReadline" = "2.3.4"
+    }
 
     foreach ($module in $modules2check) {
         $message = "Checking Module $module..."
-        $status = Format-Status -Message $message -Task { My-Check-Module -module_name $module } -MessageTrue "Installed" -MessageFalse "Not Installed" -ReturnStatus
-        if (-not $status) {
-            $modules2install += $module
+        if ($null -ne $modules_version[$module] -and $modules_version[$module] -ne "") {
+            $status = Format-Status -Message $message -Task { My-Check-Module -module_name $module -module_version $modules_version[$module] } -MessageTrue "Installed" -MessageFalse "Not Installed" -ReturnStatus
+        } else {
+            $status = Format-Status -Message $message -Task { My-Check-Module -module_name $module } -MessageTrue "Installed" -MessageFalse "Not Installed" -ReturnStatus
         }
-    }
-
-    if ($modules2install.Length -gt 0) {
-        $message = "Installing Modules..."
-        Format-Status -Message $message -Task { Install-Module -Name $modules2install -Scope CurrentUser -Force } -MessageTrue "Installed" -MessageFalse "Error"
+        if (-not $status) {
+            if ($null -eq $modules_version[$module] -or $modules_version[$module] -eq "") {
+                $message = "Installing Module $module..."
+                Format-Status -Message $message -Task { Install-Module -Name $module -Scope CurrentUser -Force } -MessageTrue "Installed" -MessageFalse "Error"
+            } else {
+                $message = "Uninstalling old version of Module $module..."
+                Format-Status -Message $message -Task { Uninstall-Module -Name $module -Force -AllVersions } -MessageTrue "Uninstalled" -MessageFalse "Error"
+                $message = "Installing Module $module..."
+                Format-Status -Message $message -Task { Install-Module -Name $module -Scope CurrentUser -Force -RequiredVersion $modules_version[$module] } -MessageTrue "Installed" -MessageFalse "Error"
+            }
+        }
     }
 
     $message = "Initializing Conda..."
@@ -597,7 +621,7 @@ function My-Go-Hook {
 
 # Git
 function My-Git {
-    if ($null -eq $My_Git_Path) {
+    if ($null -eq $Remote_Repository_Path) {
         Write-Output "You have to set the git path first"
         return
     }
@@ -803,13 +827,19 @@ Set-PSReadLineOption -Colors @{
 # set the file path to save the history
 # $My_History_Path = "C:\Users\KOBAYASHI\Documents\WindowsPowerShell\my-history.txt"
 Set-PSReadLineOption -HistorySavePath $My_History_Path
+Set-PSReadLineOption -HistorySaveStyle SaveIncrementally
 
 function My-History {
     more $My_History_Path
 }
 
-# Set the source
+# prediction configuration
 Set-PSReadLineOption -PredictionSource History
+Set-PSReadLineOption -PredictionViewStyle ListView
+
+# other options
+Set-PSReadLineOption -HistoryNoDuplicates
+Set-PSReadLineOption -HistorySearchCursorMovesToEnd
 
 # Shows navigable menu of all options when hitting Tab
 Set-PSReadLineKeyHandler -Key Tab -Function MenuComplete
