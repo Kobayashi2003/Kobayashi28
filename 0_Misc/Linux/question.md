@@ -131,7 +131,7 @@ function my_vi_bindings
     set  -g fish_cursor_visual blck
     set  -g fish_cursor_replace_one underscore
 end
-set -g fish_ke_bindings my_vi_bindings
+set -g fish_vi_key_bindings my_vi_bindings
 ```
 
 
@@ -156,4 +156,24 @@ networkingMode=mirrored
 dnsTunneling=true
 firewall=true
 autoProxy=true
+```
+
+
+# 如何使 ranger 在退出时留在所选目录
+
+- bash or zsh
+```shell
+which "ranger" >/dev/null 2>&1
+if [ $? -eq 0 ]; then
+  alias ranger='ranger --choosedir=$HOME/.rangerdir; LASTDIR=`cat $HOME/.rangerdir`; cd "$LASTDIR"'
+fi
+```
+
+- fish
+```shell
+function ranger
+  command ranger --choosedir=$HOME/.rangerdir
+  set -l LASTDIR (cat $HOME/.rangerdir)
+  cd $LASTDIR
+end
 ```
