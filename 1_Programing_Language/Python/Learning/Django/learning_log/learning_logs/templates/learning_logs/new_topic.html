@@ -1,0 +1,21 @@
+{% extends 'learning_logs/base.html' %}
+<!-- 继承 base.html -->
+
+{% block content %}
+
+    <p>Add a new topic:</p>
+
+    <form action="{% url 'learning_logs:new_topic' %}" method="post">
+    <!-- 定义了一个 HTML 表单，实参 action 告诉服务器将提交的表单数据发送到哪里。这里将它发回 new_topic()。实参 method 让浏览器以 POST 请求的方式提交数据 -->
+
+        {% csrf_token %}
+        <!-- Django 使用该模板标签来防止攻击者利用表单来获得对服务器未经授权的访问（这种攻击成为跨站请求伪造） -->
+
+        {{ form.as_p }}
+        <!-- 显示表单，从中可知 Django 使得完成显示表单等任务有多简单：只需包含该模板变量，就可以让 Django 自动创建显示表单所需的全部字段。修饰符 as_p 让 Django 以段落格式渲染所有表单元素，这是一种整洁地显示表单的简单方式 -->
+
+        <button name="submit">Add topic</button>
+        <!-- Django 不会为表单创建提交按钮，因此我们自己定义一个 -->
+    </form>
+
+{% endblock content %}
