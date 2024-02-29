@@ -12,7 +12,6 @@ def MatrixMul(A, B):
     :param B: list[lsit[int]]
     :return:  list[list[int]]
     """
-
     return [[sum(A[i][k] * B[k][j] for k in range(len(A[0]))) for j in range(len(B[0]))] for i in range(len(A))]
 
 
