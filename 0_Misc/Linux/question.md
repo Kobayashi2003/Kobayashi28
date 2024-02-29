@@ -177,3 +177,31 @@ function ranger
   cd $LASTDIR
 end
 ```
+
+
+
+# 安装了VMware Tools，但无法实现主机与虚拟机之间的文件拖拽和复制粘贴
+
+[REF](https://www.cnblogs.com/zhouzhihao/p/16486787.html)
+
+
+1. 卸载VMware Tools
+
+```shell
+sudo apt-get autoremove open-vm-tools
+```
+
+2. 联网安装VMware Tools
+
+```shell
+sudo apt-get install open-vm-tools-desktop
+```
+
+如果出错了，尝试执行下面两条指令：
+
+```shell
+sudo apt-get update
+sudo apt-get instal open-vm-tools-desktop fuse
+```
+
+3. 重启虚拟机即可
