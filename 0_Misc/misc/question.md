@@ -22,3 +22,16 @@
 ```powershell
 C:\Windows\System32\reg.exe DELETE "HKCU\Software\Microsoft\Command Processor" /v AutoRun /f
 ```
+
+# 浏览器打印时背景色丢失
+
+添加以下css代码到打印样式表中
+
+```css
+/* google chrome explorer */
+-webkit-print-color-adjust: exact;
+
+/* firefox explorer */
+-moz-print-color-adjust: exact;
+color-adjust: exact;
+```
