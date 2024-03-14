@@ -3,9 +3,12 @@
 .vscode/
 .pytest_cache/
 
+__pycache__/
+
 Others/
 Temp/
 Debug/
 WorkPlace/
+
 
 largeFile.txt
