@@ -109,3 +109,8 @@ git config --global https.proxy 127.0.0.1:7890
 3. 再次push
 
 [参考](https://blog.csdn.net/qq_40296909/article/details/134285451)
+
+
+# OpenSSL SSL_connect: Connection was reset in connection to github.com:443
+
+- 挂梯子时报错，同上为本机系统端口号与git的端口号不一致造成，解决方法同上
