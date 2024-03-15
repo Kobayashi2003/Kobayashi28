@@ -40,13 +40,13 @@ def group_by_time(path: str, year: bool, month: bool, day: bool, clean: bool) ->
                 if not os.listdir(dir_path):
                     os.rmdir(dir_path)
                     log_msg_stream.write('directory: {} removed\n'.format(dir_path))
-            
+
     log_msg_stream.seek(0)
     return log_msg_stream.read()
 
 
 if __name__ == '__main__':
-    import argparse    
+    import argparse
     import sys
     import os
 
@@ -54,6 +54,7 @@ if __name__ == '__main__':
     parser.add_argument('path', type=str, nargs='?', default=None, help='the path of the directory')
     parser.add_argument('-c', '--clean', action='store_true', help='clean the directory')
     parser.add_argument('-b', '--backup', action='store_true', help='backup the original file group')
+    parser.add_argument('-s', '--silent', action='store_true', help='silent mode')
     time_mode_group = parser.add_mutually_exclusive_group()
     time_mode_group.add_argument('--year',   action='store_true', help='group by year')
     time_mode_group.add_argument('--month',  action='store_true', help='group by month')
@@ -67,3 +68,6 @@ if __name__ == '__main__':
         log_msg = 'group_by_time: {}\n'.format(e)
         sys.stderr.write(log_msg)
         exit(1)
+
+    if not args.silent:
+        sys.stdout.write(log_msg)

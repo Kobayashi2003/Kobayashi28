@@ -5,7 +5,7 @@ def exch_code(path: str, encode: str, decode: str, cover: bool) -> str:
 
     if not os.path.exists(path):
         raise FileNotFoundError('exch_code: no such file or directory')
-    
+
     if os.path.isdir(path):
         raise IsADirectoryError('exch_code: is a directory')
 
@@ -38,17 +38,16 @@ if __name__ == "__main__":
     parser.add_argument('-e', '--encode', type=str, default='GBK', help='the encoding of the file')
     parser.add_argument('-d', '--decode', type=str, default='Shift_JIS', help='the decoding of the file')
     parser.add_argument('-c', '--cover', action='store_true', help='cover the original file')
-    parser.add_argument('-s', '--string', type=str, default=None, help='the string to exchange code')
-
+    parser.add_argument('-b', '--backup', action='store_true', help='backup the original file')
     args = parser.parse_args()
 
-    if args.string:
-        try:
-            sys.stdout.write(args.string.encode(args.encode).decode(args.decode, 'ignore') + '\n')
-        except Exception as e:
-            sys.stderr.write(str(e) + '\n')
-            sys.exit(1)
-        sys.exit(0)
+    if not args.cover and args.backup:
+        sys.stderr.write('exch_code: backup is only available when cover is set\n')
+        sys.exit(1)
+    if args.cover and args.backup:
+        with open(args.path, 'r', encoding=args.encode) as ori:
+            with open(args.path + '.bak', 'w', encoding=args.encode) as bak:
+                bak.write(ori.read())
 
     try:
         exchange = exch_code(args.path, args.encode, args.decode, args.cover)
