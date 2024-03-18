@@ -1,3 +1,5 @@
+import functools
+from typing import NoReturn
 
 # define a exception class when unification fails
 class UnificationError(Exception):
@@ -14,7 +16,7 @@ class Term:
 
     __vars = ['x', 'y', 'z', 'u', 'v', 'w']
 
-    def __init__(self, term: str):
+    def __init__(self, term: str) -> NoReturn:
 
         import re
 
@@ -105,7 +107,7 @@ class Term:
             term = str(term)
         
         if self.type == 'const':
-            raise ValueError('The term is a constant.')
+            return self
         if self.type == 'var':
             return Term(term) if self.name == var else self
         if self.type == 'func':
@@ -152,7 +154,7 @@ def most_general_unifier_recursion(atomic_rule1: str, atomic_rule2: str) -> dict
     # because in the specification, the predicate is started with a capital letter
     # But for the convenience of the subsequent recursive implementation of the function, 
     # the definition of the predicate is relaxed here
-    pattern = re.compile(r'¬?([A-Za-z][A-Za-z0-9_]*)\((.*)\)')
+    pattern = re.compile(r'[¬~]?([A-Za-z][A-Za-z0-9_]*)\((.*)\)')
     match1 = pattern.match(atomic_rule1)
     match2 = pattern.match(atomic_rule2)
 
@@ -171,6 +173,9 @@ def most_general_unifier_recursion(atomic_rule1: str, atomic_rule2: str) -> dict
     if len(terms1) != len(terms2):
         raise UnificationError('The number of arguments is different.')
 
+    # for more natural handling of variable substitution and lookup, a custom Term class is used here
+    # sure, you can also use regular expressions to implement it, 
+    # you can see my implementation in first-order resolution
     terms1 = [Term(term) for term in terms1]
     terms2 = [Term(term) for term in terms2]
 
@@ -200,9 +205,11 @@ def most_general_unifier_recursion(atomic_rule1: str, atomic_rule2: str) -> dict
     return unifier
 
 
+@functools.lru_cache(maxsize=None)
 def most_general_unifier(atomic_rule1: str, atomic_rule2: str) -> dict:
 
-    """Return the most general unifier of two atomic rules.
+    """The driver function of most_general_unifier_recursion. 
+
     Parameters:
         atomic_rule1: str
         atomic_rule2: str
