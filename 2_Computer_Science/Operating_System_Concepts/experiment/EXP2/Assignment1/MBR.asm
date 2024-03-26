@@ -49,5 +49,8 @@ mov [gs:2*10], ax
 
 jmp $ ; jump to current address (infinite loop)
 
-times 510-($-$$) db 0 ; fill the rest of the sector with 0s
-dw 0x55, 0xaa ; boot signature
+; times, an assembly pseudo-instruction, used to repeat the specified number of operations
+; $ is the current address, $$ is the start of the current section
+; fill the rest of the sector with 0s
+times 510-($-$$) db 0  
+db 0x55, 0xaa ; boot signature, meaning this is a bootable mbr

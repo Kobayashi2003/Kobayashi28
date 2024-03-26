@@ -205,3 +205,113 @@ sudo apt-get instal open-vm-tools-desktop fuse
 ```
 
 3. 重启虚拟机即可
+
+
+
+# Unable to acquire the dpkg frontend lock (/var/lib/dpkg/lock-frontend)
+
+环境：Ubuntu 18.04-amd64
+
+apt, apt-get 执行报错
+
+
+1. 进程中存在与apt相关的正在运行的进程：
+
+- 首先检查是否在运行apt、apt-get相关的进程
+
+```shell
+ps aux | grep -i apt
+```
+
+- 如果存在相关进程，可以使用kill命令杀死进程，或者等待进程结束后再执行apt、apt-get命令。
+
+```shell
+sudo kill -9 <pid>
+```
+
+- 或者更为简单粗暴的：
+
+```shell
+sudo killall apt apt-get
+```
+
+2. 锁文件未被正常清除
+
+`lock file`用于防止两个或多个进程同时使用相同的数据。当运行apt、apt-get命令时，会创建一个`lock file`。当前一个apt、apt-get指令未正常终止时，`lock file`未被正常清除，将会导致后续apt、apt-get指令无法正常执行。
+
+- 使用`lsof`指令获取持有lock file的进程ID，如果存在相关的进程，需要kill掉：
+
+```shell
+lsof /var/lib/dpkg/lock
+lsof /var/lib/apt/lists/lock
+lsof /var/cache/apt/archives/lock
+```
+
+- 删除所有的lock file
+
+```shell
+sudo rm /var/lib/apt/lists/lock
+sudo rm /var/cache/apt/archives/lock
+sudo rm /var/lib/dpkg/lock*
+```
+
+- 重新配置dpkg
+
+```shell
+sudo dpkg --configure -a
+```
+
+如果仍存在如下的报错：
+
+```shell
+dpkg: error: dpkg frontend is locked by another process
+```
+
+- 找出正在锁定lock file的进程，然后kill掉：
+
+```shell
+lsof /var/lib/dpkg/lock-fronted
+kill -9 <pid>
+```
+
+- 删除lock file，并重新配置：
+
+```shell
+sudo rm /var/lib/dpkg/lock-frontend
+sudo dpkg --configure -a
+```
+
+
+# 为WSL2做快照与回滚
+
+1. 查看已安装的系统：
+
+```shell
+wsl --list --verbose
+```
+
+2. 为系统创建快照：
+
+```shell
+wsl --export Ubuntu-20.04 D:\wsl\Ubuntu-20.04\Ubuntu-20.04-snapshot.tar
+```
+
+3. 回滚系统：
+
+- 注销当前系统
+
+```shell
+wsl --unregister Ubuntu-20.04
+```
+
+- 回滚
+
+```shell
+wsl --import Ubuntu-20.04 D:\wsl\Ubuntu-20.04\ D:\wsl\Ubuntu-20.04\Ubuntu-20.04-snapshot.tar --version 2
+```
+
+- 设置默认登陆用户为安装时用户名
+
+```shell
+unbuntu2004 config --default-user [USERNAME]
+```
