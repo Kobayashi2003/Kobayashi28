@@ -230,6 +230,7 @@ def colors2str_seq(im_results_seq, *, frame_size=None, pos=None):
 
     fs_to = []
     with futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+    # with futures.ProcessPoolExecutor(max_workers=MAX_WORKERS) as executor:
         for im_result in results:
 
             _, width, height, mode, colors = im_result.data

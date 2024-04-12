@@ -35,3 +35,12 @@ C:\Windows\System32\reg.exe DELETE "HKCU\Software\Microsoft\Command Processor" /
 -moz-print-color-adjust: exact;
 color-adjust: exact;
 ```
+
+
+# Windows 7 的VMware虚拟机中无法安装 VMware Tools：安装过程提示驱动签名问题
+
+[解决](https://blog.csdn.net/teisite/article/details/117675403)
+
+由于微软更新了驱动程序签名算法，2019年开始弃用SHA1，改用SHA2。猜测VMware Tools驱动程序使用SHA2，而Windows7只支持SHA1，需要下载安装补丁kb4474419来支持SHA2算法。下载地址：Microsoft Update Catalog
+
+建议主机搭建ftp服务器，虚拟机直接访问ftp服务器来下载。ftp工具推荐3CDaemon，只有200KB+，非常轻量。

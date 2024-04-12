@@ -6,8 +6,10 @@ class Evaluate(object):
     # 棋子棋力得分
     single_chess_point = {
         'c': 989,   # 车
-        'm': 439,   # 马
-        'p': 442,   # 炮
+        # 'm': 439,   # 马
+        # 'p': 442,   # 炮
+        'm': 680,
+        'p':600,
         's': 226,   # 士
         'x': 210,   # 象
         'z': 55,    # 卒
@@ -138,6 +140,176 @@ class ChessAI(object):
     def __init__(self, computer_team):
         self.team = computer_team
         self.evaluate_class = Evaluate(self.team)
+        self.last_step = float('inf')
+
+    def alpha_beta(self, chessboard: ChessBoard, depth, alpha, beta, is_max):
+
+        # This Alpha-Beta pruning algorithm is based on recursion. 
+        # The termination condition of the recursion is to reach the specified depth or the leaf node.
+        # Due to the diversity of chess moves, we cannot discuss all cases of the subsequent moves of the current situation at once,
+        # so we often need to artificially specify the depth to prevent the algorithm space from being too large.
+
+        # if reach the leaf node, then return the evaluate value
+        if depth == 0:
+            return self.evaluate_class.evaluate(chessboard)
+
+        if is_max:
+            max_eval = -float('inf')
+            count_child = 0
+            for chess in chessboard.get_chess():
+                    
+                if chess.team != self.team:
+                    continue
+
+                put_down_position = chessboard.get_put_down_position(chess)
+                count_child += len(put_down_position)
+
+                for pos in put_down_position:
+                    # save the old position and old chess on the new position 
+                    old_row, old_col = chess.row, chess.col
+                    chess_bak = chessboard.chessboard_map[pos[0]][pos[1]]
+                    # move the current chess to the new position 
+                    chess.row, chess.col = pos[0], pos[1]
+                    chessboard.chessboard_map[old_row][old_col] = None
+                    chessboard.chessboard_map[pos[0]][pos[1]] = chess
+
+                    eval = self.alpha_beta(chessboard, depth - 1, alpha, beta, False)
+
+                    # restore the old position and old chess on the new position
+                    chess.row, chess.col = old_row, old_col
+                    chessboard.chessboard_map[old_row][old_col] = chess
+                    chessboard.chessboard_map[pos[0]][pos[1]] = chess_bak
+
+                    # udpate the alpha value of the max node 
+                    max_eval = max(max_eval, eval)
+                    alpha = max(alpha, eval)
+                    # if alpha is greater than beta, then cut the branch
+                    if beta <= alpha:
+                        break
+            # if count_child is 0, it means that there is no valid move for the current player, 
+            # so we need to evaluate the current situation
+            return max_eval if count_child > 0 else self.evaluate_class.evaluate(chessboard=chessboard)
+        else:
+            min_eval = float('inf')
+            count_child = 0
+            for chess in chessboard.get_chess():
+
+                if chess.team == self.team:
+                    continue
+
+                put_down_position = chessboard.get_put_down_position(chess)
+                count_child += len(put_down_position)
+
+                for pos in put_down_position:
+                    # save the old position and old chess on the new position
+                    old_row, old_col = chess.row, chess.col
+                    chess_bak = chessboard.chessboard_map[pos[0]][pos[1]]
+                    # move the current chess to the new position
+                    chess.row, chess.col = pos[0], pos[1]
+                    chessboard.chessboard_map[old_row][old_col] = None
+                    chessboard.chessboard_map[pos[0]][pos[1]] = chess
+
+                    eval = self.alpha_beta(chessboard, depth - 1, alpha, beta, True)
+
+                    # restore the old position and old chess on the new position
+                    chess.row, chess.col = old_row, old_col
+                    chessboard.chessboard_map[old_row][old_col] = chess
+                    chessboard.chessboard_map[pos[0]][pos[1]] = chess_bak
+                    # update the beta value of the min node
+                    min_eval = min(min_eval, eval)
+                    beta = min(beta, eval)
+                    # if beta <= alpha, then cut the branch
+                    if beta <= alpha:
+                        break
+            # if count_child is 0, it means that there is no valid move for the current player, 
+            # so we need to evaluate the current situation
+            return min_eval if count_child > 0 else self.evaluate_class.evaluate(chessboard=chessboard)
 
     def get_next_step(self, chessboard: ChessBoard):
-        pass
+
+
+        import time
+        import random
+        from concurrent import futures
+
+        random.seed(time.time())
+
+        import sqlite3 
+
+        conn = sqlite3.connect('chess.db')
+        cursor = conn.cursor()
+        cursor.execute('CREATE TABLE IF NOT EXISTS chess (chessboard TEXT PRIMARY KEY, old_row INTEGER, old_col INTEGER, new_row INTEGER, new_col INTEGER)')
+        conn.commit()
+        chessboard_str = str(self.team) + ':' + ' '.join(' '.join(row) for row in chessboard.get_chessboard_str_map())
+        cursor.execute('SELECT * FROM chess WHERE chessboard = ?', (chessboard_str,))
+        value = cursor.fetchone()
+        if value:
+            return value[1], value[2], value[3], value[4]
+
+        
+        max_eval = -float('inf')
+        next_step = None
+
+        chesses_board_list = []
+        old_pos_list = []
+        new_pos_list = []
+
+        # list all the situations of the next step on the chessboard,
+        # and store the old pos, new pos and the chessboard situation
+        chesses = chessboard.get_chess()
+        for chess in chesses:
+
+            if chess.team != self.team:
+                continue
+
+            for pos in chessboard.get_put_down_position(chess):
+
+                old_pos_list.append((chess.row, chess.col))
+                new_pos_list.append((pos[0], pos[1]))
+
+                chessboard_copy = ChessBoard(None)
+                chessboard_copy.set_chessboard_str_map(chessboard.get_chessboard_str_map()) 
+
+                chessboard_copy.chessboard_map[chess.row][chess.col] = None
+                chessboard_copy.chessboard_map[pos[0]][pos[1]] = Chess(None, chess.team + '_' + chess.name, pos[0], pos[1])
+
+                # remove all proterties related to pygame module,
+                # to avoid objects being unable to pikcal
+                chessboard_copy.image = None
+                for row in chessboard_copy.chessboard_map:
+                    for c in row:
+                        if c:
+                            c.image = None
+
+                chesses_board_list.append(chessboard_copy)
+
+        # create a process pool to calculate the evaluate value of each situation
+        with futures.ProcessPoolExecutor(max_workers=32) as executor:
+        
+            if len(chesses) <= 8:
+                layer = 5
+            elif len(chesses) <= 24:
+                layer = 4
+            else:
+                layer = 2
+
+            future_to_chessboard = {executor.submit(
+                self.alpha_beta, chessboard_copy, layer, -float('inf'), float('inf'), False)
+                : chessboard_copy for chessboard_copy in chesses_board_list}
+
+            for future in futures.as_completed(future_to_chessboard):
+                chessboard_copy = future_to_chessboard[future]
+                try:
+                    eval = future.result()
+                    eval = eval * random.uniform(0.8, 1.2)
+                    if eval > max_eval:
+                        max_eval = eval
+                        index = chesses_board_list.index(chessboard_copy)
+                        next_step = (*old_pos_list[index], *new_pos_list[index])
+                except Exception as exc:
+                    print('generated an exception: %s' % exc)
+                
+        cursor.execute('INSERT INTO chess VALUES (?, ?, ?, ?, ?)', (chessboard_str, *next_step))
+        conn.commit()
+
+        return next_step
