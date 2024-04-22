@@ -1,0 +1,4 @@
+hello, world!
+hello, pickle!
+hello, python!
+hello, serialization!
