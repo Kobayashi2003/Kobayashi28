@@ -30,10 +30,13 @@ def group_by_time(path: str, year: bool, month: bool, day: bool, clean: bool) ->
             new_dir = os.path.join(path, file_time)
             if not os.path.exists(new_dir):
                 os.mkdir(new_dir)
-            os.rename(file_path, os.path.join(new_dir, file))
+            try:
+                os.rename(file_path, os.path.join(new_dir, file))
+            except FileExistsError:
+                log_msg_stream.write('file: {} exists\n'.format(os.path.join(new_dir, file))) 
             log_msg_stream.write('file: {} -> {}\n'.format(file_path, os.path.join(new_dir, file)))
 
-    if clean:
+    if clean: # clean the empty directories
         for root, dirs, files in os.walk(path):
             for dir in dirs:
                 dir_path = os.path.join(root, dir)
