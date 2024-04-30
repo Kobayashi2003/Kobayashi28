@@ -3,10 +3,11 @@ using namespace System.Management.Automation.Language
 
 $My_Script_Path  = $MyInvocation.MyCommand.Definition
 $My_Script_Dir   = Split-Path $My_Script_Path
-$My_History_Path = $My_Script_Dir + "\my-history.txt"
+$My_History_Filename = "my-history.txt"
+$My_History_Path = $My_Script_Dir + "\" + $My_History_Filename
 $Conda_Path      = "" # the path of conda.exe
-$Remote_Repository_Path = "" # the path of the remote repository of git
-$Branch_Name     = "" # the name of the branch of git
+$Remote_Repository_Address = "" # the address of the remote repository of git
+$Remote_Repository_Branch  = "" # the name of the branch of the remote repository of git
 
 
 ##### -- Function Start -- #####
@@ -434,8 +435,6 @@ function My-Set-BackgroundColor { param ( [string] $color )
 
 
 ## -- {Function 1 -- Start Or Kill a Process} -- ##
-
-# Start or Kill a Process
 function My-Start-or-Kill {
     param (
         [string]
@@ -458,15 +457,12 @@ function My-Start-or-Kill {
 
 
 ## -- {Function 2 -- Edit this Script} -- ##
-
-# A function for editing this Sctipt
 function My-Script {
     Get-Item -Path $My_Script_Path | Select-Object -Property * | Format-List -Property * | Write-Output
 }
 
 
 ## -- {Function 3 -- Show all Applications Paths} -- ##
-
 function My-Show-Applications {
     # echo $My_Script_Path
     # Write-Output "===================="
@@ -477,8 +473,6 @@ function My-Show-Applications {
 
 
 ## -- {Function 4 -- Delete a Application Path} -- ##
-
-# A funtion for deleting Paths
 function My-Delete-App {
     param (
         [parameter(Mandatory=$true)]
@@ -519,8 +513,6 @@ function My-Delete-App {
 
 
 ## -- {Function 5 -- Add a Application Path} -- ##
-
-# A function for adding new Paths
 function My-Add-App {
     param (
         [parameter(Mandatory=$true)]
@@ -547,8 +539,6 @@ function My-Add-App {
 
 
 ## -- {Function 6 -- Make a new file and go to the file} -- ##
-
-# A function to make a new file and go to the file
 function My-Mkdir-and-CD {
     param (
         [parameter(Mandatory=$true)]
@@ -559,8 +549,6 @@ function My-Mkdir-and-CD {
 
 
 ## -- {Function 7 -- Forward the ports of WSL to Windows} -- ##
-
-# A function to forward the ports of WSL to Windows
 function My-Forward-Port { # (abaondoned)
     param ( [string] $port )
 
@@ -620,11 +608,9 @@ function My-Go-Hook {
 
 
 ## -- {Function 9 -- Git} -- ##
-
-# Git
 function My-Git {
-    if ($null -eq $Remote_Repository_Path) {
-        Write-Output "You have to set the git path first"
+    if ($null -eq $Remote_Repository_Address) {
+        Write-Output "You have to set the git remote repository address first"
         return
     }
     git add .
@@ -632,10 +618,11 @@ function My-Git {
     $date = Get-Date -Format "yyMMdd"
     git commit -m $date
     # git push origin main
-    git push $Remote_Repository_Path $Branch_Name
+    git push $Remote_Repository_Address $Remote_Repository_Branch
 }
 
 
+## -- {Function 10 -- Get the CPU temperature} -- ##
 function My-Get-CPU-Temperature { # get the temperature of the CPU
     $t = Get-WmiObject MSAcpi_ThermalZoneTemperature -Namespace "root/wmi"
     $returntemp = @()
@@ -688,11 +675,9 @@ function My-ImgAsst { # TODO
     END {}
 }
 
-
 function My-FileExplorer { # TODO
     python.exe $My_Script_Dir\FileExplorer\main.py
 }
-
 
 ## Atlas200Dk Function Start
 function My-Connect-Atlas200Dk { # this function is used to connect to Atlas200Dk (only for Windows) (abaondoned)
@@ -705,7 +690,6 @@ function My-Connect-Atlas200Dk { # this function is used to connect to Atlas200D
     ssh HwHiAiUser@$ip
 }
 ## Atlas200Dk Function End
-
 
 # set the alias
 Set-Alias -Name img -Value My-ImgAsst
@@ -767,9 +751,13 @@ If (-Not (Test-Path Variable:PSise)) {  # Only run this in the console and not i
 
 
 # -- binded keys -- #
-# [Alt + w] : SaveInHistory (save the current command in the history but do not execute it)
 
+# [F1]      : CommandHelp (open the help window of the current command)
+# [F3]      : ShowBinding (show the binding of the current key)
 # [F7]      : History (show the history)
+
+# [Backspace]: SmartBackspace (delete previous character or matching quotes/parens/braces)
+
 # [Ctrl + b]: BuildCurrentDirectory (build the current directory)
 
 # [Ctrl + R]: ReverseSearchHistory (search the history)
@@ -780,41 +768,43 @@ If (-Not (Test-Path Variable:PSise)) {  # Only run this in the console and not i
 
 # [Ctrl + C]: Copy (clipboard interaction)
 # [Ctrl + v]: Paste (clipboard interaction)
-
-# [Ctrl + d, Ctrl + c]: CaptureScreen (good for blog posts or email showing a transaction of what you did when asking for help or demonstrating a technique)
-
-# [Alt + d]: ShellKillWord (delete the word before the cursor)
-# [Alt + Backspace]: ShellBackwardKillWord (delete the word before the cursor)
-
-# [Alt + b]: ShellBackwardWord (move the cursor to the start of the word before the cursor)
-# [Alt + f]: ShellForwardWord (move the cursor to the end of the word after the cursor)
-# [Alt + B]: SelectShellBackwardWord (select the word before the cursor)
-# [Alt + F]: SelectShellForwardWord (select the word after the cursor)
-
-# [Backspace]: SmartBackspace (delete previous character or matching quotes/parens/braces)
-
-# [Alt + (]: ParenthesizeSelection (put parens around the current selection or line)
-# [Alt + ']: ToggleQuoteArgument (change the token under or before the cursor)
-# [Alt + "]: ToggleQuoteArgument (change the token under or before the cursor and move the cursor to the end of the token)
-
-# [F1]      : CommandHelp (open the help window of the current command)
-# [Alt + %] : ExpandAlias (Replace all aliases with the full command)
-
-# [Ctrl + v]: PasteAsHereString (paste the clipboard text as a here string)
+# [Ctrl + V]: PasteAsHereString (paste the clipboard text as a here string)
 
 # [Ctrl + J]: MarkDirectory (mark the current directory)
 # [Ctrl + j]: JumpToMarkDirectory (jump to the marked directory)
 # [Alt + j]: ShowMarkDirectories (show the marked directories)
 
+# [Ctrl + Backspace]: ShellBackwardKillWord (delete the word before the cursor)
+# [Ctrl + LeftArrow]: ShellBackwardWord (move the cursor to the start of the word before the cursor)
+# [Ctrl + RightArrow]: ShellForwardWord (move the cursor to the end of the word after the cursor)
+
+# [Ctrl + d, Ctrl + c]: CaptureScreen (good for blog posts or email showing a transaction of what you did when asking for help or demonstrating a technique)
+
 # [Alt + a]: SlectCommandArgument (select the command argument)
 
-# [F3]: ShowBinding (show the binding of the current key)
+# [Alt + w] : SaveInHistory (save the current command in the history but do not execute it)
+
+# [Alt + d]: ShellKillWord (delete the word before the cursor)
+# [Alt + b]: ShellBackwardWord (move the cursor to the start of the word before the cursor)
+# [Alt + f]: ShellForwardWord (move the cursor to the end of the word after the cursor)
+# [Alt + B]: SelectShellBackwardWord (select the word before the cursor)
+# [Alt + F]: SelectShellForwardWord (select the word after the cursor)
+
+# [Alt + (]: ParenthesizeSelection (put parens around the current selection or line)
+# [Alt + ']: ToggleQuoteArgument (change the token under or before the cursor)
+# [Alt + "]: ToggleQuoteArgument (change the token under or before the cursor and move the cursor to the end of the token)
+
+# [Alt + %]: ExpandAlias (Replace all aliases with the full command)
+
+# [Alt + Backspace]: ShellBackwardKillWord (delete the word before the cursor)
+
 
 
 # import the module
 Import-Module PSReadline
 
 Set-PSReadLineOption -EditMode Emacs
+Set-PSReadLineOption -BellStyle None
 
 # The color option
 Set-PSReadLineOption -Colors @{
@@ -833,8 +823,14 @@ Set-PSReadLineOption -Colors @{
 Set-PSReadLineOption -HistorySavePath $My_History_Path
 Set-PSReadLineOption -HistorySaveStyle SaveIncrementally
 
-function My-History {
-    more $My_History_Path
+$history_save_path = (Get-PSReadLineOption).HistorySavePath
+
+# set the filter for the history
+Set-PSReadLineOption -AddToHistoryHandler {
+    param([string]$line)
+
+    $sensitive = "password|asplaintext|token|key|secret|galgame|eroi"
+    return ($line -notmatch $sensitive)
 }
 
 # prediction configuration
@@ -1021,7 +1017,7 @@ Set-PSReadLineKeyHandler -Key '"',"'" `
     if ($token -is [StringToken] -and $token.Kind -ne [TokenKind]::Generic) {
         # If we're at the start of the string, assume we're inserting a new string
         if ($token.Extent.StartOffset -eq $cursor) {
-            [Microsoft.PowerShell.PSConsoleReadLine]::Insert("$quote$quote ")
+            [Microsoft.PowerShell.PSConsoleReadLine]::Insert("$quote$quote")
             [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($cursor + 1)
             return
         }
@@ -1468,7 +1464,7 @@ Set-PSReadLineKeyHandler -Key Alt+j `
     [Microsoft.PowerShell.PSConsoleReadLine]::InvokePrompt()
 }
 
-# Auto correct 'git cmt' to 'git commit'
+# Auto correct common typos
 Set-PSReadLineOption -CommandValidationHandler {
     param([CommandAst]$CommandAst)
 
@@ -1482,8 +1478,28 @@ Set-PSReadLineOption -CommandValidationHandler {
                 }
             }
         }
+        'conda' {
+            $condaCmdBase = $CommandAst.CommandElements[0].Extent
+            $condaCmdArg = $CommandAst.CommandElements[1].Extent
+            switch ($condaCmdArg.Text) {
+                'a' {
+                    [Microsoft.PowerShell.PSConsoleReadLine]::Replace(
+                        $condaCmdArg.StartOffset, $condaCmdArg.EndOffset - $condaCmdArg.StartOffset, 'activate')
+                }
+                'd' {
+                    [Microsoft.PowerShell.PSConsoleReadLine]::Replace(
+                        $condaCmdArg.StartOffset, $condaCmdArg.EndOffset - $condaCmdArg.StartOffset, 'deactivate')
+                }
+                'i' {
+                    [Microsoft.PowerShell.PSConsoleReadLine]::Replace(
+                        $condaCmdBase.StartOffset, $condaCmdArg.EndOffset - $condaCmdBase.StartOffset, 'Conda-Init')
+                }
+            }
+        }
     }
 }
+# This checks the validation script when you hit enter
+Set-PSReadLineKeyHandler -Chord Enter -Function ValidateAndAcceptLine
 
 
 # `ForwardChar` accepts the entrie suggestio text when the cursor is at the end of the line
@@ -1578,6 +1594,107 @@ Set-PSReadLineKeyHandler -Key F3 `
     }
 }
 
+# Set Ctrl+Backspace to delete the previous word
+Set-PSReadLineKeyHandler -Key Ctrl+Backspace `
+                         -BriefDescription DeletePreviousWord `
+                         -LongDescription "Delete the previous word" `
+                         -ScriptBlock {
+    param($key, $arg)
+
+    $selectionStart = $null
+    $selectionLength = $null
+    [Microsoft.PowerShell.PSConsoleReadLine]::GetSelectionState([ref]$selectionStart, [ref]$selectionLength)
+
+    $line = $null
+    $cursor = $null
+    [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
+
+    # If text is selected, delete the selection
+    if ($selectionLength -gt 0) {
+        [Microsoft.PowerShell.PSConsoleReadLine]::Delete($selectionStart, $selectionLength)
+        return
+    }
+
+    # if the cursor is not at the end of any word,
+    # find and delete whitespace until the cursor is at the end of a word
+    $lastWordEnd = $cursor
+    while ($lastWordEnd -gt 0 -and $line[$lastWordEnd - 1] -match '\s') {
+        $lastWordEnd--
+    }
+    if ($lastWordEnd -ne $cursor) {
+        [Microsoft.PowerShell.PSConsoleReadLine]::Delete($lastWordEnd, $cursor - $lastWordEnd)
+        return
+    }
+
+    [Microsoft.PowerShell.PSConsoleReadLine]::BackwardKillWord($key, $arg)
+}
+
+# Set Ctrl+LeftArrow to move the cursor to the beginning of the previous word
+Set-PSReadLineKeyHandler -Key Ctrl+LeftArrow `
+                         -BriefDescription MoveToPreviousWord `
+                         -LongDescription "Move the cursor to the beginning of the previous word" `
+                         -ScriptBlock {
+    param($key, $arg)
+
+    $special_chars = @('/','\','(',')','{','}','[',']','<','>','"','''','`', ':', '.', ';')
+
+    $line = $null
+    $cursor = $null
+    [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
+
+    $lastWordEnd = $cursor
+    if ($line[$cursor - 1] -match '\s') {
+        while ($lastWordEnd -gt 0 -and $line[$lastWordEnd - 1] -match '\s') {
+            $lastWordEnd--
+        }
+    } elseif ($line[$cursor - 1] -in $special_chars) {
+        $lastWordEnd--
+    } else {
+        while ($lastWordEnd -gt 0 -and $line[$lastWordEnd - 1] -notmatch '\s') {
+            if ($line[$lastWordEnd - 1] -in $special_chars) {
+                break
+            }
+            $lastWordEnd--
+        }
+    }
+
+    [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($lastWordEnd)
+}
+
+# Set Ctrl+RightArrow to move the cursor to the end of the next word
+Set-PSReadLineKeyHandler -Key Ctrl+RightArrow `
+                         -BriefDescription MoveToNextWord `
+                         -LongDescription "Move the cursor to the end of the next word" `
+                         -ScriptBlock {
+    param($key, $arg)
+
+    $special_chars = @('/','\','(',')','{','}','[',']','<','>','"','''','`', ':', '.', ';')
+
+    $line = $null
+    $cursor = $null
+    [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
+
+    $nextWordStart = $cursor
+    if ($line[$cursor] -match '\s') {
+        while ($nextWordStart -lt $line.Length - 1 -and $line[$nextWordStart] -match '\s') {
+            $nextWordStart++
+        }
+    } elseif ($line[$cursor] -in $special_chars) {
+        $nextWordStart++
+    } else {
+        while ($nextWordStart -lt $line.Length - 1 -and $line[$nextWordStart] -notmatch '\s') {
+            if ($line[$nextWordStart] -in $special_chars) {
+                break
+            }
+            $nextWordStart++
+        }
+        if ($nextWordStart -eq $line.Length - 1) {
+            $nextWordStart++
+        }
+    }
+
+    [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($nextWordStart)
+}
 
 ### Module PSReadLine End ###
 
