@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 class Perceptron:
 
     def __init__(self, input_size, output_size):
-        self.weights = np.random.randn(input_size, output_size) 
+        self.weights = np.random.randn(input_size, output_size)
         self.bias = np.random.randn(1, output_size)
         self.losses = []
 
@@ -13,7 +13,7 @@ class Perceptron:
         bias = np.ones((X.shape[0], 1))
         for _ in range(epochs):
             y_pred = self.predict(X)
-            self.losses.append(np.mean(0.5 * np.power(y_pred - y, 2)))
+            self.losses.append(0.5 * np.power(y_pred - y, 2))
             w -= learning_rate * np.dot(np.column_stack((X, bias)).T, y_pred - y)
         self.weights = w[:-1]
         self.bias = w[-1]
@@ -23,7 +23,7 @@ class Perceptron:
         return np.dot(np.column_stack((X, bias)), np.vstack((self.weights, self.bias)))
 
 if __name__ == '__main__':
-    data = np.genfromtxt('data/data.csv', delimiter=',', skip_header=1) 
+    data = np.genfromtxt('data/data.csv', delimiter=',', skip_header=1)
     # z-score normalization
     data[:, 0] = (data[:, 0] - data[:, 0].mean()) / data[:, 0].std()
     data[:, 1] = (data[:, 1] - data[:, 1].mean()) / data[:, 1].std()
@@ -37,11 +37,11 @@ if __name__ == '__main__':
     perceptron = Perceptron(2, 1)
 
     X_train = np.column_stack((age, estimated_salary))
-    y_train = np.expand_dims(purchased, axis=1) 
+    y_train = np.expand_dims(purchased, axis=1)
     perceptron.fit(X_train, y_train)
 
     X_test = np.column_stack((age_test, estimated_salary_test))
-    y_test = np.expand_dims(purchased_test, axis=1) 
+    y_test = np.expand_dims(purchased_test, axis=1)
     y_pred = perceptron.predict(X_test)
 
     count_correct = 0

@@ -8,10 +8,11 @@ class Multilayer_Perceptron:
         self.weights2 = np.random.randn(hidden_size, output_size)
         self.bias1 = np.random.randn(1, hidden_size)
         self.bias2 = np.random.randn(1, output_size)
-        
+        self.losses = []
+
     def sigmoid(self, x):
         return 1 / (1 + np.exp(-x))
-    
+
     def sigmoid_derivative(self, x):
         return x * (1 - x)
 
@@ -21,7 +22,7 @@ class Multilayer_Perceptron:
     def loss_derivative(self, y_true, y_pred):
         return y_pred - y_true
 
-    def fit(self, X, y, learning_rate=0.01, epochs=10000):
+    def fit(self, X, y, learning_rate=0.01, epochs=1000):
         w1 = np.vstack((self.weights1, self.bias1))
         w2 = np.vstack((self.weights2, self.bias2))
         bias = np.ones((X.shape[0], 1))
@@ -34,6 +35,8 @@ class Multilayer_Perceptron:
             output_layer_input = np.dot(np.column_stack((hidden_layer_output, bias)), w2)
             output_layer_output = self.sigmoid(output_layer_input)
 
+            self.losses.append(np.sum(self.loss(y, output_layer_output)))
+
             # backward pass (output layer)
             # delta(E_total) /  delta(output_o)
             gradient_cal1 = self.loss_derivative(y, output_layer_output) # data_size x output_layer_size
@@ -44,7 +47,7 @@ class Multilayer_Perceptron:
             # delta(E_total) / delta(w2)
             gradient_cal4 = np.dot(gradient_cal3.T, gradient_cal1 * gradient_cal2) # (hidden_layer_size + 1) x output_layer_size
             # update w2
-            weights2_update = gradient_cal4 * learning_rate 
+            weights2_update = gradient_cal4 * learning_rate
             w2 -= weights2_update
 
             # backward pass (hidden layer)
@@ -85,33 +88,46 @@ if __name__ == '__main__':
     age, estimated_salary, purchased = data_train[:, 0], data_train[:, 1], data_train[:, 2]
     age_test, estimated_salary_test, purchased_test = data_test[:, 0], data_test[:, 1], data_test[:, 2]
 
-    mlp = Multilayer_Perceptron(2, 4, 1)
+    mlp = Multilayer_Perceptron(2, 8, 1)
 
     X_train = np.column_stack((age, estimated_salary))
-    y_train = np.expand_dims(purchased, axis=1) 
+    y_train = np.expand_dims(purchased, axis=1)
     mlp.fit(X_train, y_train)
 
     X_test = np.column_stack((age_test, estimated_salary_test))
-    y_test = np.expand_dims(purchased_test, axis=1) 
+    y_test = np.expand_dims(purchased_test, axis=1)
     y_pred = mlp.predict(X_test)
 
+    plt.xlabel('Age')
+    plt.ylabel('Estimated Salary')
+
+    count_correct = 0
     for i in range(len(y_pred)):
-        if y_pred[i] > 0 and y_test[i] == 1 or y_pred[i] <= 0 and y_test[i] == 0:
+        if y_pred[i] > 0.5 and y_test[i] == 1 or y_pred[i] <= 0.5 and y_test[i] == 0:
             print(f'\033[92mPredicted: {y_pred[i][0]:.2f}, Actual: {y_test[i]}\033[0m')
+            count_correct += 1
         else :
             print(f'\033[91mPredicted: {y_pred[i][0]:.2f}, Actual: {y_test[i]}\033[0m')
+    print(f'Correct Rate: {count_correct / len(y_pred):.2%}')
 
     for i in range(len(y_test)):
         if y_test[i] == 1:
             plt.scatter(age_test[i], estimated_salary_test[i], color='red')
         else:
             plt.scatter(age_test[i], estimated_salary_test[i], color='blue')
-    plt.xlabel('Age')
-    plt.ylabel('Estimated Salary')
-    
+
+    plt.savefig('mlp_data.png')
+
     x = np.linspace(-3, 3, 100)
     y = np.linspace(-3, 3, 100)
     X, Y = np.meshgrid(x, y)
     Z = mlp.predict(np.column_stack((X.ravel(), Y.ravel()))).reshape(X.shape)
     plt.contourf(X, Y, Z, levels=1, alpha=0.5)
-    plt.show()
+    # plt.show()
+    plt.savefig('mlp_prediction.png')
+    plt.close()
+
+    plt.plot(mlp.losses)
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.savefig('mlp_loss.png')
