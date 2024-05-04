@@ -16,6 +16,9 @@ $Remote_Repository_Branch  = "" # the name of the branch of the remote repositor
 #region conda initialize
 # !! Contents within this block are managed by 'conda init' !!
 function Conda-Init {
+    if (-not (Test-Path $Conda_Path)) {
+        return $false
+    }
     try {
         (& $Conda_Path "shell.powershell" "hook") | Out-String | Invoke-Expression
     } catch {
@@ -327,6 +330,14 @@ function My-Check-Environment {
     $esc = $([char]27)
     Write-Host "$esc[1;3;4;$(93)mChecking Environment...$esc[0m"
 
+    if ($My_Script_Path -ne $PROFILE) {
+        $message = "The path of the script is not the same as the path of the profile"
+        Format-Status -Message $message -Status $false -MessageFalse "Error" -ForegroundColorFalse "Red"
+    } else {
+        $message = "The path of the script is the same as the path of the profile"
+        Format-Status -Message $message -Status $true -MessageTrue "OK" -ForegroundColorTrue "Green"
+    }
+
     $message = "Checking Admin Permission..."
     Format-Status -Message $message -Task { My-Check-Admin } -MessageTrue "Admin" -MessageFalse "User"
 
@@ -360,15 +371,66 @@ function My-Check-Environment {
         }
     }
 
-    $message = "Initializing Conda..."
-    Format-Status -Message $message -Task { Conda-Init } -MessageTrue "Init" -MessageFalse "Error"
+    # if .powershell_config is not exist, create it silently
+    if (-not (Test-Path "$My_Script_Dir\.powershell_config")) {
+        New-Item -Path $My_Script_Dir -Name ".powershell_config" -ItemType "file" -Force | Out-Null
+    }
+
+    if (-not $Conda_Path -or -not (Test-Path $Conda_Path)) {
+        # try to open .powershell_config in current directory to get the path of conda
+        $conda_path = (Get-Content -Path "$My_Script_Dir\.powershell_config" -Raw).Split("`n") |
+             Where-Object { $_ -like "Conda_Path*" } |
+                ForEach-Object { $_.Split("=")[-1].Trim() }
+        if ($null -ne $conda_path -and $conda_path -ne "") {
+            $Conda_Path = $conda_path
+        }
+    }
+
+    if (-not $Remote_Repository_Address -or -not $Remote_Repository_Branch) {
+        # try to open .powershell_config in current directory to get the path of conda
+        $remote_repository_address = (Get-Content -Path "$My_Script_Dir\.powershell_config" -Raw).Split("`n") | 
+            Where-Object { $_ -like "Remote_Repository_Address*" } | 
+                ForEach-Object { $_.Split("=")[-1].Trim() }
+        $remote_repository_branch = (Get-Content -Path "$My_Script_Dir\.powershell_config" -Raw).Split("`n") | 
+            Where-Object { $_ -like "Remote_Repository_Branch*" } | 
+                ForEach-Object { $_.Split("=")[-1].Trim() }
+        if ($null -ne $remote_repository_address -and $remote_repository_address -ne "") {
+            $Remote_Repository_Address = $remote_repository_address
+        }
+        if ($null -ne $remote_repository_branch -and $remote_repository_branch -ne "") {
+            $Remote_Repository_Branch = $remote_repository_branch
+        }
+    }
+
+    if (-not $Conda_Path) {
+        $message = "The path of Conda is not set"
+        Format-Status -Message $message -Status $false -MessageFalse "Error" -ForegroundColorFalse "Red"
+    } else {
+        $message = "The path of Conda is set"
+        Format-Status -Message $message -Status $true -MessageTrue "OK" -ForegroundColorTrue "Green"
+        $message = "Initializing Conda..."
+        Format-Status -Message $message -Task { Conda-Init } -MessageTrue "Init" -MessageFalse "Error"
+    }
 
     My-Get-UI-Infor
+
+    $name = '| ' + "PowerShell Version".PadRight(31) + ' |'
+    $value = $PSVersionTable.PSVersion
+    Format-Status -Message $name -Status $true -MessageTrue $value
 
     Write-Host "$esc[1;3;4;$(93)mWelcome to Windows PowerShell, $env:USERNAME!$esc[0m"
 }
 My-Check-Environment
 
+function Prompt {
+    $esc = $([char]27)
+    $time = "$esc[1;32m$esc[1;4m" + (Get-Date -Format "HH:mm:ss") + "$esc[0m" # green and italic
+    $path = ($PWD.Path).Replace($env:USERPROFILE, "~") # replace the user profile with ~
+    if ($null -ne $conda_env -and $conda_env -ne "") {
+        return "$esc[1;33m$esc[1;4m($conda_env)$esc[0m $time $path" + " > "
+    }
+    return "$time $path > "
+}
 
 function My-Set-Title {
     param (
@@ -612,6 +674,9 @@ function My-Git {
     if ($null -eq $Remote_Repository_Address) {
         Write-Output "You have to set the git remote repository address first"
         return
+    } elseif ($null -eq $Remote_Repository_Branch) {
+        Write-Output "You have to set the git remote repository branch first"
+        return
     }
     git add .
     # get current date
@@ -639,6 +704,14 @@ function My-Get-CPU-Temperature { # get the temperature of the CPU
     return $returntemp
 }
 
+
+function Get-CmdletAlias ($cmdletname) {
+    Get-Alias | Where-Object -FilterScript { $_.Definition -like "$cmdletname" } |
+        Format-Table -Property Definition, Name -AutoSize
+
+}
+
+
 ## -- Set the alias -- ##
 
 Set-Alias    -Name shook    -Value My-Set-Hook
@@ -651,8 +724,6 @@ Set-Alias    -Name mygit    -Value My-Git
 Set-Alias    -Name cputemp  -Value My-Get-CPU-Temperature
 
 ##### -- Function End -- #####
-
-
 
 
 
@@ -818,6 +889,9 @@ Set-PSReadLineOption -Colors @{
 #  ContinuationPrompt = 'DarkGreen'
 #  Default            = 'DarkGray'
 }
+
+Set-PSReadLineOption -PromptText ' > ' # change the ' > ' character red
+Set-PSReadLineOption -PromptText ' > ', ' X ' # replace the ' > ' character with a red ' X '
 
 # set the file path to save the history
 Set-PSReadLineOption -HistorySavePath $My_History_Path
