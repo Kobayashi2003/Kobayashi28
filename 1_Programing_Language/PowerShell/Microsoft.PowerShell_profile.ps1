@@ -378,9 +378,13 @@ function My-Check-Environment {
 
     if (-not $Conda_Path -or -not (Test-Path $Conda_Path)) {
         # try to open .powershell_config in current directory to get the path of conda
-        $conda_path = (Get-Content -Path "$My_Script_Dir\.powershell_config" -Raw).Split("`n") |
-             Where-Object { $_ -like "Conda_Path*" } |
-                ForEach-Object { $_.Split("=")[-1].Trim() }
+        try {
+            $conda_path = (Get-Content -Path "$My_Script_Dir\.powershell_config" -Raw).Split("`n") |
+                 Where-Object { $_ -like "Conda_Path*" } |
+                    ForEach-Object { $_.Split("=")[-1].Trim() }
+        } catch {
+            $conda_path = $null
+        }
         if ($null -ne $conda_path -and $conda_path -ne "") {
             $Conda_Path = $conda_path
         }
@@ -388,12 +392,21 @@ function My-Check-Environment {
 
     if (-not $Remote_Repository_Address -or -not $Remote_Repository_Branch) {
         # try to open .powershell_config in current directory to get the path of conda
-        $remote_repository_address = (Get-Content -Path "$My_Script_Dir\.powershell_config" -Raw).Split("`n") | 
-            Where-Object { $_ -like "Remote_Repository_Address*" } | 
-                ForEach-Object { $_.Split("=")[-1].Trim() }
-        $remote_repository_branch = (Get-Content -Path "$My_Script_Dir\.powershell_config" -Raw).Split("`n") | 
-            Where-Object { $_ -like "Remote_Repository_Branch*" } | 
-                ForEach-Object { $_.Split("=")[-1].Trim() }
+        try {
+            $remote_repository_address = (Get-Content -Path "$My_Script_Dir\.powershell_config" -Raw).Split("`n") |
+                Where-Object { $_ -like "Remote_Repository_Address*" } |
+                    ForEach-Object { $_.Split("=")[-1].Trim() }
+        } catch {
+            $remote_repository_address = $null
+        }
+        try {
+            $remote_repository_branch = (Get-Content -Path "$My_Script_Dir\.powershell_config" -Raw).Split("`n") |
+                Where-Object { $_ -like "Remote_Repository_Branch*" } |
+                    ForEach-Object { $_.Split("=")[-1].Trim() }
+        }
+        catch {
+            $remote_repository_branch = $null
+        }
         if ($null -ne $remote_repository_address -and $remote_repository_address -ne "") {
             $Remote_Repository_Address = $remote_repository_address
         }
@@ -671,10 +684,10 @@ function My-Go-Hook {
 
 ## -- {Function 9 -- Git} -- ##
 function My-Git {
-    if ($null -eq $Remote_Repository_Address) {
+    if ($null -eq $Remote_Repository_Address -or "" -eq $Remote_Repository_Address) {
         Write-Output "You have to set the git remote repository address first"
         return
-    } elseif ($null -eq $Remote_Repository_Branch) {
+    } elseif ($null -eq $Remote_Repository_Branch -or "" -eq $Remote_Repository_Branch) {
         Write-Output "You have to set the git remote repository branch first"
         return
     }
@@ -1776,6 +1789,48 @@ Set-PSReadLineKeyHandler -Key Ctrl+RightArrow `
 ##### --- Module End --- #####
 
 
-
+# please let this ';' be the last ';' in this file
 ;
 ### User's Paths ###
+
+# Clash for Windows (abaondoned)
+function App-Clash($state="start") {
+    $app_path = 'D:\Item\Clash for Windows\Clash for Windows.exe'
+    My-Start-or-Kill $app_path $state > $null
+}
+# END Clash for Windows
+
+
+# Free Download Manager (abandoned)
+function App-FDM($state="start") {
+    $app_path = 'D:\Item\Free Download Manager\fdm.exe'
+    My-Start-or-Kill $app_path $state
+}
+# END Free Download Manager
+
+
+# Everything
+function App-Everything($state="start") {
+    $app_path = 'D:\Item\Everything\Everything.exe'
+    My-Start-or-Kill $app_path $state
+}
+# END Everything
+
+
+# ShareMouse (abandoned)
+function App-ShareMouse($state="start") {
+    if ($state -eq "KEY") {
+        Write-Output "SMOENT-DO-AAGEMY-1299-UN-KKPX-QTSX-X9JHRR1LXHX5ZXTB-FEEB32EF75C43CE5F220B324678701CB" | Set-Clipboard
+        return
+    }
+    $app_path = 'C:\Program Files (x86)\ShareMouse\ShareMouse.exe'
+    My-Start-or-Kill $app_path $state
+}
+# END ShareMouse
+
+
+# CodeServer (abandoned)
+function App-CodeServer { # the application in wsl
+    wsl.exe -- /mnt/d/Program/code-server-3.10.2-linux-amd64/code-server /mnt/d/Program/Code
+}
+# End CodeServer
