@@ -182,7 +182,7 @@ function Format-Color {
         $colorMapping = @{
             "Black"   = 30; "DarkRed"    = 31; "DarkGreen" = 32; "DarkYellow" = 33
             "DarkBlue"= 34; "DarkMagenta"= 35; "DarkCyan"  = 36; "Gray"       = 37
-            "DarkGray"= 90; "Red"        = 91; "Green"     = 92; "Yellow"      = 93
+            "DarkGray"= 90; "Red"        = 91; "Green"     = 92; "Yellow"     = 93
             "Blue"    = 94; "Magenta"    = 95; "Cyan"      = 96; "White"      = 97
         }
 
@@ -328,9 +328,9 @@ function My-Get-UI-Infor {
     }
 }
 
-function My-Check-Environment {
+function My-Init-Environment {
     $esc = $([char]27)
-    Write-Host "$esc[1;3;4;$(93)mChecking Environment...$esc[0m"
+    Write-Host "$esc[1;3;4;$(93)mIniting Environment...$esc[0m"
 
     if ($My_Script_Path -ne $PROFILE) {
         $message = "The path of the script is not the same as the path of the profile"
@@ -340,9 +340,7 @@ function My-Check-Environment {
         Format-Status -Message $message -Status $true -MessageTrue "OK" -ForegroundColorTrue "Green"
     }
 
-    $message = "Checking Admin Permission..."
-    Format-Status -Message $message -Task { My-Check-Admin } -MessageTrue "Admin" -MessageFalse "User"
-
+    # check the modules
     $modules2check = @(
         "Get-ChildItemColor",
         "PSReadline",
@@ -372,6 +370,9 @@ function My-Check-Environment {
             }
         }
     }
+}
+
+function My-Get-Config { # Read config from .powershell_config file
 
     # if .powershell_config is not exist, create it silently
     if (-not (Test-Path "$My_Script_Dir\.powershell_config")) {
@@ -382,63 +383,99 @@ function My-Check-Environment {
         Add-Content -Path "$My_Script_Dir\.powershell_config" -Value "Remote_Repository_Branch="
     }
 
-    if (-not $global:Conda_Path -or -not (Test-Path $global:Conda_Path)) {
-        # try to open .powershell_config in current directory to get the path of conda
-        try {
-            $conda_path = (Get-Content -Path "$My_Script_Dir\.powershell_config" -Raw).Split("`n") |
-                 Where-Object { $_ -like "Conda_Path*" } |
-                    ForEach-Object { $_.Split("=")[-1].Trim() }
-        } catch {
-            $conda_path = $null
-        }
-        if ($null -ne $conda_path -and $conda_path -ne "") {
-            $global:Conda_Path = $conda_path
-            $start_conda = (Get-Content -Path "$My_Script_Dir\.powershell_config" -Raw).Split("`n") |
-                Where-Object { $_ -like "Start_Conda*" } |
-                    ForEach-Object { $_.Split("=")[-1].Trim() }
-            if ($null -ne $start_conda -and "true" -eq $start_conda.ToLower()) {
-                $global:Start_Conda = $true
-            }
+    try {
+        $conda_path = (Get-Content -Path "$My_Script_Dir\.powershell_config" -Raw).Split("`n") |
+            Where-Object { $_ -like "Conda_Path*" } |
+                ForEach-Object { $_.Split("=")[-1].Trim() }
+    } catch {
+        $conda_path = $null
+    }
+
+    try {
+        $start_conda = (Get-Content -Path "$My_Script_Dir\.powershell_config" -Raw).Split("`n") |
+            Where-Object { $_ -like "Start_Conda*" } |
+                ForEach-Object { $_.Split("=")[-1].Trim() }
+    } catch {
+        $start_conda = $null
+    }
+
+    if ($null -ne $conda_path -and $conda_path -ne "" -and (Test-Path $conda_path)) {
+        $global:Conda_Path = $conda_path
+    }
+
+    if ($null -ne $start_conda) {
+        if ("true" -eq $start_conda.ToLower()) {
+            $global:Start_Conda = $true
+        } elseif ("false" -eq $start_conda.ToLower()) {
+            $global:Start_Conda = $false
         }
     }
 
-    if (-not $global:Remote_Repository_Address -or -not $global:Remote_Repository_Branch) {
-        # try to open .powershell_config in current directory to get the path of conda
-        try {
-            $remote_repository_address = (Get-Content -Path "$My_Script_Dir\.powershell_config" -Raw).Split("`n") |
-                Where-Object { $_ -like "Remote_Repository_Address*" } |
-                    ForEach-Object { $_.Split("=")[-1].Trim() }
-        } catch {
-            $remote_repository_address = $null
-        }
-        try {
-            $remote_repository_branch = (Get-Content -Path "$My_Script_Dir\.powershell_config" -Raw).Split("`n") |
-                Where-Object { $_ -like "Remote_Repository_Branch*" } |
-                    ForEach-Object { $_.Split("=")[-1].Trim() }
-        } catch {
-            $remote_repository_branch = $null
-        }
-        if ($null -ne $remote_repository_address -and $remote_repository_address -ne "") {
-            $global:Remote_Repository_Address = $remote_repository_address
-        }
-        if ($null -ne $remote_repository_branch -and $remote_repository_branch -ne "") {
-            $global:Remote_Repository_Branch = $remote_repository_branch
-        }
+    try {
+        $remote_repository_address = (Get-Content -Path "$My_Script_Dir\.powershell_config" -Raw).Split("`n") |
+            Where-Object { $_ -like "Remote_Repository_Address*" } |
+                ForEach-Object { $_.Split("=")[-1].Trim() }
+    } catch {
+        $remote_repository_address = $null
     }
 
+    try {
+        $remote_repository_branch = (Get-Content -Path "$My_Script_Dir\.powershell_config" -Raw).Split("`n") |
+            Where-Object { $_ -like "Remote_Repository_Branch*" } |
+                ForEach-Object { $_.Split("=")[-1].Trim() }
+    } catch {
+        $remote_repository_branch = $null
+    }
+
+    if ($null -ne $remote_repository_address -and $remote_repository_address -ne "") {
+        $global:Remote_Repository_Address = $remote_repository_address
+    }
+
+    if ($null -ne $remote_repository_branch -and $remote_repository_branch -ne "") {
+        $global:Remote_Repository_Branch = $remote_repository_branch
+    }
+}
+
+function My-Check-Environment {
+    $esc = $([char]27)
+    Write-Host "$esc[1;3;4;$(93)mChecking Environment...$esc[0m"
+
+    . My-Get-Config
+
+    $message = '| ' + "Permission".PadRight(31) + ' |'
+    Format-Status -Message $message -Task { My-Check-Admin } -MessageTrue "Admin" -MessageFalse "User"
+
     if (-not $global:Conda_Path -or -not (Test-Path $global:Conda_Path)) {
-        $message = "The path of Conda is not set or the path is invalid"
-        Format-Status -Message $message -Status $false -MessageFalse "Error" -ForegroundColorFalse "Red"
+        $message = '| ' + "Conda Path".PadRight(31) + ' |'
+        Format-Status -Message $message -Status $false -MessageFalse "Unset" -ForegroundColorFalse "Red"
     } else {
-        $message = "The path of Conda is set"
-        Format-Status -Message $message -Status $true -MessageTrue "OK" -ForegroundColorTrue "Green"
+        $message = '| ' + "Conda Path".PadRight(31) + ' |'
+        Format-Status -Message $message -Status $true -MessageTrue "Set" -ForegroundColorTrue "Green"
         if ($global:Start_Conda) {
-            $message = "Initializing Conda..."
+            $message = '| ' + "Conda Init".PadRight(31) + ' |'
             Format-Status -Message $message -Task { Conda-Init } -MessageTrue "Init" -MessageFalse "Error"
         }
     }
 
-    My-Get-UI-Infor
+    if (-not $global:Remote_Repository_Address) {
+        $message = '| ' + "Remote Repository Address".PadRight(31) + ' |'
+        Format-Status -Message $message -Status $false -MessageFalse "Unset" -ForegroundColorFalse "Red"
+    } else {
+        $message = '| ' + "Remote Repository Address".PadRight(31) + ' |'
+        $repository_name = $global:Remote_Repository_Address.Split("/")[-1].Split(".")[0]
+        Format-Status -Message $message -Status $true -MessageTrue $repository_name -ForegroundColorTrue "Green"
+    }
+
+    if (-not $global:Remote_Repository_Branch) {
+        $message = '| ' + "Remote Repository Branch".PadRight(31) + ' |'
+        Format-Status -Message $message -Status $false -MessageFalse "Unset" -ForegroundColorFalse "Red"
+    } else {
+        $message = '| ' + "Remote Repository Branch".PadRight(31) + ' |'
+        $branch_name = $global:Remote_Repository_Branch
+        Format-Status -Message $message -Status $true -MessageTrue $branch_name -ForegroundColorTrue "Green"
+    }
+
+    . My-Get-UI-Infor
 
     $name = '| ' + "PowerShell Version".PadRight(31) + ' |'
     $value = $PSVersionTable.PSVersion
@@ -451,18 +488,18 @@ My-Check-Environment
 function Prompt {
     $lst_cmd_state = $?
     $esc = $([char]27)
-    $time = "$esc[1;32m$esc[1;4m" + (Get-Date -Format "HH:mm:ss") + "$esc[0m" # green and italic
     if (-not $lst_cmd_state) {
-        $time = "$esc[1;31m$esc[1;4m" + (Get-Date -Format "HH:mm:ss") + "$esc[0m" # red and italic
+        $time = "$esc[1;31m$esc[1;4m" + (Get-Date -Format "HH:mm:ss") + "$esc[0m " # red and italic
     } else {
-        $time = "$esc[1;32m$esc[1;4m" + (Get-Date -Format "HH:mm:ss") + "$esc[0m" # green and italic
+        $time = "$esc[1;32m$esc[1;4m" + (Get-Date -Format "HH:mm:ss") + "$esc[0m " # green and italic
     }
-    $path = ($PWD.Path).Replace($env:USERPROFILE, "~") # replace the user profile with ~
-    $conda_env = $env:CONDA_DEFAULT_ENV
-    if ($null -ne $conda_env -and $conda_env -ne "") {
-        return "$esc[1;33m$esc[1;4m($conda_env)$esc[0m $time $path" + " > "
+    $path = ($PWD.Path).Replace($env:USERPROFILE, "~") + ' ' # replace the user profile with ~
+    if ($env:CONDA_DEFAULT_ENV) {
+        $conda_env = "$esc[1;33m$esc[1;4m($env:CONDA_DEFAULT_ENV)$esc[0m " # yellow and italic
+    } else {
+        $conda_env = ""
     }
-    return "$time $path > "
+    return $conda_env + $time + $path + "> "
 }
 
 function My-Set-Title {
@@ -756,7 +793,7 @@ Set-Alias    -Name showapp  -Value My-Show-Applications
 Set-Alias    -Name mygit    -Value My-Git
 Set-Alias    -Name cputemp  -Value My-Get-CPU-Temperature
 Set-Alias    -Name grep     -Value findstr
-Set-Alisa    -Name shut     -Value shutdown
+Set-Alias    -Name shut     -Value shutdown
 
 ##### -- Function End -- #####
 
@@ -909,8 +946,23 @@ If (-Not (Test-Path Variable:PSise)) {  # Only run this in the console and not i
 # import the module
 Import-Module PSReadline
 
-Set-PSReadLineOption -EditMode Emacs
 Set-PSReadLineOption -BellStyle None
+Set-PSReadLineOption -EditMode Emacs
+
+function OnViModeChange {
+    $esc = $([char]27)
+    if ($args[0] -eq 'Command') {
+        # Set the cursor to a blinking block.
+        Write-Host -NoNewLine "$esc[1 q"
+    } elseif ($args[0] -eq 'Insert') {
+        # Set the cursor to a blinking blinking line.
+        Write-Host -NoNewLine "$esc[5 q"
+    } elseif ($args[0] -eq 'Visual') {
+        # Set the cursor to a blinking underline.
+        Write-Host -NoNewLine "$esc[6 q"
+    }
+}
+Set-PSReadLineOption -ViModeIndicator Script -ViModeChangeHandler $Function:OnViModeChange
 
 # The color option
 Set-PSReadLineOption -Colors @{
@@ -1037,6 +1089,24 @@ Set-PSReadLineKeyHandler -Key Ctrl+b `
     [Microsoft.PowerShell.PSConsoleReadLine]::RevertLine()
     [Microsoft.PowerShell.PSConsoleReadLine]::Insert("code -r")
     [Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
+}
+
+Set-PSReadLineKeyHandler -Key Ctrl+l `
+                         -BriefDescription ClearScreen `
+                         -LongDescription "Clear the screen." `
+                         -ScriptBlock {
+        [Microsoft.PowerShell.PSConsoleReadLine]::RevertLine()
+        [Microsoft.PowerShell.PSConsoleReadLine]::Insert("clear")
+        [Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
+}
+
+Set-PSReadLineKeyHandler -Key Ctrl+H `
+                         -BriefDescription ComputerSleep `
+                         -LongDescription "Computer sleep." `
+                         -ScriptBlock {
+        [Microsoft.PowerShell.PSConsoleReadLine]::RevertLine()
+        [Microsoft.PowerShell.PSConsoleReadLine]::Insert("shutdown -h")
+        [Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
 }
 
 # In Emacs mode - Tab acts like in bash, but the Windows style completion
@@ -1603,6 +1673,10 @@ Set-PSReadLineOption -CommandValidationHandler {
                     [Microsoft.PowerShell.PSConsoleReadLine]::Replace(
                         $condaCmdBase.StartOffset, $condaCmdArg.EndOffset - $condaCmdBase.StartOffset, 'Conda-Init')
                 }
+                'l' {
+                    [Microsoft.PowerShell.PSConsoleReadLine]::Replace(
+                        $condaCmdArg.StartOffset, $condaCmdArg.EndOffset - $condaCmdArg.StartOffset, 'env list')
+                }
             }
         }
     }
@@ -1805,7 +1879,75 @@ Set-PSReadLineKeyHandler -Key Ctrl+RightArrow `
     [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($nextWordStart)
 }
 
+# Set Ctrl+Enter to add the current line to history, but don't execute it
+Set-PSReadLineKeyHandler -Key Ctrl+Enter `
+                         -BriefDescription AddLineToHistory `
+                         -LongDescription "Add the current line to history" `
+                         -ScriptBlock {
+    param($key, $arg)
+
+    $line = $null
+    $cursor = $null
+    [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
+
+    $line = $line.Trim()
+    if ($line.Length -gt 0) {
+        [Microsoft.PowerShell.PSConsoleReadLine]::AddToHistory($line)
+    }
+
+    [Microsoft.PowerShell.PSConsoleReadLine]::RevertLine()
+}
+
+# Set Escape to clear the current line
+Set-PSReadLineKeyHandler -Key Escape `
+                         -BriefDescription ClearLine `
+                         -LongDescription "Clear the current line" `
+                         -ScriptBlock {
+        param($key, $arg)
+        if ([Microsoft.PowerShell.PSConsoleReadLine]::EditMode -eq 'Vi') {
+            [Microsoft.PowerShell.PSConsoleReadLine]::ViCommandMode
+            return
+        }
+        [Microsoft.PowerShell.PSConsoleReadLine]::RevertLine()
+}
+
 ### Module PSReadLine End ###
+
+### Module PSReadLine Vi Mode (TODO) ###
+
+# Set-PSReadLineOption -EditMode Vi
+
+Set-PSReadLineKeyHandler -Chord 'j' -ScriptBlock {
+    if ([Microsoft.PowerShell.PSConsoleReadLine]::InViInsertMode()) {
+        $key = $host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+        if ($key.Character -eq 'k') {
+            [Microsoft.PowerShell.PSConsoleReadLine]::ViCommandMode()
+        }
+        else {
+            [Microsoft.Powershell.PSConsoleReadLine]::Insert('j')
+            [Microsoft.Powershell.PSConsoleReadLine]::Insert($key.Character)
+        }
+        return
+    }
+    [Microsoft.PowerShell.PSConsoleReadLine]::Insert('j')
+}
+
+Set-PSReadLineKeyHandler -Chord 'k' -ScriptBlock {
+    if ([Microsoft.PowerShell.PSConsoleReadLine]::InViInsertMode()) {
+        $key = $host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+        if ($key.Character -eq 'j') {
+            [Microsoft.PowerShell.PSConsoleReadLine]::ViCommandMode()
+        }
+        else {
+            [Microsoft.Powershell.PSConsoleReadLine]::Insert('k')
+            [Microsoft.Powershell.PSConsoleReadLine]::Insert($key.Character)
+        }
+        return
+    }
+    [Microsoft.PowerShell.PSConsoleReadLine]::Insert('k')
+}
+
+### Module PSReadLine Vi Mode End ###
 
 
 ##### --- Module End --- #####

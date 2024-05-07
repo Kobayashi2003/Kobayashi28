@@ -78,11 +78,18 @@ class Multilayer_Perceptron:
 if __name__ == '__main__':
     # read data from ../data/data.csv
     data = np.genfromtxt('../data/data.csv', delimiter=',', skip_header=1)
-    # z-score normalization
+
+    # z-score
     data[:, 0] = (data[:, 0] - data[:, 0].mean()) / data[:, 0].std()
     data[:, 1] = (data[:, 1] - data[:, 1].mean()) / data[:, 1].std()
+
+    # # normalization (not necessary)
+    # data[:, 0] = (data[:, 0] - data[:, 0].min()) / (data[:, 0].max() - data[:, 0].min())
+    # data[:, 1] = (data[:, 1] - data[:, 1].min()) / (data[:, 1].max() - data[:, 1].min())
+
     # shuffle data
     np.random.shuffle(data)
+
     # split data into training and testing sets
     data_train, data_test = data[:int(0.8 * len(data))], data[:]
     age, estimated_salary, purchased = data_train[:, 0], data_train[:, 1], data_train[:, 2]
