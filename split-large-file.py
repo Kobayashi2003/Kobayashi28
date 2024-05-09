@@ -42,6 +42,13 @@ def split_large_file(path: str, split_size: int, output: str, delete: bool) -> N
         os.remove(path)
 
 
+def test():
+    import subprocess
+    command = 'python .\split-large-file.py --split-size 50 ** -r -i Temp/** Others/** WorkPlace/** Debug/** -d'
+    result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    print(result.stdout.decode('utf-8'))
+
+
 if __name__ == '__main__':
 
     import argparse

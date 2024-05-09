@@ -661,12 +661,12 @@ function My-Add-App {
         if ($judge -eq "Y") {
             My-Delete-App $app_name_tmp
         } else {
-            Format-Status -Message "Add $app_name" -Status "False" -MessageFalse "Fail" -ForegroundColorFalse "Red" -BackgroundColorFalse $current_background_color
+            Format-Status -Message "Add $app_name" -Status $false -MessageFalse "Fail" -ForegroundColorFalse "Red" -BackgroundColorFalse $current_background_color
             return
         }
     }
     Add-Content $My_Script_Path "`n# $app_name`nfunction $app_name(`$state`=`"start`") {`n    `$app_path = `'$app_path`'`n    My-Start-or-Kill `$app_path `$state`n}`n`# END $app_name"
-    Format-Status -Message "Add $app_name" -Status "True" -MessageTrue "Success" -ForegroundColorTrue "Green" -BackgroundColorTrue $current_background_color
+    Format-Status -Message "Add $app_name" -Status $true -MessageTrue "Success" -ForegroundColorTrue "Green" -BackgroundColorTrue $current_background_color
 }
 
 
@@ -996,7 +996,8 @@ Set-PSReadLineOption -AddToHistoryHandler {
 
 # prediction configuration
 Set-PSReadLineOption -PredictionSource History
-Set-PSReadLineOption -PredictionViewStyle ListView
+# Set-PSReadLineOption -PredictionViewStyle ListView
+Set-PSReadLineOption -PredictionViewStyle InlineView
 
 # Shows navigable menu of all options when hitting Tab
 Set-PSReadLineKeyHandler -Key Tab -Function MenuComplete
@@ -1095,9 +1096,10 @@ Set-PSReadLineKeyHandler -Key Ctrl+l `
                          -BriefDescription ClearScreen `
                          -LongDescription "Clear the screen." `
                          -ScriptBlock {
-        [Microsoft.PowerShell.PSConsoleReadLine]::RevertLine()
-        [Microsoft.PowerShell.PSConsoleReadLine]::Insert("clear")
-        [Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
+        # [Microsoft.PowerShell.PSConsoleReadLine]::RevertLine()
+        # [Microsoft.PowerShell.PSConsoleReadLine]::Insert("clear")
+        # [Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
+        [Microsoft.PowerShell.PSConsoleReadLine]::ClearScreen()
 }
 
 Set-PSReadLineKeyHandler -Key Ctrl+H `
