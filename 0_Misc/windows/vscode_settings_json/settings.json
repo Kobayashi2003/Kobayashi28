@@ -1,0 +1,356 @@
+{
+    "files.autoSave": "afterDelay",
+
+    "workbench.colorTheme": "One Dark Pro",
+    "workbench.iconTheme": "material-icon-theme",
+    "workbench.preferredDarkColorTheme": "One Dark Pro Darker",
+    "workbench.list.smoothScrolling": true,
+
+    "editor.lineNumbers": "relative",
+    "editor.minimap.enabled": true, // whether to show the minimap
+    "editor.minimap.scale": 3,
+    "editor.cursorBlinking": "expand",
+    "editor.cursorSmoothCaretAnimation": "on",
+    "editor.suggest.preview": true,
+    "editor.inlineSuggest.enabled": true,
+    "editor.linkedEditing": true,
+    "editor.rulers": [],
+    "editor.accessibilitySupport": "off",
+
+    "terminal.integrated.cursorStyle": "line",
+    "terminal.integrated.cursorBlinking": true,
+    "terminal.integrated.smoothScrolling": true,
+    "terminal.integrated.defaultProfile.windows": "Windows PowerShell",
+    "terminal.integrated.profiles.windows": {
+        "PowerShell": {
+            "source": "PowerShell",
+            "icon": "terminal-powershell"
+        },
+        "Command Prompt": {
+            "path": [
+                "${env:windir}\\Sysnative\\cmd.exe",
+                "${env:windir}\\System32\\cmd.exe"
+            ],
+            "args": [],
+            "icon": "terminal-cmd"
+        },
+        "Git Bash": {
+            "source": "Git Bash"
+        },
+        "Windows PowerShell": {
+            "path": "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+        }
+    },
+
+    "terminal.integrated.stickyScroll.enabled": true,
+    "editor.stickyScroll.enabled": true,
+    "notebook.stickyScroll.enabled": true,
+    "workbench.tree.enableStickyScroll": true,
+
+    "debug.onTaskErrors": "showErrors",
+
+    "extensions.autoUpdate": "onlySelectedExtensions",
+
+    "window.zoomLevel": 1,
+    "window.commandCenter": true,
+
+    // always trust the workspace
+    "security.workspace.trust.untrustedFiles": "open",
+
+    // ***** vim config ***** //
+    "vim.easymotion": true,
+    "vim.incsearch": true,
+    "vim.hlsearch": true,
+    "vim.useCtrlKeys": true,
+    "vim.useSystemClipboard": true,
+    "vim.handleKeys": {
+      "<C-a>": false,
+      "<C-f>": false,
+      "<C-z>": false,
+      "<C-Z>": false,
+      "<C-s>": false
+    },
+
+    "vim.leader": "<space>",
+    // ***** vim normal mode ***** //
+    "vim.normalModeKeyBindingsNonRecursive": [
+      {
+        "before": ["<leader>", "d"],
+        "commands": ["workbench.view.debug"]
+      },
+      {
+        "before": ["<leader>", "D"],
+        "commands": ["workbench.action.debug.start"]
+      },
+      {
+        "before": ["<leader>", "<leader>", "D"],
+        "commands": ["workbench.action.debug.stop"]
+      },
+      {
+        "before": ["<leader>", "C"],
+        "commands": ["workbench.action.debug.continue"]
+      },
+      {
+        "before": ["<leader>", "R"],
+        "commands": ["workbench.action.debug.restart"]
+      },
+      {
+        "before": ["<leader>", "n"],
+        "commands": ["workbench.action.debug.stepOver"]
+      },
+      {
+        "before": ["<leader>", "s"],
+        "commands": ["workbench.action.debug.stepInto"]
+      },
+      {
+        "before": ["<leader>", "b"],
+        "commands": ["editor.debug.action.toggleBreakpoint"]
+      },
+      {
+        "before": ["<leader>", "/"],
+        "commands": ["editor.action.commentLine"]
+      },
+
+      {
+        "before": ["leader", "t"],
+        "commands": ["workbench.action.terminal.focus"]
+      },
+      {
+        "before": ["leader", "T"],
+        "commands": ["workbench.action.terminal.new"]
+      },
+
+      {
+        "before": ["<leader>", "e"],
+        "commands": ["workbench.view.explorer"]
+      },
+      {
+        "before": ["<leader>", "E"],
+        "commands": ["workbench.action.files.revealActiveFileInWindows"]
+      },
+
+      {
+        "before": ["J"],
+        "commands": ["scrollLineDown"]
+      },
+      {
+        "before": ["K"],
+        "commands": ["scrollLineUp"]
+      },
+    
+      {
+        "before": ["<C-j>"],
+        "commands": ["cursorDown", "cursorDown", "cursorDown"]
+      },
+      {
+        "before": ["<C-k>"],
+        "commands": ["cursorUp", "cursorUp", "cursorUp"]
+      },
+      {
+        "before": ["<C-h>"],
+        "commands": ["cursorLeft", "cursorLeft", "cursorLeft"]
+      },
+      {
+        "before": ["<C-l>"],
+        "commands": ["cursorRight", "cursorRight", "cursorRight"]
+      },
+
+      {
+        "before": ["<leader>", "l"],
+        "commands": ["workbench.action.nextEditor"]
+      },
+      {
+        "before": ["<leader>", "h"],
+        "commands": ["workbench.action.previousEditor"]
+      },
+
+      {
+        "before": ["<leader>", "a"],
+        "commands": ["editor.emmet.action.incrementNumberByOne"]
+      },
+      {
+        "before": ["<leader>", "x"],
+        "commands": ["editor.emmet.action.decrementNumberByOne"]
+      },
+
+      {
+        "before": ["<C-n>"],
+        "command": [":nohl"]
+      },
+
+      {
+        "before": ["<leader>", "q"],
+        "commands": ["workbench.action.closeActiveEditor"]
+      }
+    ],
+    // ***** vim insert mode ***** //
+    "vim.insertModeKeyBindingsNonRecursive": [
+      { 
+        "before": ["j", "k"],
+        "after": ["<Escape>"]
+      },
+      { 
+        "before": ["j", "k"],
+        "after": ["<Escape>"]
+      },
+      {
+        "before": ["<C-c>"],
+        "commands": ["editor.action.clipboardCopyAction"]
+      },
+      {
+        "before": ["<C-x>"],
+        "commands": ["editor.action.clipboardCutAction"]
+      },
+      {
+        "before": ["<C-v>"],
+        "commands": ["editor.action.clipboardPasteAction"]
+      }
+    ],
+    // ***** vim visual mode ***** //
+    "vim.visualModeKeyBindingsNonRecursive": [
+      {
+        "before": ["<C-c>"],
+        "commands": ["editor.action.clipboardCopyAction"]
+      },
+      {
+        "before": ["<C-x>"],
+        "commands": ["editor.action.clipboardCutAction"]
+      },
+
+      {
+        "before": ["<leader>", "a"],
+        "commands": ["editor.emmet.action.incrementNumberByOne"]
+      },
+      {
+        "before": ["<leader>", "x"],
+        "commands": ["editor.emmet.action.decrementNumberByOne"]
+      },
+
+      {
+        "before": ["i", "l"],
+        "after": ["<Esc>", "$", "v", "^"]
+      },
+
+      {
+        "before": ["J"],
+        "commands": ["scrollLineDown"]
+      },
+      {
+        "before": ["K"],
+        "commands": ["scrollLineUp"]
+      },
+
+      {
+        "before": ["<C-j>"],
+        "after": ["3", "j"]
+      },
+      {
+        "before": ["<C-k>"],
+        "after": ["3", "k"]
+      },
+      {
+        "before": ["<C-h>"],
+        "after": ["3", "h"]
+      },
+      {
+        "before": ["<C-l>"],
+        "after": ["3", "l"]
+      },
+    
+      {
+        "before": ["<leader>", "/"],
+        "commands": ["editor.action.commentLine"]
+      }
+    ],
+
+    // ***** github copilot ***** //
+    "github.copilot.enable": {
+        "*": true,
+        "plaintext": false,
+        "markdown": true,
+        "scminput": false,
+        "yaml": false,
+        "python": true
+    },
+
+    "remote.extensionKind": {
+        "GitHub.copilot": [
+            "ui"
+        ],
+        "github.copilot-chat": [
+            "ui"
+        ]
+    },
+
+    // ***** powershell ***** //
+    "powershell.codeFormatting.autoCorrectAliases": true,
+    "powershell.powerShellAdditionalExePaths": {
+        "Windows PowerShell (x86)": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+    },
+    "[powershell]": {
+        "debug.saveBeforeStart": "nonUntitledEditorsInActiveGroup",
+        "editor.semanticHighlighting.enabled": true,
+        "editor.wordSeparators": "`~!@#$%^&*()=+[{]}\\|;:'\",.<>/?",
+        "editor.renderWhitespace": "all",
+        "editor.renderControlCharacters": true,
+        "files.trimTrailingWhitespace": true,
+        "files.encoding": "utf8bom",
+        "files.autoGuessEncoding": true,
+    },
+
+    // ***** python ***** //
+    "[python]": {
+        "editor.formatOnType": true
+    },
+    "python.testing.pytestEnabled": true,
+    "python.testing.unittestEnabled": false,
+    "python.testing.autoTestDiscoverOnSaveEnabled": false,
+    "python.testing.unittestArgs": [],
+    "python.testing.pytestArgs": [],
+
+    // ***** c/c++ ***** //
+    "[cpp]": {
+      "editor.wordBasedSuggestions": "off",
+      "editor.suggest.insertMode": "replace",
+      "editor.semanticHighlighting.enabled": true
+    },
+    "C_Cpp.errorSquiggles": "enabled",
+
+    // ***** live server ***** //
+    "liveServer.settings.donotShowInfoMsg": true,
+    "liveServer.settings.port": 5657,
+
+    // ***** git ***** //
+    "git.openRepositoryInParentFolders": "never",
+    // if set to true, automatically fetch from the default remote of the current Git repository. If set to "all", fetch from all remotes.
+    "git.autofetch": false,
+    "gitlens.views.commitDetails.files.layout": "tree",
+
+    // ***** markdown ***** //
+    "markdown-preview-enhanced.enablePreviewZenMode": false,
+    "markdown-preview-enhanced.previewTheme": "github-dark.css",
+
+    "masmtasm.ASM.emulator": "dosbox-x",
+    "masmtasm.ASM.assembler": "MASM",
+    
+    // how to show the cell toolbar, or whether to hide it.
+    "notebook.cellToolbarLocation": {
+        "default": "right",
+        "jupyter-notebook": "left"
+    },
+    "jupyter.askForKernelRestart": false,
+
+    "easycode.userEmail": "1731237095@qq.com",
+    "easycode.model": "gpt-4-1106-preview",
+
+    "codesnap.containerPadding": "0.1em",
+
+    "projectManager.git.baseFolders": [
+        "D:/Program/Code"
+    ],
+
+    "vscode_custom_css.imports": [
+        "file:///D:/Program/Code/index.js",
+        "file:///c:/Users/KOBAYASHI/.vscode/extensions/brandonkirbyson.vscode-animations-2.0.1/dist/updateHandler.js"
+    ],
+}

@@ -1,0 +1,236 @@
+{
+  "files.autoSave": "afterDelay",
+
+  "workbench.colorTheme": "wallbash",
+  "workbench.list.smoothScrolling": true,
+
+  "keyboard.dispatch": "keyCode",
+
+  "editor.fontFamily": "'MesloLGS NF', 'Droid Sans Mono', 'monospace', monospace",
+  "editor.cursorBlinking": "smooth",
+  "editor.cursorSmoothCaretAnimation": "on",
+  "editor.lineNumbers": "relative",
+  "editor.minimap.enabled": true,
+  "editor.minimap.autohide": false,
+  "editor.minimap.scale": 3,
+  "editor.suggest.preview": true,
+  "editor.inlineSuggest.enabled": true,
+  "editor.linkedEditing": true,
+  "editor.rulers": [],
+
+  "terminal.integrated.cursorStyle": "line",
+  "terminal.integrated.cursorBlinking": true,
+  "terminal.integrated.smoothScrolling": true,
+
+  "editor.stickyScroll.enabled": true,
+  "workbench.tree.enableStickyScroll": true,
+  "terminal.integrated.stickyScroll.enabled": true,
+
+  "debug.onTaskErrors": "showErrors",
+
+  // ***** vim config ***** //
+  "vim.easymotion": true,
+  "vim.incsearch": true,
+  "vim.hlsearch": true,
+  "vim.useCtrlKeys": true,
+  "vim.useSystemClipboard": true,
+  "vim.handleKeys": {
+    "<C-a>": false,
+    "<C-f>": false,
+    "<C-z>": false,
+    "<C-Z>": false,
+    "<C-s>": false
+  },
+
+  "vim.leader": "<space>",
+  // ***** vim normal mode ***** //
+  "vim.normalModeKeyBindingsNonRecursive": [
+    {
+      "before": ["<leader>", "d"],
+      "commands": ["workbench.view.debug"]
+    },
+    {
+      "before": ["<leader>", "D"],
+      "commands": ["workbench.action.debug.start"]
+    },
+    {
+      "before": ["<leader>", "<leader>", "D"],
+      "commands": ["workbench.action.debug.stop"]
+    },
+    {
+      "before": ["<leader>", "C"],
+      "commands": ["workbench.action.debug.continue"]
+    },
+    {
+      "before": ["<leader>", "R"],
+      "commands": ["workbench.action.debug.restart"]
+    },
+    {
+      "before": ["<leader>", "n"],
+      "commands": ["workbench.action.debug.stepOver"]
+    },
+    {
+      "before": ["<leader>", "s"],
+      "commands": ["workbench.action.debug.stepInto"]
+    },
+    {
+      "before": ["<leader>", "b"],
+      "commands": ["editor.debug.action.toggleBreakpoint"]
+    },
+    {
+      "before": ["<leader>", "/"],
+      "commands": ["editor.action.commentLine"]
+    },
+
+    {
+      "before": ["leader", "t"],
+      "commands": ["workbench.action.terminal.focus"]
+    },
+    {
+      "before": ["leader", "T"],
+      "commands": ["workbench.action.terminal.new"]
+    },
+
+    {
+      "before": ["<leader>", "e"],
+      "commands": ["workbench.view.explorer"]
+    },
+    {
+      "before": ["<leader>", "E"],
+      "commands": ["workbench.action.files.revealActiveFileInWindows"]
+    },
+
+    {
+      "before": ["J"],
+      "commands": ["scrollLineDown"]
+    },
+    {
+      "before": ["K"],
+      "commands": ["scrollLineUp"]
+    },
+    
+    {
+      "before": ["<C-j>"],
+      "commands": ["cursorDown", "cursorDown", "cursorDown"]
+    },
+    {
+      "before": ["<C-k>"],
+      "commands": ["cursorUp", "cursorUp", "cursorUp"]
+    },
+    {
+      "before": ["<C-h>"],
+      "commands": ["cursorLeft", "cursorLeft", "cursorLeft"]
+    },
+    {
+      "before": ["<C-l>"],
+      "commands": ["cursorRight", "cursorRight", "cursorRight"]
+    },
+
+    {
+      "before": ["<leader>", "l"],
+      "commands": ["workbench.action.nextEditor"]
+    },
+    {
+      "before": ["<leader>", "h"],
+      "commands": ["workbench.action.previousEditor"]
+    },
+
+    {
+      "before": ["<leader>", "a"],
+      "commands": ["editor.emmet.action.incrementNumberByOne"]
+    },
+    {
+      "before": ["<leader>", "x"],
+      "commands": ["editor.emmet.action.decrementNumberByOne"]
+    },
+
+    {
+      "before": ["<C-n>"],
+      "command": [":nohl"]
+    },
+
+    {
+      "before": ["<leader>", "q"],
+      "commands": ["workbench.action.closeActiveEditor"]
+    }
+  ],
+  // ***** vim insert mode ***** //
+  "vim.insertModeKeyBindingsNonRecursive": [
+    { 
+      "before": ["j", "k"],
+      "after": ["<Escape>"]
+    },
+    { 
+      "before": ["j", "k"],
+      "after": ["<Escape>"]
+    },
+    {
+      "before": ["<C-c>"],
+      "commands": ["editor.action.clipboardCopyAction"]
+    },
+    {
+      "before": ["<C-x>"],
+      "commands": ["editor.action.clipboardCutAction"]
+    },
+    {
+      "before": ["<C-v>"],
+      "commands": ["editor.action.clipboardPasteAction"]
+    }
+  ],
+  // ***** vim visual mode ***** //
+  "vim.visualModeKeyBindingsNonRecursive": [
+    {
+      "before": ["<C-c>"],
+      "commands": ["editor.action.clipboardCopyAction"]
+    },
+    {
+      "before": ["<C-x>"],
+      "commands": ["editor.action.clipboardCutAction"]
+    },
+
+    {
+      "before": ["<leader>", "a"],
+      "commands": ["editor.emmet.action.incrementNumberByOne"]
+    },
+    {
+      "before": ["<leader>", "x"],
+      "commands": ["editor.emmet.action.decrementNumberByOne"]
+    },
+
+    {
+      "before": ["i", "l"],
+      "after": ["<Esc>", "$", "v", "^"]
+    },
+
+    {
+      "before": ["J"],
+      "commands": ["scrollLineDown"]
+    },
+    {
+      "before": ["K"],
+      "commands": ["scrollLineUp"]
+    },
+
+    {
+      "before": ["<C-j>"],
+      "after": ["3", "j"]
+    },
+    {
+      "before": ["<C-k>"],
+      "after": ["3", "k"]
+    },
+    {
+      "before": ["<C-h>"],
+      "after": ["3", "h"]
+    },
+    {
+      "before": ["<C-l>"],
+      "after": ["3", "l"]
+    },
+    
+    {
+      "before": ["<leader>", "/"],
+      "commands": ["editor.action.commentLine"]
+    }
+  ]
+}

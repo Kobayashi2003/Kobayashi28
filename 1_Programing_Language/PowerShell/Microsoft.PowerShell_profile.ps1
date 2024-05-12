@@ -1083,6 +1083,7 @@ Set-PSReadLineKeyHandler -Key F7 `
 
 # This is an example of a marco that you might use to execute a command.
 # This will add the command to the history.
+# TODO: Unfortunately, revertline may not work as expected when you use listview completion.
 Set-PSReadLineKeyHandler -Key Ctrl+b `
                          -BriefDescription BuildCurrentDirectory `
                          -LongDescription "Build the current directory." `

@@ -1,0 +1,103 @@
+{
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "Compile_C_in_Linux", 
+            "command": "gcc",
+            "args": [
+                "-fdiagnostics-color=always",
+                "-g",
+                "${file}",
+                "-o",
+                "${workspaceFolder}/Debug/${fileBasenameNoExtension}.o",
+                "-ggdb3",
+                "-Wall",
+                "-static-libgcc",
+                "-Wno-format",
+                "-finput-charset=UTF-8",
+                "-fexec-charset=UTF-8"
+            ],
+            "presentation": {
+                "echo": true,
+                "reveal": "silent", 
+                "focus": false,
+                "panel": "shared",
+                "clear": true,
+                "showReuseMessage": true
+            },
+            "options": {
+                "cwd": "${fileDirname}"
+            },
+            "problemMatcher": {
+                "owner": "cpp",
+                "fileLocation": [
+                    "relative",
+                    "\\"
+                ],
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                }
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "Compile C file in Linux"
+        },
+
+        {
+            "type": "shell",
+            "label": "Compile_C++_in_Linux",
+            "command": "g++",
+            "args": [
+                "-fdiagnostics-color=always",
+                "-g",
+                "${file}",
+                "-o",
+                "${workspaceFolder}/Debug/${fileBasenameNoExtension}.o",
+                "-ggdb3",
+                "-Wall",
+                "-static-libgcc",
+                "-Wno-format",
+                "-finput-charset=UTF-8",
+                "-fexec-charset=UTF-8"
+            ],
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": false,
+                "panel": "shared",
+                "clear": true,
+                "showReuseMessage": true
+            },
+            "options": {
+                "cwd": "${fileDirname}"
+            },
+            "problemMatcher": {
+                "owner": "cpp",
+                "fileLocation": [
+                    "relative",
+                    "\\"
+                ],
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                }
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "Compile C file in Linux"
+        }
+    ]
+}
