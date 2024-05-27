@@ -1,5 +1,5 @@
 run:
-	@qemu-system-i386 -hda hd.img -serial null -parallel stdio 
+	@qemu-system-i386 -hda hd.img -serial null -parallel stdio
 debug:
 	@qemu-system-i386 -s -S -hda hd.img -serial null -parallel stdio &
 	@sleep 1

@@ -1,5 +1,5 @@
 %include "boot.inc"
-org 0x7e00
+; org 0x7e00
 [bits 16]
 mov ax, 0xb800
 mov gs, ax
