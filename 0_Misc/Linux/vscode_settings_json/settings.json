@@ -83,12 +83,21 @@
     },
 
     {
-      "before": ["leader", "t"],
+      "before": ["<leader>", "t"],
       "commands": ["workbench.action.terminal.focus"]
     },
     {
-      "before": ["leader", "T"],
+      "before": ["<leader>", "T"],
       "commands": ["workbench.action.terminal.new"]
+    },
+
+    {
+      "before": ["<leader>", "%"],
+      "commands": ["workbench.action.splitEditorRight"]
+    },
+    {
+      "before": ["<leader>", "\""],
+      "commands": ["workbench.action.splitEditorDown"]
     },
 
     {
