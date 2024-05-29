@@ -18,12 +18,6 @@ void STDIO::print(uint8 character, uint8 color) {
     uint cur_x = cursor_pos / 80;
     uint cur_y = cursor_pos % 80;
     print(cur_x, cur_y, character, color);
-    cursor_pos++;
-    if (cursor_pos == 25 * 80) {
-        rollUp();
-        cursor_pos = 24 * 80;
-    }
-    moveCursor(cursor_pos);
 }
 
 void STDIO::print(uint x, uint y, uint8 character, uint8 color) {
@@ -44,9 +38,15 @@ void STDIO::print(uint x, uint y, uint8 character, uint8 color) {
         return ;
     }
   
-    uint pos = x * 80 + y;
-    screen[2 * pos] = character;
-    screen[2 * pos + 1] = color;
+    uint cursor_pos = x * 80 + y;
+    screen[2 * cursor_pos] = character;
+    screen[2 * cursor_pos + 1] = color;
+
+    if (++cursor_pos == 25 * 80) {
+        rollUp();
+        cursor_pos = 24 * 80;
+    }
+    moveCursor(cursor_pos);
 }
 
 int STDIO::print(const char* str, uint8 color) {
