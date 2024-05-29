@@ -1,7 +1,7 @@
 ASM_COMPILER = nasm
 C_COMPLIER = gcc
 CXX_COMPLIER = g++
-CXX_COMPLIER_FLAGS = -g -Wall -march=i386 -m32 -nostdlib -fno-builtin -ffreestanding -fno-pic -fno-stack-protector
+CXX_COMPLIER_FLAGS = -g -Wall -march=i386 -m32 -nostdlib -fno-builtin -ffreestanding -fno-pic
 LINKER = ld
 
 SRCDIR = ../src
@@ -59,7 +59,7 @@ run:
 debug: 
 	qemu-system-i386 -S -s -parallel stdio -hda $(RUNDIR)/hd.img -serial null&
 	@sleep 1
-	kitty --hold sh -c "gdb-pwndbg -x $(RUNDIR)/gdbinit"
+	gnome-terminal -e "gdb -q -tui -x $(RUNDIR)/gdbinit"
 
 test:
 	echo $(CXX_OBJ)
