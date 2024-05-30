@@ -19,6 +19,7 @@ struct PCB
 {
     int *stack;                      // 栈指针，用于调度时保存esp
     char name[MAX_PROGRAM_NAME + 1]; // 线程名
+    char info[MAX_PROGRAM_INFO + 1]; // 线程信息
     enum ProgramStatus status;       // 线程的状态
     int priority;                    // 线程优先级
     int pid;                         // 线程pid

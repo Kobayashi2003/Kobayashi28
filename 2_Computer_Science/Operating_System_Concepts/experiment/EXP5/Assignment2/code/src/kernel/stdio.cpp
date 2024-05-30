@@ -5,151 +5,152 @@
 #include "stdarg.h"
 #include "stdlib.h"
 
-STDIO::STDIO()
-{
+STDIO::STDIO() {
     initialize();
 }
 
-void STDIO::initialize()
-{
-    screen = (uint8 *)0xb8000;
+void STDIO::initialize() {
+    screen = (uint8 *)(0xb8000);
 }
 
-void STDIO::print(uint x, uint y, uint8 c, uint8 color)
-{
+void STDIO::print(uint8 character, uint8 color) {
+    uint cursor_pos = getCursor();
+    uint cur_x = cursor_pos / 80;
+    uint cur_y = cursor_pos % 80;
+    print(cur_x, cur_y, character, color);
+}
 
-    if (x >= 25 || y >= 80)
-    {
-        return;
+void STDIO::print(uint x, uint y, uint8 character, uint8 color) {
+
+    if (x >= 25 || y >= 80) {
+        return ;
     }
 
-    uint pos = x * 80 + y;
-    screen[2 * pos] = c;
-    screen[2 * pos + 1] = color;
-}
+    switch (character) {
+    case '\n':
+        print_backslash_n();
+        return ;
+    case '\t':
+        print_backslash_t();
+        return ;
+    case '\b':
+        print_backslash_b();
+        return ;
+    }
+  
+    uint cursor_pos = x * 80 + y;
+    screen[2 * cursor_pos] = character;
+    screen[2 * cursor_pos + 1] = color;
 
-void STDIO::print(uint8 c, uint8 color)
-{
-    uint cursor = getCursor();
-    screen[2 * cursor] = c;
-    screen[2 * cursor + 1] = color;
-    cursor++;
-    if (cursor == 25 * 80)
-    {
+    if (++cursor_pos == 25 * 80) {
         rollUp();
-        cursor = 24 * 80;
+        cursor_pos = 24 * 80;
     }
-    moveCursor(cursor);
+    moveCursor(cursor_pos);
 }
 
-void STDIO::print(uint8 c)
-{
-    print(c, 0x07);
-}
-
-void STDIO::moveCursor(uint position)
-{
-    if (position >= 80 * 25)
-    {
-        return;
+int STDIO::print(const char* str, uint8 color) {
+    int i = 0;
+    while (str[i]) {
+        print(str[i], color);
+        i++;
     }
-
-    uint8 temp;
-
-    // 处理高8位
-    temp = (position >> 8) & 0xff;
-    asm_out_port(0x3d4, 0x0e);
-    asm_out_port(0x3d5, temp);
-
-    // 处理低8位
-    temp = position & 0xff;
-    asm_out_port(0x3d4, 0x0f);
-    asm_out_port(0x3d5, temp);
+    return i;
 }
 
-uint STDIO::getCursor()
-{
-    uint pos;
-    uint8 temp;
-
-    pos = 0;
-    temp = 0;
-    // 处理高8位
-    asm_out_port(0x3d4, 0x0e);
-    asm_in_port(0x3d5, &temp);
-    pos = ((uint)temp) << 8;
-
-    // 处理低8位
-    asm_out_port(0x3d4, 0x0f);
-    asm_in_port(0x3d5, &temp);
-    pos = pos | ((uint)temp);
-
-    return pos;
+int STDIO::print(uint x, uint y, const char *const str, uint8 color) {
+    uint cur_pos = getCursor();
+    moveCursor(x, y);
+    int i = 0;
+    while (str[i]) {
+        print(str[i], color);
+        i++;
+    }
+    moveCursor(cur_pos);
+    return i;
 }
 
-void STDIO::moveCursor(uint x, uint y)
-{
-    if (x >= 25 || y >= 80)
-    {
-        return;
+void STDIO::moveCursor(uint position) {
+
+    if (position >= 80 * 25) {
+        return ;
     }
 
+    uint8 high = (position >> 8) & 0xFF;
+    uint8 low = position & 0xFF;
+
+    asm_out_port(0x3D4, 0x0E);
+    asm_out_port(0x3D5, high);
+    asm_out_port(0x3D4, 0x0F);
+    asm_out_port(0x3D5, low);
+}
+
+void STDIO::moveCursor(uint x, uint y) {
+    if (x >= 25 || y >= 80) {
+        return ;
+    }
     moveCursor(x * 80 + y);
 }
 
-void STDIO::rollUp()
-{
-    uint length;
-    length = 25 * 80;
-    for (uint i = 80; i < length; ++i)
-    {
+uint STDIO::getCursor() {
+    uint pos = 0;
+    uint8 temp;
+
+    // Get the high byte of the cursor's position
+    asm_out_port(0x3D4, 0x0E);
+    asm_in_port(0x3D5, &temp);
+    pos = ((uint)temp) << 8;
+    // Get the low byte of the cursor's position
+    asm_out_port(0x3D4, 0x0F);
+    asm_in_port(0x3D5, &temp);
+    pos |= (uint)temp;
+    
+    return pos;
+}
+
+void STDIO::rollUp() {
+    uint length = 25 * 80;
+    for (uint i = 80; i < length; ++i) {
         screen[2 * (i - 80)] = screen[2 * i];
         screen[2 * (i - 80) + 1] = screen[2 * i + 1];
     }
-
-    for (uint i = 24 * 80; i < length; ++i)
-    {
+    for (uint i = 24 * 80; i < length; ++i) {
         screen[2 * i] = ' ';
         screen[2 * i + 1] = 0x07;
     }
 }
 
-int STDIO::print(const char *const str)
-{
-    int i = 0;
-
-    for (i = 0; str[i]; ++i)
-    {
-        switch (str[i])
-        {
-        case '\n':
-            uint row;
-            row = getCursor() / 80;
-            if (row == 24)
-            {
-                rollUp();
-            }
-            else
-            {
-                ++row;
-            }
-            moveCursor(row * 80);
-            break;
-
-        default:
-            print(str[i]);
-            break;
-        }
+void STDIO::print_backslash_n() {
+    uint row = getCursor() / 80;
+    if (row == 24) {
+        rollUp();
+    } else {
+        ++row;
     }
-
-    return i;
+    moveCursor(row * 80);
 }
 
-int printf_add_to_buffer(char *buffer, char c, int &idx, const int BUF_LEN)
+void STDIO::print_backslash_t() {
+    // Assuming tab size of 4 spaces for simplicity
+    int space_indent = 4 - getCursor() % 4;
+    for (int i = 0; i < space_indent; ++i) {
+        print(' ');
+    }
+}
+
+void STDIO::print_backslash_b() {
+    uint cursor_pos = getCursor();
+    if (cursor_pos == 0) {
+        return ;
+    }
+    moveCursor(--cursor_pos);
+}
+
+int printf_add_to_buffer(char *buffer, char character, int &idx, const int BUF_LEN)
 {
     int counter = 0;
 
-    buffer[idx] = c;
+    buffer[idx] = character;
     ++idx;
 
     if (idx == BUF_LEN)
@@ -233,3 +234,4 @@ int printf(const char *const fmt, ...)
 
     return counter;
 }
+

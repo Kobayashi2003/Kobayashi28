@@ -10,26 +10,33 @@ private:
 
 public:
     STDIO();
-    // 初始化函数
+    // initialize function
     void initialize();
-    // 打印字符c，颜色color到位置(x,y)
-    void print(uint x, uint y, uint8 c, uint8 color);
-    // 打印字符c，颜色color到光标位置
-    void print(uint8 c, uint8 color);
-    // 打印字符c，颜色默认到光标位置
-    void print(uint8 c);
-    // 打印字符串，颜色默认
-    int print(const char *const str);
-    // 移动光标到一维位置
+
+    // print character c with color to current cursor position 
+    void print(uint8 c, uint8 color = 0x07);
+    // print character c with color to position (x, y)
+    void print(uint x, uint y, uint8 c, uint8 color = 0x07);
+
+    // print string with color to current cursor position, return the number of characters
+    int print(const char *const str, uint8 color = 0x07);
+    // print string with color to position (x, y), return the number of characters
+    int print(uint x, uint y, const char *const str, uint8 color = 0x07);
+
+    // move cursor to a one dimensional position
     void moveCursor(uint position);
-    // 移动光标到二维位置
+    // move cursor to a two dimensional position
     void moveCursor(uint x, uint y);
-    // 获取光标位置
+    // get cursor position
     uint getCursor();
 
 private:
-    // 滚屏
+    // roll up the screen 
     void rollUp();
+
+    void print_backslash_n();
+    void print_backslash_t();
+    void print_backslash_b();
 };
 
 int printf(const char *const fmt, ...);

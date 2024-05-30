@@ -27,7 +27,7 @@ void ProgramManager::initialize()
     }
 }
 
-int ProgramManager::executeThread(ThreadFunction function, void *parameter, const char *name, int priority)
+int ProgramManager::executeThread(ThreadFunction function, void *parameter, const char *name, const char *info, int priority)
 {
     // 关中断，防止创建线程的过程被打断
     bool status = interruptManager.getInterruptStatus();
@@ -45,6 +45,11 @@ int ProgramManager::executeThread(ThreadFunction function, void *parameter, cons
     for (int i = 0; i < MAX_PROGRAM_NAME && name[i]; ++i)
     {
         thread->name[i] = name[i];
+    }
+
+    for (int i = 0; i < MAX_PROGRAM_INFO && info[i]; ++i)
+    {
+        thread->info[i] = info[i];
     }
 
     thread->status = ProgramStatus::READY;

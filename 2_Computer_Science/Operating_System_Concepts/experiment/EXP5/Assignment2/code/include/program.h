@@ -24,7 +24,7 @@ public:
     // priority：线程的优先级
 
     // 成功，返回pid；失败，返回-1
-    int executeThread(ThreadFunction function, void *parameter, const char *name, int priority);
+    int executeThread(ThreadFunction function, void *parameter, const char *name, const char *info, int priority);
 
     // 分配一个PCB
     PCB *allocatePCB();
