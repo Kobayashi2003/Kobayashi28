@@ -37,7 +37,7 @@ asm_atomic_exchange:
     pop ebp
     ret
 
-; void asm_atomic_test_and_set(uint32 *memory)
+; uint32 asm_atomic_test_and_set(uint32 *memory)
 asm_atomic_test_and_set:
     push ebp
     mov  ebp, esp

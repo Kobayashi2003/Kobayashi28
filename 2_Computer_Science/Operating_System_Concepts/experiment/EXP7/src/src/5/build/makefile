@@ -59,7 +59,7 @@ run:
 debug: 
 	qemu-system-i386 -S -s -parallel stdio -hda $(RUNDIR)/hd.img -serial null&
 	@sleep 1
-	gnome-terminal -e "gdb -q -tui -x $(RUNDIR)/gdbinit"
+	fish -c "gdb -q -x $(RUNDIR)/gdbinit"
 
 test:
 	echo $(CXX_OBJ)
