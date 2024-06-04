@@ -2,6 +2,7 @@
 #define MEMORY_H
 
 #include "address_pool.h"
+#include "queue.h"
 
 enum AddressPoolType
 {
@@ -20,6 +21,9 @@ public:
     AddressPool userPhysical;
     // 内核虚拟地址池
     AddressPool kernelVirtual;
+
+    Queue kernelVirtualFIFOQueue;
+    Queue userVirtualFIFOQueue;
    
 public:
     MemoryManager();

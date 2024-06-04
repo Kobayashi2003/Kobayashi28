@@ -17,14 +17,6 @@ MemoryManager memoryManager;
 
 void first_thread(void *arg)
 {
-    // 第1个线程不可以返回
-    // stdio.moveCursor(0);
-    // for (int i = 0; i < 25 * 80; ++i)
-    // {
-    //     stdio.print(' ');
-    // }
-    // stdio.moveCursor(0);
-
     char *p1 = (char *)memoryManager.allocatePages(AddressPoolType::KERNEL, 15900);
     char *p2 = (char *)memoryManager.allocatePages(AddressPoolType::KERNEL, 10);
     char *p3 = (char *)memoryManager.allocatePages(AddressPoolType::KERNEL, 100);

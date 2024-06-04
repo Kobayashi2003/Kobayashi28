@@ -29,13 +29,28 @@ void MemoryManager::initialize()
     int freePages = freeMemory / PAGE_SIZE;
     int kernelPages = freePages / 2;
     int userPages = freePages - kernelPages;
-
+    int virtualKernelPages = kernelPages * 2;
+    
     int kernelPhysicalStartAddress = usedMemory;
     int userPhysicalStartAddress = usedMemory + kernelPages * PAGE_SIZE;
 
     int kernelPhysicalBitMapStart = BITMAP_START_ADDRESS;
     int userPhysicalBitMapStart = kernelPhysicalBitMapStart + ceil(kernelPages, 8);
     int kernelVirtualBitMapStart = userPhysicalBitMapStart + ceil(userPages, 8);
+
+    int kernelPhysical_fifoQueue_Start = kernelVirtualBitMapStart + ceil(virtualKernelPages, 8);
+    // int kernelPhysical_fifoQueue_Length = kernelPages;
+    int kernelPhysical_fifoQueue_Length = 1024;
+
+    int userPhysical_fifoQueue_Start = kernelPhysical_fifoQueue_Start + kernelPhysical_fifoQueue_Length * sizeof(int);
+    // int userPhysical_fifoQueue_Length = userPages;
+    int userPhysical_fifoQueue_Length = 1024;
+
+    if ((uint32)(userPhysical_fifoQueue_Start + userPhysical_fifoQueue_Length) * sizeof(int) > (uint32)usedMemory)
+    {
+        printf("memory kept for bitmap and queue is not enough, halt.\n");
+        asm_halt();
+    }
 
     kernelPhysical.initialize(
         (char *)kernelPhysicalBitMapStart,
@@ -49,8 +64,16 @@ void MemoryManager::initialize()
 
     kernelVirtual.initialize(
         (char *)kernelVirtualBitMapStart,
-        kernelPages,
+        virtualKernelPages,
         KERNEL_VIRTUAL_START);
+
+    kernelVirtualFIFOQueue.initialize(
+        (int *)kernelPhysical_fifoQueue_Start,
+        kernelPhysical_fifoQueue_Length);
+
+    userVirtualFIFOQueue.initialize(
+        (int *)userPhysical_fifoQueue_Start,
+        userPhysical_fifoQueue_Length);
 
     printf("total memory: %d bytes ( %d MB )\n",
            this->totalMemory,
@@ -77,8 +100,20 @@ void MemoryManager::initialize()
            "    total pages: %d  ( %d MB ) \n"
            "    bit map start address: 0x%x\n",
            KERNEL_VIRTUAL_START,
-           userPages, kernelPages * PAGE_SIZE / 1024 / 1024,
+           userPages, virtualKernelPages * PAGE_SIZE / 1024 / 1024,
            kernelVirtualBitMapStart);
+
+    printf("kernel physical FIFO queue\n"
+              "    start address: 0x%x\n"
+              "    total pages: %d\n",
+              kernelPhysical_fifoQueue_Start,
+              kernelPhysical_fifoQueue_Length);
+
+    printf("user physical FIFO queue\n"
+              "    start address: 0x%x\n"
+              "    total pages: %d\n",
+              userPhysical_fifoQueue_Start,
+              userPhysical_fifoQueue_Length);
 }
 
 int MemoryManager::allocatePhysicalPages(enum AddressPoolType type, const int count)
@@ -163,48 +198,75 @@ void MemoryManager::openPageMechanism()
     printf("open page mechanism\n");
 }
 
-int MemoryManager::allocatePages(enum AddressPoolType type, const int count)
-{
-    // 第一步：从虚拟地址池中分配若干虚拟页
+int MemoryManager::allocatePages(enum AddressPoolType type, const int count) {
+    // Allocate virtual pages
     int virtualAddress = allocateVirtualPages(type, count);
-    if (!virtualAddress)
-    {
+    if (!virtualAddress) {
         return 0;
     }
 
-    bool flag;
-    int physicalPageAddress;
     int vaddress = virtualAddress;
+    bool success_flg = true;
 
-    // 依次为每一个虚拟页指定物理页
-    for (int i = 0; i < count; ++i, vaddress += PAGE_SIZE)
-    {
-        flag = false;
-        // 第二步：从物理地址池中分配一个物理页
-        physicalPageAddress = allocatePhysicalPages(type, 1);
-        if (physicalPageAddress)
-        {
-            //printf("allocate physical page 0x%x\n", physicalPageAddress);
+    // Allocate physical pages and set up mappings    
+    for (int i = 0; i < count; ++i, vaddress += PAGE_SIZE) {
+        int physicalPageAddress = allocatePhysicalPages(type, 1);
 
-            // 第三步：为虚拟页建立页目录项和页表项，使虚拟页内的地址经过分页机制变换到物理页内。
-            flag = connectPhysicalVirtualPage(vaddress, physicalPageAddress);
+        // FIFO page replacement if no physica page is available
+        if (!physicalPageAddress) {
+            int page_addr_and_count = 0;
+            if (type == AddressPoolType::KERNEL) {
+                page_addr_and_count = kernelVirtualFIFOQueue.front();
+            } else if (type == AddressPoolType::USER) {
+                page_addr_and_count = userVirtualFIFOQueue.front();
+            }
+
+            int page_addr = page_addr_and_count & 0xfffff000;
+            int page_count = (page_addr_and_count & 0x00000fff) + 1;
+
+            releasePages(type, page_addr, page_count);
+
+            physicalPageAddress = allocatePhysicalPages(type, 1);
         }
-        else
-        {
-            flag = false;
+
+        // If still no physical page is available, release all resources
+        if (!physicalPageAddress) {
+            success_flg = false;
+            break;
         }
 
-        // 分配失败，释放前面已经分配的虚拟页和物理页表
-        if (!flag)
-        {
-            // 前i个页表已经指定了物理页
-            releasePages(type, virtualAddress, i);
-            // 剩余的页表未指定物理页
-            releaseVirtualPages(type, virtualAddress + i * PAGE_SIZE, count - i);
-            return 0;
+        // Connect the virtual page to the physical page
+        if (!connectPhysicalVirtualPage(vaddress, physicalPageAddress)) {
+            success_flg = false;
+            break;
         }
     }
 
+    if (!success_flg) {
+        releasePages(type, virtualAddress, count);
+        releaseVirtualPages(type, virtualAddress, count);
+        return 0;
+    }
+
+    int page_addr_and_count = 0;
+    int virtualAddress_tmp = virtualAddress;
+
+    for (int i = count; i > 0x1000; i -= 0x1000) {
+        page_addr_and_count = virtualAddress_tmp | 0xfff;
+        if (type == AddressPoolType::KERNEL) {
+            kernelVirtualFIFOQueue.push(page_addr_and_count);
+        } else if (type == AddressPoolType::USER) {
+            userVirtualFIFOQueue.push(page_addr_and_count);
+        }
+        virtualAddress_tmp += 0x1000 * PAGE_SIZE;
+    }
+    page_addr_and_count = virtualAddress_tmp | (count - 1);
+    if (type == AddressPoolType::KERNEL) {
+        kernelVirtualFIFOQueue.push(page_addr_and_count);
+    } else if (type == AddressPoolType::USER) {
+        userVirtualFIFOQueue.push(page_addr_and_count);
+    }
+    
     return virtualAddress;
 }
 
@@ -273,6 +335,22 @@ void MemoryManager::releasePages(enum AddressPoolType type, const int virtualAdd
 
     // 第二步，释放虚拟页
     releaseVirtualPages(type, virtualAddress, count);
+
+    int virtualAddress_tmp = virtualAddress;
+
+    for (int i = count; i > 0x1000; i -= 0x1000) {
+        if (type == AddressPoolType::KERNEL) {
+            kernelVirtualFIFOQueue.earse(virtualAddress_tmp | 0xfff);
+        } else if (type == AddressPoolType::USER) {
+            userVirtualFIFOQueue.earse(virtualAddress_tmp | 0xfff);
+        }
+        virtualAddress_tmp += 0x1000 * PAGE_SIZE;
+    }
+    if (type == AddressPoolType::KERNEL) {
+        kernelVirtualFIFOQueue.earse(virtualAddress_tmp | (count - 1));
+    } else if (type == AddressPoolType::USER) {
+        userVirtualFIFOQueue.earse(virtualAddress_tmp | (count - 1));
+    }
 }
 
 int MemoryManager::vaddr2paddr(int vaddr)
