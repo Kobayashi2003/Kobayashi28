@@ -1,7 +1,7 @@
 ASM_COMPILER = nasm
 C_COMPLIER = gcc
 CXX_COMPLIER = g++
-CXX_COMPLIER_FLAGS = -g -Wall -march=i386 -std=c++11 -m32 -nostdlib -fno-builtin -ffreestanding -fno-pic -fno-stack-protector
+CXX_COMPLIER_FLAGS = -g -Wall -march=i386 -std=c++11 -m32 -nostdlib -fno-builtin -ffreestanding -fno-pic -fno-stack-protector -gdwarf-2
 LINKER = ld
 
 SRCDIR = ../src
@@ -9,6 +9,7 @@ RUNDIR = ../run
 BUILDDIR = build
 INCLUDE_PATH = ../include
 
+DEBUG_PATH = $(HOME)/Code/Debug
 
 KERNEL_SOURCE = $(wildcard $(SRCDIR)/kernel/*.cpp)
 CXX_SOURCE += $(KERNEL_SOURCE)
@@ -60,6 +61,10 @@ debug:
 	qemu-system-i386 -S -s -parallel stdio -hda $(RUNDIR)/hd.img -serial null&
 	@sleep 1
 	kitty --hold sh -c "gdb-pwndbg -x $(RUNDIR)/gdbinit"
+
+vscode-debug:
+	cp kernel.o $(DEBUG_PATH)
+	qemu-system-i386 -S -s -parallel stdio -hda $(RUNDIR)/hd.img -serial null&
 
 test:
 	echo $(CXX_OBJ)
