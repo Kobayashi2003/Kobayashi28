@@ -59,7 +59,8 @@ class SVM:
                     i = np.random.randint(0, n_samples)
 
                 xi, xj, yi, yj = X[i], X[j], y[i], y[j]
-                kii, kjj, kij = np.dot(xi, xi), np.dot(xj, xj), np.dot(xi, xj)
+                # kii, kjj, kij = np.dot(xi, xi), np.dot(xj, xj), np.dot(xi, xj)
+                kii, kjj, kij = self._kernel(xi, xi), self._kernel(xj, xj), self._kernel(xi, xj)
                 eta = 2 * kij - kii - kjj
 
                 Ei = self._decision_function(xi) - yi
@@ -68,9 +69,21 @@ class SVM:
                 if eta == 0:
                     continue
 
-                # 计算新的alpha值
                 alpha_j_old = self.alphas[j]
-                alpha_j_new = np.clip(alpha_j_old - yj * (Ei - Ej) / eta, 0, self.C)
+
+                # 计算L和H (L <= alpha_j_new <= H)
+                if yi != yj:
+                    L = max(0, self.alphas[j] - self.alphas[i])
+                    H = min(self.C, self.C + self.alphas[j] - self.alphas[i])
+                else:
+                    L = max(0, self.alphas[j] + self.alphas[i] - self.C)
+                    H = min(self.C, self.alphas[j] + self.alphas[i])
+                
+                if L == H:
+                    continue
+
+                # 计算新的alpha值
+                alpha_j_new = np.clip(alpha_j_old - yj * (Ei - Ej) / eta, L, H)
                 alpha_i_new = self.alphas[i] + yi * yj * (alpha_j_old - alpha_j_new)
 
                 self.alphas[j] = alpha_j_new
@@ -82,16 +95,17 @@ class SVM:
                 break
 
         # 计算权重向量w: w = Σ (alpha_i * y_i * x_i)
-        # self.w = np.sum(self.alphas * y[:, None] * X, axis=0)
-        for i in range(n_samples):
-            self.w += self.alphas[i] * y[i] * X[i]
-        
-        # 计算偏置项b: b = 1/n_samples * Σ (y_i - Σ (alpha_i * y_i * x_i^T x))
-        self.b = np.mean([yi - np.sum(self.alphas * y * np.dot(xi, X.T)) for xi, yi in zip(X, y)])
+        self.w = np.sum(self.alphas[:, None] * y[:, None] * X, axis=0)
+
+        # 计算偏置项b: b = 1/n_samples * Σ (y_i - w^T x_i)
+        self.b = np.mean([yi - np.dot(self.w, xi) for xi, yi in zip(X, y)])
 
     def _decision_function(self, x):
         # f(x) = w^T x + b
         return np.dot(x, self.w) + self.b
+
+    def _kernel(self, x1, x2):
+        return np.dot(x1, x2)
 
     def predict(self, X):
         return np.sign(self._decision_function(X))
