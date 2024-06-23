@@ -83,7 +83,7 @@ asm_add_global_descriptor:
     pop ebp
 
     ret
-; int asm_systerm_call_handler();
+; int asm_system_call_handler();
 asm_system_call_handler:
     push ds
     push es

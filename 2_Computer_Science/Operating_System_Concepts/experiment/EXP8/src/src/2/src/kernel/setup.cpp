@@ -20,7 +20,7 @@ SystemService systemService;
 
 int syscall_0(int first, int second, int third, int forth, int fifth)
 {
-    printf("systerm call 0: %d, %d, %d, %d, %d\n",
+    printf("system call 0: %d, %d, %d, %d, %d\n",
            first, second, third, forth, fifth);
     return first + second + third + forth + fifth;
 }

@@ -24,7 +24,7 @@ ASM_IDTR dw 0
          dd 0
 
 ASM_TEMP dd 0
-; int asm_systerm_call_handler();
+; int asm_system_call_handler();
 asm_system_call_handler:
     push ds
     push es
