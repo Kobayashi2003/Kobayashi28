@@ -13,7 +13,7 @@ def find_large_file(path: list, size: int, ignore: list, recursive: bool) -> set
     elif recursive:
         ignored_paths = reduce(lambda x, y: x.union(glob.glob(os.path.abspath(y), recursive=True)), ignore, set())
     else:
-        ignored_paths = reduce(lambda x, y: x.union(glob.glob(os.path.abspath(y))), ignore, set()) 
+        ignored_paths = reduce(lambda x, y: x.union(glob.glob(os.path.abspath(y))), ignore, set())
 
     paths = expanded_paths - ignored_paths
 
@@ -31,13 +31,13 @@ def split_large_file(path: str, split_size: int, output: str, delete: bool) -> N
         '-v{}m'.format(split_size),
         output or os.path.join(os.path.dirname(path), os.path.basename(path) + '.7z'),
         path
-    ] 
+    ]
 
     result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     if result.returncode != 0:
         raise Exception(result.stderr.decode('utf-8'))
-    
+
     if delete:
         os.remove(path)
 
