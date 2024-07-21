@@ -12,6 +12,28 @@ $Remote_Repository_Address = "" # the address of the remote repository of git
 $Remote_Repository_Branch  = "" # the name of the branch of the remote repository of git
 
 
+##### -- Terminal Prompt -- #####
+
+function Prompt {
+    $lst_cmd_state = $?
+    $esc = $([char]27)
+    if (-not $lst_cmd_state) {
+        $time = "$esc[1;31m$esc[1;4m" + (Get-Date -Format "HH:mm:ss") + "$esc[0m " # red and italic
+    } else {
+        $time = "$esc[1;32m$esc[1;4m" + (Get-Date -Format "HH:mm:ss") + "$esc[0m " # green and italic
+    }
+    $path = ($PWD.Path).Replace($env:USERPROFILE, "~") + ' ' # replace the user profile with ~
+    if ($env:CONDA_DEFAULT_ENV) {
+        $conda_env = "$esc[1;33m$esc[1;4m($env:CONDA_DEFAULT_ENV)$esc[0m " # yellow and italic
+    } else {
+        $conda_env = ""
+    }
+    return $conda_env + $time + $path + "> "
+}
+
+##### -- Terminal Prompt End -- #####
+
+
 ##### -- Function Start -- #####
 
 
@@ -24,12 +46,38 @@ function Conda-Init {
     try {
         (& $Conda_Path "shell.powershell" "hook") | Out-String | Invoke-Expression
         (& $Conda_Path config --set changeps1 False)
+        (& $Conda_Path config --set auto_activate_base False)
     } catch {
         return $false
     }
     return $true
 }
 #endregion
+
+# You can use this section to init conda envrionment WITHOUT runnning `Conda-Init`
+# BUT this will cause a SLOWER loading time of PowerShell.
+
+# # region conda initialize
+# if (Get-Command 'conda' -ErrorAction SilentlyContinue) {
+#     (& { conda config --set changeps1 False })
+#     (& { conda config --set auto_activate_base False })
+#     Invoke-Expression (& { (conda "shell.powershell" "hook") | Out-String })
+# }
+# #endregion
+
+#region zoxide initialize
+if (Get-Command 'zoxide' -ErrorAction SilentlyContinue) {
+    Invoke-Expression (& { (zoxide init powershell | Out-String) })
+    Set-Alias -Name cd -Value z -Option AllScope -Scope Global -Force
+}
+#endregion
+
+#region bat initialize
+if (Get-Command 'bat' -ErrorAction SilentlyContinue) {
+    Set-Alias -Name cat -Value bat -Option AllScope -Scope Global -Force
+}
+#endregion
+
 
 ## -- { Init Function } -- ##
 
@@ -344,12 +392,14 @@ function My-Init-Environment {
     $modules2check = @(
         "Get-ChildItemColor",
         "PSReadline",
-        "PSColor"
+        "PSColor",
+        "PSFzf"
     )
 
-    $modules_version = @{
-        "PSReadline" = "2.2.6"
-    }
+    $modules_version = @{}
+    $module_version["PSReadline"] = "2.2.6"
+    $module_version["PSFzf"] = "2.0.0"
+
 
     foreach ($module in $modules2check) {
         $message = "Checking Module $module..."
@@ -484,23 +534,6 @@ function My-Check-Environment {
     Write-Host "$esc[1;3;4;$(93)mWelcome to Windows PowerShell, $env:USERNAME!$esc[0m"
 }
 My-Check-Environment
-
-function Prompt {
-    $lst_cmd_state = $?
-    $esc = $([char]27)
-    if (-not $lst_cmd_state) {
-        $time = "$esc[1;31m$esc[1;4m" + (Get-Date -Format "HH:mm:ss") + "$esc[0m " # red and italic
-    } else {
-        $time = "$esc[1;32m$esc[1;4m" + (Get-Date -Format "HH:mm:ss") + "$esc[0m " # green and italic
-    }
-    $path = ($PWD.Path).Replace($env:USERPROFILE, "~") + ' ' # replace the user profile with ~
-    if ($env:CONDA_DEFAULT_ENV) {
-        $conda_env = "$esc[1;33m$esc[1;4m($env:CONDA_DEFAULT_ENV)$esc[0m " # yellow and italic
-    } else {
-        $conda_env = ""
-    }
-    return $conda_env + $time + $path + "> "
-}
 
 function My-Set-Title {
     param (
@@ -721,13 +754,13 @@ function My-Forward-Port { # (abaondoned)
 ## -- {Function 8 -- Set a hook to the current path and Go to the hook} -- ##
 
 # Staging the current path by setting a temporary variable
-function My-Set-Hook {
+function __My-Set-Hook { # Abandon
     $global:hook = Get-Location
     Write-Output "Hooks Set"
 }
 
 # Go to the path that is set by My-Set-Hook
-function My-Go-Hook {
+function __My-Go-Hook { # Abandon
     if ($null -eq $global:hook) {
         Write-Output "You have to set a hook first"
         return
@@ -775,6 +808,7 @@ function My-Get-CPU-Temperature { # get the temperature of the CPU
 }
 
 
+## -- {Function 11 -- Get the cmdlet alias} -- ##
 function Get-CmdletAlias ($cmdletname) {
     Get-Alias | Where-Object -FilterScript { $_.Definition -like "$cmdletname" } |
         Format-Table -Property Definition, Name -AutoSize
@@ -803,7 +837,7 @@ Set-Alias    -Name shut     -Value shutdown
 ##### -- My Scripts Start -- #####
 
 # accept all the parameters then pass them to the script $My_Script_Dir\main.py
-function My-ImgAsst { # TODO
+function __My-ImgAsst { # Abandon
     param(
         [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
         [Alias('v')]
@@ -818,12 +852,12 @@ function My-ImgAsst { # TODO
     END {}
 }
 
-function My-FileExplorer { # TODO
+function __My-FileExplorer { # Abandon
     python.exe $My_Script_Dir\FileExplorer\main.py
 }
 
 ## Atlas200Dk Function Start
-function My-Connect-Atlas200Dk { # this function is used to connect to Atlas200Dk (only for Windows) (abaondoned)
+function __My-Connect-Atlas200Dk { # this function is used to connect to Atlas200Dk (only for Windows) (abaondoned)
     $ips = arp -a -N 192.168.137.1 | Select-String -Pattern "192.168.137.[0-9]+" | Select-Object -Skip 1 | ForEach-Object { $_.ToString().Trim().Split(" ")[0] }
     $ip = $ips[0]
     if ($null -eq $ip) {
@@ -847,6 +881,8 @@ Set-Alias -Name fe  -Value My-FileExplorer
 
 
 ### Module Get-ChildItemColor ###
+
+Import-Module Get-ChildItemColor
 
 If (-Not (Test-Path Variable:PSise)) {  # Only run this in the console and not in the ISE
     Import-Module Get-ChildItemColor # import the module
@@ -1916,6 +1952,7 @@ Set-PSReadLineKeyHandler -Key Escape `
 
 ### Module PSReadLine End ###
 
+
 ### Module PSReadLine Vi Mode (TODO) ###
 
 # Set-PSReadLineOption -EditMode Vi
@@ -1953,6 +1990,16 @@ Set-PSReadLineKeyHandler -Chord 'k' -ScriptBlock {
 ### Module PSReadLine Vi Mode End ###
 
 
+### Module PSFzf ###
+
+Import-Module PSFzf
+
+# please DO NOT put this before set PSReadLine
+Set-PsFzfOption -PSReadlineChordProvider 'Ctrl+t' -PSReadlineChordReverseHistory 'Ctrl+r'
+
+### Module PSFzf End
+
+
 ##### --- Module End --- #####
 
 
@@ -1961,7 +2008,7 @@ Set-PSReadLineKeyHandler -Chord 'k' -ScriptBlock {
 ### User's Paths ###
 
 # Clash for Windows (abaondoned)
-function App-Clash($state="start") {
+function __App-Clash($state="start") {
     $app_path = 'D:\Item\Clash for Windows\Clash for Windows.exe'
     My-Start-or-Kill $app_path $state > $null
 }
@@ -1969,7 +2016,7 @@ function App-Clash($state="start") {
 
 
 # Free Download Manager (abandoned)
-function App-FDM($state="start") {
+function __App-FDM($state="start") {
     $app_path = 'D:\Item\Free Download Manager\fdm.exe'
     My-Start-or-Kill $app_path $state
 }
@@ -1985,7 +2032,7 @@ function App-Everything($state="start") {
 
 
 # ShareMouse (abandoned)
-function App-ShareMouse($state="start") {
+function __App-ShareMouse($state="start") {
     if ($state -eq "KEY") {
         Write-Output "SMOENT-DO-AAGEMY-1299-UN-KKPX-QTSX-X9JHRR1LXHX5ZXTB-FEEB32EF75C43CE5F220B324678701CB" | Set-Clipboard
         return
@@ -1997,7 +2044,7 @@ function App-ShareMouse($state="start") {
 
 
 # CodeServer (abandoned)
-function App-CodeServer { # the application in wsl
+function __App-CodeServer { # the application in wsl
     wsl.exe -- /mnt/d/Program/code-server-3.10.2-linux-amd64/code-server /mnt/d/Program/Code
 }
 # End CodeServer
