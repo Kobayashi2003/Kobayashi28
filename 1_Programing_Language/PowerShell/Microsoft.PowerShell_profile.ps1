@@ -57,13 +57,13 @@ function Conda-Init {
 # You can use this section to init conda envrionment WITHOUT runnning `Conda-Init`
 # BUT this will cause a SLOWER loading time of PowerShell.
 
-# # region conda initialize
-# if (Get-Command 'conda' -ErrorAction SilentlyContinue) {
-#     (& { conda config --set changeps1 False })
-#     (& { conda config --set auto_activate_base False })
-#     Invoke-Expression (& { (conda "shell.powershell" "hook") | Out-String })
-# }
-# #endregion
+# region conda initialize
+if (Get-Command 'conda' -ErrorAction SilentlyContinue) {
+    (& { conda config --set changeps1 False })
+    (& { conda config --set auto_activate_base False })
+    Invoke-Expression (& { (conda "shell.powershell" "hook") | Out-String })
+}
+#endregion
 
 #region zoxide initialize
 if (Get-Command 'zoxide' -ErrorAction SilentlyContinue) {
@@ -396,10 +396,10 @@ function My-Init-Environment {
         "PSFzf"
     )
 
-    $modules_version = @{}
-    $module_version["PSReadline"] = "2.2.6"
-    $module_version["PSFzf"] = "2.0.0"
-
+    $modules_version = @{
+        "PSReadline" = "2.2.6"
+        "PSFzf" = "2.0.0"
+    }
 
     foreach ($module in $modules2check) {
         $message = "Checking Module $module..."
@@ -533,7 +533,9 @@ function My-Check-Environment {
 
     Write-Host "$esc[1;3;4;$(93)mWelcome to Windows PowerShell, $env:USERNAME!$esc[0m"
 }
-My-Check-Environment
+
+# My-Init-Environment
+# My-Check-Environment
 
 function My-Set-Title {
     param (
@@ -774,13 +776,17 @@ function __My-Go-Hook { # Abandon
 
 ## -- {Function 9 -- Git} -- ##
 function My-Git {
-    if ($null -eq $Remote_Repository_Address -or "" -eq $Remote_Repository_Address) {
+    if ($null -eq $Remote_Repository_Address -and "" -eq $Remote_Repository_Address) {
         Write-Output "You have to set the git remote repository address first"
         return
-    } elseif ($null -eq $Remote_Repository_Branch -or "" -eq $Remote_Repository_Branch) {
+    } elseif ($null -eq $Remote_Repository_Branch -and "" -eq $Remote_Repository_Branch) {
         Write-Output "You have to set the git remote repository branch first"
         return
+    } elseif (-not (Get-Command git -ErrorAction SilentlyContinue)) {
+        Write-Output "Git is not installed"
+        return
     }
+
     git add .
     # get current date
     $date = Get-Date -Format "yyMMdd"
@@ -1133,19 +1139,16 @@ Set-PSReadLineKeyHandler -Key Ctrl+l `
                          -BriefDescription ClearScreen `
                          -LongDescription "Clear the screen." `
                          -ScriptBlock {
-        # [Microsoft.PowerShell.PSConsoleReadLine]::RevertLine()
-        # [Microsoft.PowerShell.PSConsoleReadLine]::Insert("clear")
-        # [Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
-        [Microsoft.PowerShell.PSConsoleReadLine]::ClearScreen()
+    [Microsoft.PowerShell.PSConsoleReadLine]::ClearScreen()
 }
 
 Set-PSReadLineKeyHandler -Key Ctrl+H `
                          -BriefDescription ComputerSleep `
                          -LongDescription "Computer sleep." `
                          -ScriptBlock {
-        [Microsoft.PowerShell.PSConsoleReadLine]::RevertLine()
-        [Microsoft.PowerShell.PSConsoleReadLine]::Insert("shutdown -h")
-        [Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
+    [Microsoft.PowerShell.PSConsoleReadLine]::RevertLine()
+    [Microsoft.PowerShell.PSConsoleReadLine]::Insert("shutdown -h")
+    [Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
 }
 
 # In Emacs mode - Tab acts like in bash, but the Windows style completion
@@ -1723,7 +1726,6 @@ Set-PSReadLineOption -CommandValidationHandler {
 # This checks the validation script when you hit enter
 Set-PSReadLineKeyHandler -Chord Enter -Function ValidateAndAcceptLine
 
-
 # `ForwardChar` accepts the entrie suggestio text when the cursor is at the end of the line
 # This custom binding makes `RightArrow` behave similarly - accepting the next word instead of the entire suggestion text.
 Set-PSReadLineKeyHandler -Key RightArrow `
@@ -1742,7 +1744,6 @@ Set-PSReadLineKeyHandler -Key RightArrow `
         [Microsoft.PowerShell.PSConsoleReadLine]::AcceptNextSuggestionWord($key, $arg)
     }
 }
-
 
 # Cycle through arguments on current line and select the text. This makes it easier to quickly change the argument if re-running a previously run command from the history
 # or if using a psreadline predictor. You can also use a digit argument to specify which argument you want to select, i.e. Alt+1, Alt+a selects the first argument
@@ -1799,7 +1800,6 @@ Set-PSReadLineKeyHandler -Key Alt+a `
     [Microsoft.PowerShell.PSConsoleReadLine]::SetMark($null, $null)
     [Microsoft.PowerShell.PSConsoleReadLine]::SelectForwardChar($null, ($nextAst.Extent.EndOffset - $nextAst.Extent.StartOffset) - $endOffsetAdjustment)
 }
-
 
 Set-PSReadLineKeyHandler -Key F3 `
                          -BriefDescription ShowKeyBindings `
@@ -1916,6 +1916,32 @@ Set-PSReadLineKeyHandler -Key Ctrl+RightArrow `
     }
 
     [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($nextWordStart)
+}
+
+# Set Ctrl+UpArrow to execute the previous command
+Set-PSReadLineKeyHandler -Key Ctrl+UpArrow `
+                         -BriefDescription ExecutePreviousCommand `
+                         -LongDescription "Execute the previous command" `
+                         -ScriptBlock {
+    $history = Get-History
+    if ($history.Count -gt 0) {
+        $lastCommand = $history[-1].CommandLine
+        [Microsoft.PowerShell.PSConsoleReadLine]::RevertLine()
+        [Microsoft.PowerShell.PSConsoleReadLine]::Insert($lastCommand)
+        [Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
+    }
+}
+
+# set ctrl+downarrow to insert a copy of the last command at the cursor position
+set-psreadlinekeyhandler -key ctrl+DownArrow `
+                         -briefdescription copylastcommand `
+                         -longdescription "insert a copy of the last command at the cursor position" `
+                         -scriptblock {
+    $history = get-history
+    if ($history.count -gt 0) {
+        $lastcommand = $history[-1].commandline
+        [microsoft.powershell.psconsolereadline]::insert($lastcommand)
+    }
 }
 
 # Set Ctrl+Enter to add the current line to history, but don't execute it
