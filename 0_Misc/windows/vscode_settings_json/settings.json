@@ -75,6 +75,10 @@
     // ***** vim normal mode ***** //
     "vim.normalModeKeyBindingsNonRecursive": [
       {
+        "before": ["<leader>", "<leader>", "="],
+        "commands": ["editor.action.formatDocument"]
+      },
+      {
         "before": ["<leader>", "d"],
         "commands": ["workbench.view.debug"]
       },

@@ -26,5 +26,11 @@ public class VariableDemo {
         String s = "10";
         int i = 20;
         System.out.println(s + i);
+
+        // 在表达式中，byte short char 是直接转换成 int 类型进行运算的
+        byte b = 10;
+        short s3 = 20;
+        char c = 'a';
+        System.out.println(b + s3 + c);
     }    
 }
