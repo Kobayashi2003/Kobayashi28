@@ -78,6 +78,35 @@ if (Get-Command 'bat' -ErrorAction SilentlyContinue) {
 }
 #endregion
 
+if (-not (Get-Command 'sudo' -ErrorAction SilentlyContinue)) {
+    function sudo {
+        $command = $args[0]
+        $arguments = $args[1..$args.length]
+
+        $tempFile = New-TemporaryFile
+        $powershell_path = (Get-Command powershell).Source
+
+        $psi = New-Object System.Diagnostics.ProcessStartInfo
+        $psi.FileName = $powershell_path
+        $psi.CreateNoWindow = $true
+        $psi.Arguments = "-windowstyle hidden
+                          -nologo
+                          -noninteractive
+                          -noprofile
+                          -command $command $arguments > $tempFile"
+        $psi.Verb = "runas"
+
+        $process = New-Object System.Diagnostics.Process
+        $process.StartInfo = $psi
+        $process.Start() | Out-Null
+        $process.WaitForExit()
+
+        $contents = Get-Content -Path $tempFile
+        Remove-Item -Path $tempFile
+
+        return $contents
+    }
+}
 
 ## -- { Init Function } -- ##
 
@@ -1932,8 +1961,23 @@ Set-PSReadLineKeyHandler -Key Ctrl+UpArrow `
     }
 }
 
-# set ctrl+downarrow to insert a copy of the last command at the cursor position
-set-psreadlinekeyhandler -key ctrl+DownArrow `
+# Set Shift+UpArrow to execute the previous command under admin privileges
+Set-PSReadLineKeyHandler -Key Shift+UpArrow `
+                         -BriefDescription ExecutePreviousAdminCommand `
+                         -LongDescription "Execute the previous command under admin privileges" `
+                         -ScriptBlock {
+    $history = Get-History
+    if (($history.Count -gt 0) -and (Get-Command 'sudo' -ErrorAction SilentlyContinue)) {
+        $lastCommand = $history[-1].CommandLine
+        $command = 'sudo ' + $lastCommand
+        [Microsoft.PowerShell.PSConsoleReadLine]::RevertLine()
+        [Microsoft.PowerShell.PSConsoleReadLine]::Insert($command)
+        [Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
+    }
+}
+
+# set Ctrl+DownArrow to insert a copy of the last command at the cursor position
+set-psreadlinekeyhandler -key Ctrl+DownArrow `
                          -briefdescription copylastcommand `
                          -longdescription "insert a copy of the last command at the cursor position" `
                          -scriptblock {
