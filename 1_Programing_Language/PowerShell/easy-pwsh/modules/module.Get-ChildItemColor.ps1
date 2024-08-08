@@ -1,4 +1,7 @@
-﻿if (!(Get-Module -ListAvailable -Name Get-ChildItemColor)) {
+﻿using namespace System.Management.Automation
+using namespace System.Management.Automation.Language
+
+if (!(Get-Module -ListAvailable -Name Get-ChildItemColor)) {
     Write-Host "Get-ChildItemColor module not found. Installing..." -ForegroundColor Yellow
     Install-Module Get-ChildItemColor
 } else {
