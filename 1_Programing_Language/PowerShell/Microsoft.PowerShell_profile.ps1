@@ -851,6 +851,11 @@ function Get-CmdletAlias ($cmdletname) {
 }
 
 
+## -- {Function 12 -- Reload Script } -- ##
+function Reload-Script {
+    . $My_Script_Path
+}
+
 ## -- Set the alias -- ##
 
 Set-Alias    -Name shook    -Value My-Set-Hook
@@ -863,6 +868,7 @@ Set-Alias    -Name mygit    -Value My-Git
 Set-Alias    -Name cputemp  -Value My-Get-CPU-Temperature
 Set-Alias    -Name grep     -Value findstr
 Set-Alias    -Name shut     -Value shutdown
+Set-Alias    -Name reload   -Value Reload-Script
 
 ##### -- Function End -- #####
 
@@ -949,11 +955,15 @@ If (-Not (Test-Path Variable:PSise)) {  # Only run this in the console and not i
     )
 
     ForEach ($Extension in $GetChildItemColorExtensions['OfficeList']) {
-        $GetChildItemColorTable.File.Add($Extension, "DarkGreen")
+        if (-not $GetChildItemColorTable.File.ContainsKey($Extension)) {
+            $GetChildItemColorTable.File.Add($Extension, "DarkGreen")
+        }
     }
 
     ForEach ($Extension in $GetChildItemColorExtensions['Image']) {
-        $GetChildItemColorTable.File.Add($Extension, "DarkYello")
+        if (-not $GetChildItemColorTable.File.ContainsKey($Extension)) {
+            $GetChildItemColorTable.File.Add($Extension, "DarkYello")
+        }
     }
 }
 
@@ -980,7 +990,7 @@ If (-Not (Test-Path Variable:PSise)) {  # Only run this in the console and not i
 # [Ctrl + q]: TabCompleteNext (Tab acts like in bash)
 # [Ctrl + Q]: TabCompletePrevious (Tab acts like in bash)
 
-# [Ctrl + C]: Copy (clipboard interaction)
+# [Ctrl + c]: Copy (clipboard interaction)
 # [Ctrl + v]: Paste (clipboard interaction)
 # [Ctrl + V]: PasteAsHereString (paste the clipboard text as a here string)
 
@@ -1186,7 +1196,7 @@ Set-PSReadLineKeyHandler -Key Ctrl+q -Function TabCompleteNext
 Set-PSReadLineKeyHandler -Key Ctrl+Q -Function TabCompletePrevious
 
 # Clipboard interaction is bound by default in Windows mode, but not Emacs mode.
-Set-PSReadLineKeyHandler -Key Ctrl+C -Function Copy
+# Set-PSReadLineKeyHandler -Key Ctrl+c -Function Copy
 Set-PSReadLineKeyHandler -Key Ctrl+v -Function Paste
 
 # CaptureScreen is good for blog posts or email showing a transaction
