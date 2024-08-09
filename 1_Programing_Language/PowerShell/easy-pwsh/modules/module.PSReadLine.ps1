@@ -1,14 +1,17 @@
-﻿if (!(Get-Module -ListAvailable -Name PSReadline)) {
+﻿using namespace System.Management.Automation
+using namespace System.Management.Automation.Language
+
+if (!(Get-Module -ListAvailable -Name PSReadline)) {
     Write-Host "PSReadline module not found. Installing..." -ForegroundColor Yellow
     Install-Module PSReadline
 } else {
-    Write-Host "PSReadline module found. Importing..." -ForegroundColor Green
+    # Write-Host "PSReadline module found. Importing..." -ForegroundColor Green
 }
 
 Import-Module PSReadline
 
 Set-PSReadLineOption -BellStyle None
-Set-PSReadLineOption -EditMode Emacs
+# Set-PSReadLineOption -EditMode Emacs
 
 # The color option
 Set-PSReadLineOption -Colors @{
@@ -688,7 +691,7 @@ Set-PSReadLineOption -CommandValidationHandler {
     $cmdMap = @{
         'git' = @{
             'cmt' = 'commit'
-            'mpush' = "add . ; git commit -m $(Get-Date -Format 'yyMMdd') ; git push"
+            'mpush' = "@whole:git add . ; git commit -m $(Get-Date -Format 'yyMMdd') ; git push"
         }
         'conda' = @{
             'a' = 'activate'
@@ -696,14 +699,27 @@ Set-PSReadLineOption -CommandValidationHandler {
             'i' = 'info'
             'l' = 'env list'
         }
+        'cd' = @{
+            '...'  = '../..'
+        }
     }
 
     if ($cmdMap.ContainsKey($CommandAst.GetCommandName()) -And
         $cmdMap[$CommandAst.GetCommandName()].ContainsKey($CommandAst.CommandElements[1].Extent.Text)) {
-        [Microsoft.PowerShell.PSConsoleReadLine]::Replace(
-            $CommandAst.CommandElements[1].Extent.StartOffset,
-            $CommandAst.CommandElements[1].Extent.EndOffset - $CommandAst.CommandElements[1].Extent.StartOffset,
-            $cmdMap[$CommandAst.GetCommandName()][$CommandAst.CommandElements[1].Extent.Text])
+
+        $cmdBase = $CommandAst.CommandElements[0].Extent
+        $cmdArg  = $CommandAst.CommandElements[1].Extent
+        $newCont = $cmdMap[$CommandAst.GetCommandName()][$CommandAst.CommandElements[1].Extent.Text]
+
+        if ($newCont -match '^@whole:') {
+            [Microsoft.PowerShell.PSConsoleReadLine]::Replace(
+                $cmdBase.StartOffset, $cmdArg.EndOffset - $cmdBase.StartOffset,
+                $newCont.SubString($newCont.IndexOf(':') + 1))
+        } else {
+            [Microsoft.PowerShell.PSConsoleReadLine]::Replace(
+                $cmdArg.StartOffset, $cmdArg.EndOffset - $cmdArg.StartOffset,
+                $newCont)
+        }
     }
 }
 # This checks the validation script when you hit enter

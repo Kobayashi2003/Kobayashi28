@@ -5,7 +5,7 @@ if (!(Get-Module -ListAvailable -Name Get-ChildItemColor)) {
     Write-Host "Get-ChildItemColor module not found. Installing..." -ForegroundColor Yellow
     Install-Module Get-ChildItemColor
 } else {
-    Write-Host "Get-ChildItemColor module found. Importing..." -ForegroundColor Green
+    # Write-Host "Get-ChildItemColor module found. Importing..." -ForegroundColor Green
 }
 
 Import-Module Get-ChildItemColor

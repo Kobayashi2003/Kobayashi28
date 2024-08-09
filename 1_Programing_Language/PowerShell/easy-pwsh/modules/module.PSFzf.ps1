@@ -2,7 +2,7 @@
     Write-Host "PSFzf module not found. Installing..." -ForegroundColor Yellow
     Install-Module PSFzf
 } else {
-    Write-Host "PSFzf module found. Importing..." -ForegroundColor Green
+    # Write-Host "PSFzf module found. Importing..." -ForegroundColor Green
 }
 
 if (!(Get-Command 'fzf' -ErrorAction SilentlyContinue)) {

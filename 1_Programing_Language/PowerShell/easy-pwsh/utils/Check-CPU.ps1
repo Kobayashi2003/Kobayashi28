@@ -12,7 +12,7 @@
 	Author: Markus Fleschutz | License: CC0
 #>
 
-function __GetCPUArchitecture {
+function GetCPUArchitecture {
 	if ("$env:PROCESSOR_ARCHITECTURE" -ne "") { return "$env:PROCESSOR_ARCHITECTURE" }
 	if ($IsLinux) {
 		$Name = $PSVersionTable.OS
@@ -24,7 +24,7 @@ function __GetCPUArchitecture {
 	}
 }
 
-function __GetCPUTemperature {
+function GetCPUTemperature {
 	$temp = 99999.9 # unsupported
 	if ($IsLinux) {
 		if (Test-Path "/sys/class/thermal/thermal_zone0/temp" -pathType leaf) {
@@ -41,46 +41,42 @@ function __GetCPUTemperature {
 	return $temp
 }
 
-function Check-CPU {
-    try {
-	    Write-Progress "Querying CPU status...     "
-	    $status = "✅"
-	    $arch = __GetCPUArchitecture
-	    if ($IsLinux) {
-		    $cpuName = "$arch CPU"
-		    $arch = ""
-		    $deviceID = ""
-		    $speed = ""
-		    $socket = ""
-	    } else {
-		    $details = Get-WmiObject -Class Win32_Processor
-		    $cpuName = $details.Name.trim()
-		    $arch = "$arch, "
-		    $deviceID = "$($details.DeviceID), "
-		    $speed = "$($details.MaxClockSpeed)MHz, "
-		    $socket = "$($details.SocketDesignation) socket, "
-	    }
-	    $cores = [System.Environment]::ProcessorCount
-	    $celsius = __GetCPUTemperature
-	    if ($celsius -eq 99999.9) {
-		    $temp = "no temp"
-	    } elseif ($celsius -gt 50) {
-		    $temp = "$($celsius)°C"
-		    $status = "⚠️"
-	    } elseif ($celsius -lt 0) {
-		    $temp = "$($celsius)°C"
-		    $status = "⚠️"
-	    } else {
-		    $temp = "$($celsius)°C"
-	    }
+try {
+	Write-Progress "Querying CPU status...     "
+	$status = "✅"
+	$arch = GetCPUArchitecture
+	if ($IsLinux) {
+		$cpuName = "$arch CPU"
+		$arch = ""
+		$deviceID = ""
+		$speed = ""
+		$socket = ""
+	} else {
+		$details = Get-WmiObject -Class Win32_Processor
+		$cpuName = $details.Name.trim()
+		$arch = "$arch, "
+		$deviceID = "$($details.DeviceID), "
+		$speed = "$($details.MaxClockSpeed)MHz, "
+		$socket = "$($details.SocketDesignation) socket, "
+	}
+	$cores = [System.Environment]::ProcessorCount
+	$celsius = GetCPUTemperature
+	if ($celsius -eq 99999.9) {
+		$temp = "no temp"
+	} elseif ($celsius -gt 50) {
+		$temp = "$($celsius)°C"
+		$status = "⚠️"
+	} elseif ($celsius -lt 0) {
+		$temp = "$($celsius)°C"
+		$status = "⚠️"
+	} else {
+		$temp = "$($celsius)°C"
+	}
 
-	    Write-Progress -completed "Done."
-	    Write-Host "$status $cpuName ($($arch)$cores cores, $($deviceID)$($speed)$($socket)$temp)"
-    } catch {
-	    "⚠️ Error in line $($_.InvocationInfo.ScriptLineNumber): $($Error[0])"
-    }
-}
-
-if ($MyInvocation.InvocationName -ne '.') {
-    Check-CPU
+	Write-Progress -completed "Done."
+	Write-Host "$status $cpuName ($($arch)$cores cores, $($deviceID)$($speed)$($socket)$temp)"
+	exit 0 # success
+} catch {
+	"⚠️ Error in line $($_.InvocationInfo.ScriptLineNumber): $($Error[0])"
+	exit 1
 }

@@ -12,20 +12,19 @@
 	Author: Markus Fleschutz | License: CC0
 #>
 
-function cd-desktop {
-    try {
-	    if ($IsLinux) {
-		    $Path = Resolve-Path "~/Desktop"
-	    } else {
-		    $Path = [Environment]::GetFolderPath('DesktopDirectory')
-	    }
-	    if (Test-Path "$Path" -pathType container) {
-		    Set-Location "$Path"
-		    "📂$Path"
-            return
-	    }
-	    throw "User's desktop folder at 📂$Path doesn't exist (yet)"
-    } catch {
-	    "⚠️ Error in line $($_.InvocationInfo.ScriptLineNumber): $($Error[0])"
-    }
+try {
+	if ($IsLinux) {
+		$Path = Resolve-Path "~/Desktop"
+	} else {
+		$Path = [Environment]::GetFolderPath('DesktopDirectory')
+	}
+	if (Test-Path "$Path" -pathType container) {
+		Set-Location "$Path"
+		"📂$Path"
+        exit 0 # sucess
+	}
+	throw "User's desktop folder at 📂$Path doesn't exist (yet)"
+} catch {
+	"⚠️ Error in line $($_.InvocationInfo.ScriptLineNumber): $($Error[0])"
+	exit 1
 }
