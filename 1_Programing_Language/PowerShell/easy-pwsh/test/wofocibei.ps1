@@ -1,5 +1,4 @@
-﻿# Draw welcome screen
-Write-Host -ForegroundColor DarkYellow "                       _oo0oo_"
+﻿Write-Host -ForegroundColor DarkYellow "                       _oo0oo_"
 Write-Host -ForegroundColor DarkYellow "                      o8888888o"
 Write-Host -ForegroundColor DarkYellow "                      88`" . `"88"
 Write-Host -ForegroundColor DarkYellow "                      (| -_- |)"

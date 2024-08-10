@@ -33,6 +33,14 @@ if ($Version) {
 
 if ($Init) {
 
+    $admin = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+    if (-not $admin.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+        Write-Host "You need to run this script as Administrator" -ForegroundColor Red
+        return
+    }
+
+    Set-ExcutionPolicy Unrestricted -Scope CurrentUser -Force
+
     $current_script_dir = Split-Path $MyInvocation.MyCommand.Definition
 
     if (-not (Test-Path -Path $profile)) {

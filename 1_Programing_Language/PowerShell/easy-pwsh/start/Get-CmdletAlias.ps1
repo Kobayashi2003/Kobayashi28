@@ -1,4 +1,16 @@
 ﻿function Get-CmdletAlias {
+
+<#
+    .SYNOPSIS
+        Get the aliases of a cmdlet
+    .PARAMETER cmd
+        The name of the cmdlet or alias
+    .EXAMPLE
+        PS> Get-CmdletAlias Get-ChildItem
+    .EXAMPLE
+        PS> Get-CmdletAlias ls
+#>
+
     param (
         [Parameter(Mandatory = $true)]
         [string] $cmd

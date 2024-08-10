@@ -1,6 +1,12 @@
 ﻿<#
 .SYNOPSIS
     Checks if the current console is elevated
+.EXAMPLE
+    if (Check-Admin) {
+        Write-Host "Elevated" -ForegroundColor Green
+    } else {
+        Write-Host "Not elevated" -ForegroundColor Red
+    }
 #>
 
 function Check-Admin {

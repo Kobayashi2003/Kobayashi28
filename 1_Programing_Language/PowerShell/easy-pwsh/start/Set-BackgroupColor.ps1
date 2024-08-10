@@ -1,4 +1,14 @@
 ﻿function Set-BackgroundColor {
+
+<#
+    .SYNOPSIS
+        Set the background color of the console window
+    .PARAMETER Color
+        The color to set
+    .EXAMPLE
+        PS> My-Set-Color -Color "Red"
+#>
+
     param (
         [Parameter(Mandatory=$true)]
         [ArgumentCompleter({ param (

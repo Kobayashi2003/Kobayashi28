@@ -1,4 +1,14 @@
 ﻿function Set-Title {
+
+<#
+    .SYNOPSIS
+        Set the title of the console window
+    .PARAMETER Title
+        The title to set
+    .EXAMPLE
+        PS> Set-Title "My New Title"
+#>
+
     param ( [string] $Title )
 
     $default_title = 'Windows PowerShell'
