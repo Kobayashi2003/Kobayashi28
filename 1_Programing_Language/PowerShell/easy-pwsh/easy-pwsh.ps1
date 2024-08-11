@@ -1,4 +1,17 @@
-﻿[CmdletBinding(DefaultParameterSetName = 'Default')]
+﻿<#
+.SYNOPSIS
+    Initialize easy-pwsh
+.PARAMETER help
+    -h, --help     Show this help message and exit
+.PARAMETER version
+    -v, --version  Show version information and exit
+.PARAMETER init
+    -i, --init     Initialize easy-pwsh
+.EXAMPLE
+    [Admin] PS C:\> easy-pwsh -i
+#>
+
+[CmdletBinding(DefaultParameterSetName = 'Default')]
 param (
     [Parameter(ParameterSetName = 'Help')]
     [Alias('h')] [switch] $Help,
@@ -46,7 +59,7 @@ if ($Init) {
     if (-not (Test-Path -Path $profile)) {
         New-Item -Path $profile -ItemType File }
 
-    $startup_content = ". $(Join-Path -Path $current_script_dir -ChildPath 'core\init-library.ps1')"
+    $startup_content = ". $(Join-Path -Path $current_script_dir -ChildPath 'core\init.ps1')"
 
     if (-not (Select-String -Path $profile -Pattern $startup_content -SimpleMatch)) {
         Add-Content -Path $profile -Value $startup_content }

@@ -1,16 +1,30 @@
-if ((Get-Command 'sudo' -ErrorAction SilentlyContinue)) { return }
+﻿if (Get-Command 'sudo' -ErrorAction SilentlyContinue) {
+<# .Notes
+    https://github.com/sudo-pwsh/sudo-pwsh
+#>
+    return
+}
 
-function sudo {
+if (Get-Command 'gsudo' -ErrorAction SilentlyContinue) {
+<# .Notes
+    https://github.com/gerardog/gsudo
+#>
+    Set-Alias -Name 'sudo' -Value 'gsudo'
+    return
+}
 
+function global:sudo {
 <#
-    .SYNOPSIS
-        Runs a command as the super user.
-    .PARAMETER Command
-        The command to run.
-    .PARAMETER Arguments
-        The arguments to pass to the command.
-    .EXAMPLE
-        PS> sudo whoami
+.SYNOPSIS
+    Run a command as sudo
+
+.PARAMETER command
+    Command to run
+.PARAMETER arguments
+    Arguments to pass to the command
+
+.EXAMPLE
+    sudo -command "ipconfig"
 #>
 
     $command = $args[0]

@@ -194,7 +194,7 @@
         "after": ["<Escape>"]
       },
       { 
-        "before": ["j", "k"],
+        "before": ["k", "j"],
         "after": ["<Escape>"]
       },
       {

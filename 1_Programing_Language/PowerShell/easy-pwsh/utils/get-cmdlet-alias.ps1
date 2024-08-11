@@ -1,6 +1,4 @@
-﻿function Get-CmdletAlias {
-
-<#
+﻿<#
     .SYNOPSIS
         Get the aliases of a cmdlet
     .PARAMETER cmd
@@ -11,11 +9,12 @@
         PS> Get-CmdletAlias ls
 #>
 
-    param (
-        [Parameter(Mandatory = $true)]
-        [string] $cmd
-    )
+param (
+    [Parameter(Mandatory = $true)]
+    [string] $cmd
+)
 
+try {
     if (-not (Get-Command $cmd -ErrorAction SilentlyContinue)) {
         Write-Host "Command not found: $cmd"
         return
@@ -27,4 +26,10 @@
         Get-Alias | Where-Object -FilterScript { $_.Definition -eq $cmd } |
             Format-Table -Property Definition, Name -AutoSize
     }
+
+    exit 0 # sucess
+
+} catch {
+    Write-Host "Failed to get cmdlet alias: $cmd"
+    exit 1
 }

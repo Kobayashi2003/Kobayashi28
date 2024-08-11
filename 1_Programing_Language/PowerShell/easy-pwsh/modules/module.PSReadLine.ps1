@@ -1,14 +1,6 @@
 ﻿using namespace System.Management.Automation
 using namespace System.Management.Automation.Language
 
-if (!(Get-Module -ListAvailable -Name PSReadline)) {
-    Write-Host "PSReadline module not found. Installing..." -ForegroundColor Yellow
-    Install-Module PSReadline
-} else {
-    # Write-Host "PSReadline module found. Importing..." -ForegroundColor Green
-}
-
-Import-Module PSReadline
 
 Set-PSReadLineOption -BellStyle None
 # Set-PSReadLineOption -EditMode Emacs
@@ -136,19 +128,22 @@ Set-PSReadLineKeyHandler -Key F7 `
 # This is an example of a marco that you might use to execute a command.
 # This will add the command to the history.
 # TODO: Unfortunately, revertline may not work as expected when you use listview completion.
-$key_bindings = @{
-    'Ctrl+b' = 'code -r'
-    'Ctrl+H' = 'shutdown -h'
+
+Set-PSReadLineKeyHandler -Key Ctrl+b `
+                         -LongDescription "Open Visual Studio Code" `
+                         -ScriptBlock {
+    [Microsoft.PowerShell.PSConsoleReadLine]::RevertLine()
+    [Microsoft.PowerShell.PSConsoleReadLine]::Insert('code -r')
+    [Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
 }
 
-foreach ($key in $key_bindings.Keys) {
-    Set-PSReadLineKeyHandler -Key $key -ScriptBlock {
-        [Microsoft.PowerShell.PSConsoleReadLine]::RevertLine()
-        [Microsoft.PowerShell.PSConsoleReadLine]::Insert($key_bindings[$key])
-        [Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
-    }
+Set-PSReadLineKeyHandler -Key Ctrl+H `
+                         -LongDescription "Computer sleep" `
+                         -ScriptBlock {
+    [Microsoft.PowerShell.PSConsoleReadLine]::RevertLine()
+    [Microsoft.PowerShell.PSConsoleReadLine]::Insert('shutdown -h')
+    [Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
 }
-
 
 # In Emacs mode - Tab acts like in bash, but the Windows style completion
 # is still useful sometimes, so bind some keys so we can do both

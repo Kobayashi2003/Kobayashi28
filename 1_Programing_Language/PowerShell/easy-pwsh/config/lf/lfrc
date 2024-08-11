@@ -1,0 +1,38 @@
+%sh -c "lf -remote \"send $id set previewer %LF_CONFIG_FILE%-preview.cmd\""
+
+set preview true
+set mouse true
+set drawbox true
+set ratios '1:2:3'
+set relativenumber true
+
+map <esc>   :unselect
+map <enter> :toggle; down
+map <space> :$quicklook %f%
+map <f-5>   %sh -c "lf -remote \"send $id :source %LF_CONFIG_FILE%\""
+map <c-c>   push :copy<enter>
+map <c-v>   push :paste<enter>
+map <c-d>   push :delete<enter>
+map E       push &start.<enter>
+
+cmd createfile %sh -c 'touch $0'
+cmd createdir %sh -c 'mkdir $0'
+map a       :createfile<space>
+map A push  :createdir<space>
+
+map h push  :updir<enter>
+map j push  :down<enter>
+map k push  :up<enter>
+map l push  :open<enter>
+map J push  :scroll-down<enter>
+map K push  :scroll-up<enter>
+map Y %echo %fx% | clip
+
+map <c-f>   :set ratios '1:1:1000'; reload
+map <c-b>   :set ratios '1:2:3'; reload
+
+map <c-j> push :half-down<enter>
+map <c-k> push :half-up<enter>
+
+map gg push :top<enter>
+map G push  :bottom<enter>

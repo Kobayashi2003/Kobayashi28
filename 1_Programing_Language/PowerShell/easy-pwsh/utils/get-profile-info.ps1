@@ -9,3 +9,5 @@
 
     Get-Item -Path $PROFILE | Select-Object -Property * | Format-List -Property * | Write-Output
 }
+
+& Get-ProfileInfo
