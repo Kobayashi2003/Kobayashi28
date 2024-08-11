@@ -21,12 +21,12 @@ $global:scoop_apps = @(
     'lf','chafa', 'posh-git')
 
 $global:modules = @(
-    "Get-ChildItemColor",
-    "PSReadLine",
-    "PSFzf",
-    "Terminal-Icons",
-    "WriteAscii",
-    "gsudoModule"
+    "Get-ChildItemColor"
+    "PSReadLine"
+    "PSFzf"
+    "Terminal-Icons"
+    "WriteAscii"
+    # "gsudoModule"
     "posh-git"
 )
 

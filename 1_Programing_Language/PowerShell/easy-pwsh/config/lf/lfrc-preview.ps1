@@ -105,8 +105,9 @@ function Show-TextType {
 
     try {
         Write-Output "Text: $file_path"
-        $text = Get-Content $file_path -Raw
-        Write-Output $text
+        # $text = Get-Content $file_path -Raw
+        # Write-Output $text
+        & cat $file_path
     } catch {
         Write-Host "Error: $($_.Exception.Message)"
     }
