@@ -74,6 +74,7 @@ if (!(Get-Command "scoop" -ErrorAction SilentlyContinue)) {
 foreach ($app in $global:scoop_app_list) {
     if (-not $scoop_apps_installed -contains $app) {
         try {
+            Write-Host "Installing $app." -ForegroundColor Yellow
             & scoop install $app
         } catch {
             Write-Host "Failed to install $app." -ForegroundColor Red

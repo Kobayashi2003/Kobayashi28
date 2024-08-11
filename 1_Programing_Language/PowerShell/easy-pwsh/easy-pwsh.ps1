@@ -52,7 +52,7 @@ if ($Init) {
         return
     }
 
-    Set-ExcutionPolicy Unrestricted -Scope CurrentUser -Force
+    Set-ExecutionPolicy Unrestricted -Scope CurrentUser -Force
 
     $current_script_dir = Split-Path $MyInvocation.MyCommand.Definition
 
