@@ -48,3 +48,14 @@ function prompt {
     Write-Host ("PS " + $(Get-Location) +">") -NoNewLine -ForegroundColor $Color
     return " "
 }
+
+function prompt {
+    if ((Get-History).count -ge 1) {
+        $executionTime = ((Get-History)[-1].EndExecutionTime - (Get-History)[-1].StartExecutionTime).Totalmilliseconds
+        $time = [math]::Round($executionTime,2)
+        $promptString = ("$time ms | " + $(Get-Location) + ">")
+    } else {
+        $promptString = ("0 ms | " + $(Get-Location) + ">")
+    }
+    return $promptString
+}

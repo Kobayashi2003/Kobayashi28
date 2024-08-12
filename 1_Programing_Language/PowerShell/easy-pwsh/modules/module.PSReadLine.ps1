@@ -151,7 +151,7 @@ Set-PSReadLineKeyHandler -Key Ctrl+q -Function TabCompleteNext
 Set-PSReadLineKeyHandler -Key Ctrl+Q -Function TabCompletePrevious
 
 # Clipboard interaction is bound by default in Windows mode, but not Emacs mode.
-Set-PSReadLineKeyHandler -Key Ctrl+C -Function Copy
+# Set-PSReadLineKeyHandler -Key Ctrl+C -Function Copy
 Set-PSReadLineKeyHandler -Key Ctrl+v -Function Paste
 
 # CaptureScreen is good for blog posts or email showing a transaction
@@ -372,27 +372,6 @@ Set-PSReadLineKeyHandler -Key Backspace `
 }
 
 #endregion Smart Insert/Delete
-
-
-# Insert text from the clipboard as a here string
-Set-PSReadLineKeyHandler -Key Ctrl+V `
-                         -BriefDescription PasteAsHereString `
-                         -LongDescription "Paste the clipboard text as a here string" `
-                         -ScriptBlock {
-    param($key, $arg)
-
-    Add-Type -Assembly PresentationCore
-    if ([System.Windows.Clipboard]::ContainsText())
-    {
-        # Get clipboard text - remove trailing spaces, convert \r\n to \n, and remove the final \n.
-        $text = ([System.Windows.Clipboard]::GetText() -replace "\p{Zs}*`r?`n","`n").TrimEnd()
-        [Microsoft.PowerShell.PSConsoleReadLine]::Insert("@'`n$text`n'@")
-    }
-    else
-    {
-        [Microsoft.PowerShell.PSConsoleReadLine]::Ding()
-    }
-}
 
 # Sometimes you want to get a property of invoke a member on what you've entered so far
 # but you need parens to do that.  This binding will help by putting parens around the current selection,
@@ -983,4 +962,187 @@ Set-PSReadLineKeyHandler -Key Escape `
             return
         }
         [Microsoft.PowerShell.PSConsoleReadLine]::RevertLine()
+}
+
+Set-PSReadLineKeyHandler -Key Ctrl+C `
+                         -BriefDescription CopyFile `
+                         -LongDescription "Copy the file to the clipboard" `
+                         -ScriptBlock {
+
+    $selectionstart = $null
+    $selectionlength = $null
+    [Microsoft.PowerShell.PSConsoleReadLine]::GetSelectionState([ref]$selectionstart, [ref]$selectionlength)
+
+
+    $path = $null
+
+    if ($selectionstart -ne -1 -and $selectionlength -ne -1) {
+        $path = $line.SubString($selectionstart, $selectionlength)
+    }
+
+    # if no selection, try to find a path around the cursor
+    if (-not $path) {
+        $ast = $null
+        $tokens = $null
+        $errors = $null
+        $cursor = $null
+        [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$ast, [ref]$tokens, [ref]$errors, [ref]$cursor)
+        foreach ($token in $tokens) {
+            if ($token.Extent.StartOffset -le $cursor -and $token.Extent.EndOffset -ge $cursor) {
+                $path = $token.Extent
+                break
+            }
+        }
+    }
+
+    try {
+        # $path = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($path)
+        $path = (Get-Item $path).FullName
+    } catch {
+        return
+    }
+
+    if (-not $path) {
+        return
+    }
+
+    if (-not (Test-Path -Path $path)) {
+        return
+    }
+
+    try {
+        Set-Clipboard -Path $path
+    } catch {
+        Write-Error $_
+    }
+}
+
+Set-PSReadLineKeyHandler -Key Ctrl+V `
+                         -BriefDescription PasteAsHereString `
+                         -LongDescription "Paste the clipboard text as a here string" `
+                         -ScriptBlock {
+
+    param($key, $arg)
+
+    $files = Get-Clipboard -Format FileDrop
+    if ($files.Count -gt 0) {
+        try {
+            foreach ($file in $files) {
+                Copy-Item -Path $file -Destination $path
+            }
+        } catch {
+            Write-Error $_
+        }
+        return
+    }
+
+    Add-Type -Assembly PresentationCore
+    if ([System.Windows.Clipboard]::ContainsText())
+    {
+        # Get clipboard text - remove trailing spaces, convert \r\n to \n, and remove the final \n.
+        $text = ([System.Windows.Clipboard]::GetText() -replace "\p{Zs}*`r?`n","`n").TrimEnd()
+        [Microsoft.PowerShell.PSConsoleReadLine]::Insert("@'`n$text`n'@")
+    }
+    else
+    {
+        [Microsoft.PowerShell.PSConsoleReadLine]::Ding()
+    }
+}
+
+Set-PSReadLineKeyHandler -Key Ctrl+p `
+                         -BriefDescription ShowAbsolutePath `
+                         -LongDescription "Show the full path" `
+                         -ScriptBlock {
+    $selectionstart = $null
+    $selectionlength = $null
+    [Microsoft.PowerShell.PSConsoleReadLine]::GetSelectionState([ref]$selectionstart, [ref]$selectionlength)
+
+    if ($selectionstart -ne -1 -and $selectionlength -ne -1) {
+        $path = $line.SubString($selectionstart, $selectionlength)
+    }
+
+    if (-not $path) {
+        $ast = $null
+        $tokens = $null
+        $errors = $null
+        $cursor = $null
+        [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$ast, [ref]$tokens, [ref]$errors, [ref]$cursor)
+        foreach ($token in $tokens) {
+            if ($token.Extent.StartOffset -le $cursor -and $token.Extent.EndOffset -ge $cursor) {
+                $path = $token.Extent
+                break
+            }
+        }
+    }
+
+    # excahnge the path with the full path
+    try {
+        $path = (Get-Item -Path $path).FullName
+    } catch {
+        return
+    }
+
+    if (-not $path) {
+        return
+    }
+
+    $start = $null
+    $length = $null
+    if ($selectionstart -ne -1 -and $selectionlength -ne -1) {
+        $start = $selectionstart
+        $length = $selectionlength
+    } else {
+        $start = $token.Extent.StartOffset
+        $length = $token.Extent.EndOffset - $token.Extent.StartOffset
+    }
+
+    [Microsoft.PowerShell.PSConsoleReadLine]::Replace($start, $length, $path)
+}
+
+# ctrl + <space>
+Set-PSReadLineKeyHandler -Key Ctrl+SpaceBar `
+                         -ScriptBlock {
+
+    if (-not (Get-Command 'quicklook' -ErrorAction SilentlyContinue)) {
+        return
+    }
+
+    $selectionstart = $null
+    $selectionlength = $null
+    [Microsoft.PowerShell.PSConsoleReadLine]::GetSelectionState([ref]$selectionstart, [ref]$selectionlength)
+
+    if ($selectionstart -ne -1 -and $selectionlength -ne -1) {
+        $path = $line.SubString($selectionstart, $selectionlength)
+    }
+
+    if (-not $path) {
+        $ast = $null
+        $tokens = $null
+        $errors = $null
+        $cursor = $null
+        [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$ast, [ref]$tokens, [ref]$errors, [ref]$cursor)
+        foreach ($token in $tokens) {
+            if ($token.Extent.StartOffset -le $cursor -and $token.Extent.EndOffset -ge $cursor) {
+                $path = $token.Extent
+                break
+            }
+        }
+    }
+
+    # excahnge the path with the full path
+    try {
+        $path = (Get-Item -Path $path).FullName
+    } catch {
+        return
+    }
+
+    if (-not $path) {
+        return
+    }
+
+    try {
+        & quicklook $path
+    } catch {
+        Write-Error $_
+    }
 }

@@ -54,6 +54,49 @@ function Get-MimeType {
     return $mimeType
 }
 
+function Show-FileInfo {
+<#
+.SYNOPSIS
+    Show file info
+.EXAMPLE
+    PS> Get-FileInfo $file_path
+#>
+
+    param (
+        [Parameter(Mandatory=$true)]
+        [string] $file_path
+    )
+
+    $esc = [char]27
+
+    try {
+        $fileInfo = Get-Item -LiteralPath $file_path
+        $file_name = $fileInfo.Name
+        $file_extension = $fileInfo.Extension
+        $file_length = $fileInfo.Length
+        $file_lastWriteTime = $fileInfo.LastWriteTime
+
+        # format file size to B KB MB or GB
+        if ($file_length -gt 1GB) {
+            $file_size = "{0:N2} GB" -f ($file_length / 1GB)
+        } elseif ($file_length -gt 1MB) {
+            $file_size = "{0:N2} MB" -f ($file_length / 1MB)
+        } elseif ($file_length -gt 1KB) {
+            $file_size = "{0:N2} KB" -f ($file_length / 1KB)
+        } else {
+            $file_size = "{0:N2} B" -f $file_length
+        }
+
+        Write-Host "${esc}[33mFile Path: ${file_path}${esc}[0m"
+        Write-Host "${esc}[33mFile Name: ${file_name}${esc}[0m"
+        Write-Host "${esc}[33mFile Extension: ${file_extension}${esc}[0m"
+        Write-Host "${esc}[33mFile Size: ${file_size}${esc}[0m"
+        Write-Host "${esc}[33mFile LastWriteTime: ${file_lastWriteTime}${esc}[0m"
+    } catch {
+        Write-Host "${esc}[31mError: $($_.Exception.Message)${esc}[0m"
+    }
+
+}
 
 function Show-ImageType {
 <#
@@ -81,7 +124,10 @@ function Show-ImageType {
         chafa -s $preview_width"x"$preview_height $file_path --optimize 9 --fill all
         Write-Output "mSize: ${image_width}x${image_height}"
     } catch {
-        Write-Host "Error: $($_.Exception.Message)"
+        $esc = [char]27
+        Write-Host "${esc}[31mError: $($_.Exception.Message)${esc}[0m"
+        Write-Host ""
+        Show-FileInfo $file_path
     }
 
 }
@@ -103,13 +149,19 @@ function Show-TextType {
         [int] $preview_height
     )
 
+    $esc = [char]27
+
     try {
         Write-Output "Text: $file_path"
-        # $text = Get-Content $file_path -Raw
-        # Write-Output $text
-        & cat $file_path
+        if (-not (Get-Command 'bat' -ErrorAction SilentlyContinue)) {
+            & bat $file_path
+        } else {
+            Get-Content $file_path
+        }
     } catch {
-        Write-Host "Error: $($_.Exception.Message)"
+        Write-Host "${esc}[31mError: $($_.Exception.Message)${esc}[0m"
+        Write-Host ""
+        Show-FileInfo $file_path
     }
 
 }
@@ -131,23 +183,14 @@ function Show-VideoType {
         [int] $preview_height
     )
 
+    $esc = [char]27
+
     try {
-
-        $file = Get-Item -LiteralPath $file_path
-        $file_name = $file.Name
-        $file_type = $file.Extension
-        $file_size = $file.Length
-        $file_time = $file.LastWriteTime
-
-        Write-Output "Name: $file_name"
-        Write-Output "Type: $file_type"
-        Write-Output "Size: $file_size"
-        Write-Output "Time: $file_time"
-
         throw "Video Format Not Implemented"
-
     } catch {
-        Write-Host "Error: $($_.Exception.Message)"
+        Write-Host "${esc}[31mError: $($_.Exception.Message)${esc}[0m"
+        Write-Host ""
+        Show-FileInfo $file_path
     }
 }
 
@@ -168,21 +211,14 @@ function Show-AudioType {
         [int] $preview_height
     )
 
+    $esc = [char]27
+
     try {
-        $file = Get-Item -LiteralPath $file_path
-        $file_name = $file.Name
-        $file_type = $file.Extension
-        $file_size = $file.Length
-        $file_time = $file.LastWriteTime
-
-        Write-Output "Name: $file_name"
-        Write-Output "Type: $file_type"
-        Write-Output "Size: $file_size"
-        Write-Output "Time: $file_time"
-
         throw "Audio Format Not Implemented"
     } catch {
-        Write-Host "Error: $($_.Exception.Message)"
+        Write-Host "${esc}[31mError: $($_.Exception.Message)${esc}[0m"
+        Write-Host ""
+        Show-FileInfo $file_path
     }
 }
 
@@ -203,6 +239,8 @@ function Show-ArchiveType {
         [int] $preview_height
     )
 
+    $esc = [char]27
+
     try {
         $content = (& "7z" "l" "-ba" "$file_path")
         Write-Output "Archive: $file_path"
@@ -210,7 +248,9 @@ function Show-ArchiveType {
             Write-Output $line
         }
     } catch {
-        Write-Host "Error: $($_.Exception.Message)"
+        Write-Host "${esc}[31mError: $($_.Exception.Message)${esc}[0m"
+        Write-Host ""
+        Show-FileInfo $file_path
     }
 }
 
@@ -231,10 +271,26 @@ function Show-BinaryType {
         [int] $preview_height
     )
 
+    $esc = [char]27
+
     try {
-        get-hex-dump $file_path
+        Write-Output "Binary: $file_path"
+        if (Get-Command 'get-hex-dump' -ErrorAction SilentlyContinue) {
+            get-hex-dump $file_path
+        } elseif (Get-Command 'Format-Hex' -ErrorAction SilentlyContinue) {
+            if ($global:PSVERSION -gt 6.0) {
+                Format-Hex $file_path -Count ($preview_width * $preview_height)
+            } else {
+                Format-Hex $file_path
+            }
+        } else {
+            throw "Binary Format Not Implemented"
+        }
     } catch {
-        Write-Host "Error: $($_.Exception.Message)"
+        # Write-Host "Error: $($_.Exception.Message)"
+        Write-Host "${esc}[31mError: $($_.Exception.Message)${esc}[0m"
+        Write-Host ""
+        Show-FileInfo $file_path
     }
 }
 

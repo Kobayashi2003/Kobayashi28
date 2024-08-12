@@ -1,5 +1,77 @@
-﻿function global:prompt {
-    $host.ui.RawUI.WindowTitle = "PS " + $(Get-Location)
-    Write-Host ("PS " + $(Get-Location) +">") -NoNewLine
-    return " "
+﻿
+function global:prompt {
+    $lst_cmd_state = $?
+    $esc = $([char]27)
+    if ((Get-History).count -ge 1) {
+        $executionTime = ((Get-History)[-1].EndExecutionTime - (Get-History)[-1].StartExecutionTime).TotalMilliseconds
+    } else {
+        $executionTime = 0
+    }
+    $executionTime = [math]::Round($executionTime,2)
+    $time = (Get-Date -Format "HH:mm:ss")
+    $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
+    $principal = [Security.Principal.WindowsPrincipal] $identity
+    $adminRole = [Security.Principal.WindowsBuiltInRole]::Administrator
+    $isAdmin = $principal.IsInRole($adminRole)
+    $curUser = $env:USERNAME
+
+    $promptString = ""
+
+    if (Test-Path variable:/PSDebugContext) {
+        $promptString += "$esc[1;32m[D]:$esc[0m "
+    } elseif ($isAdmin) {
+        $promptString += "$esc[1;31m[A]:$esc[0m "
+    } else {
+        $promptString += "$esc[1;33m[$($curUser[0])]:$esc[0m "
+    }
+
+    if ($lst_cmd_state) {
+        $promptString += "$esc[1;32m$esc[1;4m$($executionTime)ms$esc[0m "
+    } else {
+        $promptString += "$esc[1;31m$esc[1;4m$($executionTime)ms$esc[0m "
+    }
+
+    # $path = ($PWD.Path).Replace($env:USERPROFILE, "~")
+    $path = ($PWD.Path)
+    if ($path -eq $env:USERPROFILE) {
+        $path = ($PWD.Path).Replace($env:USERPROFILE, "🏠")
+    } elseif ($path -eq $env:USERPROFILE + "\Documents") {
+        $path = ($PWD.Path).Replace($env:USERPROFILE + "\Documents", "📄")
+    } elseif ($path -eq $env:USERPROFILE + "\Downloads") {
+        $path = ($PWD.Path).Replace($env:USERPROFILE + "\Downloads", "📥")
+    } elseif ($path -eq $env:USERPROFILE + "\Pictures") {
+        $path = ($PWD.Path).Replace($env:USERPROFILE + "\Pictures", "📸")
+    } elseif ($path -eq $env:USERPROFILE + "\Videos") {
+        $path = ($PWD.Path).Replace($env:USERPROFILE + "\Videos", "📹")
+    } elseif ($path -eq $env:USERPROFILE + "\Music") {
+        $path = ($PWD.Path).Replace($env:USERPROFILE + "\Music", "🎵")
+    } elseif ($path -eq $env:USERPROFILE + "\Desktop") {
+        $path = ($PWD.Path).Replace($env:USERPROFILE + "\Desktop", "🖥 ")
+    } elseif ($path -eq $env:USERPROFILE + "\OneDrive") {
+        $path = ($PWD.Path).Replace($env:USERPROFILE + "\OneDrive", "☁ ")
+    } else {
+        $path += " 📂"
+    }
+
+    while ($path.Length -gt 30) {
+        $path = $path.Substring($path.LastIndexOf("\") + 1)
+    }
+    $promptString += "$esc[1;33m$path$esc[0m "
+
+    if ($NestedPromptLevel -ge 1) {
+        $colors_code = @{
+            0 = "$esc[1;31m"
+            1 = "$esc[1;32m"
+            2 = "$esc[1;33m"
+            3 = "$esc[1;34m"
+            4 = "$esc[1;35m"
+            5 = "$esc[1;36m"
+        }
+        for ($i = 0; $i -lt $NestedPromptLevel; $i++) {
+            $promptString += "$($colors_code[$i % 6])>$esc[0m"
+        }
+    }
+    $promptString += "> "
+
+    return $promptString
 }

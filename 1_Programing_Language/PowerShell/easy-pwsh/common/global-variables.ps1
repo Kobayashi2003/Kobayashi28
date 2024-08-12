@@ -4,6 +4,8 @@
     which will be declared before other scripts run
 #>
 
+$global:PSVERSION = "$($PSVersionTable.PSVersion.Major).$($PSVersionTable.PSVersion.Minor)"
+
 $global:DOWNLOADS   = Join-Path $env:USERPROFILE -ChildPath "Downloads"
 $global:DOCUMENTS   = Join-Path $env:USERPROFILE -ChildPath "Documents"
 $global:PICTURES    = Join-Path $env:USERPROFILE -ChildPath "Pictures"

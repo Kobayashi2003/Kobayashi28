@@ -17,15 +17,55 @@ if (!(Get-Command "scoop" -ErrorAction SilentlyContinue)) {
         return
     }
 
-    $scoopDir = Read-Host -Prompt "Enter the directory where you want to install Scoop (e.g. $env:USERPROFILE\scoop)"
-    if (-not $scoopDir) { $scoopDir = "$env:USERPROFILE\scoop" }
-    if (-not (Test-Path $scoopDir)) {
-        New-Item -Path $scoopDir -ItemType Directory | Out-Null
+    $env:SCOOP = Read-Host -Prompt "Enter the directory where you want to install Scoop (e.g. $env:USERPROFILE\scoop)"
+    $env:SCOOP_GLOBAL = Read-Host -Prompt "Enter the directory where you want to install Scoop apps (e.g. $env:USERPROFILE\scoop\apps)"
+    while ($env:SCOOP_GLOBAL -eq $env:SCOOP) {
+        Write-Host "The directory where you want to install Scoop apps cannot be the same as the directory where you want to install Scoop." -ForegroundColor Red
+        $env:SCOOP_GLOBAL = Read-Host -Prompt "Enter the directory where you want to install Scoop apps (e.g. $env:USERPROFILE\scoop\apps)"
+    }
+    if (-not $env:SCOOP) { $env:SCOOP = "$env:USERPROFILE\scoop" }
+    if (-not $env:SCOOP_GLOBAL) { $env:SCOOP_GLOBAL = "$env:USERPROFILE\scoop\apps" }
+
+    if (-not (Test-Path $env:SCOOP)) { New-Item -Path $env:SCOOP -ItemType Directory | Out-Null }
+    if (-not (Test-Path $env:SCOOP_GLOBAL)) { New-Item -Path $env:SCOOP_GLOBAL -ItemType Directory | Out-Null }
+
+
+    # try to find install-scoop in the current directory if not, download
+    if (-not (Test-Path "$PSScriptRoot\install-scoop.ps1")) {
+        Write-Host "Downloading install-scoop.ps1..." -ForegroundColor Yellow
+        $install_proxy = Read-Host -Prompt "Set the proxy (Press Enter if you don't want to set the proxy)"
+        try {
+            if ($install_proxy) {
+                & irm get.scooop.sh -outfile 'install-scoop.ps1' -proxy $install_proxy
+            } else {
+                & irm get.scooop.sh -outfile 'install-scoop.ps1'
+            }
+            Write-Host "Downloaded install-scoop.ps1." -ForegroundColor Green
+        } catch {
+            Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
+            Write-Host "Failed to download install-scoop.ps1." -ForegroundColor Red
+        }
     }
 
-    $env:SCOOP_HOME = $scoopDir
-    [Environment]::SetEnvironmentVariable('SCOOP_HOME', $scoopDir, 'User')
-    Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
+    try {
+        if (Test-Path "$PSScriptRoot\install-scoop.ps1") {
+            if ($install_proxy) {
+                . install-scoop.ps1 -ScoopDir $env:SCOOP -ScoopGlobalDir $env:SCOOP_GLOBAL -Proxy $install_proxy
+            } else {
+                . install-scoop.ps1 -ScoopDir $env:SCOOP -ScoopGlobalDir $env:SCOOP_GLOBAL -NoProxy
+            }
+        } else {
+            [Environment]::SetEnvironmentVariable('SCOOP_GLOBAL', $env:SCOOP_GLOBAL, 'Machine')
+            if ($install_proxy) {
+                & irm get.scoop.sh -Proxy $install_proxy | iex
+            } else {
+                & irm get.scoop.sh | iex
+            }
+        }
+    } catch {
+        Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
+    }
+
     if (-not (Get-Command scoop -ErrorAction SilentlyContinue)) {
         Write-Host "Scoop installation failed. Please try again." -ForegroundColor Red
         return

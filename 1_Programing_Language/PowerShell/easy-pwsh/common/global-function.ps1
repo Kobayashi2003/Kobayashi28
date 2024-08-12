@@ -141,3 +141,32 @@ function global:tail {
         Get-Content -Path $Path -Tail $Lines
     }
 }
+
+
+function global:sh {
+<#
+.SYNOPSIS
+    This is an alias for powershell
+.EXAMPLE
+    PS> sh -c "Get-ChildItem | Format-Table Mode, Owner, Length, LastWriteTime, Name"
+#>
+
+    if ($global:PSVERSION -lt 7.0) {
+        powershell $Args
+    } else {
+        pwsh $Args
+    }
+}
+
+
+function global:which {
+
+<#
+.SYNOPSIS
+    Returns the path to an executable
+.EXAMPLE
+    PS> which git
+#>
+
+    (Get-Command $Args[0] -ErrorAction SilentlyContinue).Source
+}
