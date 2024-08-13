@@ -964,49 +964,103 @@ Set-PSReadLineKeyHandler -Key Escape `
         [Microsoft.PowerShell.PSConsoleReadLine]::RevertLine()
 }
 
-Set-PSReadLineKeyHandler -Key Ctrl+C `
-                         -BriefDescription CopyFile `
-                         -LongDescription "Copy the file to the clipboard" `
-                         -ScriptBlock {
 
-    $selectionstart = $null
-    $selectionlength = $null
-    [Microsoft.PowerShell.PSConsoleReadLine]::GetSelectionState([ref]$selectionstart, [ref]$selectionlength)
-
-
-    $path = $null
-
-    if ($selectionstart -ne -1 -and $selectionlength -ne -1) {
-        $path = $line.SubString($selectionstart, $selectionlength)
-    }
-
-    # if no selection, try to find a path around the cursor
-    if (-not $path) {
-        $ast = $null
-        $tokens = $null
-        $errors = $null
-        $cursor = $null
-        [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$ast, [ref]$tokens, [ref]$errors, [ref]$cursor)
-        foreach ($token in $tokens) {
-            if ($token.Extent.StartOffset -le $cursor -and $token.Extent.EndOffset -ge $cursor) {
-                $path = $token.Extent
-                break
-            }
-        }
-    }
+function global:__Check-Path {
+<#
+.SYNOPSIS
+    Checks if a path is valid
+.PARAMETER Path
+    Path to check
+.OUTPUTS
+    Boolean
+#>
+    param (
+        [Parameter(Mandatory = $true)]
+        [string[]] $path
+    )
 
     try {
         # $path = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($path)
         $path = (Get-Item $path).FullName
+        if (-not $path) {
+            throw 'Invalid path'
+        }
+        foreach ($p in $path) {
+            if (-not (Test-Path -LiteralPath $p)) {
+                Write-Host ERROR2 $path -ForegroundColor Red
+                throw 'Path does not exist'
+            }
+        }
+        return $true
     } catch {
-        return
+        return $false
+    }
+}
+
+function global:__Get-Selection {
+<#
+.SYNOPSIS
+    Gets the current selection
+.OUTPUTS
+    String
+#>
+
+    $line = $null
+    $cursor = $null
+    [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
+
+    $selectionStart = $null
+    $selectionLength = $null
+    [Microsoft.PowerShell.PSConsoleReadLine]::GetSelectionState([ref]$selectionStart, [ref]$selectionLength)
+    if ($selectionStart -ne -1 -and $selectionLength -ne -1) {
+        return $line.SubString($selectionStart, $selectionLength)
+    }
+    return $null
+}
+
+function global:__Get-Around-Cursor {
+<#
+.SYNOPSIS
+    Gets the content around the cursor
+.OUTPUTS
+    String
+#>
+
+    $line = $null
+    $cursor = $null
+    [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
+
+    $ast = $null
+    $tokens = $null
+    $errors = $null
+    $cursor = $null
+    [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$ast, [ref]$tokens, [ref]$errors, [ref]$cursor)
+    foreach ($token in $tokens) {
+        if ($token.Extent.StartOffset -le $cursor -and $token.Extent.EndOffset -ge $cursor) {
+            return $line.SubString($token.Extent.StartOffset, ($token.Extent.EndOffset - $token.Extent.StartOffset))
+        }
     }
 
+    return $null
+}
+
+function global:__Reload-CLIPACTION {
+    $env:CLIPACTION = [System.Environment]::GetEnvironmentVariable("CLIPACTION","User")
+}
+
+
+[Environment]::SetEnvironmentVariable('CLIPACTION', $null, 'User')
+
+function global:__Copy-Files {
+
+    $path = __Get-Selection
+    if (-not $path) {
+        $path = __Get-Around-Cursor
+    }
     if (-not $path) {
         return
     }
-
-    if (-not (Test-Path -Path $path)) {
+    if (-not (__Check-Path -Path $path)) {
         return
     }
 
@@ -1015,6 +1069,59 @@ Set-PSReadLineKeyHandler -Key Ctrl+C `
     } catch {
         Write-Error $_
     }
+}
+
+function global:__Paste-Files {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string[]] $paths,
+        [Parameter(Mandatory = $false)]
+        [ValidateSet('copy', 'cut', 'link')]
+        [string] $action = 'copy'
+    )
+    if ($paths.Count -eq 0) {
+        return
+    }
+    foreach ($path in $paths) {
+        try {
+            if ($action -eq 'copy') {
+                Copy-Item -Path $path -Destination $pwd
+            } elseif ($action -eq 'cut') {
+                Move-Item -Path $path -Destination $pwd
+            } elseif ($action -eq 'link') {
+                New-Item -Path $pwd -ItemType SymbolicLink -Value $path
+            }
+        } catch {
+            Write-Error $_
+        }
+    }
+}
+
+Set-PSReadLineKeyHandler -Key Ctrl+C `
+                         -BriefDescription CopyFile `
+                         -LongDescription "Copy the file to the clipboard" `
+                         -ScriptBlock {
+    & __Copy-Files
+    [Environment]::SetEnvironmentVariable('CLIPACTION', 'copy', 'User')
+    & __Reload-CLIPACTION
+}
+
+Set-PSReadLineKeyHandler -Key Ctrl+X `
+                         -BriefDescription CutFile `
+                         -LongDescription "Cut the file to the clipboard" `
+                         -ScriptBlock {
+    & __Copy-Files
+    [Environment]::SetEnvironmentVariable('CLIPACTION', 'cut', 'User')
+    & __Reload-CLIPACTION
+}
+
+Set-PSReadLineKeyHandler -Key Ctrl+L `
+                         -BriefDescription CreateFileLink `
+                         -LongDescription "Create File Link" `
+                         -ScriptBlock {
+    & __Copy-Files
+    [Environment]::SetEnvironmentVariable('CLIPACTION', 'link', 'User')
+    & __Reload-CLIPACTION
 }
 
 Set-PSReadLineKeyHandler -Key Ctrl+V `
@@ -1026,14 +1133,15 @@ Set-PSReadLineKeyHandler -Key Ctrl+V `
 
     $files = Get-Clipboard -Format FileDrop
     if ($files.Count -gt 0) {
-        try {
-            foreach ($file in $files) {
-                Copy-Item -Path $file -Destination $path
-            }
-        } catch {
-            Write-Error $_
+        & __Reload-CLIPACTION
+        if ($env:CLIPACTION) {
+            & __Paste-Files -action $env:CLIPACTION -paths $files
+            [Environment]::SetEnvironmentVariable('CLIPACTION', $null, 'User')
+        } else {
+            & __Paste-Files -paths $files
         }
-        return
+    } else {
+        [Environment]::SetEnvironmentVariable('CLIPACTION', $null, 'User')
     }
 
     Add-Type -Assembly PresentationCore

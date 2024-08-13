@@ -5,6 +5,15 @@
 #>
 
 
+function global:Reload-Envrioment-Path {
+<#
+    .SYNOPSIS
+        Reload the environment variable
+#>
+    $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+}
+
+
 function global:Get-ChildItemAll {
 
 <#

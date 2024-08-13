@@ -6,7 +6,7 @@ set drawbox true
 set ratios '1:2:3'
 set relativenumber true
 
-map <esc>   :unselect
+map <esc>   :unselect; clear
 map <enter> :toggle; down
 map <space> :$quicklook %f%
 map <f-5>   %sh -c "lf -remote \"send $id :source %LF_CONFIG_FILE%\""
