@@ -1048,8 +1048,8 @@ function global:__Reload-CLIPACTION {
     $env:CLIPACTION = [System.Environment]::GetEnvironmentVariable("CLIPACTION","User")
 }
 
-
-[Environment]::SetEnvironmentVariable('CLIPACTION', $null, 'User')
+# This command may slow down the console
+# [Environment]::SetEnvironmentVariable('CLIPACTION', $null, 'User')
 
 function global:__Copy-Files {
 
