@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS</title>
+    <style>
+        /*0 0 2 1*/
+        .c1 .c2 div {
+            color: red;
+        }
+
+        /*0 1 0 1*/
+        div #box3 {
+            color: green;
+        }
+
+        /*0 1 1 0*/
+        #box1 .c3 {
+            color: blue;
+        }
+    </style>
+</head>
+<body>
+    <div id="box1" class="c1">
+        <div id="box2" class="c2">
+            <div id="box3" class="c3">
+                what color am I?
+            </div>
+        </div>
+    </div>
+</body>
+</html>

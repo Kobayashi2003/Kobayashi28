@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>test</title>
+</head>
+<body>
+    <p id="demo"></p>
+    <script>
+        const person = {
+            name : "Bill",
+            age : 16,
+            city : "New York"
+        };
+
+        document.getElementById("demo").innerHTML = person // [object Object]
+
+
+        let txt = "";
+        for (let x in person) {
+            txt += person[x] + " ";
+        }
+        document.getElementById("demo").innerHTML = txt; // Bill 16 New York
+
+
+        const myArray = Object.values(person);
+        document.getElementById("demo").innerHTML = myArray; // Bill,16,New York    
+
+
+        let myString = JSON.stringify(person);
+        // stringify 不会对函数进行字符串化，但可先使用 toString() 将函数转换为字符串，数组同理
+        document.getElementById("demo").innerHTML = myString; // {"name":"Bill","age":16,"city":"New York"} 
+        
+
+
+
+
+    </script>
+</body>
+</html>

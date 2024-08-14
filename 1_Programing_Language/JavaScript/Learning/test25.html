@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>test</title>
+</head>
+<body>
+    <script>
+    var person = {
+        firstName : "Bill",
+        lastName : "Gates",
+        language : "en",
+        get lang() {
+            return this.language
+        },
+        set lang(value) {
+            this.language = value;
+        }
+    };
+
+    
+    document.write(person.lang);
+    person.lang = "zh";
+    document.write(person.lang);
+   </script> 
+</body>
+</html>
