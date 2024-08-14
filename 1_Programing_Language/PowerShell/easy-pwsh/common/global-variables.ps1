@@ -22,14 +22,16 @@ $global:scoop_apps = @(
     'bat', 'fzf', 'zoxide',
     'lf','chafa', 'posh-git')
 
-$global:modules = @(
-    "Get-ChildItemColor"
-    "PSReadLine"
-    "PSFzf"
-    "Terminal-Icons"
-    "WriteAscii"
-    # "gsudoModule"
-    "posh-git"
-)
+$global:modules = @{
+    "Get-ChildItemColor" = "latest"
+    "PSReadLine"         = "==2.3.4"
+    "PSFzf"              = "==2.0.0"
+    "Terminal-Icons"     = "latest"
+    "WriteAscii"         = "latest"
+    # "gsudoModule"        = "latest"
+    "posh-git"           = "latest"
+}
+
+$global:modules_check = $false
 
 $global:show_imported = $false

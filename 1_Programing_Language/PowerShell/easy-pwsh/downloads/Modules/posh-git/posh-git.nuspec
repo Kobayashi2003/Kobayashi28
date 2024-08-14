@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>posh-git</id>
+    <version>1.1.0</version>
+    <authors>Keith Dahlby, Keith Hill, and contributors</authors>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <licenseUrl>https://github.com/dahlbyk/posh-git/blob/v1.1.0/LICENSE.txt</licenseUrl>
+    <projectUrl>https://github.com/dahlbyk/posh-git</projectUrl>
+    <description>Provides prompt with Git status summary information and tab completion for Git commands, parameters, remotes and branch names.</description>
+    <releaseNotes>https://github.com/dahlbyk/posh-git/blob/v1.1.0/CHANGELOG.md</releaseNotes>
+    <copyright>(c) 2010-2021 Keith Dahlby, Keith Hill, and contributors</copyright>
+    <tags>git prompt tab tab-completion tab-expansion tabexpansion PSEdition_Core PSModule PSIncludes_Function PSFunction_Add-PoshGitToProfile PSFunction_Expand-GitCommand PSFunction_Format-GitBranchName PSFunction_Get-GitBranchStatusColor PSFunction_Get-GitStatus PSFunction_Get-GitDirectory PSFunction_Get-PromptConnectionInfo PSFunction_Get-PromptPath PSFunction_New-GitPromptSettings PSFunction_Remove-GitBranch PSFunction_Remove-PoshGitFromProfile PSFunction_Update-AllBranches PSFunction_Write-GitStatus PSFunction_Write-GitBranchName PSFunction_Write-GitBranchStatus PSFunction_Write-GitIndexStatus PSFunction_Write-GitStashCount PSFunction_Write-GitWorkingDirStatus PSFunction_Write-GitWorkingDirStatusSummary PSFunction_Write-Prompt PSFunction_Write-VcsStatus PSFunction_TabExpansion PSFunction_tgit PSCommand_Add-PoshGitToProfile PSCommand_Expand-GitCommand PSCommand_Format-GitBranchName PSCommand_Get-GitBranchStatusColor PSCommand_Get-GitStatus PSCommand_Get-GitDirectory PSCommand_Get-PromptConnectionInfo PSCommand_Get-PromptPath PSCommand_New-GitPromptSettings PSCommand_Remove-GitBranch PSCommand_Remove-PoshGitFromProfile PSCommand_Update-AllBranches PSCommand_Write-GitStatus PSCommand_Write-GitBranchName PSCommand_Write-GitBranchStatus PSCommand_Write-GitIndexStatus PSCommand_Write-GitStashCount PSCommand_Write-GitWorkingDirStatus PSCommand_Write-GitWorkingDirStatusSummary PSCommand_Write-Prompt PSCommand_Write-VcsStatus PSCommand_TabExpansion PSCommand_tgit</tags>
+  </metadata>
+</package>

@@ -1,0 +1,26 @@
+client:
+  cache: null
+  domain: []
+  impl: api
+  postman:
+    meta_data:
+      headers: null
+      impersonate: chrome110
+      proxies: {}
+    type: cffi
+  retry_times: 5
+dir_rule:
+  base_dir: ../../downloads/jmcomic-download
+  rule: Bd_Pname
+download:
+  cache: true
+  image:
+    decode: true
+    suffix: null
+  threading:
+    image: 30
+    photo: 12
+log: true
+plugins:
+  valid: log
+version: '2.1'

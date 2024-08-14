@@ -673,6 +673,9 @@ Set-PSReadLineOption -CommandValidationHandler {
             'i' = 'info'
             'l' = 'env list'
         }
+        'pixi' = @{
+            'shell' = 'shell --change-ps1 false'
+        }
         'cd' = @{
             '...'  = '../..'
         }
@@ -1018,6 +1021,29 @@ function global:__Get-Selection {
     return $null
 }
 
+function global:__Replace-Selection { param (
+    [Parameter(Mandatory = $true)]
+    [string[]] $Text
+)
+<#
+.SYNOPSIS
+    Replaces the current selection
+.PARAMETER Text
+    Text to replace with
+.OUTPUTS
+    [Boolean]
+#>
+    $selectionStart = $null
+    $selectionLength = $null
+    [Microsoft.PowerShell.PSConsoleReadLine]::GetSelectionState([ref]$selectionStart, [ref]$selectionLength)
+
+    if ($selectionStart -ne -1 -and $selectionLength -ne -1) {
+        [Microsoft.PowerShell.PSConsoleReadLine]::Replace($selectionStart, $selectionLength, $Text)
+        return $true
+    }
+    return $false
+}
+
 function global:__Get-Around-Cursor {
 <#
 .SYNOPSIS
@@ -1044,12 +1070,63 @@ function global:__Get-Around-Cursor {
     return $null
 }
 
-function global:__Reload-CLIPACTION {
-    $env:CLIPACTION = [System.Environment]::GetEnvironmentVariable("CLIPACTION","User")
+function global:__Replace-Around-Cursor { param(
+    [Parameter(Mandatory = $true)]
+    [string[]] $Text
+)
+<#
+.SYNOPSIS
+    Replaces the content around the cursor
+.PARAMETER Text
+    Text to replace with
+.OUTPUTS
+    None
+#>
+    $ast = $null
+    $tokens = $null
+    $errors = $null
+    $cursor = $null
+    [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$ast, [ref]$tokens, [ref]$errors, [ref]$cursor)
+    foreach ($token in $tokens) {
+        if ($token.Extent.StartOffset -le $cursor -and $token.Extent.EndOffset -ge $cursor) {
+            [Microsoft.PowerShell.PSConsoleReadLine]::Replace($token.Extent.StartOffset, $token.Extent.EndOffset - $token.Extent.StartOffset, $Text)
+            return $true
+        }
+    }
+
+    return $false
 }
 
-# This command may slow down the console
-# [Environment]::SetEnvironmentVariable('CLIPACTION', $null, 'User')
+
+# This may slow down your console
+$USE_GLOBAL_CLIPACTION = $false
+
+function global:__Reset-ClipAction {
+    if ($USE_GLOBAL_CLIPACTION) {
+        [Environment]::SetEnvironmentVariable('CLIPACTION', $null, 'User')
+    } else {
+        $env:CLIPACTION = $null
+    }
+}
+& __Reset-ClipAction
+
+function global:__Reload-ClipAction {
+    if ($USE_GLOBAL_CLIPACTION) {
+        $env:CLIPACTION = [System.Environment]::GetEnvironmentVariable("CLIPACTION","User")
+    }
+}
+
+function global:__Set-ClipAction { param (
+    [Parameter(Mandatory = $true)]
+    [ValidateSet('copy', 'cut', 'link')]
+    [string] $action
+)
+    if ($USE_GLOBAL_CLIPACTION) {
+        [Environment]::SetEnvironmentVariable('CLIPACTION', $action, 'User')
+    } else {
+        $env:CLIPACTION = $action
+    }
+}
 
 function global:__Copy-Files {
 
@@ -1102,8 +1179,8 @@ Set-PSReadLineKeyHandler -Key Ctrl+C `
                          -LongDescription "Copy the file to the clipboard" `
                          -ScriptBlock {
     & __Copy-Files
-    [Environment]::SetEnvironmentVariable('CLIPACTION', 'copy', 'User')
-    & __Reload-CLIPACTION
+    & __Set-ClipAction -action 'copy'
+    & __Reload-ClipAction
 }
 
 Set-PSReadLineKeyHandler -Key Ctrl+X `
@@ -1111,8 +1188,8 @@ Set-PSReadLineKeyHandler -Key Ctrl+X `
                          -LongDescription "Cut the file to the clipboard" `
                          -ScriptBlock {
     & __Copy-Files
-    [Environment]::SetEnvironmentVariable('CLIPACTION', 'cut', 'User')
-    & __Reload-CLIPACTION
+    & __Set-ClipAction -action 'cut'
+    & __Reload-ClipAction
 }
 
 Set-PSReadLineKeyHandler -Key Ctrl+L `
@@ -1120,8 +1197,8 @@ Set-PSReadLineKeyHandler -Key Ctrl+L `
                          -LongDescription "Create File Link" `
                          -ScriptBlock {
     & __Copy-Files
-    [Environment]::SetEnvironmentVariable('CLIPACTION', 'link', 'User')
-    & __Reload-CLIPACTION
+    & __Set-ClipAction -action 'link'
+    & __Reload-ClipAction
 }
 
 Set-PSReadLineKeyHandler -Key Ctrl+V `
@@ -1133,15 +1210,15 @@ Set-PSReadLineKeyHandler -Key Ctrl+V `
 
     $files = Get-Clipboard -Format FileDrop
     if ($files.Count -gt 0) {
-        & __Reload-CLIPACTION
+        & __Reload-ClipAction
         if ($env:CLIPACTION) {
             & __Paste-Files -action $env:CLIPACTION -paths $files
-            [Environment]::SetEnvironmentVariable('CLIPACTION', $null, 'User')
+            & __Reset-ClipAction
         } else {
             & __Paste-Files -paths $files
         }
     } else {
-        [Environment]::SetEnvironmentVariable('CLIPACTION', $null, 'User')
+        & __Reset-ClipAction
     }
 
     Add-Type -Assembly PresentationCore
@@ -1161,50 +1238,25 @@ Set-PSReadLineKeyHandler -Key Ctrl+p `
                          -BriefDescription ShowAbsolutePath `
                          -LongDescription "Show the full path" `
                          -ScriptBlock {
-    $selectionstart = $null
-    $selectionlength = $null
-    [Microsoft.PowerShell.PSConsoleReadLine]::GetSelectionState([ref]$selectionstart, [ref]$selectionlength)
 
-    if ($selectionstart -ne -1 -and $selectionlength -ne -1) {
-        $path = $line.SubString($selectionstart, $selectionlength)
-    }
-
+    $path = & __Get-Selection
     if (-not $path) {
-        $ast = $null
-        $tokens = $null
-        $errors = $null
-        $cursor = $null
-        [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$ast, [ref]$tokens, [ref]$errors, [ref]$cursor)
-        foreach ($token in $tokens) {
-            if ($token.Extent.StartOffset -le $cursor -and $token.Extent.EndOffset -ge $cursor) {
-                $path = $token.Extent
-                break
-            }
-        }
+        $path = & __Get-Around-Cursor
     }
-
-    # excahnge the path with the full path
-    try {
-        $path = (Get-Item -Path $path).FullName
-    } catch {
-        return
-    }
-
     if (-not $path) {
         return
     }
-
-    $start = $null
-    $length = $null
-    if ($selectionstart -ne -1 -and $selectionlength -ne -1) {
-        $start = $selectionstart
-        $length = $selectionlength
-    } else {
-        $start = $token.Extent.StartOffset
-        $length = $token.Extent.EndOffset - $token.Extent.StartOffset
+    if (-not (& __Check-Path -Path $path)) {
+        return
     }
 
-    [Microsoft.PowerShell.PSConsoleReadLine]::Replace($start, $length, $path)
+    $absolutePath = (Get-Item -Path $path).FullName
+
+    if (& __Replace-Selection -Text $absolutePath) {
+        return
+    }
+
+    & __Replace-Around-Cursor -Text $absolutePath | Out-Null
 }
 
 # ctrl + <space>
@@ -1215,36 +1267,20 @@ Set-PSReadLineKeyHandler -Key Ctrl+SpaceBar `
         return
     }
 
-    $selectionstart = $null
-    $selectionlength = $null
-    [Microsoft.PowerShell.PSConsoleReadLine]::GetSelectionState([ref]$selectionstart, [ref]$selectionlength)
-
-    if ($selectionstart -ne -1 -and $selectionlength -ne -1) {
-        $path = $line.SubString($selectionstart, $selectionlength)
-    }
-
+    $path = & __Get-Selection
     if (-not $path) {
-        $ast = $null
-        $tokens = $null
-        $errors = $null
-        $cursor = $null
-        [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$ast, [ref]$tokens, [ref]$errors, [ref]$cursor)
-        foreach ($token in $tokens) {
-            if ($token.Extent.StartOffset -le $cursor -and $token.Extent.EndOffset -ge $cursor) {
-                $path = $token.Extent
-                break
-            }
-        }
+        $path = & __Get-Around-Cursor
     }
-
-    # excahnge the path with the full path
-    try {
-        $path = (Get-Item -Path $path).FullName
-    } catch {
+    if (-not $path) {
+        return
+    }
+    if (-not (& __Check-Path -Path $path)) {
         return
     }
 
-    if (-not $path) {
+    $absolutePath = (Get-Item -Path $path).FullName
+
+    if (& __Replace-Selection -Text $absolutePath) {
         return
     }
 
