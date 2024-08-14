@@ -1,0 +1,1 @@
+﻿Get-ChildItem (Join-Path -Path $global:current_script_directory -ChildPath "functions\*ps1"   ) | ForEach-Object { if ($_.Name -ne $MyInvocation.MyCommand.Name) { . $_.FullName } }
