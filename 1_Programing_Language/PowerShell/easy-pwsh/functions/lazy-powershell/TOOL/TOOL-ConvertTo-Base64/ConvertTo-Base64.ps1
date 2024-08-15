@@ -1,4 +1,4 @@
-﻿function ConvertTo-Base64 {
+function ConvertTo-Base64 {
     <#
     .SYNOPSIS
         Function to convert an image to Base64

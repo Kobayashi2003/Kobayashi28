@@ -153,8 +153,14 @@ $global:modules_imported = @()
 
 $global:modules.GetEnumerator() |
     ForEach-Object { if ((-not $global:modules_check) -or (check-module -Name $_.Key -Version $_.Value)) {
-        try { Import-Module -Name $_.Key -RequiredVersion $_.Value.Replace('=','').Replace('>','').Replace('<','') ;
-            $global:modules_imported += $_.Key } catch {} }
+        try {
+            if ($_.Value -eq "latest") {
+                Import-Module -Name $_.Key
+            } else {
+                Import-Module -Name $_.Key -RequiredVersion $_.Value.Replace('=','').Replace('>','').Replace('<','') ;
+            }
+            $global:modules_imported += $_.Key } catch {}
+        }
     }
 
 $global:modules_imported | ForEach-Object {
