@@ -89,13 +89,12 @@ def downloadM3U8(url, folderPath):
     return tsUrls, ci 
 
 
-def downloadTS(downloadList, ci, folderPath, tsUrl):
+def downloadTS(pbar, downloadList, ci, folderPath, tsUrl):
     fileName = tsUrl.split('/')[-1][0:-3]
     saveName = os.path.join(folderPath, fileName + ".ts")
     if os.path.exists(saveName):
-        # skip downloaded ts
-        print(f'Targe {fileName} already exists, skip. Remaining {len(downloadList)}')
         downloadList.remove(tsUrl)
+        pbar.update(1)
     else:
         response = requests.get(tsUrl, headers={
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36',
@@ -107,9 +106,9 @@ def downloadTS(downloadList, ci, folderPath, tsUrl):
             with open(saveName, 'wb') as f:
                 f.write(content_ts)
             downloadList.remove(tsUrl)
-            print(f'Download {fileName} success. Remaining {len(downloadList)}')
+            pbar.update(1)
         else:
-            print(f'Download {fileName} failed. Remaining {len(downloadList)}')
+            ...
 
 
 def downloadTSList(tsUrls, ci, folderPath):
@@ -118,9 +117,11 @@ def downloadTSList(tsUrls, ci, folderPath):
 
     downloadList = copy.deepcopy(tsUrls)
 
+    pbar = tqdm.tqdm(total=len(downloadList))
+
     while downloadList:
-        with futures.ThreadPoolExecutor(max_workers=12) as executor:
-            executor.map(partial(downloadTS, downloadList, ci, folderPath), tsUrls)
+        with futures.ThreadPoolExecutor(max_workers=32) as executor:
+            executor.map(partial(downloadTS, pbar, downloadList, ci, folderPath), downloadList)
 
 
 def mergeTSFiles(tsUrls, tsFolderPath, savePath):
@@ -161,6 +162,23 @@ def downloadCover(url, folderPath):
     urllib.request.urlretrieve(soup.find('meta', property='og:image')['content'], cover_path)
 
 
+def ffmpegEncode(input_path, output_path):
+    command = [
+        'ffmpeg', '-i', input_path, 
+        '-c', 'copy', '-bsf:a', 
+        'aac_adtstoasc', '-movflags', 
+        '+faststart', output_path
+    ]
+
+    result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    if result.returncode != 0:
+        print(result.stderr)
+        return False
+
+    return True
+
+
 def isJableVideoUrl(url):
     if re.match(r'.*jable.tv/videos/.*/', url):
         return True
@@ -168,29 +186,8 @@ def isJableVideoUrl(url):
         return False
 
 
-def test():
-    # https://jable.tv/videos/mukc-032/
-    url = input('url: ')
-    if not isJableVideoUrl(url):
-        print('Invalid jable video path')
-        exit(1) 
-
-    folderPath = input('folderPath: ')
-    if not folderPath:
-        folderPath = os.getcwd()
-    if not os.path.exists(folderPath):
-        os.makedirs(folderPath)
-
-    m3u8FloderPath  = os.path.join(folderPath, 'm3u8')
-    tsFloderPath    = os.path.join(folderPath, 'ts')
-    videoFilePath   = os.path.join(folderPath, url.split('/')[-2])
-
-    tsUrls, ci = downloadM3U8(url, m3u8FloderPath)
-    downloadTSList(tsUrls, ci, tsFloderPath)
-    mergeTSFiles(tsUrls, tsFloderPath, videoFilePath)
-    
-
 if __name__ == '__main__':
+
     parser = argparse.ArgumentParser()
     parser.add_argument('url', type=str, nargs='+', default=None, help='the url of the jable video you want to download')
     parser.add_argument('-p', '--folderPath', type=str, default=None, help='the path of the folder to save the downloaded files')
@@ -199,21 +196,30 @@ if __name__ == '__main__':
 
     for url in args.url:
         if not isJableVideoUrl(url):
-            print('Invalid jable video path')
-            exit(1) 
+            print(f'Invalid jable video path: {url}')
+            continue
 
         if not args.folderPath:
             args.folderPath = os.getcwd()
         if not os.path.exists(args.folderPath):
             os.makedirs(args.folderPath)
 
-        # coverFolderPath = os.path.join(args.folderPath, 'cover')
-        coverFolderPath = args.folderPath
-        m3u8FloderPath  = os.path.join(args.folderPath, 'm3u8')
-        tsFloderPath    = os.path.join(args.folderPath, 'ts')
-        videoFilePath   = os.path.join(args.folderPath, url.split('/')[-2] + '.mp4')
+        folderPath = os.path.join(args.folderPath, url.split('/')[-2])
+
+        # coverFolderPath = os.path.join(folderPath, 'cover')
+        coverFolderPath = folderPath
+        m3u8FloderPath  = os.path.join(folderPath, 'm3u8')
+        tsFloderPath    = os.path.join(folderPath, 'ts')
+        videoFilePath   = os.path.join(folderPath, url.split('/')[-2] + '.mp4')
+        encodeFilePath  = os.path.join(folderPath, 'f_' + url.split('/')[-2] + '.mp4')
 
         downloadCover(url, coverFolderPath)
         tsUrls, ci = downloadM3U8(url, m3u8FloderPath)
         downloadTSList(tsUrls, ci, tsFloderPath)
         mergeTSFiles(tsUrls, tsFloderPath, videoFilePath)
+        if ffmpegEncode(videoFilePath, encodeFilePath):
+            print('Encode success')
+            os.remove(videoFilePath)
+            os.rename(encodeFilePath, videoFilePath)
+        else:
+            print('Encode failed')
