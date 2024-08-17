@@ -35,9 +35,9 @@
         try {
             Write-Host "Module $name not found. Installing..." -ForegroundColor Yellow
             if ($version -eq "latest") {
-                sudo Install-Module -Name $name
+                sudo Install-Module -Name $name -Force
             } else {
-                sudo Install-Module -Name $name -RequiredVersion $version
+                sudo Install-Module -Name $name -RequiredVersion $version -Force
             }
             if (!(Get-Module -ListAvailable -Name $name)) {
                 throw "Failed to install $name module"
@@ -92,7 +92,7 @@
 
     Write-Host "Module $name version $_version not found, installing..." -ForegroundColor Yellow
     try {
-        sudo Install-Module -Name $name -RequiredVersion $_version
+        sudo Install-Module -Name $name -RequiredVersion $_version -Force
     } catch {
         Write-Host "Failed to install $name module: $_" -ForegroundColor Red
         return $null
@@ -157,7 +157,7 @@ $global:modules.GetEnumerator() |
             if ($_.Value -eq "latest") {
                 Import-Module -Name $_.Key
             } else {
-                Import-Module -Name $_.Key -RequiredVersion $_.Value.Replace('=','').Replace('>','').Replace('<','') ;
+                Import-Module -Name $_.Key -RequiredVersion $_.Value.Replace('=','').Replace('>','').Replace('<','')
             }
             $global:modules_imported += $_.Key } catch {}
         }
