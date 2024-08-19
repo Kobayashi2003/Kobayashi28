@@ -4,10 +4,16 @@
 
 .PARAMETER path
     Path of the files
-.PARAMETER format
-    Format of the files
+.PARAMETER year
+    Group by year
+.PARAMETER month
+    Group by month
+.PARAMETER day
+    Group by day
 .PARAMETER depth
     Depth to search
+.PARAMETER file_only
+    Only group files
 
 .EXAMPLE
     group-by-time -path "./" -format HHmmss -depth 0
@@ -27,15 +33,17 @@ param (
     [Alias("d")]
     [switch]$day,
     [Parameter(Mandatory = $false)]
-    [int]$depth = 0
+    [int]$depth = 0,
+    [Parameter(Mandatory = $false)]
+    [switch]$file_only
 )
 
-$files = Get-ChildItem -Path $path -Recurse -Depth $depth
+$items = Get-ChildItem -Path $path -Recurse -Depth $depth
 $format = "" + $(if ($year) { "yyyy" }) + $(if ($month) { "MM" }) + $(if ($day) { "dd" }) +
         $(if (-not ($year -or $month -or $day)) { "yyyyMMdd" })
 
-foreach ($file in $files) {
-    $lastWriteTime = $file.LastWriteTime.ToString($format)
+foreach ($item in $items) {
+    $lastWriteTime = $item.LastWriteTime.ToString($format)
 
     if (-not (Test-Path -Path $lastWriteTime)) {
         try {
@@ -48,13 +56,14 @@ foreach ($file in $files) {
 
     $lastWriteTime = (Get-Item -Path $lastWriteTime)
 
-    if (($file.FullName -ne $lastWriteTime.FullName) -and
-        ($file.FullName -ne (Join-Path -Path $lastWriteTime.FullName -ChildPath $file.Name))) {
+    if (($item.FullName -ne $lastWriteTime.FullName) -and
+        ($item.FullName -ne (Join-Path -Path $lastWriteTime.FullName -ChildPath $item.Name)) -and
+        (-not ($file_only -and $item.PSIsContainer))) {
         try {
-            Move-Item -Path $file.FullName -Destination $lastWriteTime.FullName
-            Write-Host "Moved file: $($file.FullName)" -ForegroundColor Green
+            Move-Item -Path $item.FullName -Destination $lastWriteTime.FullName
+            Write-Host "Moved: $($item.FullName)" -ForegroundColor Green
         } catch {
-            Write-Host "Failed to move file: $($file.FullName)" -ForegroundColor Red
+            Write-Host "Failed to move: $($item.FullName)" -ForegroundColor Red
             exit 1
         }
     }

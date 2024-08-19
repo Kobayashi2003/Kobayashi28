@@ -25,7 +25,6 @@ try {
         $items = Get-ChildItem -Path $path
         foreach ($item in $items) {
             if ($item -is [System.IO.DirectoryInfo]) {
-                # Write-Host "Directory: $($item.FullName)" -ForegroundColor Green
                 $null = $dirsList.Add($item)
             }
         }
@@ -34,6 +33,7 @@ try {
             Write-Host "Directory: $($dir.FullName)" -ForegroundColor Green
             $dirPath = $dir.FullName
             $dirItems = Get-ChildItem -Path $dirPath
+            $dirItems | Foreach-Object {Write-Host "File: $($_.FullName)" -ForegroundColor Yellow}
             $dirItems | forEach-Object { Move-Item -Path $_.FullName -Destination $path }
         }
     }
