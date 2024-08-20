@@ -41,6 +41,18 @@ $abs_path = Resolve-Path -Path $path
 
 Set-Location $jmcomic_dowloader
 
+# save all $id in .jmhistory file
+foreach ($i in $id) {
+    if (-not (Test-Path -Path ".\.jmhistory")) {
+        New-Item -Path ".\.jmhistory" -ItemType File | Out-Null
+    }
+    if (-not (Select-String -Path ".\.jmhistory" -Pattern $i)) {
+        Add-Content -Path ".\.jmhistory" -Value $i
+    } else {
+        Write-Host "You have already downloaded $i" -ForegroundColor Red
+    }
+}
+
 & pixi run python ./jmcomic-downloader.py $id -d $abs_path
 
 Set-Location $cur_dir

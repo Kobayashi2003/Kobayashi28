@@ -58,7 +58,7 @@ function global:loop-images {
         if ($lst -ne $idx) {
             $lst = $idx
             $image = $images[$idx]
-            & chafa $image --clear
+            & chafa $image --clear --align 'center,center' --optimize 0
         }
 
         if ($Host.UI.RawUI.KeyAvailable) {
