@@ -664,8 +664,11 @@ Set-PSReadLineOption -CommandValidationHandler {
 
     $cmdMap = @{
         'git' = @{
-            'cmt' = 'commit'
+            'cmt'   = 'commit'
             'mpush' = "@whole:git add . ; git commit -m $(Get-Date -Format 'yyMMdd') ; git push"
+            # 'mlog'  = '@whole:git log --graph --pretty=format:"%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset" --abbrev-commit'
+            'mlog'  = '@whole:git log --no-merges --color --stat --graph --date=format:"%Y-%m-%d %H:%M:%S" --pretty=format:"%Cred%h%Creset -%C(yellow)%d%Cblue %s %Cgreen(%cd) %C(bold blue)<%an>%Creset" --abbrev-commit'
+            'mclone' = '@whole:git clone --depth 1 --filter=blob:none --no-checkout'
         }
         'conda' = @{
             'a' = 'activate'
