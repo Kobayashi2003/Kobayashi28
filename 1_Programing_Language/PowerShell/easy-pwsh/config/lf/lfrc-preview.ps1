@@ -1,34 +1,36 @@
 ﻿$IMAGE_TYPES = @(
-    'bmp','gif','ico','jpg','jpeg','png',
-    'tif','tiff','webp','svg'
-)
-
-$TEXT_TYPES = @(
-    'md','markdown','mdown','mkd','txt','bat',
-    'c','cc','h','hh','java','py',
-    'rb','sh','vim','yaml','yml','xml',
-    'json','csv','tsv','log','out','err',
-    'html','htm','css','js','php','pl',
-    'ps0','psm1','psd1','ps1xml','psm1xml','psd1xml',
-    'ps1xml'
+    'xbm',  'tif',  'pjp',  'svgz',
+    'jpg',  'jpeg', 'ico',  'tiff',
+    'gif',  'svg',  'jfif', 'webp',
+    'png',  'bmp',  'pjpeg', 'avif'
 )
 
 $VIDEO_TYPES = @(
-    'avi','flv','mkv','mov','mp4','mpeg',
-    'mpg','rm','swf','vob','wmv'
+    'webm', 'mkv',  'flv',  'vob',
+    'ogv',  'ogg',  'drc',  'gifv',
+    'mng',  'avi',  'mov',  'qt',
+    'wmv',  'yuv',  'rm',   'asf',
+    'amv',  'mp4',  'm4p',  'm4v',
+    'mpg',  'mp2',  'mpeg', 'm2v',
+    '3gp',  'mxf',  'roq',  'nsv',
+    'f4v',  'f4p',  'f4a',  'f4b'
 )
 
 $AUDIO_TYPES = @(
-    'aac','flac','m4a','mp3','ogg','opus',
-    'wav','webm'
+    'mp3',  'ogg',  'oga',  'm4a',
+    'wav',  'wma',  'aiff', 'ape',
+    'flac', 'amr',  'aac',  'aax',
+    'wv',   'caf'
 )
 
 $ARCHIVE_TYPES = @(
-    '7z','bz2','gz','rar','tar','zip'
-)
-
-$BINARY_TYPES = @(
-    'exe'
+    'zip',  'rar',  '7z',   'z',
+    'tar',  'gz',   'bz2',  'xz',
+    'iso',  'rpm',  'deb',  'pkg',
+    'jar',  'war',  'ear',  'par',
+    'xz',   'lzma', 'lz4',  'zst',
+    'tbz2', 'tgz',  'txz',  'tzo',
+    'rpm',  'rpm'
 )
 
 
@@ -53,6 +55,7 @@ function Get-MimeType {
     $mimeType = $mimeType.Substring(1)
     return $mimeType
 }
+
 
 function Show-FileInfo {
 <#
@@ -95,8 +98,8 @@ function Show-FileInfo {
     } catch {
         Write-Host "${esc}[31mError: $($_.Exception.Message)${esc}[0m"
     }
-
 }
+
 
 function Show-ImageType {
 <#
@@ -114,17 +117,18 @@ function Show-ImageType {
         [int] $preview_height
     )
 
+    $esc = [char]27
+
     try {
         Add-Type -AssemblyName System.Drawing
         $image = [System.Drawing.Image]::FromFile($file_path)
         $image_width  = $image.Width
         $image_height = $image.Height
 
-        Write-Output "Image: $file_path"
+        Write-Output "Image: $($file_path.Split('\')[-1])"
         chafa -s $preview_width"x"$preview_height $file_path --optimize 9 --fill all
         Write-Output "mSize: ${image_width}x${image_height}"
     } catch {
-        $esc = [char]27
         Write-Host "${esc}[31mError: $($_.Exception.Message)${esc}[0m"
         Write-Host ""
         Show-FileInfo $file_path
@@ -153,11 +157,7 @@ function Show-TextType {
 
     try {
         Write-Output "Text: $file_path"
-        if (-not (Get-Command 'bat' -ErrorAction SilentlyContinue)) {
-            & bat $file_path
-        } else {
-            Get-Content $file_path
-        }
+        Get-Content $file_path
     } catch {
         Write-Host "${esc}[31mError: $($_.Exception.Message)${esc}[0m"
         Write-Host ""
@@ -186,7 +186,20 @@ function Show-VideoType {
     $esc = [char]27
 
     try {
-        throw "Video Format Not Implemented"
+        $video_name = $file_path.Split('\')[-1]
+        $video_info = (& "ffprobe.exe" "-v" "error" "-select_streams" "v:0" "-show_entries" "stream=duration,r_frame_rate,width,height,bit_rate" "-of" "default=noprint_wrappers=1" "$file_path")
+
+        Write-Host "Video: $video_name"
+        Write-Host "Duration: $($video_info[0].Split('=')[1])"
+        Write-Host "FrameRate: $($video_info[1].Split('=')[1])"
+        Write-Host "Width: $($video_info[2].Split('=')[1])"
+        Write-Host "Height: $($video_info[3].Split('=')[1])"
+        Write-Host "BitRate: $($video_info[4].Split('=')[1])"
+        $preview_height = $preview_height - 6
+
+        & show-video-cover $file_path $preview_width"x"$preview_height
+
+        Show-FileInfo $file_path
     } catch {
         Write-Host "${esc}[31mError: $($_.Exception.Message)${esc}[0m"
         Write-Host ""
@@ -195,7 +208,7 @@ function Show-VideoType {
 }
 
 
-function Show-AudioType {
+function Show-AudioType { # TODO
 <#
     .SYNOPSIS
         Show audio files
@@ -287,7 +300,6 @@ function Show-BinaryType {
             throw "Binary Format Not Implemented"
         }
     } catch {
-        # Write-Host "Error: $($_.Exception.Message)"
         Write-Host "${esc}[31mError: $($_.Exception.Message)${esc}[0m"
         Write-Host ""
         Show-FileInfo $file_path
@@ -309,11 +321,6 @@ try {
         return
     }
 
-    if ($TEXT_TYPES -contains $file_type) {
-        Show-TextType $file_path $previewer_width $previewer_height
-        return
-    }
-
     if ($VIDEO_TYPES -contains $file_type) {
         Show-VideoType $file_path $previewer_width $previewer_height
         return
@@ -326,6 +333,11 @@ try {
 
     if ($ARCHIVE_TYPES -contains $file_type) {
         Show-ArchiveType $file_path $previewer_width $previewer_height
+        return
+    }
+
+    if (Test-Path $file_path -PathType Leaf) {
+        Show-TextType $file_path $previewer_width $previewer_height
         return
     }
 

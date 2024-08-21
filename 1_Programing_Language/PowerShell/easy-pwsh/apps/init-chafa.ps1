@@ -21,21 +21,21 @@ function global:loop-images {
     Sort images
 #>
     param (
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
         [string[]] $path,
 
-        [Parameter()]
+        [Parameter(Position = 1)]
         [float] $interval = 0,
 
-        # [Parameter(ParameterSetName = 'random')]
+        [Parameter(ParameterSetName = 'random')]
         [switch] $random,
 
-        # [Parameter(ParameterSetName = 'sort')]
+        [Parameter(ParameterSetName = 'sort')]
         [ValidateSet('Name', 'LastWriteTime', 'Size')]
         [string] $sortby
     )
 
-    $images = Get-ChildItem -Path $path -File
+    $images = (Get-ChildItem -Path $path -File | Select-Object -ExpandProperty FullName)
 
     if ($images.Count -eq 0) {
         Write-Host 'Invalid path' -NoNewline -ForegroundColor DarkRed
@@ -54,12 +54,6 @@ function global:loop-images {
     $lst = -1
     $stop = $false
     while ($true) {
-
-        if ($lst -ne $idx) {
-            $lst = $idx
-            $image = $images[$idx]
-            & chafa $image --clear --align 'center,center' --optimize 0
-        }
 
         if ($Host.UI.RawUI.KeyAvailable) {
             $key = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyUp')
@@ -83,6 +77,12 @@ function global:loop-images {
             }
         }
 
+        if ($lst -ne $idx) {
+            $lst = $idx
+            $image = $images[$idx]
+            & chafa $image --clear --align 'center,center' --optimize 0
+        }
+
         if ($interval -gt 0 -and -not $stop) {
             Start-Sleep -Seconds $interval
             $idx = ($idx + 1) % $images.Count
@@ -90,4 +90,18 @@ function global:loop-images {
 
         }
     }
+}
+
+
+function global:show-image {
+<#
+.PARAMETER path
+    Path to image
+#>
+    param (
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
+        [string[]] $path
+    )
+
+    & chafa $path --clear --align 'center,center' --optimize 0
 }
