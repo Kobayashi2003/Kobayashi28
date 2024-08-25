@@ -15,6 +15,8 @@ function global:loop-images {
     Path to image
 .PARAMETER interval
     Interval between images
+.PARAMETER fitWidth
+    Fit image to console width
 .PARAMETER random
     Randomize image
 .PARAMETER sortby
@@ -26,6 +28,8 @@ function global:loop-images {
 
         [Parameter(Position = 1)]
         [float] $interval = 0,
+
+        [switch] $fitWidth,
 
         [Parameter(ParameterSetName = 'random')]
         [switch] $random,
@@ -55,6 +59,16 @@ function global:loop-images {
     $stop = $false
     while ($true) {
 
+        if ($lst -ne $idx) {
+            $lst = $idx
+            $image = $images[$idx]
+            if ($fitWidth) {
+                & chafa $image --clear --align 'center,center' --optimize=0 --exact-size=auto --fit-width
+            } else {
+                & chafa $image --clear --align 'center,center' --optimize=0 --exact-size=auto
+            }
+        }
+
         if ($Host.UI.RawUI.KeyAvailable) {
             $key = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyUp')
             if ($key.VirtualKeyCode -eq 27) { # ESC
@@ -77,15 +91,11 @@ function global:loop-images {
             }
         }
 
-        if ($lst -ne $idx) {
-            $lst = $idx
-            $image = $images[$idx]
-            & chafa $image --clear --align 'center,center' --optimize 0
-        }
-
         if ($interval -gt 0 -and -not $stop) {
             Start-Sleep -Seconds $interval
-            $idx = ($idx + 1) % $images.Count
+            if (-not $Host.UI.RawUI.KeyAvailable) {
+                $idx = ($idx + 1) % $images.Count
+            }
         } else {
 
         }
