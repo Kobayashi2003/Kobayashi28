@@ -111,7 +111,7 @@ if (!(Get-Command "scoop" -ErrorAction SilentlyContinue)) {
 }
 
 ($scoop_apps_installed = @(& scoop list).Name) *>$null
-foreach ($app in $global:scoop_apps) {
+foreach ($app in ($global:scoop_apps + $global:scoop_extras)) {
     if (-not ($scoop_apps_installed -contains $app)) {
         try {
             Write-Host "Installing $app." -ForegroundColor Yellow

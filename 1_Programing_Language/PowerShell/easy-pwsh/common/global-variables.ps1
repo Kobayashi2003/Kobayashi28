@@ -13,14 +13,24 @@ $global:VIDEOS      = Join-Path $env:USERPROFILE -ChildPath "Videos"
 $global:APPDATA     = Join-Path $env:USERPROFILE -ChildPath "AppData"
 
 $global:apps = @{
-    'steam' = 'D:\Steam\Steam.exe'
-    'pikpak' = 'D:\Temp\PikPak\PikPak.exe'
+    'steam'     = 'D:\Steam\Steam.exe'
+    'pikpak'    = 'D:\Temp\PikPak\PikPak.exe'
 }
 
 $global:scoop_apps = @(
-    'git', 'vim', 'gsudo',
-    'bat', 'fzf', 'zoxide',
-    'lf','chafa', 'posh-git')
+    'git',      'vim',      'gsudo',
+    'bat',      'fzf',      'zoxide',
+    'lf',       'chafa',    'mpv',
+    'ripgrep',  'posh-git'
+)
+
+$global:scoop_extras = @(
+    'scrcpy',       'ffmpeg',
+    'altsnap',      'wireshark',
+    'quicklook',    'everything',
+    'sunshine',     'moonlight',
+    'bandizip',     'networkmanager'
+)
 
 $global:modules = @{
     "Get-ChildItemColor" = "latest"
