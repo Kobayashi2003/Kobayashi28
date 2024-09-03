@@ -1,0 +1,11 @@
+prefix=D:/Program/Code/1_Programing_Language/PowerShell/easy-pwsh/utils/jable-downloader/.pixi/envs/default/Library 
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: OpenSSL-libcrypto
+Description: OpenSSL cryptography library
+Libs: -L"${libdir}" -llibcrypto
+Libs.private: -lcrypt32 -lws2_32
+Cflags: -I"${includedir}"
+Version: 3.3.1 

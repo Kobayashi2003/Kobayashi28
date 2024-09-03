@@ -1,0 +1,30 @@
+{
+  "build": "h8a93ad2_20",
+  "build_number": 20,
+  "depends": [
+    "vc14_runtime >=14.40.33810"
+  ],
+  "license": "BSD-3-Clause",
+  "license_family": "BSD",
+  "md5": "8558f367e1d7700554f7cdb823c46faf",
+  "name": "vc",
+  "sha256": "23ac5feb15a9adf3ab2b8c4dcd63650f8b7ae860c5ceb073e49cf71d203eddef",
+  "size": 17391,
+  "subdir": "win-64",
+  "timestamp": 1717709040616,
+  "track_features": "vc14",
+  "version": "14.3",
+  "fn": "vc-14.3-h8a93ad2_20.conda",
+  "url": "https://conda.anaconda.org/conda-forge/win-64/vc-14.3-h8a93ad2_20.conda",
+  "channel": "https://conda.anaconda.org/conda-forge",
+  "extracted_package_dir": "C:\\Users\\KOBAYASHI\\AppData\\Local\\rattler/cache\\pkgs\\vc-14.3-h8a93ad2_20",
+  "files": [],
+  "paths_data": {
+    "paths_version": 1,
+    "paths": []
+  },
+  "link": {
+    "source": "C:\\Users\\KOBAYASHI\\AppData\\Local\\rattler/cache\\pkgs\\vc-14.3-h8a93ad2_20",
+    "type": 1
+  }
+}
