@@ -8,4 +8,6 @@ Get-ChildItem (Join-Path -Path $global:current_script_directory -ChildPath "star
 . (Join-Path -Path $global:current_script_directory -ChildPath "apps\init-apps.ps1")
 
 $env:PATH = (Join-Path -Path $global:current_script_directory -ChildPath "utils") + [IO.Path]::PathSeparator + $env:PATH
+# [Environment]::SetEnvironmentVariable("PATH", (Join-Path -Path $global:current_script_directory -ChildPath "utils") + [IO.Path]::PathSeparator + $env:PATH, "User")
+
 . (Join-Path -Path $global:current_script_directory -ChildPath "functions\init-functions.ps1")

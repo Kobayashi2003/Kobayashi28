@@ -1,11 +1,11 @@
 ﻿<#
 .SYNOPSIS
-    paste the files from the clipboard to the given path
+    paste the items from the clipboard to the given path
 
 .PARAMETER path
-    The path to paste the files
+    The path to paste the items
 .PARAMETER action
-    The action to take on the files (move, copy, link)
+    The action to take on the items (move, copy, link)
 
 .EXAMPLE
     paste c:\temp
@@ -26,24 +26,36 @@ param (
         $commandAst,
         $fakeBoundParameters )
     @('move', 'copy', 'link') | Where-Object { $_ -like "$wordToComplete*" }})]
-    [String] $action = 'move'
+    [String] $action = 'copy'
 )
 
 try {
-    $files = Get-Clipboard -Format FileDrop
+    $items = Get-Clipboard -Format FileDrop
 
-    if ($files.Count -eq 0) {
-        throw 'No files found in clipboard' }
+    if ($items.Count -eq 0) {
+        throw 'No items found in clipboard' }
     if (-not (Test-Path $path)) {
         throw 'Path does not exist' }
 
-    foreach ($file in $files) {
+    foreach ($item in $items) {
         if ($action -eq 'move') {
-            Move-Item -Path $file -Destination $path
+            Move-Item -Path $item -Destination $path
         } elseif ($action -eq 'copy') {
-            Copy-Item -Path $file -Destination $path
+            Copy-Item -Path $item -Destination $path
         } elseif ($action -eq 'link') {
-            New-Item -ItemType SymbolicLink -Path $path -Name $file.BaseName -Value $file
+            if (Test-Path $item -PathType Leaf) {
+                $filename = $item.BaseName
+                if (-not $filename) {
+                    throw 'Cannot create link for file without a name'
+                }
+                sudo New-Item -ItemType SymbolicLink -Path "$path "-Name "$filename" -Target "$item"
+            } else {
+                $dirname = Split-Path $item -Leaf
+                if (-not $dirname) {
+                    throw 'Cannot create link for directory without a name'
+                }
+                sudo New-Item -ItemType SymbolicLink -Path "$path" -Name "$dirname" -Target "$item"
+            }
         }
     }
 
