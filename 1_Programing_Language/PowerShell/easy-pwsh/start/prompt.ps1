@@ -62,20 +62,6 @@ function global:prompt {
     }
     $promptString += "$esc[1;33m$path$esc[0m "
 
-<#
-    if ($env:CLIPACTION) {
-        __Reload-CLIPACTION
-        # copy <C> cut <X> line <L>
-        if ($env:CLIPACTION -eq "copy") {
-            $promptString += "$esc[1;34m<C>$esc[0m "
-        } elseif ($env:CLIPACTION -eq "cut") {
-            $promptString += "$esc[1;35m<X>$esc[0m "
-        } elseif ($env:CLIPACTION -eq "link") {
-            $promptString += "$esc[1;36m<L>$esc[0m "
-        }
-    }
-#>
-
     if ($NestedPromptLevel -ge 1) {
         $colors_code = @{
             0 = "$esc[1;31m"

@@ -36,7 +36,7 @@ $global:modules = @{
     "Get-ChildItemColor" = "latest"
     "PSReadLine"         = "==2.3.4"
     "PSFzf"              = "==2.0.0"
-    "Terminal-Icons"     = "latest"
+    # "Terminal-Icons"     = "latest"
     "WriteAscii"         = "latest"
     # "gsudoModule"        = "latest"
     "posh-git"           = "latest"
