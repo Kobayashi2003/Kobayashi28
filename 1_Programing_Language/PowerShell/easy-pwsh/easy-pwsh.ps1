@@ -53,7 +53,7 @@ if ($Init) {
     $current_script_dir = Split-Path $MyInvocation.MyCommand.Definition
 
     if (-not (Test-Path -Path $profile)) {
-        New-Item -Path $profile -ItemType File }
+        New-Item -Path $profile -ItemType File -Force }
 
     $startup_content = ". $(Join-Path -Path $current_script_dir -ChildPath 'core\init.ps1')"
 

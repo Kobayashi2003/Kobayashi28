@@ -65,6 +65,8 @@ if (!(Get-Command "scoop" -ErrorAction SilentlyContinue)) {
         return
     }
 
+    # TODO: if install success, i should add the scoop path to the system environment variables
+
     Write-Host "Before initializing Scoop, you can set the proxy." -ForegroundColor Yellow
     Write-Host "If you don't want to set the proxy, just press Enter." -ForegroundColor Yellow
     $scoop_proxy = Read-Host -Prompt "Enter proxy address (e.g. noproxy)"
@@ -76,7 +78,7 @@ if (!(Get-Command "scoop" -ErrorAction SilentlyContinue)) {
         & scoop install git
     }
 
-    if (-not (Get-Command 'git' -ErrorAction SilentlyContinue)) {
+    if (Get-Command 'git' -ErrorAction SilentlyContinue) {
         $scoop_supported_buckets = @(& scoop bucket known)
         Write-Host "Available buckets:"
         for ($i = 0; $i -lt $scoop_supported_buckets.Length; $i++) {
