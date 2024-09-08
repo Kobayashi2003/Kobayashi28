@@ -1,0 +1,25 @@
+[project]
+authors = ["KOBAYASHI <example@gmail.com>"]
+channels = ["conda-forge"]
+description = "Add a short description here"
+name = "jable-downloader"
+platforms = ["win-64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+python = "==3.11"
+requests = ">=2.32.3,<3"
+beautifulsoup4 = ">=4.12.3,<5"
+pycryptodome = ">=3.20.0,<4"
+selenium = ">=4.24.0,<5"
+soupsieve = ">=2.5,<3"
+urllib3 = ">=2.2.2,<3"
+certifi = ">=2024.8.30,<2025"
+charset-normalizer = ">=3.3.2,<4"
+idna = ">=3.8,<4"
+tqdm = ">=4.66.5,<5"
+
+[pypi-dependencies]
+m3u8 = { git = "https://github.com/globocom/m3u8.git" }

@@ -31,7 +31,7 @@ function global:sudo {
     $arguments = $args[1..$args.length]
 
     $tempFile = New-TemporaryFile
-    $powershell_path = (Get-Command powershell).Source
+    $powershell_path = (Get-Process -Id $PID | Select-Object -ExpandProperty Path)
 
     $psi = New-Object System.Diagnostics.ProcessStartInfo
     $psi.FileName = $powershell_path

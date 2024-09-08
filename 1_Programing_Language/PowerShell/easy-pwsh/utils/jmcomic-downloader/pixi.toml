@@ -1,0 +1,22 @@
+[project]
+authors = ["KOBAYASHI <example@gmail.com>"]
+channels = ["conda-forge"]
+description = "Add a short description here"
+name = "jmcomic-downloader"
+platforms = ["win-64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+python = "==3.11"
+pyyaml = ">=6.0.2,<7"
+pillow = ">=10.4.0,<11"
+psutil = ">=6.0.0,<7"
+pycryptodome = ">=3.20.0,<4"
+requests = ">=2.32.3,<3"
+
+[pypi-dependencies]
+commonx = { path = '.\dependence\commonX-0.6.33-py3-none-any.whl' }
+curl-cffi = { path = '.\dependence\curl_cffi-0.7.1-cp38-abi3-win_amd64.whl' }
+plugin-jm-server = { git = "https://github.com/hect0x7/plugin-jm-server.git" }
