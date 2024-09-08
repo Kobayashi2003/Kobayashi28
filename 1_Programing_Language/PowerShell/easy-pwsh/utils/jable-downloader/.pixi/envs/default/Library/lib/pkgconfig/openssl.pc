@@ -1,9 +1,0 @@
-prefix=D:/Program/Code/1_Programing_Language/PowerShell/easy-pwsh/utils/jable-downloader/.pixi/envs/default/Library 
-exec_prefix=${prefix}
-libdir=${exec_prefix}/lib
-includedir=${prefix}/include
-
-Name: OpenSSL
-Description: Secure Sockets Layer and cryptography libraries and tools
-Requires: libssl libcrypto
-Version: 3.3.1 
