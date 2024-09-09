@@ -12,10 +12,6 @@ if (!(Get-Command "scoop" -ErrorAction SilentlyContinue)) {
     $confirm = Read-Host -Prompt "Do you want to install Scoop? (y/N)"
     if ($confirm -ne "y" -and $confirm -ne "Y") { return }
 
-    if (([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
-        Write-Error "This scirpt can not be run as an administrator."
-        return
-    }
 
     $env:SCOOP = Read-Host -Prompt "Enter the directory where you want to install Scoop (e.g. $env:USERPROFILE\scoop)"
     $env:SCOOP_GLOBAL = Read-Host -Prompt "Enter the directory where you want to install Scoop apps (e.g. $env:USERPROFILE\scoop\apps)"
@@ -28,6 +24,11 @@ if (!(Get-Command "scoop" -ErrorAction SilentlyContinue)) {
 
     if (-not (Test-Path $env:SCOOP)) { New-Item -Path $env:SCOOP -ItemType Directory | Out-Null }
     if (-not (Test-Path $env:SCOOP_GLOBAL)) { New-Item -Path $env:SCOOP_GLOBAL -ItemType Directory | Out-Null }
+
+    if (([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
+        Write-Error "This scirpt can not be run as an administrator."
+        return
+    }
 
     if (-not (Test-Path "$PSScriptRoot\install-scoop.ps1")) {
         Write-Host "Downloading install-scoop.ps1..." -ForegroundColor Yellow

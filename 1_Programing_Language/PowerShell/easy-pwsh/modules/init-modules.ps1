@@ -31,74 +31,98 @@
         [string] $version = "latest"
     )
 
-    if (!(Get-Module -ListAvailable -Name $name)) {
-        try {
-            Write-Host "Module $name not found. Installing..." -ForegroundColor Yellow
-            if ($version -eq "latest") {
-                sudo Install-Module -Name $name -Force
-            } else {
-                sudo Install-Module -Name $name -RequiredVersion $version -Force
-            }
-            if (!(Get-Module -ListAvailable -Name $name)) {
-                throw "Failed to install $name module"
-            }
-        } catch {
-            Write-Host "Failed to install $name module: $_" -ForegroundColor Red
-            return  $null
-        }
-    }
-
     $installed_versions = @(
         Get-Module -ListAvailable |
         Where-Object { $_.Name -eq $name } |
         Sort-Object -Property Version -Descending |
         foreach { $_.Version.ToString() })
 
-
     if ($version -eq "latest") {
-        return $installed_versions[0]
-    }
-
-    $_version = $version
-
-    if ($_version.contains('=')) {
-        $_version = $_version.Replace('=', '')
-        if ($installed_versions -contains $_version) {
-            return $_version
+        if ($installed_versions.Length -gt 0) {
+            return $installed_versions[0]
         }
+        try {
+            Write-Host "Module $name not found. Installing..." -ForegroundColor Yellow
+            $new_version = (Find-Module -Name $name).Version
+            if ($new_version -eq $null) {
+                throw "Unable to find latest version of $name module"
+            }
+            sudo Install-Module -Name $name -RequiredVersion $new_version -Force
+        } catch {
+            Write-Host "Failed to install $name module: $_" -ForegroundColor Red
+            return  $null
+        }
+        return $new_version
     }
 
-    if ($_version.contains(">")) {
-        $_version = $_version.Replace('>', '')
+    $version_raw = $version.replace('=', '').replace('>', '').replace('<', '')
+
+    if (-not ($version_raw -match '^[0-9]+\.[0-9]+\.[0-9]+$')) {
+        throw "Invalid version format:$version_raw"
+    }
+
+    if ($version.contains('>')) {
         foreach ($v in $installed_versions) {
-            if ($v -gt $_version) {
+            if ($v -gt $version_raw) {
+                return $v
+            } elseif (($v -eq $version_raw) -and ($version.contains('='))) {
                 return $v
             }
         }
+        try {
+            Write-Warning "Unable to find a version satisfying $version. Installing..."
+            $new_version = (Find-Module -Name $name -MinimumVersion $version_raw).Version
+            if ($new_version -eq $null) {
+                throw "Unable to find latest version of $name module"
+            }
+            sudo Install-Module -Name $name -RequiredVersion $new_version -Force
+        } catch {
+            Write-Host "Failed to install $name module: $_" -ForegroundColor Red
+            return  $null
+        }
+        return $new_version
     }
 
-    if ($_version.contains("<")) {
-        $_version = $_version.Replace('<', '')
+    if ($_version.contains('<')) {
         foreach ($v in $installed_versions) {
-            if ($v -lt $_version) {
+            if ($v -lt $version_raw) {
+                return $v
+            } elseif (($v -eq $version_raw) -and ($version.contains('='))) {
                 return $v
             }
         }
+        try {
+            Write-Warning "Unable to find a version satisfying $version. Installing..."
+            $new_version = (Find-Module -Name $name -MaximumVersion $version_raw).Version
+            if ($new_version -eq $null) {
+                throw "Unable to find latest version of $name module"
+            }
+            sudo Install-Module -Name $name -RequiredVersion $new_version -Force
+        } catch {
+            Write-Host "Failed to install $name module: $_" -ForegroundColor Red
+            return  $null
+        }
+        return $new_version
     }
 
-    if (-not ($_version -match '^[0-9]+\.[0-9]+\.[0-9]+$')) {
-        throw "Invalid version format:$_version"
+    if ($_version.contains('==')) {
+        if ($installed_versions -contains $version_raw) {
+            return $version_raw
+        }
+        try {
+            Write-Warning "Unable to find a version satisfying $version. Installing..."
+            $new_version = (Find-Module -Name $name -RequiredVersion $version_raw).Version
+            if ($new_version -eq $null) {
+                throw "Unable to find latest version of $name module"
+            }
+            sudo Install-Module -Name $name -RequiredVersion $new_version -Force
+        } catch {
+            Write-Host "Failed to install $name module: $_" -ForegroundColor Red
+            return  $null
+        }
     }
 
-    Write-Host "Module $name version $_version not found, installing..." -ForegroundColor Yellow
-    try {
-        sudo Install-Module -Name $name -RequiredVersion $_version -Force
-    } catch {
-        Write-Host "Failed to install $name module: $_" -ForegroundColor Red
-        return $null
-    }
-
-    return $_version
+    throw "Unexpected Exception"
 }
 
 
