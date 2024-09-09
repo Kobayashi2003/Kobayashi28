@@ -31,7 +31,11 @@ if (!(Get-Command "scoop" -ErrorAction SilentlyContinue)) {
         Write-Host "Downloading install-scoop.ps1..." -ForegroundColor Yellow
         $install_proxy = Read-Host -Prompt "Set the proxy (Press Enter if you don't want to set the proxy)"
         try {
-            & irm get.scoop.sh -outfile install-scoop.ps1 $(if ($install_proxy) { "-proxy $install_proxy" }) $(if ($admin_flg) { "-RunAsAdmin" })
+            if ($install_proxy) {
+                & irm get.scoop.sh -outfile $PSScriptRoot\install-scoop.ps1 -Proxy $install_proxy
+            } else {
+                & irm get.scoop.sh -outfile $PSScriptRoot\install-scoop.ps1
+            }
             Write-Host "Downloaded install-scoop.ps1." -ForegroundColor Green
         } catch {
             Write-Error "Error: $($_.Exception.Message)"
@@ -39,18 +43,25 @@ if (!(Get-Command "scoop" -ErrorAction SilentlyContinue)) {
         }
     }
 
-    if (Test-Path "$PSScriptRoot\install-scoop.ps1") {
+    if (Test-Path $PSScriptRoot\install-scoop.ps1) {
         . "$PSScriptRoot\install-scoop.ps1" -ScoopDir $env:SCOOP -ScoopGlobalDir $env:SCOOP_GLOBAL $(if ($install_proxy) { "-Proxy $install_proxy" }) $(if ($admin_flg) { "-RunAsAdmin" })
     } else {
-        [Environment]::SetEnvironmentVariable('SCOOP_GLOBAL', $env:SCOOP_GLOBAL, 'Machine')
-        iex "& {$irm get.scoop.sh)} $(if ($install_proxy) { "-Proxy $install_proxy" }) $(if ($admin_flg) { "-RunAsAdmin" })"
+        Write-Error "install-scoop.ps1 not found."
+        return
     }
 
     if (-not (Get-Command scoop -ErrorAction SilentlyContinue)) {
         Write-Error "Scoop installation failed. Please try again."
         return
     }
-    [Environment]::SetEnvironmentVariable('SCOOP', $env:SCOOP, 'Machine')
+
+    try {
+        [Environment]::SetEnvironmentVariable('SCOOP', $env:SCOOP, 'Machine')
+    } catch {
+        Write-Warning "Failed to set the SCOOP environment variable."
+        Write-Host "Please add the SCOOP environment variable manually." -ForegroundColor Yellow
+    }
+    Write-Host "Scoop has been installed." -ForegroundColor Green
 
     Write-Host "Before initializing Scoop, you can set the proxy." -ForegroundColor Yellow
     Write-Host "If you don't want to set the proxy, just press Enter." -ForegroundColor Yellow
