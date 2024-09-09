@@ -19,12 +19,12 @@ if (!(Get-Command "scoop" -ErrorAction SilentlyContinue)) {
 
     $env:SCOOP = Read-Host -Prompt "Enter the directory where you want to install Scoop (e.g. $env:USERPROFILE\scoop)"
     $env:SCOOP_GLOBAL = Read-Host -Prompt "Enter the directory where you want to install Scoop apps (e.g. $env:USERPROFILE\scoop\apps)"
+    if (-not $env:SCOOP) { $env:SCOOP = "$env:USERPROFILE\scoop" }
+    if (-not $env:SCOOP_GLOBAL) { $env:SCOOP_GLOBAL = "$env:USERPROFILE\scoop\apps" }
     while ($env:SCOOP_GLOBAL -eq $env:SCOOP) {
         Write-Host "The directory where you want to install Scoop apps cannot be the same as the directory where you want to install Scoop." -ForegroundColor Red
         $env:SCOOP_GLOBAL = Read-Host -Prompt "Enter the directory where you want to install Scoop apps (e.g. $env:USERPROFILE\scoop\apps)"
     }
-    if (-not $env:SCOOP) { $env:SCOOP = "$env:USERPROFILE\scoop" }
-    if (-not $env:SCOOP_GLOBAL) { $env:SCOOP_GLOBAL = "$env:USERPROFILE\scoop\apps" }
 
     if (-not (Test-Path $env:SCOOP)) { New-Item -Path $env:SCOOP -ItemType Directory | Out-Null }
     if (-not (Test-Path $env:SCOOP_GLOBAL)) { New-Item -Path $env:SCOOP_GLOBAL -ItemType Directory | Out-Null }
