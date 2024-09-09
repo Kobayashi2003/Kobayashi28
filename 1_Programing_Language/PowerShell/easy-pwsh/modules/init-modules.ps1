@@ -83,7 +83,7 @@
         return $new_version
     }
 
-    if ($_version.contains('<')) {
+    if ($version.contains('<')) {
         foreach ($v in $installed_versions) {
             if ($v -lt $version_raw) {
                 return $v
@@ -105,7 +105,7 @@
         return $new_version
     }
 
-    if ($_version.contains('==')) {
+    if ($version.contains('==')) {
         if ($installed_versions -contains $version_raw) {
             return $version_raw
         }

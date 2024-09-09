@@ -25,20 +25,13 @@ if (!(Get-Command "scoop" -ErrorAction SilentlyContinue)) {
     if (-not (Test-Path $env:SCOOP)) { New-Item -Path $env:SCOOP -ItemType Directory | Out-Null }
     if (-not (Test-Path $env:SCOOP_GLOBAL)) { New-Item -Path $env:SCOOP_GLOBAL -ItemType Directory | Out-Null }
 
-    if (([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
-        Write-Error "This scirpt can not be run as an administrator."
-        return
-    }
+    $admin_flg = (([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator"))
 
     if (-not (Test-Path "$PSScriptRoot\install-scoop.ps1")) {
         Write-Host "Downloading install-scoop.ps1..." -ForegroundColor Yellow
         $install_proxy = Read-Host -Prompt "Set the proxy (Press Enter if you don't want to set the proxy)"
         try {
-            if ($install_proxy) {
-                & irm get.scooop.sh -outfile 'install-scoop.ps1' -proxy $install_proxy
-            } else {
-                & irm get.scooop.sh -outfile 'install-scoop.ps1'
-            }
+            & irm get.scoop.sh -outfile install-scoop.ps1 $(if ($install_proxy) { "-proxy $install_proxy" }) $(if ($admin_flg) { "-RunAsAdmin" })
             Write-Host "Downloaded install-scoop.ps1." -ForegroundColor Green
         } catch {
             Write-Error "Error: $($_.Exception.Message)"
@@ -47,26 +40,17 @@ if (!(Get-Command "scoop" -ErrorAction SilentlyContinue)) {
     }
 
     if (Test-Path "$PSScriptRoot\install-scoop.ps1") {
-        if ($install_proxy) {
-            . $PSScriptRoot\install-scoop.ps1 -ScoopDir $env:SCOOP -ScoopGlobalDir $env:SCOOP_GLOBAL -Proxy $install_proxy
-        } else {
-            . $PSScriptRoot\install-scoop.ps1 -ScoopDir $env:SCOOP -ScoopGlobalDir $env:SCOOP_GLOBAL -NoProxy
-        }
+        . "$PSScriptRoot\install-scoop.ps1" -ScoopDir $env:SCOOP -ScoopGlobalDir $env:SCOOP_GLOBAL $(if ($install_proxy) { "-Proxy $install_proxy" }) $(if ($admin_flg) { "-RunAsAdmin" })
     } else {
         [Environment]::SetEnvironmentVariable('SCOOP_GLOBAL', $env:SCOOP_GLOBAL, 'Machine')
-        if ($install_proxy) {
-            & irm get.scoop.sh -Proxy $install_proxy | iex
-        } else {
-            & irm get.scoop.sh | iex
-        }
+        iex "& {$irm get.scoop.sh)} $(if ($install_proxy) { "-Proxy $install_proxy" }) $(if ($admin_flg) { "-RunAsAdmin" })"
     }
 
     if (-not (Get-Command scoop -ErrorAction SilentlyContinue)) {
         Write-Error "Scoop installation failed. Please try again."
         return
     }
-
-    # TODO: if install success, i should add the scoop path to the system environment variables
+    [Environment]::SetEnvironmentVariable('SCOOP', $env:SCOOP, 'Machine')
 
     Write-Host "Before initializing Scoop, you can set the proxy." -ForegroundColor Yellow
     Write-Host "If you don't want to set the proxy, just press Enter." -ForegroundColor Yellow

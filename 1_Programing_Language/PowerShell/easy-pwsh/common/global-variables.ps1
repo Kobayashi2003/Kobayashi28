@@ -43,6 +43,6 @@ $global:modules = @{
     "posh-git"           = "latest"
 }
 
-$global:modules_check = $false
+$global:modules_check = $true
 
-$global:show_imported = $false
+$global:show_imported = $true
