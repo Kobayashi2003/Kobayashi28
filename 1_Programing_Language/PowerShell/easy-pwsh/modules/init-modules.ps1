@@ -171,21 +171,16 @@ function global:check-imported {
 
 $global:modules_imported = @()
 
-# $global:modules is a map
-# key:   module name
-# value: module version
-
-$global:modules.GetEnumerator() |
-    ForEach-Object { if ((-not $global:modules_check) -or (check-module -Name $_.Key -Version $_.Value)) {
-        try {
-            if ($_.Value -eq "latest") {
-                Import-Module -Name $_.Key
-            } else {
-                Import-Module -Name $_.Key -RequiredVersion $_.Value.Replace('=','').Replace('>','').Replace('<','')
-            }
-            $global:modules_imported += $_.Key } catch {}
+$global:modules.GetEnumerator() | ForEach-Object {
+    if ((-not $global:modules_check) -or (check-module -Name $_.Key -Version $_.Value)) {
+        if ($_.Value -eq "latest") {
+            Import-Module -Name $_.Key
+        } else {
+            Import-Module -Name $_.Key -RequiredVersion $_.Value.Replace('=','').Replace('>','').Replace('<','')
         }
+        $global:modules_imported += $_.Key
     }
+}
 
 $global:modules_imported | ForEach-Object {
     $private:modulename = $_

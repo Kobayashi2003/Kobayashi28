@@ -110,17 +110,36 @@ if (!(Get-Command "scoop" -ErrorAction SilentlyContinue)) {
     }
 }
 
-($scoop_apps_installed = @(& scoop list).Name) *>$null
-foreach ($app in ($global:scoop_apps + $global:scoop_extras)) {
-    if (-not ($scoop_apps_installed -contains $app)) {
-        try {
-            Write-Warning "$app is not installed. Installing..."
+function global:scoop-install {
+    ($scoop_apps_installed = @(& scoop list).Name) *>$null
+
+    foreach ($app in ($global:scoop_apps + $global:scoop_extras)) {
+        if (-not ($scoop_apps_installed -contains $app)) {
+            Write-Warning "$app is not found. Installing..."
             & scoop install $app
-        } catch {
-            Write-Error "Failed to install $app."
-            & scoop uninstall $app
-            continue
+            Write-Host "Installed $app." -ForegroundColor Green
+        } else {
+            Write-Host "$app is already installed." -ForegroundColor Green
         }
-        Write-Host "Installed $app." -ForegroundColor Green
     }
 }
+
+function global:scoop-check {
+    ($scoop_apps_failed = @(& scoop status | Where-Object {$_.INFO.ToString().contains('failed')}).Name) *>$null
+
+    foreach ($app in $scoop_apps_failed) {
+        try {
+            Write-Host "$app failed to install. Uninstalling..." -ForegroundColor Red
+            & scoop uninstall $app
+        } catch {
+            Write-Error "Failed to uninstall $app."
+            continue
+        }
+        Write-Host "Uninstalled $app" -ForegroundColor Red
+    }
+
+    Write-Host "Scoop check completed." -ForegroundColor Green
+}
+
+if ($global:scoop_install) { scoop-install }
+if ($global:scoop_check) { scoop-check }

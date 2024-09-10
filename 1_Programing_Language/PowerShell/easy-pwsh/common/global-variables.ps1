@@ -4,45 +4,67 @@
     which will be declared before other scripts run
 #>
 
-$global:PSVERSION = "$($PSVersionTable.PSVersion.Major).$($PSVersionTable.PSVersion.Minor)"
+$global:PSVERSION   = (Get-Host).Version.ToString()
+$global:USERPROFILE = [Environment]::GetFolderPath("UserProfile")
+$global:DESKTOP     = [Environment]::GetFolderPath("Desktop")
+$global:DOCUMENTS   = [Environment]::GetFolderPath("MyDocuments")
+$global:MUSIC       = [Environment]::GetFolderPath("MyMusic")
+$global:PICTURES    = [Environment]::GetFolderPath("MyPictures")
+$global:VIDEeS      = [Environment]::GetFolderPath("MyVideos")
+$global:STARTUP     = [Environment]::GetFolderPath("Startup")
+$global:STARTMENU   = [Environment]::GetFolderPath("StartMenu")
+$global:FONTS       = [Environment]::GetFolderPath("Fonts")
+$global:COOKIES     = [Environment]::GetFolderPath("Cookies")
+$global:HISTORY     = [Environment]::GetFolderPath("History")
+$global:TEMP        = [Environment]::GetFolderPath("Temp")
+$global:APPDATA     = [Environment]::GetFolderPath("ApplicationData")
+$global:LOCALAPPDATA= [Environment]::GetFolderPath("LocalApplicationData")
+$global:WINDOWS     = [Environment]::GetFolderPath("Windows")
+$global:SYSTEM      = [Environment]::GetFolderPath("System")
+$global:SYSTEMX86   = [Environment]::GetFolderPath("SystemX86")
+$global:PROGRAMFILES= [Environment]::GetFolderPath("ProgramFiles")
+$global:PROGRAMFILESX86= [Environment]::GetFolderPath("ProgramFilesX86")
 
-$global:DOWNLOADS   = Join-Path $env:USERPROFILE -ChildPath "Downloads"
-$global:DOCUMENTS   = Join-Path $env:USERPROFILE -ChildPath "Documents"
-$global:PICTURES    = Join-Path $env:USERPROFILE -ChildPath "Pictures"
-$global:VIDEOS      = Join-Path $env:USERPROFILE -ChildPath "Videos"
-$global:APPDATA     = Join-Path $env:USERPROFILE -ChildPath "AppData"
+$global:set_apps_alias  = $true
 
-$global:apps = @{
+$global:modules_import  = $true
+$global:modules_check   = $false
+$global:show_imported   = $false
+
+$global:scoop_install         = $false
+$global:scoop_check           = $false
+$global:scoop_apps_install    = $true
+$global:scoop_extras_install  = $true
+
+$global:apps = $( if (-not $set_apps_alias) { @{} } else {
+@{
     'steam'     = 'D:\Steam\Steam.exe'
     'pikpak'    = 'D:\Temp\PikPak\PikPak.exe'
-}
+}})
 
-$global:scoop_apps = @(
+$global:scoop_apps = $( if (-not $scoop_apps_install) { @() } else {
+@(
     'git',      'vim',      'gsudo',
     'bat',      'fzf',      'zoxide',
     'lf',       'chafa',    'mpv',
-    'ripgrep',  'posh-git'
-)
+    'ripgrep',  'posh-git', 'tdm-gcc'
+)})
 
-$global:scoop_extras = @(
+$global:scoop_extras = $( if (-not $scoop_extras_install) { @() } else {
+@(
     'scrcpy',       'ffmpeg',
     'altsnap',      'wireshark',
     'quicklook',    'everything',
     'sunshine',     'moonlight',
     'bandizip',     'networkmanager'
-)
+)})
 
-$global:modules = @{
+$global:modules = $( if (-not $modules_import) { @{} } else {
+@{
+    "PSReadLine"         = $(if ($global:PSVERSION -ge "7.2.0") { "latest" } else { "==2.3.4" })
+    "PSFzf"              = $(if ($global:PSVERSION -ge "7.2.0") { "latest" } else { "==2.0.0" })
     "Get-ChildItemColor" = "latest"
-    # "PSReadLine"         = "==2.3.4"
-    "PSReadLine"         = "latest"
-    "PSFzf"              = "==2.0.0"
     "Terminal-Icons"     = "latest"
     "WriteAscii"         = "latest"
-    # "gsudoModule"        = "latest"
     "posh-git"           = "latest"
-}
-
-$global:modules_check = $false
-
-$global:show_imported = $false
+}})

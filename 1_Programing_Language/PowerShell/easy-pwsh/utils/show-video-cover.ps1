@@ -41,4 +41,3 @@ if ($size) {
 }
 
 Set-Location $cur_dir
-

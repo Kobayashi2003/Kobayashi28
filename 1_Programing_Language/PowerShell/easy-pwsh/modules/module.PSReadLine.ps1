@@ -1277,7 +1277,7 @@ Set-PSReadLineKeyHandler -Key Ctrl+SpaceBar `
         $path = & __Get-Around-Cursor
     }
     if (-not $path) {
-        return
+        $path = Get-Location
     }
     if (-not (& __Check-Path -Path $path)) {
         return
@@ -1285,12 +1285,8 @@ Set-PSReadLineKeyHandler -Key Ctrl+SpaceBar `
 
     $absolutePath = (Get-Item -Path $path).FullName
 
-    if (& __Replace-Selection -Text $absolutePath) {
-        return
-    }
-
     try {
-        & quicklook $path
+        & quicklook $absolutePath
     } catch {
         Write-Error $_
     }
