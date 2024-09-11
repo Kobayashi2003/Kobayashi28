@@ -59,14 +59,14 @@ $global:SCOOP_APPLICATION_MAIN = $( if (-not $SCOOP_MAIN_FLAG) { @() } else {
 $global:SCOOP_APPLICATION_EXTRAS = $( if (-not $SCOOP_EXTRAS_FLAG) { @() } else {
 @(
     'altsnap',          'bandizip',
-    'clash-verge',      'everything',
-    'filelight',        'hwmonitor',
-    'imageglass',       'moonlight',
-    'mpv',              'networkmanager',
-    'posh-git',         'putty',
-    'quicklook',        'recuva',
-    'sunshine',         'v2rayn',
-    'vscode',           'wireshark'
+    'everything',       'filelight',
+    'hwmonitor',        'imageglass',
+    'moonlight',        'mpv',
+    'networkmanager',   'posh-git',
+    'putty',            'quicklook',
+    'recuva',           'sunshine',
+    'v2rayn',           'vscode',
+    'wireshark'
 )})
 
 $global:SCOOP_APPLICATION_VERSION = $( if (-not $SCOOP_VERSION_FLAG) { @() } else {
