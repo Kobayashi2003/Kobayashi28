@@ -1,0 +1,697 @@
+{
+  "RECODES": [
+    {
+      "edge_id": 1,
+      "road_id": 1,
+      "point_id_1": 37,
+      "point_id_2": 26,
+      "edge_info": null
+    },
+    {
+      "edge_id": 2,
+      "road_id": 1,
+      "point_id_1": 22,
+      "point_id_2": 24,
+      "edge_info": null
+    },
+    {
+      "edge_id": 3,
+      "road_id": 1,
+      "point_id_1": 55,
+      "point_id_2": 2,
+      "edge_info": null
+    },
+    {
+      "edge_id": 4,
+      "road_id": 1,
+      "point_id_1": 78,
+      "point_id_2": 5,
+      "edge_info": null
+    },
+    {
+      "edge_id": 5,
+      "road_id": 1,
+      "point_id_1": 49,
+      "point_id_2": 64,
+      "edge_info": null
+    },
+    {
+      "edge_id": 6,
+      "road_id": 1,
+      "point_id_1": 83,
+      "point_id_2": 18,
+      "edge_info": null
+    },
+    {
+      "edge_id": 7,
+      "road_id": 1,
+      "point_id_1": 58,
+      "point_id_2": 74,
+      "edge_info": null
+    },
+    {
+      "edge_id": 8,
+      "road_id": 1,
+      "point_id_1": 35,
+      "point_id_2": 64,
+      "edge_info": null
+    },
+    {
+      "edge_id": 9,
+      "road_id": 1,
+      "point_id_1": 85,
+      "point_id_2": 51,
+      "edge_info": null
+    },
+    {
+      "edge_id": 10,
+      "road_id": 1,
+      "point_id_1": 23,
+      "point_id_2": 49,
+      "edge_info": null
+    },
+    {
+      "edge_id": 11,
+      "road_id": 1,
+      "point_id_1": 54,
+      "point_id_2": 28,
+      "edge_info": null
+    },
+    {
+      "edge_id": 12,
+      "road_id": 1,
+      "point_id_1": 86,
+      "point_id_2": 70,
+      "edge_info": null
+    },
+    {
+      "edge_id": 13,
+      "road_id": 1,
+      "point_id_1": 99,
+      "point_id_2": 20,
+      "edge_info": null
+    },
+    {
+      "edge_id": 14,
+      "road_id": 1,
+      "point_id_1": 64,
+      "point_id_2": 61,
+      "edge_info": null
+    },
+    {
+      "edge_id": 15,
+      "road_id": 1,
+      "point_id_1": 59,
+      "point_id_2": 30,
+      "edge_info": null
+    },
+    {
+      "edge_id": 16,
+      "road_id": 1,
+      "point_id_1": 24,
+      "point_id_2": 39,
+      "edge_info": null
+    },
+    {
+      "edge_id": 17,
+      "road_id": 1,
+      "point_id_1": 5,
+      "point_id_2": 87,
+      "edge_info": null
+    },
+    {
+      "edge_id": 18,
+      "road_id": 1,
+      "point_id_1": 47,
+      "point_id_2": 67,
+      "edge_info": null
+    },
+    {
+      "edge_id": 19,
+      "road_id": 1,
+      "point_id_1": 38,
+      "point_id_2": 73,
+      "edge_info": null
+    },
+    {
+      "edge_id": 20,
+      "road_id": 1,
+      "point_id_1": 84,
+      "point_id_2": 32,
+      "edge_info": null
+    },
+    {
+      "edge_id": 21,
+      "road_id": 1,
+      "point_id_1": 96,
+      "point_id_2": 32,
+      "edge_info": null
+    },
+    {
+      "edge_id": 22,
+      "road_id": 1,
+      "point_id_1": 26,
+      "point_id_2": 6,
+      "edge_info": null
+    },
+    {
+      "edge_id": 23,
+      "road_id": 1,
+      "point_id_1": 13,
+      "point_id_2": 43,
+      "edge_info": null
+    },
+    {
+      "edge_id": 24,
+      "road_id": 1,
+      "point_id_1": 2,
+      "point_id_2": 98,
+      "edge_info": null
+    },
+    {
+      "edge_id": 25,
+      "road_id": 1,
+      "point_id_1": 54,
+      "point_id_2": 24,
+      "edge_info": null
+    },
+    {
+      "edge_id": 26,
+      "road_id": 1,
+      "point_id_1": 70,
+      "point_id_2": 87,
+      "edge_info": null
+    },
+    {
+      "edge_id": 27,
+      "road_id": 1,
+      "point_id_1": 4,
+      "point_id_2": 17,
+      "edge_info": null
+    },
+    {
+      "edge_id": 28,
+      "road_id": 1,
+      "point_id_1": 15,
+      "point_id_2": 21,
+      "edge_info": null
+    },
+    {
+      "edge_id": 29,
+      "road_id": 1,
+      "point_id_1": 82,
+      "point_id_2": 51,
+      "edge_info": null
+    },
+    {
+      "edge_id": 30,
+      "road_id": 1,
+      "point_id_1": 57,
+      "point_id_2": 56,
+      "edge_info": null
+    },
+    {
+      "edge_id": 31,
+      "road_id": 1,
+      "point_id_1": 57,
+      "point_id_2": 60,
+      "edge_info": null
+    },
+    {
+      "edge_id": 32,
+      "road_id": 1,
+      "point_id_1": 96,
+      "point_id_2": 36,
+      "edge_info": null
+    },
+    {
+      "edge_id": 33,
+      "road_id": 1,
+      "point_id_1": 67,
+      "point_id_2": 55,
+      "edge_info": null
+    },
+    {
+      "edge_id": 34,
+      "road_id": 1,
+      "point_id_1": 90,
+      "point_id_2": 33,
+      "edge_info": null
+    },
+    {
+      "edge_id": 35,
+      "road_id": 1,
+      "point_id_1": 58,
+      "point_id_2": 17,
+      "edge_info": null
+    },
+    {
+      "edge_id": 36,
+      "road_id": 1,
+      "point_id_1": 1,
+      "point_id_2": 20,
+      "edge_info": null
+    },
+    {
+      "edge_id": 37,
+      "road_id": 1,
+      "point_id_1": 58,
+      "point_id_2": 97,
+      "edge_info": null
+    },
+    {
+      "edge_id": 38,
+      "road_id": 1,
+      "point_id_1": 72,
+      "point_id_2": 83,
+      "edge_info": null
+    },
+    {
+      "edge_id": 39,
+      "road_id": 1,
+      "point_id_1": 56,
+      "point_id_2": 10,
+      "edge_info": null
+    },
+    {
+      "edge_id": 40,
+      "road_id": 1,
+      "point_id_1": 49,
+      "point_id_2": 29,
+      "edge_info": null
+    },
+    {
+      "edge_id": 41,
+      "road_id": 1,
+      "point_id_1": 54,
+      "point_id_2": 13,
+      "edge_info": null
+    },
+    {
+      "edge_id": 42,
+      "road_id": 1,
+      "point_id_1": 60,
+      "point_id_2": 89,
+      "edge_info": null
+    },
+    {
+      "edge_id": 43,
+      "road_id": 1,
+      "point_id_1": 53,
+      "point_id_2": 52,
+      "edge_info": null
+    },
+    {
+      "edge_id": 44,
+      "road_id": 1,
+      "point_id_1": 90,
+      "point_id_2": 51,
+      "edge_info": null
+    },
+    {
+      "edge_id": 45,
+      "road_id": 1,
+      "point_id_1": 73,
+      "point_id_2": 2,
+      "edge_info": null
+    },
+    {
+      "edge_id": 46,
+      "road_id": 1,
+      "point_id_1": 99,
+      "point_id_2": 52,
+      "edge_info": null
+    },
+    {
+      "edge_id": 47,
+      "road_id": 1,
+      "point_id_1": 8,
+      "point_id_2": 46,
+      "edge_info": null
+    },
+    {
+      "edge_id": 48,
+      "road_id": 1,
+      "point_id_1": 65,
+      "point_id_2": 91,
+      "edge_info": null
+    },
+    {
+      "edge_id": 49,
+      "road_id": 1,
+      "point_id_1": 56,
+      "point_id_2": 76,
+      "edge_info": null
+    },
+    {
+      "edge_id": 50,
+      "road_id": 1,
+      "point_id_1": 32,
+      "point_id_2": 82,
+      "edge_info": null
+    },
+    {
+      "edge_id": 51,
+      "road_id": 1,
+      "point_id_1": 8,
+      "point_id_2": 86,
+      "edge_info": null
+    },
+    {
+      "edge_id": 52,
+      "road_id": 1,
+      "point_id_1": 56,
+      "point_id_2": 64,
+      "edge_info": null
+    },
+    {
+      "edge_id": 53,
+      "road_id": 1,
+      "point_id_1": 66,
+      "point_id_2": 31,
+      "edge_info": null
+    },
+    {
+      "edge_id": 54,
+      "road_id": 1,
+      "point_id_1": 3,
+      "point_id_2": 32,
+      "edge_info": null
+    },
+    {
+      "edge_id": 55,
+      "road_id": 1,
+      "point_id_1": 26,
+      "point_id_2": 43,
+      "edge_info": null
+    },
+    {
+      "edge_id": 56,
+      "road_id": 1,
+      "point_id_1": 73,
+      "point_id_2": 46,
+      "edge_info": null
+    },
+    {
+      "edge_id": 57,
+      "road_id": 1,
+      "point_id_1": 11,
+      "point_id_2": 71,
+      "edge_info": null
+    },
+    {
+      "edge_id": 58,
+      "road_id": 1,
+      "point_id_1": 7,
+      "point_id_2": 8,
+      "edge_info": null
+    },
+    {
+      "edge_id": 59,
+      "road_id": 1,
+      "point_id_1": 76,
+      "point_id_2": 35,
+      "edge_info": null
+    },
+    {
+      "edge_id": 60,
+      "road_id": 1,
+      "point_id_1": 3,
+      "point_id_2": 84,
+      "edge_info": null
+    },
+    {
+      "edge_id": 61,
+      "road_id": 1,
+      "point_id_1": 81,
+      "point_id_2": 46,
+      "edge_info": null
+    },
+    {
+      "edge_id": 62,
+      "road_id": 1,
+      "point_id_1": 97,
+      "point_id_2": 1,
+      "edge_info": null
+    },
+    {
+      "edge_id": 63,
+      "road_id": 1,
+      "point_id_1": 52,
+      "point_id_2": 68,
+      "edge_info": null
+    },
+    {
+      "edge_id": 64,
+      "road_id": 1,
+      "point_id_1": 19,
+      "point_id_2": 41,
+      "edge_info": null
+    },
+    {
+      "edge_id": 65,
+      "road_id": 1,
+      "point_id_1": 68,
+      "point_id_2": 74,
+      "edge_info": null
+    },
+    {
+      "edge_id": 66,
+      "road_id": 1,
+      "point_id_1": 12,
+      "point_id_2": 35,
+      "edge_info": null
+    },
+    {
+      "edge_id": 67,
+      "road_id": 1,
+      "point_id_1": 60,
+      "point_id_2": 81,
+      "edge_info": null
+    },
+    {
+      "edge_id": 68,
+      "road_id": 1,
+      "point_id_1": 23,
+      "point_id_2": 20,
+      "edge_info": null
+    },
+    {
+      "edge_id": 69,
+      "road_id": 1,
+      "point_id_1": 25,
+      "point_id_2": 92,
+      "edge_info": null
+    },
+    {
+      "edge_id": 70,
+      "road_id": 1,
+      "point_id_1": 83,
+      "point_id_2": 15,
+      "edge_info": null
+    },
+    {
+      "edge_id": 71,
+      "road_id": 1,
+      "point_id_1": 82,
+      "point_id_2": 1,
+      "edge_info": null
+    },
+    {
+      "edge_id": 72,
+      "road_id": 1,
+      "point_id_1": 95,
+      "point_id_2": 66,
+      "edge_info": null
+    },
+    {
+      "edge_id": 73,
+      "road_id": 1,
+      "point_id_1": 23,
+      "point_id_2": 27,
+      "edge_info": null
+    },
+    {
+      "edge_id": 74,
+      "road_id": 1,
+      "point_id_1": 24,
+      "point_id_2": 74,
+      "edge_info": null
+    },
+    {
+      "edge_id": 75,
+      "road_id": 1,
+      "point_id_1": 13,
+      "point_id_2": 33,
+      "edge_info": null
+    },
+    {
+      "edge_id": 76,
+      "road_id": 1,
+      "point_id_1": 10,
+      "point_id_2": 59,
+      "edge_info": null
+    },
+    {
+      "edge_id": 77,
+      "road_id": 1,
+      "point_id_1": 3,
+      "point_id_2": 52,
+      "edge_info": null
+    },
+    {
+      "edge_id": 78,
+      "road_id": 1,
+      "point_id_1": 1,
+      "point_id_2": 34,
+      "edge_info": null
+    },
+    {
+      "edge_id": 79,
+      "road_id": 1,
+      "point_id_1": 76,
+      "point_id_2": 63,
+      "edge_info": null
+    },
+    {
+      "edge_id": 80,
+      "road_id": 1,
+      "point_id_1": 20,
+      "point_id_2": 50,
+      "edge_info": null
+    },
+    {
+      "edge_id": 81,
+      "road_id": 1,
+      "point_id_1": 84,
+      "point_id_2": 30,
+      "edge_info": null
+    },
+    {
+      "edge_id": 82,
+      "road_id": 1,
+      "point_id_1": 50,
+      "point_id_2": 9,
+      "edge_info": null
+    },
+    {
+      "edge_id": 83,
+      "road_id": 1,
+      "point_id_1": 46,
+      "point_id_2": 6,
+      "edge_info": null
+    },
+    {
+      "edge_id": 84,
+      "road_id": 1,
+      "point_id_1": 69,
+      "point_id_2": 59,
+      "edge_info": null
+    },
+    {
+      "edge_id": 85,
+      "road_id": 1,
+      "point_id_1": 99,
+      "point_id_2": 2,
+      "edge_info": null
+    },
+    {
+      "edge_id": 86,
+      "road_id": 1,
+      "point_id_1": 63,
+      "point_id_2": 82,
+      "edge_info": null
+    },
+    {
+      "edge_id": 87,
+      "road_id": 1,
+      "point_id_1": 20,
+      "point_id_2": 81,
+      "edge_info": null
+    },
+    {
+      "edge_id": 88,
+      "road_id": 1,
+      "point_id_1": 27,
+      "point_id_2": 32,
+      "edge_info": null
+    },
+    {
+      "edge_id": 89,
+      "road_id": 1,
+      "point_id_1": 90,
+      "point_id_2": 10,
+      "edge_info": null
+    },
+    {
+      "edge_id": 90,
+      "road_id": 1,
+      "point_id_1": 82,
+      "point_id_2": 13,
+      "edge_info": null
+    },
+    {
+      "edge_id": 91,
+      "road_id": 1,
+      "point_id_1": 15,
+      "point_id_2": 76,
+      "edge_info": null
+    },
+    {
+      "edge_id": 92,
+      "road_id": 1,
+      "point_id_1": 75,
+      "point_id_2": 36,
+      "edge_info": null
+    },
+    {
+      "edge_id": 93,
+      "road_id": 1,
+      "point_id_1": 23,
+      "point_id_2": 76,
+      "edge_info": null
+    },
+    {
+      "edge_id": 94,
+      "road_id": 1,
+      "point_id_1": 5,
+      "point_id_2": 71,
+      "edge_info": null
+    },
+    {
+      "edge_id": 95,
+      "road_id": 1,
+      "point_id_1": 83,
+      "point_id_2": 37,
+      "edge_info": null
+    },
+    {
+      "edge_id": 96,
+      "road_id": 1,
+      "point_id_1": 63,
+      "point_id_2": 80,
+      "edge_info": null
+    },
+    {
+      "edge_id": 97,
+      "road_id": 1,
+      "point_id_1": 73,
+      "point_id_2": 78,
+      "edge_info": null
+    },
+    {
+      "edge_id": 98,
+      "road_id": 1,
+      "point_id_1": 20,
+      "point_id_2": 34,
+      "edge_info": null
+    },
+    {
+      "edge_id": 99,
+      "road_id": 1,
+      "point_id_1": 8,
+      "point_id_2": 73,
+      "edge_info": null
+    }
+  ]
+}

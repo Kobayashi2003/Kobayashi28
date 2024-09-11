@@ -177,7 +177,7 @@ function global:init-modules {
             Import-Module -Name $_.Key -RequiredVersion $_.Value.Replace('=','').Replace('>','').Replace('<','')
         }
 
-        $init_module_file = Join-Path -Path $global:CURRENT_SCRIPT_DIRECTORY -ChildPath "modules" -AdditionalChildPath "module.$($_.Key).ps1"
+        $init_module_file = Join-Path -Path $global:CURRENT_SCRIPT_DIRECTORY -ChildPath "modules\module.$($_.Key).ps1"
 
         if (-not (Test-Path $init_module_file)) {
             New-Item -Path $init_module_file -ItemType "File" -Force
