@@ -113,7 +113,7 @@ if (!(Get-Command "scoop" -ErrorAction SilentlyContinue)) {
 function global:scoop-install {
     ($scoop_apps_installed = @(& scoop list).Name) *>$null
 
-    foreach ($app in ($global:scoop_apps + $global:scoop_extras)) {
+    foreach ($app in ($global:SCOOP_APPLICATION)) {
         if (-not ($scoop_apps_installed -contains $app)) {
             Write-Warning "$app is not found. Installing..."
             & scoop install $app
@@ -141,5 +141,5 @@ function global:scoop-check {
     Write-Host "Scoop check completed." -ForegroundColor Green
 }
 
-if ($global:scoop_install) { scoop-install }
-if ($global:scoop_check) { scoop-check }
+if ($global:SCOOP_INSTALL_APPLICATION) { scoop-install }
+if ($global:SCOOP_CHECK_APPLICATION) { scoop-check }

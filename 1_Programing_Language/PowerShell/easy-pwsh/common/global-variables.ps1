@@ -25,24 +25,24 @@ $global:SYSTEMX86   = [Environment]::GetFolderPath("SystemX86")
 $global:PROGRAMFILES= [Environment]::GetFolderPath("ProgramFiles")
 $global:PROGRAMFILESX86= [Environment]::GetFolderPath("ProgramFilesX86")
 
-$global:set_apps_alias  = $true
+$global:SET_APPS_ALIAS  = $true
 
-$global:modules_import  = $true
-$global:modules_check   = $false
-$global:show_imported   = $false
+$global:IMPORT_MODULES  = $true
+$global:CHECK_MODULES   = $false
+$global:SHOW_MODULES    = $false
 
-$global:scoop_install         = $false
-$global:scoop_check           = $false
-$global:scoop_apps_install    = $true
-$global:scoop_extras_install  = $true
+$global:SCOOP_INSTALL_APPLICATION   = $false
+$global:SCOOP_CHECK_APPLICATION     = $false
+$global:SCOOP_MAIN_FLAG    = $true
+$global:SCOOP_EXTRAS_FLAG  = $true
 
-$global:apps = $( if (-not $set_apps_alias) { @{} } else {
+$global:APPS_ALIAS = $( if (-not $SET_APPS_ALIAS) { @{} } else {
 @{
     'steam'     = 'D:\Steam\Steam.exe'
     'pikpak'    = 'D:\Temp\PikPak\PikPak.exe'
 }})
 
-$global:scoop_apps = $( if (-not $scoop_apps_install) { @() } else {
+$global:SCOOP_APPLICATION_MAIN = $( if (-not $SCOOP_MAIN_FLAG) { @() } else {
 @(
     'git',      'vim',      'gsudo',
     'bat',      'fzf',      'zoxide',
@@ -50,7 +50,7 @@ $global:scoop_apps = $( if (-not $scoop_apps_install) { @() } else {
     'ripgrep',  'posh-git', 'tdm-gcc'
 )})
 
-$global:scoop_extras = $( if (-not $scoop_extras_install) { @() } else {
+$global:SCOOP_APPLICATION_EXTRAS = $( if (-not $SCOOP_EXTRAS_FLAG) { @() } else {
 @(
     'scrcpy',       'ffmpeg',
     'altsnap',      'wireshark',
@@ -59,7 +59,10 @@ $global:scoop_extras = $( if (-not $scoop_extras_install) { @() } else {
     'bandizip',     'networkmanager'
 )})
 
-$global:modules = $( if (-not $modules_import) { @{} } else {
+$global:SCOOP_APPLICATION = @($global:SCOOP_APPLICATION_MAIN + $global:SCOOP_APPLICATION_EXTRAS)
+
+
+$global:MODULES = $( if (-not $IMPORT_MODULES) { @{} } else {
 @{
     "PSReadLine"         = $(if ($global:PSVERSION -ge "7.2.0") { "latest" } else { "==2.3.4" })
     "PSFzf"              = $(if ($global:PSVERSION -ge "7.2.0") { "latest" } else { "==2.0.0" })

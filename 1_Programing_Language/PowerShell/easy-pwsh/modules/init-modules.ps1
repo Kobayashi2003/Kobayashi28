@@ -160,7 +160,7 @@ function global:check-imported {
         return $false
     }
 
-    if ($global:show_imported) {
+    if ($global:SHOW_MODULES) {
         Write-Host "module" -ForegroundColor Green -NoNewline
         Write-Host " $name " -ForegroundColor Yellow -NoNewline
         Write-Host "is imported" -ForegroundColor Green
@@ -169,28 +169,34 @@ function global:check-imported {
 }
 
 
-$global:modules_imported = @()
+function global::init-modules {
+<#
+.SYNOPSIS
+    Import, Check and Init Modules
+#>
 
-$global:modules.GetEnumerator() | ForEach-Object {
-    if ((-not $global:modules_check) -or (check-module -Name $_.Key -Version $_.Value)) {
+    $imported_list = @()
+
+    $global:MODULES.GetEnumerator() | Where-Object { $global:CHECK_MODULES -or (check-module -Name $_.Key -Version $_.Value) } | ForEach-Object {
         if ($_.Value -eq "latest") {
             Import-Module -Name $_.Key
         } else {
             Import-Module -Name $_.Key -RequiredVersion $_.Value.Replace('=','').Replace('>','').Replace('<','')
         }
-        $global:modules_imported += $_.Key
+
+        $init_module_file = Join-Path -Path $global:CURRENT_SCRIPT_DIRECTORY -ChildPath "modules" -AdditionalChildPath "$($_.Key).ps1"
+
+        if (-not (Test-Path $init_module_file)) {
+            New-Item -Path $init_module_file -ItemType "File" -Force
+        }
+        if (Test-Path $init_module_file) {
+            & $init_module_file
+        }
     }
 }
 
-$global:modules_imported | ForEach-Object {
-    $private:modulename = $_
-    $private:filename = "module.$modulename.ps1"
-    $private:dirname = Join-Path -Path $global:current_script_directory -ChildPath "modules"
-    if (-not (Test-Path (Join-Path -Path $dirname -ChildPath $filename))) {
-        New-Item -Path $dirname -Name $filename -ItemType File }
-    if (check-imported $modulename $global:modules_imported) {
-        & (Join-Path -Path $dirname -ChildPath $filename) }
-}
+
+if ($global::IMPORT_MODULES) { init-modules }
 
 
-# TIPS: If you do not want to download modules by yourself, you can try to import the modules in the $current_script_directory/downloads/Modules
+# TIPS: If you do not want to download modules by yourself, you can try to import the modules in the $global:CURRENT_SCRIPT_DIRECTORY/downloads/Modules

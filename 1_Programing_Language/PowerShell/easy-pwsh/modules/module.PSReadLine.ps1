@@ -24,7 +24,7 @@ Set-PSReadLineOption -PromptText ' > ', ' X ' # replace the ' > ' character with
 # set the file path to save the history
 
 $history_save_path = (Split-Path $profile.CurrentUserAllHosts) + "\.ps_history"
-# $history_save_path = (Join-Path $global:current_script_directory -ChildPath "config\.ps_history")
+# $history_save_path = (Join-Path $global:CURRENT_SCRIPT_DIRECTORY -ChildPath "config\.ps_history")
 
 Set-PSReadLineOption -HistorySavePath $history_save_path
 Set-PSReadLineOption -HistorySaveStyle SaveIncrementally
