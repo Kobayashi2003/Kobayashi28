@@ -13,8 +13,7 @@
 #>
 
 try {
-	# Clear-RecycleBin -Confirm:$false
-	cmd.exe "/c echo Y |powershell Clear-RecycleBin"
+	Clear-RecycleBin -Confirm:$false *>$null
 	if ($lastExitCode -ne "0") { throw "'Clear-RecycleBin' failed" }
     Write-Host "It's clean now." -foregroundcolor green
 	exit 0 # success

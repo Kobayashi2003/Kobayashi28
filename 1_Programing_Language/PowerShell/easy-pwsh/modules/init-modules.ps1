@@ -160,31 +160,24 @@ function global:check-imported {
         return $false
     }
 
-    if ($global:SHOW_MODULES) {
-        Write-Host "module" -ForegroundColor Green -NoNewline
-        Write-Host " $name " -ForegroundColor Yellow -NoNewline
-        Write-Host "is imported" -ForegroundColor Green
-    }
     return $true
 }
 
 
-function global::init-modules {
+function global:init-modules {
 <#
 .SYNOPSIS
-    Import, Check and Init Modules
+    Import, Check, Init and Show Moudles
 #>
 
-    $imported_list = @()
-
-    $global:MODULES.GetEnumerator() | Where-Object { $global:CHECK_MODULES -or (check-module -Name $_.Key -Version $_.Value) } | ForEach-Object {
+    $global:MODULES.GetEnumerator() | Where-Object { (-not $global:CHECK_MODULES) -or (check-module -Name $_.Key -Version $_.Value) } | ForEach-Object {
         if ($_.Value -eq "latest") {
             Import-Module -Name $_.Key
         } else {
             Import-Module -Name $_.Key -RequiredVersion $_.Value.Replace('=','').Replace('>','').Replace('<','')
         }
 
-        $init_module_file = Join-Path -Path $global:CURRENT_SCRIPT_DIRECTORY -ChildPath "modules" -AdditionalChildPath "$($_.Key).ps1"
+        $init_module_file = Join-Path -Path $global:CURRENT_SCRIPT_DIRECTORY -ChildPath "modules" -AdditionalChildPath "module.$($_.Key).ps1"
 
         if (-not (Test-Path $init_module_file)) {
             New-Item -Path $init_module_file -ItemType "File" -Force
@@ -192,11 +185,17 @@ function global::init-modules {
         if (Test-Path $init_module_file) {
             & $init_module_file
         }
+
+        if ($global:SHOW_MODULES) {
+            Write-Host "module" -ForegroundColor Green -NoNewline
+            Write-Host " $($_.Key) " -ForegroundColor Yellow -NoNewline
+            Write-Host "is imported" -ForegroundColor Green
+        }
     }
 }
 
 
-if ($global::IMPORT_MODULES) { init-modules }
+if ($global:IMPORT_MODULES) { init-modules }
 
 
 # TIPS: If you do not want to download modules by yourself, you can try to import the modules in the $global:CURRENT_SCRIPT_DIRECTORY/downloads/Modules

@@ -124,7 +124,7 @@ function global:scoop-install {
     }
 }
 
-function global:scoop-check {
+function global:scoop-check-failed {
     ($scoop_apps_failed = @(& scoop status | Where-Object {$_.INFO.ToString().contains('failed')}).Name) *>$null
 
     foreach ($app in $scoop_apps_failed) {
@@ -137,6 +137,22 @@ function global:scoop-check {
         }
         Write-Host "Uninstalled $app" -ForegroundColor Red
     }
+}
+
+function global:scoop-check-update {
+    ($scoop_apps_update = @(& scoop status | Where-Object { $_.'Latest Version' }).Name) *>$null
+
+    foreach ($app in $scoop_apps_update) {
+        Write-Host "Updating $app..." -ForegroundColor Yellow
+        & scoop update $app
+        Write-Host "Updated $app." -ForegroundColor Green
+    }
+}
+
+function global:scoop-check {
+
+    if ($global:SCOOP_CHECK_UPDATE) { scoop-check-update }
+    if ($global:SCOOP_CHECK_FAILED) { scoop-check-failed }
 
     Write-Host "Scoop check completed." -ForegroundColor Green
 }

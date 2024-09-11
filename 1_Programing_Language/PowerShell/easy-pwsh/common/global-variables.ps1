@@ -31,10 +31,14 @@ $global:IMPORT_MODULES  = $true
 $global:CHECK_MODULES   = $false
 $global:SHOW_MODULES    = $false
 
-$global:SCOOP_INSTALL_APPLICATION   = $false
-$global:SCOOP_CHECK_APPLICATION     = $false
+$global:SCOOP_INSTALL_APPLICATION = $false
 $global:SCOOP_MAIN_FLAG    = $true
 $global:SCOOP_EXTRAS_FLAG  = $true
+$global:SCOOP_VERSION_FLAG = $true
+
+$global:SCOOP_CHECK_APPLICATION = $false
+$global:SCOOP_CHECK_FAILED = $false
+$global:SCOOP_CHECK_UPDATE = $false
 
 $global:APPS_ALIAS = $( if (-not $SET_APPS_ALIAS) { @{} } else {
 @{
@@ -44,22 +48,39 @@ $global:APPS_ALIAS = $( if (-not $SET_APPS_ALIAS) { @{} } else {
 
 $global:SCOOP_APPLICATION_MAIN = $( if (-not $SCOOP_MAIN_FLAG) { @() } else {
 @(
-    'git',      'vim',      'gsudo',
-    'bat',      'fzf',      'zoxide',
-    'lf',       'chafa',    'mpv',
-    'ripgrep',  'posh-git', 'tdm-gcc'
+    '7zip',     'aria2',    'bat',
+    'chafa',    'fd',       'ffmpeg',
+    'fzf',      'git',      'gsudo',
+    'lf',       'prince',   'ripgrep',
+    'scrcpy',   'sudo',     'vim',
+    'zoxide'
 )})
 
 $global:SCOOP_APPLICATION_EXTRAS = $( if (-not $SCOOP_EXTRAS_FLAG) { @() } else {
 @(
-    'scrcpy',       'ffmpeg',
-    'altsnap',      'wireshark',
-    'quicklook',    'everything',
-    'sunshine',     'moonlight',
-    'bandizip',     'networkmanager'
+    'altsnap',          'bandizip',
+    'clash-verge',      'everything',
+    'filelight',        'hwmonitor',
+    'imageglass',       'moonlight',
+    'mpv',              'networkmanager',
+    'posh-git',         'putty',
+    'quicklook',        'recuva',
+    'sunshine',         'v2rayn',
+    'vscode',           'wireshark'
 )})
 
-$global:SCOOP_APPLICATION = @($global:SCOOP_APPLICATION_MAIN + $global:SCOOP_APPLICATION_EXTRAS)
+$global:SCOOP_APPLICATION_VERSION = $( if (-not $SCOOP_VERSION_FLAG) { @() } else {
+@(
+    'tdm-gcc'
+)})
+
+$global:SCOOP_APPLICATION = $(if (-not $SCOOP_INSTALL_APPLICATION) { @() } else {
+    $scoop_buckets = (& scoop bucket list).Name
+    @() + `
+    $(if ($scoop_buckets -contains "main") { $global:SCOOP_APPLICATION_MAIN } else { @() }) + `
+    $(if ($scoop_buckets -contains "extras") { $global:SCOOP_APPLICATION_EXTRAS } else { @() }) + `
+    $(if ($scoop_buckets -contains "versions") { $global:SCOOP_APPLICATION_VERSION } else { @() })
+})
 
 
 $global:MODULES = $( if (-not $IMPORT_MODULES) { @{} } else {
