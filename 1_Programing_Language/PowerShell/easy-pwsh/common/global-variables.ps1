@@ -53,7 +53,7 @@ $global:SCOOP_APPLICATION_MAIN = $( if (-not $SCOOP_MAIN_FLAG) { @() } else {
     'fzf',      'git',      'gsudo',
     'lf',       'prince',   'ripgrep',
     'scrcpy',   'sudo',     'vim',
-    'zoxide'
+    'zoxide',   'miniconda3'
 )})
 
 $global:SCOOP_APPLICATION_EXTRAS = $( if (-not $SCOOP_EXTRAS_FLAG) { @() } else {
