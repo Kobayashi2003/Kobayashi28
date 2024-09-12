@@ -16,7 +16,14 @@ param (
 )
 
 try {
-    Set-Clipboard -Path $path
+    if ($global:PSVERSION -lt 6) {
+        Set-Clipboard -Path $path
+    } else {
+        Add-Type -AssemblyName System.Windows.Forms
+        $files = [System.Collections.Specialized.StringCollection]::new()
+        $files.Add((Get-Item $path).FullName) >$null
+        [System.Windows.Forms.Clipboard]::SetFileDropList($files)
+    }
     Write-Host "✅ Files copied to clipboard"
     exit 0
 } catch {

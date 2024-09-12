@@ -1147,7 +1147,16 @@ function global:__Copy-Files {
     }
 
     try {
-        Set-Clipboard -Path $path
+        if ($global:PSVERSION -lt 6) {
+            Set-Clipboard -Path $path
+        } else {
+            Add-Type -AssemblyName System.Windows.Forms
+
+            $files = [System.Collections.Specialized.StringCollection]::new()
+            $files.Add((Get-Item $path).FullName) >$null
+
+            [System.Windows.Forms.Clipboard]::SetFileDropList($files)
+        }
     } catch {
         Write-Error $_
     }
@@ -1165,6 +1174,12 @@ function global:__Paste-Files {
         return
     }
     foreach ($path in $paths) {
+
+        if (Test-Path -Path (Join-Path $pwd (Split-Path $path -Leaf))) {
+            Write-Host "`n⚠️ File already exists in $path" -nonewline
+            continue
+        }
+
         try {
             if ($action -eq 'copy') {
                 Copy-Item -Path $path -Destination $pwd
@@ -1213,7 +1228,13 @@ Set-PSReadLineKeyHandler -Key Ctrl+V `
 
     param($key, $arg)
 
-    $files = Get-Clipboard -Format FileDrop
+    if ($global:PSVERSION -lt 6) {
+        $files = Get-Clipboard -Format FileDrop
+    } else {
+        Add-Type -AssemblyName System.Windows.Forms
+        $files = [System.Windows.Forms.Clipboard]::GetFileDropList()
+    }
+
     if ($files.Count -gt 0) {
         & __Reload-ClipAction
         if ($env:CLIPACTION) {
@@ -1222,9 +1243,10 @@ Set-PSReadLineKeyHandler -Key Ctrl+V `
         } else {
             & __Paste-Files -paths $files
         }
-    } else {
-        & __Reset-ClipAction
+        return
     }
+
+    & __Reset-ClipAction
 
     Add-Type -Assembly PresentationCore
     if ([System.Windows.Clipboard]::ContainsText())

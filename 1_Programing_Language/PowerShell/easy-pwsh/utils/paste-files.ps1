@@ -30,7 +30,12 @@ param (
 )
 
 try {
-    $items = Get-Clipboard -Format FileDrop
+    if ($global:PSVERSION -lt 6) {
+        $items = Get-Clipboard -Format FileDrop
+    } else {
+        Add-Type -AssemblyName System.Windows.Forms
+        $items = [System.Windows.Forms.Clipboard]::GetFileDropList()
+    }
 
     if ($items.Count -eq 0) {
         throw 'No items found in clipboard' }
@@ -38,6 +43,12 @@ try {
         throw 'Path does not exist' }
 
     foreach ($item in $items) {
+
+        if (Test-Path -Path (Join-Path $path (Split-Path $item -Leaf))) {
+            Write-Host "`n⚠️ File already exists in $path" -nonewline
+            continue
+        }
+
         if ($action -eq 'move') {
             Move-Item -Path $item -Destination $path
         } elseif ($action -eq 'copy') {

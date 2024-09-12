@@ -9,7 +9,7 @@ if (Get-Command 'gsudo' -ErrorAction SilentlyContinue) {
 <# .Notes
     https://github.com/gerardog/gsudo
 #>
-    Set-Alias -Name 'sudo' -Value 'gsudo'
+    Set-Alias -Name 'sudo' -Value 'gsudo' -Scope Global -Force
     return
 }
 
