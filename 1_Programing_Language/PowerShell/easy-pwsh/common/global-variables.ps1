@@ -66,7 +66,7 @@ $global:SCOOP_APPLICATION_EXTRAS = $( if (-not $SCOOP_EXTRAS_FLAG) { @() } else 
     'putty',            'quicklook',
     'recuva',           'sunshine',
     'v2rayn',           'vscode',
-    'wireshark'
+    'winmerge',         'wireshark'
 )})
 
 $global:SCOOP_APPLICATION_VERSION = $( if (-not $SCOOP_VERSION_FLAG) { @() } else {
