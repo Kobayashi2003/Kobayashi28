@@ -44,7 +44,7 @@ if (!(Get-Command "scoop" -ErrorAction SilentlyContinue)) {
     }
 
     if (Test-Path $PSScriptRoot\install-scoop.ps1) {
-        . "$PSScriptRoot\install-scoop.ps1" -ScoopDir $env:SCOOP -ScoopGlobalDir $env:SCOOP_GLOBAL $(if ($install_proxy) { "-Proxy $install_proxy" }) $(if ($admin_flg) { "-RunAsAdmin" })
+        Invoke-Expression "$PSScriptRoot\install-scoop.ps1 -ScoopDir $env:SCOOP -ScoopGlobalDir $env:SCOOP_GLOBAL $(if ($install_proxy) { '-Proxy $install_proxy' }) $(if ($admin_flg) { '-RunAsAdmin' })"
     } else {
         Write-Error "install-scoop.ps1 not found."
         return
