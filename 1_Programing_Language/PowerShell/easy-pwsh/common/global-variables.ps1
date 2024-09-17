@@ -44,6 +44,8 @@ $global:APPS_ALIAS = $( if (-not $SET_APPS_ALIAS) { @{} } else {
 @{
     'steam'     = 'D:\Steam\Steam.exe'
     'pikpak'    = 'D:\Temp\PikPak\PikPak.exe'
+
+    'wechat'    = 'C:\Program Files (x86)\Tencent\WeChat\WeChat.exe'
 }})
 
 $global:SCOOP_APPLICATION_MAIN = $( if (-not $SCOOP_MAIN_FLAG) { @() } else {
