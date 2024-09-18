@@ -1,7 +1,5 @@
 # 实验二
 
-[TOC]
-
 ## 实验目的
 
 熟悉SQL的数据定义语言，能够熟练地使用SQL语句来创建和更改基本表，创建和取消索引。
@@ -47,7 +45,7 @@ CREATE TABLE IF NOT EXISTS PERSON (
 ```sql
 CREATE TABLE IF NOT EXISTS ROOM (
     Rid INT PRIMARY KEY,
-    Rname VARCHAR(50),  
+    Rname VARCHAR(50),
     Rarea INT
 );
 ```
@@ -76,7 +74,7 @@ ALTER TABLE PERSON ADD COLUMN Ptype CHAR(10);
 -- However, it is not a problem, we can easily get the name of the anonymous constraint
 -- by running the following statement:
 -- `SELECT conname FROM pg_constraint WHERE conrelid = 'PERSON'::regclass AND contype = 'c'`;
--- Then we can get the name of the constraint that the database assigns to us by default, 
+-- Then we can get the name of the constraint that the database assigns to us by default,
 -- which is `person_page_check`.
 ALTER TABLE PERSON ALTER COLUMN Page DROP CONSTRAINT IF EXISTS person_page_check;
 ALTER TABLE ROOM ALTER COLUMN Rname TYPE VARCHAR(30);
