@@ -1,14 +1,5 @@
 ﻿<#
 .SYNOPSIS
-    Download from Jable
-
-.PARAMETER URL
-    Jable Vedio URl
-.PARAMETER path
-    Vedio save path
-
-.EXAMPLE
-    jable-download -url https://jable.tv/videos/ipx-660/ -path C:\Users\user\Downloads
 #>
 
 
@@ -47,4 +38,3 @@ Set-Location $python_script_folder
 & pixi run python ./exchange-code-str.py $str $(if ($encode) { "-e $encode" }) $(if ($decode) { "-d $decode" })
 
 Set-Location $cur_dir
-

@@ -1,14 +1,5 @@
 <#
 .SYNOPSIS
-    Download from Jable
-
-.PARAMETER URL
-    Jable Vedio URl
-.PARAMETER path
-    Vedio save path
-
-.EXAMPLE
-    jable-download -url https://jable.tv/videos/ipx-660/ -path C:\Users\user\Downloads
 #>
 
 
