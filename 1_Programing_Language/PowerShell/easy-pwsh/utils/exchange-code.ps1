@@ -1,11 +1,25 @@
 <#
 .SYNOPSIS
+    Recodes a file.
+.PARAMETER path
+    The path of the file to be processed.
+.PARAMETER encode
+    The encoding code.
+.PARAMETER decode
+    The decoding code.
+.PARAMETER cover
+    Cover the original file.
+.PARAMETER backup
+    Backup the original file.
+
+.EXAMPLE
+    PS> ./exchange-code.ps1 -path "C:\Users\user\Desktop\test.txt" -encode "utf-8" -decode "gbk" -cover -backup
 #>
 
 
 param(
     [Parameter(Mandatory=$true)]
-    [string] $str,
+    [string] $path,
 
     [Parameter(Mandatory=$false)]
     [string] $encode,
@@ -41,6 +55,6 @@ $abs_path = Resolve-Path -Path $path
 
 Set-Location $python_script_folder
 
-& pixi run python ./exchange-code.py $str $(if ($encode) { "-e $encode" }) $(if ($decode) { "-d $decode" }) $(if ($cover) { "-c" }) $(if ($backup) { "-b" })
+& pixi run python ./exchange-code.py $path $(if ($encode) { "-e $encode" }) $(if ($decode) { "-d $decode" }) $(if ($cover) { "-c" }) $(if ($backup) { "-b" })
 
 Set-Location $cur_dir

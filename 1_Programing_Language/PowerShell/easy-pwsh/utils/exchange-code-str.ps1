@@ -1,5 +1,16 @@
 ﻿<#
 .SYNOPSIS
+    Recodes a string.
+
+.PARAMETER str
+    The string to be processed.
+.PARAMETER encode
+    The encoding code.
+.PARAMETER decode
+    The decoding code.
+
+.EXAMPLE
+    PS> ./exchange-code-str.ps1 -str "Hello, world!" -encode "utf-8" -decode "gbk"
 #>
 
 
