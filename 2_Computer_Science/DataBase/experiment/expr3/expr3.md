@@ -4,6 +4,19 @@
 
 熟悉SQL语句的数据查询语言，能够使用SQL语句对数据库进行单表查询。
 
+## 实验环境
+
+- OS: Windows 11
+
+![OS](./img/OS.png)
+
+- Database: PostgreSQL 16
+
+![Postgres](./img/Postgres.png)
+
+- UI: harlequin-postgres
+
+![UI](./img/UI.png)
 
 ## 实验内容
 
@@ -12,7 +25,10 @@
 3. 对查询结果排序和分组。
 4. 集合分组使用集函数进行各项统计。
 
-## 课内实验
+
+## 实验步骤
+
+### 课内实验
 
 以`school`数据库为例在该数据库中存在4张表格，分别为：
 
@@ -48,44 +64,57 @@
 
 ```sql
 select 
-  score, 
-  cast(
-    case when score >= 60 then (score - 60) * 0.1 + 1 else 0 end as decimal(3, 1)
-  ) as grade_point 
+    sid,
+    score, 
+    cast(
+        case when score >= 60 then (score - 60) * 0.1 + 1 else 0 end as decimal(3, 1)
+    ) as grade_point 
 from 
-  CHOICES;
+    CHOICES
+order by
+    sid, score;
 ```
+
+![001](./img/001.png)
 
 2. 查询课时是48或64的课程的名称：
 
 ```sql
 select 
-    cname
+    cname,
+    hour
 from 
     COURSES
 where
     hour = 48 or hour = 64;
 ```
 
+![002](./img/002.png)
+
 3. 查询所有课程名称中含有data的课程编号：
 
 ```sql
 select
-    cid
+    cid,
+    cname
 from
     COURSES
 where
     cname like '%data%';
 ```
 
+![003](./img/003.png)
+
 4. 查询所有选课记录的课程号(不重复显示)：
 
 ```sql
 select 
-    distinct cid
+    distinct cid 
 from 
     CHOICES;
 ```
+
+![004](./img/004.png)
 
 5. 统计所有老师的平均工资：
 
@@ -96,6 +125,8 @@ from
     TEACHERS;
 ```
 
+![005](./img/005.png)
+
 6. 查询所有学生的编号，姓名和平均成绩，按总平均成绩降序排列：
 
 ```sql
@@ -103,7 +134,8 @@ select
     stu.sid, 
     stu.sname, 
     -- avg function will ignore null values,
-    -- and return null if all values of a column are null
+    -- return null if all values of a column
+    -- are null.
     cast(avg(cho.score) as decimal(4, 2)) as avg_score
 from
     STUDENTS stu, CHOICES cho
@@ -111,9 +143,17 @@ where
     stu.sid = cho.sid
 group by
     stu.sid
+having 
+    -- There are some students who do not have any records, 
+    -- if we use avg function, the result will be null.
+    -- If you don't want to ignore null values,
+    -- just remove the "having" clause.
+    avg(cho.score) is not null
 order by
     avg_score desc;
 ```
+
+![006](./img/006.png)
 
 
 7. 统计各个课程的选课人数和平均成绩：
@@ -121,9 +161,11 @@ order by
 ```sql
 select
     cid,
-    -- there are some students who choose the same course with different teachers,
-    -- if you want to count distinct students, you can use count(distinct sid)
-    count(sid) as num_students, 
+    -- I don't know why some students can choose the same 
+    -- course multiple times, so I use "distinct" to eliminate 
+    -- duplicates. If you don't want to eliminate duplicates,
+    -- just remove the "distinct" keyword.
+    count(distinct sid) as num_students, 
     cast(avg(score) as decimal(4, 2)) as avg_score
 from
     CHOICES
@@ -133,6 +175,8 @@ order by
     cid;
 ```
     
+![007](./img/007.png)
+
 
 8. 查询至少选修了三门课程的学生编号：
 
@@ -147,3 +191,113 @@ group by
 having
     count(cid) >= 3;
 ```
+
+![008](./img/008.png)
+
+
+### 自我实践
+
+    查询全部课程的详细记录；
+    查询所有有选修课的学生的编号；
+    查询课时<88(hour)的课程的编号；
+    请找出总分超过400分的学生；
+    查询课程的总数；
+    查询所有课程和选修该课程的学生总数；
+    查询选修成绩合格的课程超过两门的学生编号；
+    统计各个学生的选修课程数目和平均成绩；
+
+1. 查询全部课程的详细记录：
+
+```sql
+select * from COURSES; 
+```
+
+![009](./img/009.png)
+
+2. 查询所有有选修课的学生的编号：
+
+```sql
+select distinct sid from CHOICES;
+```
+
+![010](./img/010.png)
+
+3. 查询课时<88(hour)的课程的编号：
+
+```sql
+select cid from COURSES where hour < 88;
+```
+
+![011](./img/011.png)
+
+4. 请找出总分超过400分的学生：
+
+```sql
+select 
+    sid, 
+    sum(score) as total_score
+from 
+    CHOICES
+group by 
+    sid
+having 
+    sum(score) > 400;
+```
+
+![012](./img/012.png)
+
+5. 查询课程的总数：
+
+```sql
+select count(*) as total_courses from COURSES;
+```
+
+![013](./img/013.png)
+
+6. 查询所有课程和选修该课程的学生总数：
+
+```sql
+select 
+    cid, count(distinct sid) as num_students
+from 
+    CHOICES
+group by 
+    cid;
+```
+
+![014](./img/014.png)
+
+7. 查询选修成绩合格的课程超过两门的学生编号：
+
+```sql
+select 
+    sid, 
+    count(cid) as num_courses
+from 
+    CHOICES
+where 
+    score >= 60
+group by 
+    sid
+having 
+    count(cid) > 2;
+```
+
+![015](./img/015.png)
+
+8. 统计各个学生的选修课程数目和平均成绩：
+
+```sql
+select 
+    sid,
+    count(cid) as num_courses,
+    cast(avg(score) as decimal(4, 2)) as avg_score
+from 
+    CHOICES
+group by 
+    sid
+order by
+    sid;
+```
+
+![016](./img/016.png)
