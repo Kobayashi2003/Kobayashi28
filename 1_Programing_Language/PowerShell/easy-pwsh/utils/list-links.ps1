@@ -1,9 +1,9 @@
 ﻿<#
 .SYNOPSIS
-    show symbolic links in the give directory path
+    list symbolic links in the give directory path.
 
 .PARAMETER path
-    The path to show links in
+    The path to list links in.
 #>
 
 
