@@ -15,6 +15,10 @@ function global:prompt {
     $isAdmin = $principal.IsInRole($adminRole)
     $curUser = $env:USERNAME
 
+    # ➤ ➥ ➦ ➧ ➨ ➩ ➪ ➫ ➬ ➭ ➮ ➯ ➱ ➲ ➳ ➴ ➵ ➶ ➷ ➸ ➹ ➺ ➻ ➼ ➽ ➾
+    # $promptChar = "❯"
+    $promptChar = if ($isAdmin) { "#" } else { "$" }
+
     $promptString = ""
 
     if ($env:CONDA_DEFAULT_ENV) {
@@ -22,11 +26,11 @@ function global:prompt {
     }
 
     if (Test-Path variable:/PSDebugContext) {
-        $promptString += "$esc[1;32m[D]:$esc[0m "
+        $promptString += "$esc[1;32m[D]$esc[0m "
     } elseif ($isAdmin) {
-        $promptString += "$esc[1;31m[A]:$esc[0m "
+        $promptString += "$esc[1;31m[A]$esc[0m "
     } else {
-        $promptString += "$esc[1;33m[$($curUser[0])]:$esc[0m "
+        $promptString += "$esc[1;30m[$($curUser[0])]$esc[0m "
     }
 
     if ($lst_cmd_state) {
@@ -64,20 +68,15 @@ function global:prompt {
 
     if ($NestedPromptLevel -ge 1) {
         $colors_code = @{
-            0 = "$esc[1;31m"
-            1 = "$esc[1;32m"
-            2 = "$esc[1;33m"
-            3 = "$esc[1;34m"
-            4 = "$esc[1;35m"
-            5 = "$esc[1;36m"
+            0 = "$esc[1;31m"; 1 = "$esc[1;32m"
+            2 = "$esc[1;33m"; 3 = "$esc[1;34m"
+            4 = "$esc[1;35m"; 5 = "$esc[1;36m"
         }
         for ($i = 0; $i -lt $NestedPromptLevel; $i++) {
-            # $promptString += "$($colors_code[$i % 6])➤$esc[0m"
-            $promptString += "$($colors_code[$i % 6])>$esc[0m"
+            $promptString += "$($colors_code[$i % 6])$promptChar$esc[0m"
         }
     }
-    # $promptString += "➤ "
-    $promptString += "> "
+    $promptString += if ($isAdmin) { "$esc[1;31m$promptChar$esc[0m " } else { "$esc[1;34m$promptChar$esc[0m " }
 
     return $promptString
 }

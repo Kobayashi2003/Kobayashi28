@@ -195,6 +195,28 @@ function global:init-modules {
 }
 
 
+function global:init-module { param (
+    [Parameter(Mandatory = $true)]
+    [string] $name,
+    [Parameter(Mandatory = $false)]
+    [string] $version = "latest"
+)
+    if ($version -eq "latest") {
+        Import-Module -Name $name -Force
+    } else {
+        Import-Module -Name $name -RequiredVersion $version -Force
+    }
+
+    $init_module_file = Join-Path -Path $global:CURRENT_SCRIPT_DIRECTORY -ChildPath "modules\module.$($name).ps1"
+
+    if (Test-Path $init_module_file) {
+        & $init_module_file
+    } else {
+        Write-Host "init-module: $init_module_file not found" -ForegroundColor Red
+    }
+}
+
+
 if ($global:IMPORT_MODULES) { init-modules }
 
 
