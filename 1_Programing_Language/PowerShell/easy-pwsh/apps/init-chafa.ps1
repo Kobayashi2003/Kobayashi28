@@ -103,15 +103,24 @@ function global:loop-images {
 }
 
 
-function global:show-image {
-<#
-.PARAMETER path
-    Path to image
-#>
-    param (
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
-        [string[]] $path
-    )
+function global:show-image { param (
+
+    [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
+    [string] $path,
+
+    [Parameter(Mandatory = $false)]
+    [switch][alias('u')] $isUrl
+)
+
+    if ($url) {
+        $url = $path
+        $path = "$env:TEMP\$((New-Guid).ToString())"
+        Invoke-WebRequest -Uri $url -OutFile $tmp
+    }
 
     & chafa $path --clear --align 'center,center' --optimize 0
+
+    if ($url) {
+        Remove-Item $path
+    }
 }

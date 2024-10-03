@@ -32,7 +32,11 @@ function GetCPUTemperature {
 			$temp = [math]::round($IntTemp / 1000.0, 1)
 		}
 	} else {
-		$objects = Get-WmiObject -Query "SELECT * FROM Win32_PerfFormattedData_Counters_ThermalZoneInformation" -Namespace "root/CIMV2"
+		if ($PSVersionTable.PSVersion.Major -ge 5) {
+			$objects = Get-CimInstance -Query "SELECT * FROM Win32_PerfFormattedData_Counters_ThermalZoneInformation" -Namespace "root/CIMV2"
+		} else {
+			$objects = Get-WmiObject -Query "SELECT * FROM Win32_PerfFormattedData_Counters_ThermalZoneInformation" -Namespace "root/CIMV2"
+		}
 		foreach ($object in $objects) {
 			$highPrec = $object.HighPrecisionTemperature
 			$temp = [math]::round($highPrec / 100.0, 1)
@@ -52,7 +56,11 @@ try {
 		$speed = ""
 		$socket = ""
 	} else {
-		$details = Get-WmiObject -Class Win32_Processor
+		if ($PSVersionTable.PSVersion.Major -ge 5) {
+			$details = Get-CimInstance -Class Win32_Processor
+		} else {
+			$details = Get-WmiObject -Class Win32_Processor
+		}
 		$cpuName = $details.Name.trim()
 		$arch = "$arch, "
 		$deviceID = "$($details.DeviceID), "
