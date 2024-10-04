@@ -18,7 +18,7 @@ def galgame_search(query):
         length,                     length_minutes,
         description,                tags.name,
         staff.name,                 staff.role,
-        va.staff.name,
+        va.staff.name,              
         va.character.name,          va.character.original,
         va.character.description,   va.character.image.url,
         va.character.blood_type,    va.character.height,

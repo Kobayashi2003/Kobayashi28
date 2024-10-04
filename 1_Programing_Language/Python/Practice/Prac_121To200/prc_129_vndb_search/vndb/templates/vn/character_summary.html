@@ -1,0 +1,169 @@
+<div class="charsum_list">
+    <h1>Character Summary</h1>
+    {%- for char in vn_va -%}
+    <div class="chardetails">
+        <div class="charimg">
+            <img src="{{ char.character.image.url }}" alt="Image of {{ char.character.name }}">
+        </div>
+        <table class="stripe">
+            <tbody>
+                <!-- Character Name -->
+                <tr>
+                    <td>
+                        {%- if char.character.name -%}
+                            {{ char.character.name }}
+                        {%- else -%}
+                            Unknown
+                        {%- endif -%}
+                    </td>
+                    <td>
+                        {%- if char.character.original -%}
+                            {{ char.character.original }}
+                        {%- else -%}
+                            Unknown
+                        {%- endif -%}
+                    </td>
+                </tr>
+                <!-- Character Sex -->
+                <tr>
+                    <td>Apparent Sex</td>
+                    <td>
+                        {%- if char.character.sex[0] == 'm' -%}
+                            Male
+                        {%- elif char.character.sex[0] == 'f' -%}
+                            Female
+                        {%- elif char.character.sex[0] == 'b' -%}
+                            Both
+                        {%- else -%}
+                            Unknown
+                        {%- endif -%}
+                    </td>
+                </tr>
+                <tr>
+                    <td>Real Sex</td>
+                    <td>
+                        {%- if char.character.sex[1] == 'm' -%}
+                            Male
+                        {%- elif char.character.sex[1] == 'f' -%}
+                            Female
+                        {%- elif char.character.sex[1] == 'b' -%}
+                            Both
+                        {%- else -%}
+                            Unknown
+                        {%- endif -%}
+                    </td>
+                </tr>
+                <!-- Character Age -->
+                <tr>
+                    <td>Age</td>
+                    <td>
+                        {%- if char.character.age -%}
+                            {{ char.character.age }}
+                        {%- else -%}
+                            Unknown
+                        {%- endif -%}
+                    </td>
+                </tr>
+                <!-- Character Birthday -->
+                <tr>
+                    <td>Birthday</td>
+                    <td>
+                        {%- if char.character.birthday -%}
+                            {{ char.character.birthday[0] }} / {{ char.character.birthday[1] }}
+                        {%- else -%}
+                            Unknown
+                        {%- endif -%}
+                    </td>
+                </tr>
+                <!-- Character Blood Type -->
+                <tr>
+                    <td>Blood Type</td>
+                    <td>
+                        {%- if char.character.blood_type -%}
+                            {{ char.character.blood_type }}
+                        {%- else -%}
+                            Unknown
+                        {%- endif -%}
+                    </td>
+                </tr>
+                <!-- Character Measurements -->
+                <tr>
+                    <td>Measurements</td>
+                    <td>
+                        {%- if char.character.height -%}
+                            {{ char.character.height }}cm
+                        {%- else -%}
+                            Unknown
+                        {%- endif -%}
+                        /
+                        {%- if char.character.weight -%}
+                            {{ char.character.weight }}kg
+                        {%- else -%}
+                            Unknown
+                        {%- endif -%}
+                    </td>
+                </tr>
+                <!-- Character 3 Sizes -->
+                <tr>
+                    <td>Three Sizes</td>
+                    <td>
+                        {%- if char.character.bust -%}
+                            Bust: {{ char.character.bust }}
+                        {%- else -%}
+                            Bust: Unknown
+                        {%- endif -%}
+                        /
+                        {%- if char.character.waist -%}
+                            Waist: {{ char.character.waist }}cm
+                        {%- else -%}
+                            Waist: Unknown
+                        {%- endif -%}
+                        /
+                        {%- if char.character.hips -%}
+                            Hip: {{ char.character.hips }}cm
+                        {%- else -%}
+                            Hips: Unknown
+                        {%- endif -%}
+                        (
+                        {%- if char.character.cup -%}
+                            {{ char.character.cup }} Cup
+                        {%- else -%}
+                            Cup: Unknown
+                        {%- endif -%}
+                        )
+                    </td>
+                </tr>
+                <!-- Voice By -->
+                <tr>
+                    <td>Voice By</td>
+                    <td>
+                        {%- if char.staff.name -%}
+                            {{ char.staff.name }}
+                        {%- else -%}
+                            Unknown
+                        {%- endif -%}
+                    </td>
+                </tr>
+                <!-- Visual Novels -->
+                <tr>
+                    <td>Visual Novels</td>
+                    <td>
+                        {%- for v in char.character.vns -%}
+                            {{ v.role }} - {{ v.title }}{%- if not loop.last -%}<br>{%- endif -%}
+                        {%- endfor -%}
+                    </td>
+                </tr>
+                <!-- Character Description -->
+                <tr>
+                    <td>Description</td>
+                    <td>
+                        {%- if char.character.description -%}
+                            {{ char.character.description }}
+                        {%- endif -%}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    {%- endfor -%}
+</div>
