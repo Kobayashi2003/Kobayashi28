@@ -1,79 +1,81 @@
-<section class="vn-details">
-    <div class="vn-details__container">
-        <div class="vn-details__cover">
-            <img src="{{ vndata.image.url }}" alt="Cover image of {{ vndata.titles[0].title }}" class="vn-details__cover-img">
-        </div>
-        <div class="vn-details__info">
-            <div class="vn-details__grid">
-                <!-- Visual Novel Titles -->
-                <div class="vn-details__item">
-                    <h2 class="vn-details__item-title">Titles</h2>
-                    <ul class="vn-details-list vn-details__title-list">
-                        {% for title in vndata.titles %}
-                            <li class="vn-details__title-item {{ 'vn-details__title-item--main' if title.main }}">
-                                {{ title.title }}
-                            </li>
-                        {% endfor %}
-                    </ul>
-                </div>
-                <!-- Visual Novel Aliases -->
-                <div class="vn-details__item">
-                    <h2 class="vn-details__item-title">Aliases</h2>
-                    <ul class="vn-details-list vn-details__alias-list">
-                        {% for alias in vndata.aliases %}
-                            <li>{{ alias }}</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-                <!-- Visual Novel Developers -->
-                <div class="vn-details__item">
-                    <h2 class="vn-details__item-title">Developers</h2>
-                    <ul class="vn-details-list vn-details__developer-list">
-                        {% for developer in vndata.developers %}
-                            <li>{{ developer.name }}({{ developer.original }})</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-                <!-- Visual Novel Platforms -->
-                <div class="vn-details__item">
-                    <h2 class="vn-details__item-title">Platforms</h2>
-                    <ul class="vn-details-list vn-details__platforms-list">
-                        {% for platform in vndata.platforms %}
-                            <li>{{ platform }}</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-                <!-- Visual Novel Languages -->
-                <div class="vn-details__item">
-                    <h2 class="vn-details__item-title">Languages</h2>
-                    <ul class="vn-details-list vn-details__languages-list">
-                        {% for language in vndata.languages %}
-                            <li>{{ language }}</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-                <!-- Visual Novel Release Date -->
-                <div class="vn-details__item">
-                    <h2 class="vn-details__item-title">Release Date</h2>
-                    <p class="vn-details__item-content">{{ vndata.released }}</p>
-                </div>
-                <!-- Visual Novel Length -->
-                <div class="vn-details__item">
-                    <h2 class="vn-details__item-title">Play Time</h2>
-                    <p class="vn-details__item-content">
-                        {% set length_labels = ['Very Short', 'Short', 'Middle', 'Long', 'Very Long'] %}
-                        {{ length_labels[vndata.length - 1] if 1 <= vndata.length <= 5 else 'Unknown' }}
-                        {% if vndata.length_minutes %}
-                            ({{ '%dh%02dm'|format(vndata.length_minutes // 60, vndata.length_minutes % 60) }})
-                        {% endif %}
-                    </p>
-                </div>
-                <!-- Visual Novel Description -->
-                <div class="vn-details__item">
-                    <h2 class="vn-details__item-title">Description</h2>
-                    <p class="vn-details__item-content">{{ vndata.description }}</p>
-                </div>
-            </div>
-        </div>
+<section class="vn-details" id="vn-details">
+  <div class="vn-details__container">
+    <div class="vn-details__cover">
+      <a href="{{ vndata.image.url}}">
+        <img src="{{ vndata.image.url }}" alt="Cover image of {{ vndata.titles[0].title }}" class="vn-details__cover-img">
+      </a>
     </div>
+    <div class="vn-details__info">
+      <div class="vn-details__grid">
+        <!-- Visual Novel Titles -->
+        <div class="vn-details__item">
+          <h2 class="vn-details__item-title">Titles</h2>
+          <ul class="vn-details-list vn-details__title-list">
+            {% for title in vndata.titles %}
+              <li class="vn-details__title-item {{ 'vn-details__title-item--main' if title.main }}">
+                {{ title.title }}
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+        <!-- Visual Novel Aliases -->
+        <div class="vn-details__item">
+          <h2 class="vn-details__item-title">Aliases</h2>
+          <ul class="vn-details-list vn-details__alias-list">
+            {% for alias in vndata.aliases %}
+              <li>{{ alias }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        <!-- Visual Novel Developers -->
+        <div class="vn-details__item">
+          <h2 class="vn-details__item-title">Developers</h2>
+          <ul class="vn-details-list vn-details__developer-list">
+            {% for developer in vndata.developers %}
+              <li>{{ developer.name }}({{ developer.original }})</li>
+            {% endfor %}
+          </ul>
+        </div>
+        <!-- Visual Novel Platforms -->
+        <div class="vn-details__item">
+          <h2 class="vn-details__item-title">Platforms</h2>
+          <ul class="vn-details-list vn-details__platforms-list">
+            {% for platform in vndata.platforms %}
+              <li>{{ platform }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        <!-- Visual Novel Languages -->
+        <div class="vn-details__item">
+          <h2 class="vn-details__item-title">Languages</h2>
+          <ul class="vn-details-list vn-details__languages-list">
+            {% for language in vndata.languages %}
+              <li>{{ language }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        <!-- Visual Novel Release Date -->
+        <div class="vn-details__item">
+          <h2 class="vn-details__item-title">Release Date</h2>
+          <p class="vn-details__item-content">{{ vndata.released }}</p>
+        </div>
+        <!-- Visual Novel Length -->
+        <div class="vn-details__item">
+          <h2 class="vn-details__item-title">Play Time</h2>
+          <p class="vn-details__item-content">
+            {% set length_labels = ['Very Short', 'Short', 'Middle', 'Long', 'Very Long'] %}
+            {{ length_labels[vndata.length - 1] if 1 <= vndata.length <= 5 else 'Unknown' }}
+            {% if vndata.length_minutes %}
+              ({{ '%dh%02dm'|format(vndata.length_minutes // 60, vndata.length_minutes % 60) }})
+            {% endif %}
+          </p>
+        </div>
+        <!-- Visual Novel Description -->
+        <div class="vn-details__item">
+          <h2 class="vn-details__item-title">Description</h2>
+          <p class="vn-details__item-content">{{ vndata.description }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
 </section>

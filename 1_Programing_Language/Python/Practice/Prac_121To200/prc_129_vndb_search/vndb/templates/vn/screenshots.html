@@ -1,8 +1,11 @@
-<div class="screenshots">
-    <h1>Screenshots</h1>
-    <div class="screenshot_list">
-        {%- for screenshot_url in vn_screenshots_url -%}
-            <img src="{{ screenshot_url }}" alt="Screenshot of the VN">
-        {%- endfor -%}
-    </div>
-</div>
+<section id="screenshots" class="screenshots">
+  <h2 class="screenshots__title">Screenshots</h2>
+  <div class="screenshots__grid">
+    {% for screenshot in vndata.screenshots %}
+      <a href="{{ screenshot.url }}" class="screenshots__item">
+        <img src="{{ screenshot.thumbnail }}" alt="Screenshot of the VN"
+             class="screenshots__img {% if screenshot.sexual %}screenshots__img--sexual{% endif %} {% if screenshot.violence %}screenshots__img--violence{% endif %}">
+      </a>
+    {% endfor %}
+  </div>
+</section>

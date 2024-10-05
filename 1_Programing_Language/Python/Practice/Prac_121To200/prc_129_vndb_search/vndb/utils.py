@@ -4,6 +4,16 @@ import json
 import re
 from typing import List
 
+def format_description(description: str) -> str:
+    if description is None:
+        return ""
+    # remove all [From [url=...]...[/url]] from the description
+    description = re.sub(r"\[From \[url=.*?\].*?\[/url\]\]", "", description)
+    # remove all [Edited from [url=...]...[/url]] from the description
+    description = re.sub(r"\[Edited from \[url=.*?\].*?\[/url\]\]", "", description)
+    # replace all [url=...]content[/url] to content
+    description = re.sub(r"\[url=.*?\](.*?)\[/url\]", r"\1", description)
+    return description
 
 def check_date(date_str: str) -> bool:
     # date should match format YYYY-MM-DD or YYYY-MM or YYYY
@@ -28,6 +38,7 @@ def check_date(date_str: str) -> bool:
             return False
     return True
 
+
 def format_date(date_str: str) -> str:
     # YYYY => YYYY-01-01
     # YYYY-MM => YYYY-MM-01
@@ -38,6 +49,7 @@ def format_date(date_str: str) -> str:
     if day is None:
         day = "-01"
     return f"{year}{month}{day}"
+
 
 def search_vndb(filters: list,
                 fields: str,
@@ -63,11 +75,18 @@ def search_vndb(filters: list,
         print(f"Error: {response.status_code} {response.text}")
     return None
 
-def generate_filters(query: str|None=None,
-              platforms: List[str]|None=None,
-              developer: str|None=None,
-              released_min: str|None=None,
-              released_max: str|None=None) -> list:
+
+def generate_filters(query:     str|None=None,
+                     developer: str|None=None,
+                     character: str|None=None,
+                     seiyuu:    str|None=None,
+                     staff:     str|None=None,
+                     olang:     str|None=None,
+                     lang:      List[str]|None=None,
+                     platforms: List[str]|None=None,
+                     released_min: str|None=None,
+                     released_max: str|None=None
+              ) -> list:
     filters = ["and"]
     if query is not None:
         filters.append(["search", "=", query])
@@ -75,14 +94,25 @@ def generate_filters(query: str|None=None,
         filters.append(["or"].extend([["platforms", "=", platform] for platform in platforms]))
     if developer is not None:
         filters.append(["developer", "=", ["search", "=", developer]])
+    if character is not None:
+        filters.append(["character", "=", ["search", "=", character]])
+    if seiyuu is not None:
+        filters.append(["character", "=", ["seiyuu", "=", ["search", "=", seiyuu]]])
+    if staff is not None:
+        filters.append(["staff", "=", ["search", "=", staff]])
     if released_min is not None and check_date(released_min):
         filters.append(["released", ">=", format_date(released_min)])
     if released_max is not None and check_date(released_max):
         filters.append(["released", "<=", format_date(released_max)])
+    if lang is not None:
+        filters.append(["or"].extend([["lang", "=", lang] for lang in lang]))
+    if olang is not None:
+        filters.append(["olang", "=", olang])
 
     if filters == ["and"]:
         return []
     return filters
+
 
 def generate_fields(vn_info:            bool=False,
                     tags_info:          bool=False,
