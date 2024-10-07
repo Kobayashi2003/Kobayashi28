@@ -56,7 +56,8 @@ $global:SCOOP_APPLICATION_MAIN = $( if (-not $SCOOP_MAIN_FLAG) { @() } else {
     'lf',       'prince',   'ripgrep',
     'scrcpy',   'sudo',     'vim',
     'zoxide',   'miniconda3',
-    'pandoc',   'latex'
+    'pandoc',   'latex',
+    'postgresql'
 )})
 
 $global:SCOOP_APPLICATION_EXTRAS = $( if (-not $SCOOP_EXTRAS_FLAG) { @() } else {
