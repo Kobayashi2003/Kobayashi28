@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VNS INDEX</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='/css/index.css') }}">
+</head>
+<body>
+  <header>
+    <h1>VNS INDEX</h1>
+    <div class="content-filters">
+      <label for="showSexual">
+        <input type="checkbox" id="showSexual" checked>
+        Show Sexual Content
+      </label>
+      <label for="showViolent">
+        <input type="checkbox" id="showViolent" checked>
+        Show Violent Content
+      </label>
+    </div>
+  </header>
+  <main>
+    <div class="vns" id="vnsContainer">
+      {% for vn in vns %}
+      <div class="vn {% if vn.image__sexual %}vn-sexual{% endif %} {% if vn.image__violence %}vn-violent{% endif %}">
+        <a href="{{ url_for('vn.show', id=vn.id) }}">
+          <div class="vn-image-container">
+            <img src="{{ vn.thumbnail }}" alt="{{ vn.title }}"
+                 class="{% if vn.image__sexual %}index-cover__sexual{% endif %} {% if vn.image__violence %}index-cover__violence{% endif %}">
+          </div>
+          <h2>{{ vn.title }}</h2>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="pagination">
+      <button id="firstPage" class="pagination-button">&laquo; First</button>
+      <button id="prevPage" class="pagination-button">&lt; Prev</button>
+      <div id="pageNumbers" class="page-numbers"></div>
+      <button id="nextPage" class="pagination-button">Next &gt;</button>
+      <button id="lastPage" class="pagination-button">Last &raquo;</button>
+    </div>
+  </main>
+  <script src="{{ url_for('static', filename='/js/index.js') }}"></script>
+</body>
+</html>

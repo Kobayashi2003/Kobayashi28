@@ -1,0 +1,17 @@
+<div class="vn-tags">
+    <h1>Tags</h1>
+    <ul>
+        {%- for tag in vndata.tags -%}
+            <!-- <li>{{ tag }}</li> -->
+            {% if tag.category == 'ero' %}
+                <li class="tag_sexual">{{ tag.name }}</li>
+            {% elif tag.category == 'tech' %}
+                <li class="tag_techinical">{{ tag.name }}</li>
+            {% elif tag.category == 'cont' %}
+                <li class="tag_content">{{ tag.name }}</li>
+            {% else %}
+                <li>{{ tag }}</li>
+            {% endif %}
+        {%- endfor -%}
+    </ul>
+</div>

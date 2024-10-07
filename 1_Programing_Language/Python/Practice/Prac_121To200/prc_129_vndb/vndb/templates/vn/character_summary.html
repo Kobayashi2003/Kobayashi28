@@ -1,0 +1,54 @@
+<section id="character-summary" class="character-summary">
+  <h2 class="character-summary__title">Character Summary</h2>
+  {% for va in vndata.va|sort(attribute='character.id') %}
+    <article id="{{ va.character.id }}" class="character">
+      <div class="character__image">
+        <a href="{{ va.character.image.url }}">
+          <img alt="Image of {{ va.character.name }}"
+              src="{%if va.character.image.url %}{{ va.character.image.url }}{% else %}{{ url_for('static', filename='images/no-image.png') }}{% endif %}"
+              class="character__img {% if va.character.image.sexual %}character__img--sexual{% endif %} {% if va.character.image.violence %}character__img--violence{% endif %}">
+        </a>
+      </div>
+      <div class="character__info">
+        <h3 class="character__name">{{ va.character.name or 'Unknown' }} ({{ va.character.original or 'Unknown' }})</h3>
+        <dl class="character__details">
+
+          {% set details = [
+            ('Apparent Sex' , {'m': 'Male', 'f': 'Female', 'b': 'Both'}.get(va.character.sex[0], 'Unknown')),
+            ('Real Sex'     , {'m': 'Male', 'f': 'Female', 'b': 'Both'}.get(va.character.sex[1], 'Unknown')),
+            ('Birthday'     , '{} / {}'.format(va.character.birthday[0], va.character.birthday[1]) if va.character.birthday else ''),
+            ('Age'          , va.character.age),
+            ('Blood Type'   , va.character.blood_type),
+            ('Height'       , va.character.height),
+            ('Weight'       , va.character.weight),
+            ('Bust'         , va.character.bust),
+            ('Waist'        , va.character.waist),
+            ('Hips'         , va.character.hips),
+            ('Cup'          , va.character.cup),
+            ('Voice By'     , va.staff.name)
+          ] %}
+          {% for label, value in details %}
+            {% if value %}
+              <dt>{{ label }}</dt>
+              <dd>{{ value }}</dd>
+            {% endif %}
+          {% endfor %}
+
+          <dt>Visual Novels</dt>
+          <dd>
+            <ul class="character__vn-list">
+              {% for vns in va.character.vns %}
+                <li>{{ vns.role }} - {{ vns.title }}</li>
+              {% endfor %}
+            </ul>
+          </dd>
+
+          {% if va.character.description %}
+            <dt>Description</dt>
+            <dd>{{ va.character.description }}</dd>
+          {% endif %}
+        </dl>
+      </div>
+    </article>
+  {% endfor %}
+</section>

@@ -1,0 +1,19 @@
+<div class="screenshots">
+    <h1>Screenshots</h1>
+    <div class="screenshot_list">
+        {%- for screenshot in vndata.screenshots -%}
+            <!-- <img src="{{ screenshot.url }}" alt="Screenshot of the VN"> -->
+             <a href="{{ screenshot.url }}">
+                {% if screenshot.sexual and screenshot.violence %}
+                    <img class="screenshot_violence screenshot_sexual" src="{{ screenshot.thumbnail }}" alt="Screenshot of the VN">
+                {% elif screenshot.sexual %}
+                    <img class="screenshot_sexual" src="{{ screenshot.thumbnail }}" alt="Screenshot of the VN">
+                {% elif screenshot.violence %}
+                    <img class="screenshot_violence" src="{{ screenshot.thumbnail }}" alt="Screenshot of the VN">
+                {% else %}
+                    <img src="{{ screenshot.thumbnail }}" alt="Screenshot of the VN">
+                {%- endif -%}
+             </a>
+        {%- endfor -%}
+    </div>
+</div>

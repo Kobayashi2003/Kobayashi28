@@ -1,0 +1,8 @@
+<section id="vn-tags" class="vn-tags">
+  <h2 class="vn-tags__title">Tags</h2>
+  <ul class="vn-tags__list">
+    {% for tag in vndata.tags %}
+      <li class="vn-tags__item vn-tags__item--{{ tag.category }}">{{ tag.name }}</li>
+    {% endfor %}
+  </ul>
+</section>

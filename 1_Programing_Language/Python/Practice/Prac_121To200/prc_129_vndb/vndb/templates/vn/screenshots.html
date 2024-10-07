@@ -1,0 +1,21 @@
+<section id="screenshots" class="screenshots">
+  <h2 class="screenshots__title">Screenshots</h2>
+  <div class="screenshots__carousel">
+    {% for screenshot in vndata.screenshots %}
+      <div class="screenshots__item {% if loop.first %}active{% endif %}">
+        <img src="{{ screenshot.url }}" alt="Screenshot of the VN"
+             class="screenshots__img {% if screenshot.sexual %}screenshots__img--sexual{% endif %} {% if screenshot.violence %}screenshots__img--violence{% endif %}">
+      </div>
+    {% endfor %}
+    <a href="#" class="screenshots__nav screenshots__nav--prev">&lt;</a>
+    <a href="#" class="screenshots__nav screenshots__nav--next">&gt;</a>
+  </div>
+  <div class="screenshots__thumbnails">
+    {% for screenshot in vndata.screenshots %}
+      <a href="#" class="screenshots__thumbnail-link">
+        <img src="{{ screenshot.thumbnail }}" alt="Thumbnail"
+             class="screenshots__thumbnail {% if loop.first %}active{% endif %}">
+      </a>
+    {% endfor %}
+  </div>
+</section>
