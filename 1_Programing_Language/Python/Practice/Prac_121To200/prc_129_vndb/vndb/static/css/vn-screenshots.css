@@ -36,15 +36,16 @@
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(0, 0, 0, 0.5);
-  color: white;
-  padding: 10px;
+  font-size: 5em;
+  padding: 0.1em;
   text-decoration: none;
-  transition: background 0.3s ease;
+  text-align: center;
+  color: white;
+  transition: color 0.3s ease;
 }
 
 .screenshots__nav:hover {
-  background: rgba(0, 0, 0, 0.8);
+  color: #333;
 }
 
 .screenshots__nav--prev {
@@ -59,11 +60,12 @@
   display: flex;
   justify-content: center;
   margin-top: 10px;
+  flex-wrap: wrap;
 }
 
 .screenshots__thumbnail-link {
   display: block;
-  margin: 0 5px;
+  margin: 5px;
 }
 
 .screenshots__thumbnail {
@@ -72,8 +74,24 @@
   cursor: pointer;
   border: 2px solid transparent;
   transition: border-color 0.3s ease;
+  object-fit: cover;
 }
 
 .screenshots__thumbnail.active {
   border-color: var(--primary-color);
+}
+
+@media (max-width: 768px) {
+  .screenshots__thumbnails {
+    justify-content: flex-start;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 10px;
+  }
+
+  .screenshots__thumbnail-link {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+  }
 }

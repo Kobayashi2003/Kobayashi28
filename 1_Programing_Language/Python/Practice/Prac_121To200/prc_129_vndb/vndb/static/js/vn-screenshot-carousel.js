@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const prevButton = carousel.querySelector('.screenshots__nav--prev');
   const nextButton = carousel.querySelector('.screenshots__nav--next');
   const thumbnailsContainer = document.querySelector('.screenshots__thumbnails');
-  const thumbnails = thumbnailsContainer.querySelectorAll('.screenshots__thumbnail-link');
+  const thumbnails = thumbnailsContainer.querySelectorAll('.screenshots__thumbnail');
   let currentIndex = 0;
 
   function showItem(index) {
@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   thumbnailsContainer.addEventListener('click', function(e) {
     e.preventDefault();
-    const clickedThumbnail = e.target.closest('.screenshots__thumbnail-link');
+    const clickedThumbnail = e.target.closest('.screenshots__thumbnail');
     if (clickedThumbnail) {
       const index = Array.from(thumbnails).indexOf(clickedThumbnail);
       if (index !== -1 && items[index].style.display !== 'none') {

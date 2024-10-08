@@ -1,10 +1,9 @@
 def test_db_insert():
     import psycopg2
     import json
-    from vndb.utils import generate_filters, generate_fields, search_vndb
+    from vndb.search import generate_filters, generate_fields, search_vndb
 
-    filters = generate_filters(developer='あざらしそふと')
-
+    filters = generate_filters()
     fields = generate_fields()
     results = search_vndb(filters=filters, fields=fields)['results']
 

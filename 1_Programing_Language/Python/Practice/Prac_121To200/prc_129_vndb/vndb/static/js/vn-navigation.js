@@ -1,35 +1,38 @@
 document.addEventListener('DOMContentLoaded', function() {
   const nav = document.querySelector('.vn-nav');
   const navToggle = document.querySelector('.vn-nav__toggle');
-  const navList = document.querySelector('.vn-nav__list');
+  const navMenu = document.querySelector('.vn-nav__menu');
   const showSexualCheckbox = document.getElementById('showSexual');
   const showViolentCheckbox = document.getElementById('showViolent');
 
   let lastScrollTop = 0;
+  let isMenuOpen = false;
 
-  navToggle.addEventListener('click', function() {
-    navList.classList.toggle('active');
+  navToggle.addEventListener('click', function(e) {
+    e.stopPropagation();
+    isMenuOpen = !isMenuOpen;
+    navMenu.classList.toggle('active');
+    navToggle.setAttribute('aria-expanded', isMenuOpen);
   });
 
   // Close the menu when clicking outside
   document.addEventListener('click', function(event) {
     const isClickInsideNav = nav.contains(event.target);
-    if (!isClickInsideNav && navList.classList.contains('active')) {
-      navList.classList.remove('active');
+    if (!isClickInsideNav && isMenuOpen) {
+      isMenuOpen = false;
+      navMenu.classList.remove('active');
+      navToggle.setAttribute('aria-expanded', 'false');
     }
   });
 
   window.addEventListener('scroll', function() {
     let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
 
-    if (scrollTop > lastScrollTop) {
-      // Scrolling down
+    if (scrollTop > lastScrollTop && !isMenuOpen) {
+      // Scrolling down and menu is closed
       nav.classList.add('hidden');
-      if (navList.classList.contains('active')) {
-        navList.classList.remove('active');
-      }
     } else {
-      // Scrolling up
+      // Scrolling up or menu is open
       nav.classList.remove('hidden');
     }
 

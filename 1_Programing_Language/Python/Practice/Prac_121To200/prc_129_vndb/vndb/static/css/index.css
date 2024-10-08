@@ -7,17 +7,43 @@ body {
 }
 
 header {
-	background-color: #333;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+	background-color: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
 	color: #fff;
-	text-align: center;
 	padding: 1rem;
+}
+
+.header-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+h1 {
+  margin: 0;
+  cursor: pointer;
+}
+
+.menu-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.header-nav {
+  margin-top: 1rem;
 }
 
 .content-filters {
   display: flex;
   justify-content: center;
   gap: 1rem;
-  margin-top: 1rem;
 }
 
 .content-filters label {
@@ -94,7 +120,6 @@ main {
 	position: relative;
 	width: 100%;
 	padding-top: 133.33%;
-	/* 3:4 aspect ratio */
 	overflow: hidden;
 }
 
@@ -134,18 +159,25 @@ main {
 	justify-content: center;
 	align-items: center;
 	margin-top: 2rem;
-	flex-wrap: wrap;
+	flex-wrap: nowrap;
+	font-size: 14px;
 }
 
-.pagination-button {
-	background-color: #333;
-	color: #fff;
+.pagination-button,
+.page-number {
 	border: none;
-	padding: 0.5rem 1rem;
-	margin: 0.25rem;
+	padding: 0.25rem 0.5rem;
+	margin: 0 0.125rem;
 	cursor: pointer;
 	border-radius: 3px;
 	transition: background-color 0.3s ease-in-out;
+	min-width: 2rem;
+	text-align: center;
+}
+
+.pagination-button {
+  background-color: #333;
+  color: #fff
 }
 
 .pagination-button:hover:not(:disabled) {
@@ -164,25 +196,79 @@ main {
 }
 
 .page-number {
-	margin: 0 0.25rem;
-	padding: 0.25rem 0.5rem;
 	cursor: pointer;
-	border-radius: 3px;
 }
 
 .page-number.active {
 	background-color: #333;
-	color: #fff;
+  color: #fff;
+}
+
+.page-number:hover {
+  background-color: #555;
+  color: #fff;
 }
 
 @media (max-width: 768px) {
+
+  .header-content {
+    justify-content: space-between;
+  }
+
 	.vns {
 		grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
 	}
+
+	.pagination {
+		font-size: 12px;
+	}
+
+	.pagination-button,
+	.page-number {
+		padding: 0.2rem 0.4rem;
+		min-width: 1.5rem;
+	}
+
+  .menu-toggle {
+    display: block;
+  }
+
+  .header-nav {
+    display: none;
+  }
+
+  .header-nav.show {
+    display: block;
+  }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 540px) {
 	.vns {
 		grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+	}
+
+	.pagination {
+		font-size: 10px;
+	}
+
+	.pagination-button,
+	.page-number {
+		padding: 0.15rem 0.3rem;
+		min-width: 1.2rem;
+	}
+
+	#firstPage::after {
+		content: '\00AB';
+	}
+
+	#lastPage::before {
+		content: '\00BB';
+	}
+
+	#firstPage span,
+  #lastPage span,
+  #prevPage span,
+  #nextPage span {
+		display: none;
 	}
 }

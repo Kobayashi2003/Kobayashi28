@@ -1,0 +1,24 @@
+<nav class="vn-nav">
+  <div class="vn-nav__home">
+    <h1><a href="{{ url_for('vn.index') }}">{{ vndata.title }}</a></h1>
+  </div>
+  <button class="vn-nav__toggle" aria-label="Toggle navigation menu" aria-expanded="false">☰</button>
+  <div class="vn-nav__menu">
+    <ul class="vn-nav__list">
+      <li><a href="#vn-details">Details</a></li>
+      <li><a href="#vn-tags">Tags</a></li>
+      <li><a href="#character-summary">Characters</a></li>
+      <li><a href="#screenshots">Screenshots</a></li>
+    </ul>
+    <div class="vn-nav__content-filters">
+      <label for="showSexual" class="vn-nav__filter-label">
+        <input type="checkbox" id="showSexual" class="vn-nav__filter-checkbox" checked>
+        Show Sexual Content
+      </label>
+      <label for="showViolent" class="vn-nav__filter-label">
+        <input type="checkbox" id="showViolent" class="vn-nav__filter-checkbox" checked>
+        Show Violent Content
+      </label>
+    </div>
+  </div>
+</nav>

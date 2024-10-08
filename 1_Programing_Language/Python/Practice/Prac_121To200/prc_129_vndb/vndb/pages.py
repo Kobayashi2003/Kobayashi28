@@ -1,11 +1,12 @@
-from flask import Blueprint, render_template, abort
+from flask import Blueprint, render_template, abort, request, redirect, url_for
 from vndb.db import connect_db
 
 from vndb.utils import format_description, judge_sexual, judge_violence
+from vndb.search import generate_fields, generate_filters, search_vndb
 
 vn_bp = Blueprint('vn', __name__, url_prefix='/vn', template_folder='templates')
 
-@vn_bp.route('/')
+@vn_bp.route('/', methods=['GET'])
 def index():
     conn = connect_db()
     with conn.cursor() as curs:
@@ -29,7 +30,7 @@ def index():
     return render_template('vn/index.html', vns=vns)
 
 
-@vn_bp.route('/<id>')
+@vn_bp.route('/<id>', methods=['POST'])
 def show(id):
     conn = connect_db()
     with conn.cursor() as curs:
@@ -54,9 +55,18 @@ def show(id):
 
     return render_template('vn/vn.html', vndata=result[0])
 
-
-@vn_bp.route('/search')
+@vn_bp.route('/search', methods=['GET', 'POST']) 
 def search():
+
+    if request.method == 'POST':
+        query = request.form['query']
+        vndata = search_vndb(fields=generate_fields(), filters=generate_filters(query=query))
+        if vndata:
+            # return render_template('vn/search.html', vndata=vndata)
+            return render_template('vn/vn.html', vndata=vndata['results'][0])
+        else:
+            return render_template('vn/search.html', error="No results found for query: " + query)
+
     return render_template('vn/search.html')
 
 @vn_bp.route('/config')

@@ -53,6 +53,7 @@
 
 .vn-details__item-title {
   font-size: 1rem;
+  font-weight: bold;
   color: var(--secondary-color);
   margin: 0;
   flex: 0 0 30%;

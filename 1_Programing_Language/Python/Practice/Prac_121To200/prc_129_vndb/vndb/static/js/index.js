@@ -8,6 +8,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const nextPageBtn = document.getElementById('nextPage');
   const lastPageBtn = document.getElementById('lastPage');
   const pageNumbers = document.getElementById('pageNumbers');
+  const mainTitle = document.getElementById('mainTitle');
+  const menuToggle = document.getElementById('menuToggle');
+  const headerNav = document.getElementById('headerNav');
 
   const itemsPerPage = 30; // 5 columns * 6 rows
   let currentPage = 1;
@@ -51,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     pageNumbers.innerHTML = '';
 
-    const maxVisiblePages = 5;
+    const maxVisiblePages = getMaxVisiblePages();
     let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
     let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
 
@@ -59,14 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
       startPage = Math.max(1, endPage - maxVisiblePages + 1);
     }
 
-    if (startPage > 1) {
-      pageNumbers.innerHTML += '<span class="page-number">1</span>';
-      if (startPage > 2) {
-        pageNumbers.innerHTML += '<span class="page-number">...</span>';
-      }
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
+    function addPageNumber(i) {
       const pageNumber = document.createElement('span');
       pageNumber.classList.add('page-number');
       pageNumber.textContent = i;
@@ -80,11 +76,32 @@ document.addEventListener('DOMContentLoaded', () => {
       pageNumbers.appendChild(pageNumber);
     }
 
+    if (startPage > 1) {
+      addPageNumber(1);
+      if (startPage > 2) {
+        pageNumbers.appendChild(document.createTextNode('...'));
+      }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      addPageNumber(i);
+    }
+
     if (endPage < totalPages) {
       if (endPage < totalPages - 1) {
-        pageNumbers.innerHTML += '<span class="page-number">...</span>';
+        pageNumbers.appendChild(document.createTextNode('...'));
       }
-      pageNumbers.innerHTML += `<span class="page-number">${totalPages}</span>`;
+      addPageNumber(totalPages);
+    }
+  }
+
+  function getMaxVisiblePages() {
+    if (window.innerWidth <= 480) {
+      return 3;
+    } else if (window.innerWidth <= 768) {
+      return 5;
+    } else {
+      return 7;
     }
   }
 
@@ -113,6 +130,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   lastPageBtn.addEventListener('click', () => {
     currentPage = totalPages;
+    showPage(currentPage);
+  });
+
+  window.addEventListener('resize', () => {
+    showPage(currentPage);
+  });
+
+  // New functionality for responsive header
+  menuToggle.addEventListener('click', () => {
+    headerNav.classList.toggle('show');
+  });
+
+  // Return to first page when clicking on main title
+  mainTitle.addEventListener('click', () => {
+    currentPage = 1;
     showPage(currentPage);
   });
 
