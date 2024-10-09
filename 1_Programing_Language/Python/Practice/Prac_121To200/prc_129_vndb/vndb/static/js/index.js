@@ -1,16 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
   const vnsContainer = document.getElementById('vnsContainer');
-  const showSexualCheckbox = document.getElementById('showSexual');
-  const showViolentCheckbox = document.getElementById('showViolent');
   const pagination = document.getElementById('pagination');
   const firstPageBtn = document.getElementById('firstPage');
   const prevPageBtn = document.getElementById('prevPage');
   const nextPageBtn = document.getElementById('nextPage');
   const lastPageBtn = document.getElementById('lastPage');
   const pageNumbers = document.getElementById('pageNumbers');
-  const mainTitle = document.getElementById('mainTitle');
-  const menuToggle = document.getElementById('menuToggle');
-  const headerNav = document.getElementById('headerNav');
 
   const itemsPerPage = 30; // 5 columns * 6 rows
   let currentPage = 1;
@@ -31,19 +26,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     updatePagination();
-  }
-
-  function updateContentVisibility() {
-    const showSexual = showSexualCheckbox.checked;
-    const showViolent = showViolentCheckbox.checked;
-
-    document.querySelectorAll('.vn-sexual').forEach(vn => {
-      vn.classList.toggle('show-sexual', showSexual);
-    });
-
-    document.querySelectorAll('.vn-violent').forEach(vn => {
-      vn.classList.toggle('show-violent', showViolent);
-    });
   }
 
   function updatePagination() {
@@ -105,10 +87,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  showSexualCheckbox.addEventListener('change', updateContentVisibility);
-  showViolentCheckbox.addEventListener('change', updateContentVisibility);
-  updateContentVisibility();
-
   firstPageBtn.addEventListener('click', () => {
     currentPage = 1;
     showPage(currentPage);
@@ -137,16 +115,11 @@ document.addEventListener('DOMContentLoaded', () => {
     showPage(currentPage);
   });
 
-  // New functionality for responsive header
-  menuToggle.addEventListener('click', () => {
-    headerNav.classList.toggle('show');
-  });
-
-  // Return to first page when clicking on main title
-  mainTitle.addEventListener('click', () => {
+  // Function to reset pagination
+  window.resetPagination = () => {
     currentPage = 1;
     showPage(currentPage);
-  });
+  };
 
   showPage(currentPage);
 });

@@ -5,27 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VNS INDEX</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='/css/index.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='/css/header.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='/css/search.css') }}">
 </head>
 <body>
-  <header>
-    <div class="header-content">
-      <h1 id="mainTitle">VNS INDEX</h1>
-      <button id="menuToggle" class="menu-toggle">☰</button>
-    </div>
-    <nav id="headerNav" class="header-nav">
-      <div class="content-filters">
-        <label for="showSexual">
-          <input type="checkbox" id="showSexual" checked>
-          Show Sexual Content
-        </label>
-        <label for="showViolent">
-          <input type="checkbox" id="showViolent" checked>
-          Show Violent Content
-        </label>
-      </div>
-      <!-- Add more menu items here in the future -->
-    </nav>
-  </header>
+  {% include 'vn/header.html' %}
   <main>
     <div class="vns" id="vnsContainer">
       {% for vn in vns %}
@@ -48,6 +32,9 @@
       <button id="lastPage" class="pagination-button"><span>Last</span></button>
     </div>
   </main>
+  {% include 'vn/search.html' %}
   <script src="{{ url_for('static', filename='/js/index.js') }}"></script>
+  <script src="{{ url_for('static', filename='/js/header.js') }}"></script>
+  <script src="{{ url_for('static', filename='/js/search.js') }}"></script>
 </body>
 </html>
