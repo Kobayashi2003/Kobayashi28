@@ -1,17 +1,50 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Search Test</title>
-</head>
-<body>
-    {% if vndata %} {{ vndata }} {% endif %}
-    {% if error %} {{ error }} {% endif %}
-    <form method="post">
-        <label for="query">Query</label>
-        <input type="text" name="query" id="query" required>
-        <input type="submit" value="GO">
-    </form> 
-</body>
-</html>
+<div id="searchModal" class="search-modal">
+  <div class="search-content">
+    <h2>Search Visual Novels</h2>
+    <div class="search-tabs">
+      <button id="localSearchTab" class="search-tab active">Local Search</button>
+      <button id="vndbSearchTab" class="search-tab">VNDB Search</button>
+    </div>
+    <div id="localSearchForm" class="search-form active">
+      <form>
+        <div class="form-group">
+          <label for="localTitle">Title</label>
+          <input type="text" id="localTitle" name="title" placeholder="Enter title">
+        </div>
+        <div class="form-group">
+          <label for="localDevelopers">Developers</label>
+          <input type="text" id="localDevelopers" name="developers" placeholder="Enter developers">
+        </div>
+        <div class="form-group">
+          <label for="localReleasedDate">Released Date</label>
+          <input type="date" id="localReleasedDate" name="released_date">
+        </div>
+        <div class="form-group">
+          <label for="localCharacters">Characters</label>
+          <input type="text" id="localCharacters" name="characters" placeholder="Enter characters">
+        </div>
+        <div class="form-group">
+          <label for="localLength">Length</label>
+          <select id="localLength" name="length">
+            <option value="">Any</option>
+            <option value="short">Short</option>
+            <option value="medium">Medium</option>
+            <option value="long">Long</option>
+          </select>
+        </div>
+        <button type="submit" class="search-button">Search Local</button>
+      </form>
+    </div>
+    <div id="vndbSearchForm" class="search-form">
+      <form>
+        <div class="form-group">
+          <label for="vndbQuery">Query</label>
+          <input type="text" id="vndbQuery" name="query" placeholder="Enter search query">
+        </div>
+        <!-- Additional VNDB search fields can be added here -->
+        <button type="submit" class="search-button">Search VNDB</button>
+      </form>
+    </div>
+    <button id="closeSearch" class="close-button">&times;</button>
+  </div>
+</div>

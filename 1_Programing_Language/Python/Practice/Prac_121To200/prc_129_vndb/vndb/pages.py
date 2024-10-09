@@ -11,7 +11,7 @@ def index():
     conn = connect_db()
     with conn.cursor() as curs:
         curs.execute("""
-        SELECT 
+        SELECT
             id, title,
             image->>'thumbnail' as thumbnail,
             image->>'sexual' as  image__sexual,
@@ -55,7 +55,7 @@ def show(id):
 
     return render_template('vn/vn.html', vndata=result[0])
 
-@vn_bp.route('/search', methods=['GET', 'POST']) 
+@vn_bp.route('/search', methods=['GET', 'POST'])
 def search():
 
     if request.method == 'POST':
@@ -71,4 +71,4 @@ def search():
 
 @vn_bp.route('/config')
 def config():
-    return render_template('vn/config.html') 
+    return render_template('vn/config.html')
