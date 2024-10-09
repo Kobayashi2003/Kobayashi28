@@ -40,7 +40,7 @@ class VN_Filter_Character(VN_Filter):
     def __init__(self, query: str = "") -> None:
         query = [] if not query else ["character", "=", ["search", "=", query]]
         super().__init__(query)
-        
+
 class VN_Filter_Developer(VN_Filter):
     def __init__(self, query: str = "") -> None:
         query = [] if not query else ["developer", "=", ["search", "=", query]]
@@ -73,14 +73,14 @@ class VN_Filter_ReleasedDate(VN_Filter):
         if not check_date(date):
             raise ValueError("Invalid date format")
         super().__init__(["released", operator, date])
- 
+
 class VN_Filter_Seiyuu(VN_Filter):
     def __init__(self, query: str = "") -> None:
         query = [] if not query else ["character", "=", ["seiyuu", "=", ["search", "=", query]]]
         super().__init__(query)
 
 
-def generate_filters(query: str | None = None, filters: list | None = None) -> list: 
+def generate_filters(query: str | None = None, filters: list | None = None) -> list:
     if not filters:
         filters = []
     if query:
@@ -228,7 +228,7 @@ def search_vndb(filters: list,
     return None
 
 
-def search_database(title: str = "", developers: str = "", character: str = "") -> list:
+def search_local(title: str = "", developers: str = "", character: str = "") -> list:
     pass
 
 
@@ -251,4 +251,3 @@ def test2():
             json.dump(result, f, indent=4)
         print("Result saved to result.json")
     print("No result found")
-   

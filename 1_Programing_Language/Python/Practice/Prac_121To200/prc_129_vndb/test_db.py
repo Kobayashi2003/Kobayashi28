@@ -43,14 +43,27 @@ def test_db_select():
         port     = '5432'
     )
     with conn.cursor() as curs:
-        curs.execute("SELECT data FROM vn WHERE id = 'v19073'") # 千恋万花
-        result = curs.fetchone()
-        if result is None:
-            print('VN not found')
-            return
-        print(result[0])
+        curs.execute("""
+            SELECT jsonb_agg(title) AS titles
+            FROM (
+              SELECT jsonb_array_elements(data->'titles')->>'title' AS title
+              FROM vn
+              WHERE data @> '{"id": "v19073"}'
+            ) subquery
+            """)
+        print(curs.fetchall())
+
+        curs.execute("""
+            SELECT id, jsonb_agg(title) AS titles
+            FROM (
+              SELECT id, jsonb_array_elements(data->'titles')->>'title' AS title
+              FROM vn
+            ) subquery
+            GROUP BY id
+            """)
+        print(curs.fetchall())
 
 
 if __name__ == '__main__':
-    test_db_insert()
-    # test_db_select()
+    # test_db_insert()
+    test_db_select()

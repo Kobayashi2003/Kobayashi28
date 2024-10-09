@@ -8,25 +8,28 @@ vn_bp = Blueprint('vn', __name__, url_prefix='/vn', template_folder='templates')
 
 @vn_bp.route('/', methods=['GET'])
 def index():
+
     conn = connect_db()
     with conn.cursor() as curs:
         curs.execute("""
         SELECT
-            id, title,
+            id,
+            title,
             image->>'thumbnail' as thumbnail,
             image->>'sexual' as  image__sexual,
-            image->>'violence' as image__violence
+            image->>'violence' as image__violence,
+            released, length, length_minutes
         FROM vn ORDER BY id DESC""")
         result = curs.fetchall()
-    vns = []
-    for row in result:
-        vns.append({
+
+    vns = [{
         'id':               row[0],
         'title':            row[1],
         'thumbnail':        row[2],
         'image__sexual':    judge_sexual(float(row[3])),
         'image__violence':  judge_sexual(float(row[4]))
-        })
+    } for row in result]
+
     return render_template('vn/index.html', vns=vns)
 
 
@@ -54,6 +57,19 @@ def show(id):
             va['character']['image']['violence'] = judge_violence(float(va['character']['image']['violence']))
 
     return render_template('vn/vn.html', vndata=result[0])
+
+
+@vn_bp.route('/search_local', methods=['POST'])
+def handle_search_local():
+    localTitle          = request.form['localTitle']
+    localDevelopers     = request.form['localDevelopers']
+    localReleasedDate   = request.form['localReleasedDate']
+    localCharacters     = request.form['localCharacters']
+    localLength         = request.form['localLength']
+
+@vn_bp.route('/search_vndb', methods=['POST'])
+def handle_search_vndb():
+    pass
 
 @vn_bp.route('/search', methods=['GET', 'POST'])
 def search():
