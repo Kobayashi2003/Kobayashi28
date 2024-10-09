@@ -17,7 +17,7 @@
         </div>
         <div class="form-group">
           <label for="localReleasedDate">Released Date</label>
-          <input type="date" id="localReleasedDate" name="released_date">
+          <input type="date" id="localReleasedDate" name="released_date" pattern="\d{4}-\d{2}-\d{2}">
         </div>
         <div class="form-group">
           <label for="localCharacters">Characters</label>
@@ -27,9 +27,11 @@
           <label for="localLength">Length</label>
           <select id="localLength" name="length">
             <option value="">Any</option>
+            <option value="short">Very Short</option>
             <option value="short">Short</option>
             <option value="medium">Medium</option>
             <option value="long">Long</option>
+            <option value="long">Very Long</option>
           </select>
         </div>
         <button type="submit" class="search-button">Search Local</button>
