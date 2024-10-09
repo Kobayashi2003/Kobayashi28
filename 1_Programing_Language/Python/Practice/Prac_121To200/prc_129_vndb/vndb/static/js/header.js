@@ -2,9 +2,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const showSexualCheckbox = document.getElementById('showSexual');
   const showViolentCheckbox = document.getElementById('showViolent');
   const mainTitle = document.getElementById('mainTitle');
+  const header = document.querySelector('.header');
   const menuToggle = document.getElementById('menuToggle');
-  const headerNav = document.getElementById('headerNav');
-  const searchToggle = document.getElementById('searchToggle');
+  const dropdownMenu = document.getElementById('dropdownMenu');
+  const configToggle = document.getElementById('configToggle');
+  const configMenu = document.getElementById('configMenu');
+
+  let lastScrollTop = 0;
+  const scrollThreshold = 5;
 
   function updateContentVisibility() {
     const showSexual = showSexualCheckbox.checked;
@@ -19,11 +24,46 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  function handleScroll() {
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    
+    if (Math.abs(scrollTop - lastScrollTop) <= scrollThreshold) return;
+
+    if (scrollTop > lastScrollTop && scrollTop > header.offsetHeight) {
+      header.classList.remove('visible');
+      header.classList.add('hidden');
+      dropdownMenu.classList.remove('show');
+      configMenu.classList.remove('show');
+    } else {
+      header.classList.remove('hidden');
+      header.classList.add('visible');
+    }
+
+    lastScrollTop = scrollTop;
+  }
+
   showSexualCheckbox.addEventListener('change', updateContentVisibility);
   showViolentCheckbox.addEventListener('change', updateContentVisibility);
 
-  menuToggle.addEventListener('click', () => {
-    headerNav.classList.toggle('show');
+  menuToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    dropdownMenu.classList.toggle('show');
+    configMenu.classList.remove('show');
+  });
+
+  configToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    configMenu.classList.toggle('show');
+    dropdownMenu.classList.remove('show');
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!dropdownMenu.contains(e.target) && e.target !== menuToggle) {
+      dropdownMenu.classList.remove('show');
+    }
+    if (!configMenu.contains(e.target) && e.target !== configToggle) {
+      configMenu.classList.remove('show');
+    }
   });
 
   mainTitle.addEventListener('click', () => {
@@ -32,32 +72,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  searchToggle.addEventListener('click', () => {
-    if (typeof openSearchModal === 'function') {
-      openSearchModal();
-    }
-  });
-
-  // Add event listeners for mobile menu items
-  document.querySelectorAll('.mobile-menu-item').forEach(item => {
+  document.querySelectorAll('.dropdown-item').forEach(item => {
     item.addEventListener('click', (e) => {
       const action = e.currentTarget.getAttribute('aria-label').toLowerCase();
       switch(action) {
-        case 'user profile':
-          console.log('User profile clicked');
-          // Add your user profile action here
-          break;
-        case 'settings':
-          console.log('Settings clicked');
-          // Add your settings action here
+        case 'search':
+          if (typeof openSearchModal === 'function') {
+            openSearchModal();
+          }
           break;
         case 'sort':
           console.log('Sort clicked');
           // Add your sort action here
           break;
+        case 'user profile':
+          console.log('User profile clicked');
+          // Add your user profile action here
+          break;
       }
+      dropdownMenu.classList.remove('show');
     });
   });
+
+  window.addEventListener('scroll', handleScroll, { passive: true });
 
   updateContentVisibility();
 });

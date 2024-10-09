@@ -37,7 +37,7 @@ def create_app(test_config=None):
 
     from . import pages
     app.register_blueprint(pages.vn_bp)
-    app.add_url_rule('/', endpoint='vn.index')
-    app.add_url_rule('/<id>', endpoint='vn.show')
+    app.add_url_rule('/', endpoint='vn.index', methods=['GET', 'POST'])
+    app.add_url_rule('/<id>', endpoint='vn.show', methods=['GET'])
 
     return app

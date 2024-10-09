@@ -7,31 +7,28 @@
     </div>
     <div id="localSearchForm" class="search-form active">
       <form method="post">
+        <input type="hidden" id="searchType" name="searchType" value="local">
         <div class="form-group">
           <label for="localTitle">Title</label>
-          <input type="text" id="localTitle" name="title" placeholder="Enter title">
+          <input type="text" id="localTitle" name="localTitle" placeholder="Enter title">
         </div>
         <div class="form-group">
           <label for="localDevelopers">Developers</label>
-          <input type="text" id="localDevelopers" name="developers" placeholder="Enter developers">
-        </div>
-        <div class="form-group">
-          <label for="localReleasedDate">Released Date</label>
-          <input type="date" id="localReleasedDate" name="released_date" pattern="\d{4}-\d{2}-\d{2}">
+          <input type="text" id="localDevelopers" name="localDevelopers" placeholder="Enter developers">
         </div>
         <div class="form-group">
           <label for="localCharacters">Characters</label>
-          <input type="text" id="localCharacters" name="characters" placeholder="Enter characters">
+          <input type="text" id="localCharacters" name="localCharacters" placeholder="Enter characters">
         </div>
         <div class="form-group">
           <label for="localLength">Length</label>
-          <select id="localLength" name="length">
+          <select id="localLength" name="localLength">
             <option value="">Any</option>
-            <option value="short">Very Short</option>
+            <option value="very-short">Very Short</option>
             <option value="short">Short</option>
             <option value="medium">Medium</option>
             <option value="long">Long</option>
-            <option value="long">Very Long</option>
+            <option value="very-long">Very Long</option>
           </select>
         </div>
         <button type="submit" class="search-button">Search Local</button>
@@ -39,11 +36,11 @@
     </div>
     <div id="vndbSearchForm" class="search-form">
       <form method="post">
+        <input type="hidden" id="searchType" name="searchType" value="vndb">
         <div class="form-group">
           <label for="vndbQuery">Query</label>
-          <input type="text" id="vndbQuery" name="query" placeholder="Enter search query">
+          <input type="text" id="vndbQuery" name="vndbQuery" placeholder="Enter search query">
         </div>
-        <!-- Additional VNDB search fields can be added here -->
         <button type="submit" class="search-button">Search VNDB</button>
       </form>
     </div>

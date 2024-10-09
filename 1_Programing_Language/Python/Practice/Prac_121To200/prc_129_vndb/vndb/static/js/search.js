@@ -41,21 +41,6 @@ document.addEventListener('DOMContentLoaded', () => {
     localSearchForm.classList.remove('active');
   });
 
-  // Add event listeners for form submissions
-  localSearchForm.querySelector('form').addEventListener('submit', (e) => {
-    e.preventDefault();
-    // Handle local search submission
-    console.log('Local search submitted');
-    // Add your search logic here
-  });
-
-  vndbSearchForm.querySelector('form').addEventListener('submit', (e) => {
-    e.preventDefault();
-    // Handle VNDB search submission
-    console.log('VNDB search submitted');
-    // Add your search logic here
-  });
-
   // Expose the openSearchModal function globally
   window.openSearchModal = openSearchModal;
 });

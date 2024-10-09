@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, abort, request, redirect, url_for
+from flask import Blueprint, render_template, abort, request, redirect, url_for 
 from vndb.db import connect_db
 
 from vndb.utils import format_description, judge_sexual, judge_violence
@@ -6,21 +6,88 @@ from vndb.search import generate_fields, generate_filters, search_vndb
 
 vn_bp = Blueprint('vn', __name__, url_prefix='/vn', template_folder='templates')
 
-@vn_bp.route('/', methods=['GET'])
+@vn_bp.route('/', methods=['GET', 'POST'])
 def index():
 
-    conn = connect_db()
-    with conn.cursor() as curs:
-        curs.execute("""
-        SELECT
-            id,
-            title,
-            image->>'thumbnail' as thumbnail,
-            image->>'sexual' as  image__sexual,
-            image->>'violence' as image__violence,
-            released, length, length_minutes
-        FROM vn ORDER BY id DESC""")
-        result = curs.fetchall()
+    if request.method == 'POST' and request.form['searchType'] == 'local':
+        localTitle          = request.form['localTitle']
+        localDevelopers     = request.form['localDevelopers']
+        localCharacters     = request.form['localCharacters']
+        localLength         = request.form.get('localLength')
+        conn = connect_db()
+        with conn.cursor() as curs:
+            select_sentence = ""
+
+            if localTitle:
+                select_sentence += f"""(
+                SELECT DISTINCT data->>'id' AS id
+                FROM vn
+                WHERE data ->> 'title' ILIKE '%{localTitle}%'
+                UNION
+                SELECT DISTINCT data->>'id' AS id
+                FROM vn, jsonb_array_elements(data->'titles') AS data_title
+                WHERE data_title->>'title' ILIKE '%{localTitle}%'
+                UNION
+                SELECT DISTINCT data->>'id' AS id
+                FROM vn, jsonb_array_elements(data->'alias') AS data_alias
+                WHERE data_alias->>'name' ILIKE '%{localTitle}%'
+                )"""
+            if localDevelopers:
+                select_sentence += " INTERSECT " if select_sentence else ""
+                select_sentence += f"""(
+                SELECT DISTINCT
+                    data ->> 'id' AS id
+                FROM vn, jsonb_array_elements(data -> 'developers') AS data_developers
+                WHERE
+                    data_developers ->> 'name' ILIKE '%{localDevelopers}%'
+                    OR data_developers ->> 'original' ILIKE '%{localDevelopers}%'
+                )"""
+            if localCharacters:
+                select_sentence += " INTERSECT " if select_sentence else ""
+                select_sentence += f"""(
+                SELECT DISTINCT data->>'id' AS id
+                FROM vn, jsonb_array_elements(data->'va') AS data_va
+                WHERE 
+                    data_va->'character'->>'name' ILIKE '%{localCharacters}%'
+                    OR data_va->'character'->>'original' ILIKE '%{localCharacters}%'
+                )"""
+            if localLength:
+                select_sentence += " INTERSECT " if select_sentence else ""
+                localLength = {'very-short': 1,'short': 2, 'average': 3, 'long': 4,'very-long': 5}[localLength]
+                select_sentence += f"""(
+                SELECT DISTINCT data->>'id' AS id
+                FROM vn
+                WHERE data->>'length' = '{localLength}'
+                )"""
+            curs.execute(f"""
+            SELECT 
+                data ->> 'id' as id,
+                data ->> 'title' as title,
+                data -> 'image' ->> 'thumbnail' as thumbnail,
+                data -> 'image' ->> 'sexual' as image__sexual,
+                data -> 'image' ->> 'violence' as image__violence
+            FROM vn
+            WHERE data ->> 'id' IN (
+                {select_sentence if select_sentence else "SELECT data->>'id' FROM vn"}
+            ) ORDER BY data->>'id' DESC;
+            """)
+            result = curs.fetchall()
+    
+    if request.method == 'POST' and request.form['searchType'] == 'vndb':
+        result = []
+
+    if request.method == 'GET':
+        conn = connect_db()
+        with conn.cursor() as curs:
+            curs.execute("""
+            SELECT
+                data ->> 'id' as id,
+                data ->> 'title' as title,
+                data -> 'image' ->> 'thumbnail' as thumbnail,
+                data -> 'image' ->> 'sexual' as image__sexual,
+                data -> 'image' ->> 'violence' as image__violence
+            FROM vn ORDER BY data->>'id' DESC""")
+            result = curs.fetchall()
 
     vns = [{
         'id':               row[0],
@@ -33,7 +100,7 @@ def index():
     return render_template('vn/index.html', vns=vns)
 
 
-@vn_bp.route('/<id>', methods=['POST'])
+@vn_bp.route('/<id>', methods=['GET'])
 def show(id):
     conn = connect_db()
     with conn.cursor() as curs:
@@ -59,31 +126,14 @@ def show(id):
     return render_template('vn/vn.html', vndata=result[0])
 
 
-@vn_bp.route('/search_local', methods=['POST'])
-def handle_search_local():
-    localTitle          = request.form['localTitle']
-    localDevelopers     = request.form['localDevelopers']
-    localReleasedDate   = request.form['localReleasedDate']
-    localCharacters     = request.form['localCharacters']
-    localLength         = request.form['localLength']
 
-@vn_bp.route('/search_vndb', methods=['POST'])
-def handle_search_vndb():
-    pass
-
-@vn_bp.route('/search', methods=['GET', 'POST'])
-def search():
+@vn_bp.route('/test', methods=('GET', 'POST'))
+def test():
 
     if request.method == 'POST':
-        query = request.form['query']
-        vndata = search_vndb(fields=generate_fields(), filters=generate_filters(query=query))
-        if vndata:
-            # return render_template('vn/search.html', vndata=vndata)
-            return render_template('vn/vn.html', vndata=vndata['results'][0])
-        else:
-            return render_template('vn/search.html', error="No results found for query: " + query)
+        return render_template('vn/test.html', test='success')
 
-    return render_template('vn/search.html')
+    return render_template('vn/test.html', test='test')
 
 @vn_bp.route('/config')
 def config():
