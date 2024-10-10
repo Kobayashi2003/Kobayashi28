@@ -1,4 +1,4 @@
-<section id="vn-tags" class="vn-tags">
+<section id="vn-tags" class="vn-tags {% if not vndata.tags %}vn-tags--hidden{% endif %}">
   <h2 class="vn-tags__title">Tags</h2>
   <ul class="vn-tags__list">
     {% for tag in vndata.tags %}

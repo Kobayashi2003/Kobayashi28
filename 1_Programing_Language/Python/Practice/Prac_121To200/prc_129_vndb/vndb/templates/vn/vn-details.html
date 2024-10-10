@@ -2,13 +2,13 @@
   <div class="vn-details__container">
     <div class="vn-details__cover">
       <a href="{{ vndata.image.url}}">
-        <img src="{{ vndata.image.url }}" alt="Cover image of {{ vndata.titles[0].title }}" 
+        <img src="{{ vndata.image.url }}" alt="Cover image of {{ vndata.titles[0].title }}"
              class="vn-details__cover-img {% if vndata.image.sexual %}cover__img--sexual{% endif %} {% if vndata.image.violence %}cover__img--violence{% endif %}">
       </a>
     </div>
     <div class="vn-details__info">
       <div class="vn-details__grid">
-        <div class="vn-details__item vn-details__item--horizontal">
+        <div class="vn-details__item vn-details__item--horizontal {% if not vndata.titles %}vn-details__item--hidden{% endif %}">
           <h2 class="vn-details__item-title">Titles</h2>
           <ul class="vn-details-list vn-details__title-list">
             {% for title in vndata.titles %}
@@ -18,7 +18,7 @@
             {% endfor %}
           </ul>
         </div>
-        <div class="vn-details__item vn-details__item--horizontal">
+        <div class="vn-details__item vn-details__item--horizontal {% if not vndata.aliases %}vn-details__item--hidden{% endif %}">
           <h2 class="vn-details__item-title">Aliases</h2>
           <ul class="vn-details-list vn-details__alias-list">
             {% for alias in vndata.aliases %}
@@ -26,7 +26,7 @@
             {% endfor %}
           </ul>
         </div>
-        <div class="vn-details__item vn-details__item--horizontal">
+        <div class="vn-details__item vn-details__item--horizontal {% if not vndata.genres %}vn-details__item--hidden{% endif %}">
           <h2 class="vn-details__item-title">Developers</h2>
           <ul class="vn-details-list vn-details__developer-list">
             {% for developer in vndata.developers %}
@@ -38,7 +38,7 @@
             {% endfor %}
           </ul>
         </div>
-        <div class="vn-details__item vn-details__item--horizontal">
+        <div class="vn-details__item vn-details__item--horizontal {% if not vndata.platforms %}vn-details__item--hidden{% endif %}">
           <h2 class="vn-details__item-title">Platforms</h2>
           <ul class="vn-details-list vn-details__platforms-list">
             {% for platform in vndata.platforms %}
@@ -46,7 +46,7 @@
             {% endfor %}
           </ul>
         </div>
-        <div class="vn-details__item vn-details__item--horizontal">
+        <div class="vn-details__item vn-details__item--horizontal {% if not vndata.languages %}vn-details__item--hidden{% endif %}">
           <h2 class="vn-details__item-title">Languages</h2>
           <ul class="vn-details-list vn-details__languages-list">
             {% for language in vndata.languages %}
@@ -54,11 +54,11 @@
             {% endfor %}
           </ul>
         </div>
-        <div class="vn-details__item vn-details__item--horizontal">
+        <div class="vn-details__item vn-details__item--horizontal {% if not vndata.release_date %}vn-details__item--hidden{% endif %}">
           <h2 class="vn-details__item-title">Release Date</h2>
           <p class="vn-details__item-content">{{ vndata.released }}</p>
         </div>
-        <div class="vn-details__item vn-details__item--horizontal">
+        <div class="vn-details__item vn-details__item--horizontal {% if not vndata.length and not vndata.length_minutes %}vn-details__item--hidden{% endif %}">
           <h2 class="vn-details__item-title">Play Time</h2>
           <p class="vn-details__item-content">
             {% if vndata.length %}
@@ -70,7 +70,7 @@
             {% endif %}
           </p>
         </div>
-        <div class="vn-details__item vn-details__item--vertical">
+        <div class="vn-details__item vn-details__item--vertical {% if not vndata.description %}vn-details__item--hidden{% endif %}">
           <h2 class="vn-details__item-title">Description</h2>
           <p class="vn-details__item-content">{{ vndata.description }}</p>
         </div>

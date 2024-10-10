@@ -1,4 +1,4 @@
-<section id="screenshots" class="screenshots">
+<section id="screenshots" class="screenshots {% if not vndata.screenshots %}screenshots--hidden{% endif %}">
   <h2 class="screenshots__title">Screenshots</h2>
   <div class="screenshots__carousel">
     {% for screenshot in vndata.screenshots %}

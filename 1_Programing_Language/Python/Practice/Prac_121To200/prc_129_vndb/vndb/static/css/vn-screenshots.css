@@ -1,3 +1,7 @@
+.screenshots--hidden {
+  display: none;
+}
+
 .screenshots h2 {
   margin-top: 0;
   color: var(--secondary-color);

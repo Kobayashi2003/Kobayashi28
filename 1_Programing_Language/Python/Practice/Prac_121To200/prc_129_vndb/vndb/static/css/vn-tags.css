@@ -1,3 +1,7 @@
+.vn-tags--hidden {
+  display: none;
+}
+
 .vn-tags h2 {
   margin-top: 0;
   color: var(--secondary-color);

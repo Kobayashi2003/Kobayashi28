@@ -91,6 +91,7 @@ def generate_filters(query: str | None = None, filters: list | None = None) -> l
 def generate_fields(vn_info:            bool=False,
                     tags_info:          bool=False,
                     developers_info:    bool=False,
+                    extlinks_info:      bool=False,
                     staff_info:         bool=False,
                     character_info:     bool=False,
                     character_va_info:  bool=False,
@@ -108,7 +109,8 @@ def generate_fields(vn_info:            bool=False,
         image.thumbnail, image.thumbnail_dims,
         screenshots.url, screenshots.dims, screenshots.sexual, screenshots.violence,
         screenshots.thumbnail, screenshots.thumbnail_dims,
-        olang, languages, platforms, released, length, length_minutes, description,
+        olang, languages, platforms, released, description,
+        length, length_minutes, devstatus,
 """
 
     if tags_info:
@@ -177,6 +179,11 @@ def generate_fields(vn_info:            bool=False,
         olang, languages, platforms, released, length, length_minutes, description,
 """)])
 
+    if extlinks_info:
+        fields += """
+        extlinks.url, extlinks.label, extlinks.name
+"""
+
     if fields == "":
         fields += """
         title, titles.title, titles.lang, titles.official, titles.main, aliases,
@@ -194,7 +201,7 @@ def generate_fields(vn_info:            bool=False,
         va.character.image.url, va.character.image.dims,
         va.character.image.sexual, va.character.image.violence,
         va.character.vns.role, va.character.vns.title,
-        va.staff.name, va.staff.original
+        va.staff.name, va.staff.original, extlinks.url,
 """
 
     fields = fields.strip().replace("\n", "").replace(" ", "")

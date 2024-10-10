@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, abort, request, redirect, url_for 
+from flask import Blueprint, render_template, abort, request, redirect, url_for
 from vndb.db import connect_db
 
 from vndb.utils import format_description, judge_sexual, judge_violence
@@ -47,7 +47,7 @@ def index():
                 select_sentence += f"""(
                 SELECT DISTINCT data->>'id' AS id
                 FROM vn, jsonb_array_elements(data->'va') AS data_va
-                WHERE 
+                WHERE
                     data_va->'character'->>'name' ILIKE '%{localCharacters}%'
                     OR data_va->'character'->>'original' ILIKE '%{localCharacters}%'
                 )"""
@@ -60,7 +60,7 @@ def index():
                 WHERE data->>'length' = '{localLength}'
                 )"""
             curs.execute(f"""
-            SELECT 
+            SELECT
                 data ->> 'id' as id,
                 data ->> 'title' as title,
                 data -> 'image' ->> 'thumbnail' as thumbnail,
@@ -72,7 +72,7 @@ def index():
             ) ORDER BY data->>'id' DESC;
             """)
             result = curs.fetchall()
-    
+
     if request.method == 'POST' and request.form['searchType'] == 'vndb':
         result = []
 

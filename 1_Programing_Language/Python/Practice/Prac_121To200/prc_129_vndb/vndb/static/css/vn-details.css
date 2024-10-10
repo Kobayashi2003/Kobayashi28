@@ -40,6 +40,10 @@
   border-radius: var(--border-radius);
 }
 
+.vn-details__item--hidden {
+  display: none;
+}
+
 .vn-details__item--horizontal {
   display: flex;
   justify-content: space-between;
