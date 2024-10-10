@@ -6,8 +6,10 @@
       <button id="vndbSearchTab" class="search-tab">VNDB Search</button>
     </div>
     <div id="localSearchForm" class="search-form active">
-      <form method="post">
+      <form method="post" action="{{ url_for('vn.index') }}">
         <input type="hidden" id="searchType" name="searchType" value="local">
+        <input type="hidden" id="sortSelect" name="sortSelect" value="{{ form['sortSelected'] }}">
+        <input type="hidden" id="sortOrder"  name="sortOrder"  value="{{ form['sortOrder'] }}">
         <div class="form-group">
           <label for="localTitle">Title</label>
           <input type="text" id="localTitle" name="localTitle" placeholder="Enter title">
@@ -35,11 +37,29 @@
       </form>
     </div>
     <div id="vndbSearchForm" class="search-form">
-      <form method="post">
+      <form method="post" action="{{ url_for('vn.index') }}">
         <input type="hidden" id="searchType" name="searchType" value="vndb">
+        <input type="hidden" id="sortSelect" name="sortSelect" value="{{ form['sortSelected'] }}">
+        <input type="hidden" id="sortOrder"  name="sortOrder"  value="{{ form['sortOrder'] }}">
         <div class="form-group">
           <label for="vndbQuery">Query</label>
           <input type="text" id="vndbQuery" name="vndbQuery" placeholder="Enter search query">
+        </div>
+        <div class="form-group">
+          <label for="vndbDevelopers">Developers</label>
+          <input type="text" id="vndbDevelopers" name="vndbDevelopers" placeholder="Enter developers">
+        </div>
+        <div class="form-group">
+          <label for="vndbStaffs">Staffs</label>
+          <input type="text" id="vndbStaffs" name="vndbStaffs" placeholder="Enter staffs">
+        </div>
+        <div class="form-group">
+          <label for="vndbCharacters">Characters</label>
+          <input type="text" id="vndbCharacters" name="vndbCharacters" placeholder="Enter characters">
+        </div>
+        <div class="form-group">
+          <label for="vndbTags">Tags</label>
+          <input type="text" id="vndbTags" name="vndbTags" placeholder="Enter tags">
         </div>
         <button type="submit" class="search-button">Search VNDB</button>
       </form>

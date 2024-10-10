@@ -1,27 +1,30 @@
 from vndb.utils import check_date
+from vndb.db import connect_db
+# from utils import check_date
+# from db import connect_db
 
 import requests
 import json
 import re
+import datetime
 
 class VN_Filter:
     def __init__(self, query: list) -> None:
         self.query = query
+    def get_filters(self):
+        return self.query
 
 class VN_Operactor:
     def __init__(self, operator: str, filters: list | None) -> None:
         self.operator = operator
         self.filters = filters if filters else []
     def __add__(self, other):
-        if isinstance(other, VN_Operactor):
-            self.filters.append(other.filters)
-            return self
-        if isinstance(other, VN_Filter):
-            self.filters.append(other.query)
+        if isinstance(other, VN_Operactor) or isinstance(other, VN_Filter):
+            self.filters.append(other)
             return self
         raise TypeError("unsupported operand type(s) for +: 'VN_Operactor' and '{}'".format(type(other)))
     def get_filters(self):
-        return [self.operator] + self.filters
+        return [self.operator] + [sub_filters.get_filters() for sub_filters in self.filters]
 
 class VN_Operactor_And(VN_Operactor):
     def __init__(self, filters: list | None = None) -> None:
@@ -30,6 +33,11 @@ class VN_Operactor_And(VN_Operactor):
 class VN_Operactor_Or(VN_Operactor):
     def __init__(self, filters: list | None = None) -> None:
         super().__init__("or", filters)
+
+class VN_Filter_ID(VN_Filter):
+    def __init__(self, query: str = "") -> None:
+        query = [] if not query else ["id", "=", query]
+        super().__init__(query)
 
 class VN_Filter_Staff(VN_Filter):
     def __init__(self, query: str = "") -> None:
@@ -58,12 +66,12 @@ class VN_Filter_OriginalLanguage(VN_Filter):
 
 class VN_Filter_Platform(VN_Filter):
     def __init__(self, query: str = "") -> None:
-        query = [] if not query else ["platforms", "=", query]
+        query = [] if not query else ["platform", "=", query]
         super().__init__(query)
 
-class Vn_Filter_Tags(VN_Filter):
+class VN_Filter_Tag(VN_Filter):
     def __init__(self, query: str = "") -> None:
-        query = [] if not query else ["tags", "=", ["search", "=", query]]
+        query = [] if not query else ["tag", "=", ["search", "=", query]]
         super().__init__(query)
 
 class VN_Filter_ReleasedDate(VN_Filter):
@@ -74,12 +82,6 @@ class VN_Filter_ReleasedDate(VN_Filter):
             raise ValueError("Invalid date format")
         super().__init__(["released", operator, date])
 
-class VN_Filter_Seiyuu(VN_Filter):
-    def __init__(self, query: str = "") -> None:
-        query = [] if not query else ["character", "=", ["seiyuu", "=", ["search", "=", query]]]
-        super().__init__(query)
-
-
 def generate_filters(query: str | None = None, filters: list | None = None) -> list:
     if not filters:
         filters = []
@@ -88,7 +90,8 @@ def generate_filters(query: str | None = None, filters: list | None = None) -> l
     return filters
 
 
-def generate_fields(vn_info:            bool=False,
+def generate_fields(fields:             str = "",
+                    vn_info:            bool=False,
                     tags_info:          bool=False,
                     developers_info:    bool=False,
                     extlinks_info:      bool=False,
@@ -100,7 +103,6 @@ def generate_fields(vn_info:            bool=False,
                     relations_info:     bool=False,
                     relations_vn_info:  bool=False,
                     ) -> str:
-    fields = ""
 
     if vn_info:
         fields += """
@@ -214,29 +216,125 @@ def search_vndb(filters: list,
                 fields: str,
                 results: int=100,
                 sort: str="",
+                reverse: bool=False,
                 page: int=1
                 ) -> dict|None:
+
     url = "https://api.vndb.org/kana/vn"
+
     headers = {
         "Content-Type": "application/json"
     }
+
+    sort = {
+        "id":           "id",
+        "title":        "title",
+        "release_date": "released"
+    }.get(sort, "title")
+
     data = {
-        "filters": filters,
-        "fields": fields,
-        "results": results,
-        "sort": sort,
-        "page": page
+        "filters":  filters,
+        "fields":   fields,
+        "results":  results,
+        "sort":     sort,
+        "reverse":  reverse,
+        "page":     page
     }
+
     response = requests.post(url, headers=headers, data=json.dumps(data))
     if response.status_code == 200:
         return json.loads(response.text)
     else:
-        print(f"Error: {response.status_code} {response.text}")
+        print(f"{datetime.datetime.now()}: {response.status_code} {response.text}\n")
+        with open("error.log", "a") as f:
+            f.write(f"{datetime.datetime.now()}: {response.status_code} {response.text}\n")
     return None
 
 
-def search_local(title: str = "", developers: str = "", character: str = "") -> list:
-    pass
+def search_local(title: str = "", developers: str = "", characters: str = "", tags: str = "", length: str = "", sort_by: str = "", sort_order: bool = False) -> list | None:
+    localTitle      = title
+    localDevelopers = developers
+    localCharacters = characters
+    localTags       = tags
+    localLength     = length
+    conn = connect_db()
+    with conn.cursor() as curs:
+        select_sentence = ""
+
+        if localTitle:
+            localTitle = localTitle.replace("'",  "''")
+            select_sentence += f"""(
+            SELECT DISTINCT data->>'id' AS id
+            FROM vn
+            WHERE data ->> 'title' ILIKE '%{localTitle}%'
+            UNION
+            SELECT DISTINCT data->>'id' AS id
+            FROM vn, jsonb_array_elements(data->'titles') AS data_title
+            WHERE data_title->>'title' ILIKE '%{localTitle}%'
+            UNION
+            SELECT DISTINCT data->>'id' AS id
+            FROM vn, jsonb_array_elements(data->'alias') AS data_alias
+            WHERE data_alias->>'name' ILIKE '%{localTitle}%'
+            )"""
+        if localDevelopers:
+            localDevelopers = localDevelopers.replace("'",  "''")
+            select_sentence += " INTERSECT " if select_sentence else ""
+            select_sentence += f"""(
+            SELECT DISTINCT
+                data ->> 'id' AS id
+            FROM vn, jsonb_array_elements(data -> 'developers') AS data_developers
+            WHERE
+                data_developers ->> 'name' ILIKE '%{localDevelopers}%'
+                OR data_developers ->> 'original' ILIKE '%{localDevelopers}%'
+            )"""
+        if localCharacters:
+            localCharacters = localCharacters.replace("'",  "''")
+            select_sentence += " INTERSECT " if select_sentence else ""
+            select_sentence += f"""(
+            SELECT DISTINCT data->>'id' AS id
+            FROM vn, jsonb_array_elements(data->'va') AS data_va
+            WHERE
+                data_va->'character'->>'name' ILIKE '%{localCharacters}%'
+                OR data_va->'character'->>'original' ILIKE '%{localCharacters}%'
+            )"""
+        if localTags:
+            localTags = localTags.replace("'",  "''")
+            select_sentence += " INTERSECT " if select_sentence else ""
+            select_sentence += f"""(
+            SELECT DISTINCT data->>'id' AS id
+            FROM vn, jsonb_array_elements(data->'tags') AS data_tags
+            WHERE data_tags->>'name' ILIKE '%{localTags}%'
+            )"""
+        if localLength:
+            select_sentence += " INTERSECT " if select_sentence else ""
+            localLength = {'very-short': 1,'short': 2, 'medium': 3, 'long': 4,'very-long': 5}[localLength]
+            select_sentence += f"""(
+            SELECT DISTINCT data->>'id' AS id
+            FROM vn
+            WHERE data->>'length' = '{localLength}'
+            )"""
+        curs.execute(f"""
+        SELECT
+            data ->> 'id' as id,
+            data ->> 'title' as title,
+            data -> 'image' ->> 'thumbnail' as thumbnail,
+            data -> 'image' ->> 'sexual' as image__sexual,
+            data -> 'image' ->> 'violence' as image__violence
+        FROM vn
+        WHERE data ->> 'id' IN (
+            {select_sentence if select_sentence else "SELECT data->>'id' FROM vn"}
+        ) ORDER BY {
+            {
+                "title": "data ->> 'title'",
+                "release_date": "data ->> 'released'",
+                "id": "data ->> 'id'"
+            }.get(sort_by, "data ->> 'title'")
+        } {
+            "DESC" if sort_order else "ASC"
+        }""")
+        result = curs.fetchall()
+
+        return result
 
 
 def test1():
@@ -247,7 +345,8 @@ def test1():
         with open("result.json", "w") as f:
             json.dump(result, f, indent=4)
         print("Result saved to result.json")
-    print("No result found")
+    else:
+        print("No result found")
 
 
 def test2():
@@ -257,4 +356,27 @@ def test2():
         with open("result.json", "w") as f:
             json.dump(result, f, indent=4)
         print("Result saved to result.json")
-    print("No result found")
+    else:
+        print("No result found")
+
+
+def test3():
+    filters = generate_filters(query='セレクトオブリージュ')
+    fields = generate_fields("""id, title, image.thumbnail, image.sexual, image.violence""")
+    result = search_vndb(filters=filters, fields=fields)
+    if result:
+        with open("result.json", "w") as f:
+            json.dump(result, f, indent=4)
+        print("Result saved to result.json")
+    else:
+        print("No result found")
+
+
+# @lambda _:_()
+def test4():
+    and_container = VN_Operactor_And()
+    or_container = VN_Operactor_Or()
+    or_container += VN_Filter_Developer('HOOKSOFT')
+    or_container += VN_Filter_Developer('SMEE')
+    and_container += or_container
+    print(and_container.get_filters())

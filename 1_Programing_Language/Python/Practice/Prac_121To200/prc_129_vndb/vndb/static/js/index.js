@@ -7,6 +7,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const lastPageBtn = document.getElementById('lastPage');
   const pageNumbers = document.getElementById('pageNumbers');
 
+  const sortForm = document.getElementById('sortForm');
+  const sortSelect = document.getElementById('sortSelect');
+  const sortOrder = document.getElementById('sortOrder');
+
   const itemsPerPage = 30; // 5 columns * 6 rows
   let currentPage = 1;
 
@@ -109,6 +113,15 @@ document.addEventListener('DOMContentLoaded', () => {
   lastPageBtn.addEventListener('click', () => {
     currentPage = totalPages;
     showPage(currentPage);
+  });
+
+  sortSelect.addEventListener('change', () => {
+    sortForm.submit();
+  });
+
+  sortOrder.addEventListener('change', () => {
+    sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc';
+    sortForm.submit();
   });
 
   window.addEventListener('resize', () => {

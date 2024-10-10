@@ -2,7 +2,13 @@
   <h2 class="vn-tags__title">Tags</h2>
   <ul class="vn-tags__list">
     {% for tag in vndata.tags %}
-      <li class="vn-tags__item vn-tags__item--{{ tag.category }}">{{ tag.name }}</li>
+      <form action="{{ url_for('vn.index') }}" method="post">
+        <input type="hidden" id="searchType" name="searchType" value="local">
+        <input type="hidden" id="localTags" name="localTags" value="{{ tag.name }}">
+        <button type="submit" class="vn-tags__link">
+          <li class="vn-tags__item vn-tags__item--{{ tag.category }}">{{ tag.name }}</li>
+        </button>
+      </form>
     {% endfor %}
   </ul>
 </section>

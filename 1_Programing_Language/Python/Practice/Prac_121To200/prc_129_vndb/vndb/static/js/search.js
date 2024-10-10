@@ -41,6 +41,20 @@ document.addEventListener('DOMContentLoaded', () => {
     localSearchForm.classList.remove('active');
   });
 
+  // Event listener for keydown events
+  document.addEventListener('keydown', (event) => {
+    // Check if Ctrl+F is pressed
+    if (event.ctrlKey && event.key === 'f') {
+      event.preventDefault(); // Prevent the default browser search
+      openSearchModal();
+    }
+    
+    // Check if Esc is pressed
+    if (event.key === 'Escape') {
+      closeSearchModal();
+    }
+  });
+
   // Expose the openSearchModal function globally
   window.openSearchModal = openSearchModal;
 });

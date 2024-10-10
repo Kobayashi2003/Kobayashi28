@@ -1,4 +1,4 @@
-<section id="character-summary" class="character-summary">
+<section id="character-summary" class="character-summary {% if not vndata.va %}character-summary--hidden{% endif %}">
   <h2 class="character-summary__title">Character Summary</h2>
   {% for va in vndata.va|sort(attribute='character.id') %}
     <article id="{{ va.character.id }}" class="character">
@@ -38,7 +38,7 @@
           <dd>
             <ul class="character__vn-list">
               {% for vns in va.character.vns %}
-                <li>{{ vns.role }} - {{ vns.title }}</li>
+                <a href="{{ url_for('vn.show', id=vns.id) }}" class="character__vn-link"><li>{{ vns.role }} - {{ vns.title }}</li></a>
               {% endfor %}
             </ul>
           </dd>

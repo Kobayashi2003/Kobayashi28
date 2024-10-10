@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask
+from flask import Flask  
 
 def create_app(test_config=None):
     # create and configure the app
@@ -32,12 +32,19 @@ def create_app(test_config=None):
     def hello():
         return 'Yep, I am KOBAYASHI.'
 
+    @app.route('/test', methods=('GET', 'POST'))
+    def test():
+        from flask import request, render_template
+        if request.method == 'POST':
+            return render_template('test.html', test='success')
+        return render_template('test.html', test='test')
+
     from . import db
     db.init_app(app)
 
     from . import pages
     app.register_blueprint(pages.vn_bp)
     app.add_url_rule('/', endpoint='vn.index', methods=['GET', 'POST'])
-    app.add_url_rule('/<id>', endpoint='vn.show', methods=['GET'])
+    app.add_url_rule('/<id>', endpoint='vn.show', methods=['GET', 'POST'])
 
     return app

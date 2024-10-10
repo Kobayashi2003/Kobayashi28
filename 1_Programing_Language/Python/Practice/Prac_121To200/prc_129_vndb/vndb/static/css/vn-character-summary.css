@@ -1,3 +1,7 @@
+.character-summary--hidden {
+  display: none;
+}
+
 .character-summary h2 {
   margin-top: 0;
   color: var(--secondary-color);
@@ -55,6 +59,15 @@
 .character__details dt {
   font-weight: bold;
   color: var(--secondary-color);
+}
+
+.character__vn-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.character__vn-link:hover {
+  color: var(--primary-color);
 }
 
 @media (max-width: 1024px) {

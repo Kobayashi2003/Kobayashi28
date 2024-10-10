@@ -26,15 +26,21 @@
             {% endfor %}
           </ul>
         </div>
-        <div class="vn-details__item vn-details__item--horizontal {% if not vndata.genres %}vn-details__item--hidden{% endif %}">
+        <div class="vn-details__item vn-details__item--horizontal {% if not vndata.developers %}vn-details__item--hidden{% endif %}">
           <h2 class="vn-details__item-title">Developers</h2>
           <ul class="vn-details-list vn-details__developer-list">
             {% for developer in vndata.developers %}
-              {% if developer.original %}
-                <li>{{ developer.name }}({{ developer.original }})</li>
-              {% else %}
-                <li>{{ developer.name }}</li>
-              {% endif %}
+              <form action="{{ url_for('vn.index') }}" method="post">
+                <input type="hidden" id="searchType" name="searchType" value="local">
+                <input type="hidden" id="localDevelopers" name="localDevelopers" value="{{ developer.name }}">
+                  <button type="submit" class="vn-details__developer-link">
+                    {% if developer.original %}
+                      <li>{{ developer.name }}({{ developer.original }})</li>
+                    {% else %}
+                      <li>{{ developer.name }}</li>
+                    {% endif %}
+                  </button>
+              </form>
             {% endfor %}
           </ul>
         </div>
@@ -54,7 +60,7 @@
             {% endfor %}
           </ul>
         </div>
-        <div class="vn-details__item vn-details__item--horizontal {% if not vndata.release_date %}vn-details__item--hidden{% endif %}">
+        <div class="vn-details__item vn-details__item--horizontal {% if not vndata.released %}vn-details__item--hidden{% endif %}">
           <h2 class="vn-details__item-title">Release Date</h2>
           <p class="vn-details__item-content">{{ vndata.released }}</p>
         </div>

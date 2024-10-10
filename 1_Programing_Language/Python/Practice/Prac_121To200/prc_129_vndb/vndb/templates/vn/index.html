@@ -13,6 +13,34 @@
 <body>
   {% include 'vn/header.html' %}
   <main>
+
+    <div class="sort-container">
+      <form id="sortForm" method="post" action="{{ url_for('vn.index') }}">
+        {% for field in 
+          ['searchType', 
+           'localTitle', 'localDevelopers', 'localCharacters', 'localTags', 'localLength', 
+           'vndbQuery',  'vndbDevelopers',  'vndbCharacters',  'vndbTags',  'vndbStaffs']
+        %}
+        <input type="hidden" id="{{ field }}" name="{{ field }}" value="{{ form[field] }}">
+        {% endfor %}
+        <label for="sortSelect">Sort by:</label>
+        <select id="sortSelect" name="sortSelect">
+          {% for value, label in [('title', 'Title'), ('release_date', 'Release Date'), ('id', 'ID')] %}
+          <option value="{{ value }}" {% if form['sortSelect'] == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        <div class="sort-order">
+          <input type="checkbox" id="sortOrder" name="sortOrder" value="{{ form['sortOrder'] }}">
+          <label for="sortOrder">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m3 16 4 4 4-4"/>
+              <path d="M7 20V4"/>
+            </svg>
+          </label>
+        </div>
+      </form>
+    </div>
+
     <div class="vns" id="vnsContainer">
       {% for vn in vns %}
       <div class="vn {% if vn.image__sexual %}vn-sexual{% endif %} {% if vn.image__violence %}vn-violent{% endif %}">

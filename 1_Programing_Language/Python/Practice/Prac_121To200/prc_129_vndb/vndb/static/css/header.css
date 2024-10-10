@@ -30,7 +30,7 @@
 }
 .header-home a {
   color: #fff;
-	text-decoration: none;
+  text-decoration: none;
   transition: color 0.3s;
 }
 .header-home a:hover {
@@ -90,6 +90,8 @@
   width: 100%;
   text-align: left;
   cursor: pointer;
+  padding-top: 5px;
+  padding-bottom: 5px;
 }
 
 .dropdown-item {

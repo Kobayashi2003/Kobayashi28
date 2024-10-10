@@ -10,6 +10,58 @@ main {
   padding: 2rem;
 }
 
+.sort-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.sort-container form {
+  display: flex;
+  align-items: center;
+}
+
+.sort-container label {
+  margin-right: 0.5rem;
+}
+
+#sortSelect {
+  padding: 0.25rem;
+  border-radius: 3px;
+  border: 1px solid #ccc;
+  margin-right: 0.5rem;
+}
+
+.sort-order {
+  display: flex;
+  align-items: center;
+}
+
+#sortOrder {
+  display: none;
+}
+
+#sortOrder + label {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+#sortOrder + label svg {
+  transition: transform 0.3s ease;
+}
+
+#sortOrder[value="asc"] + label svg {
+  transform: rotate(180deg);
+}
+
 .vns {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
