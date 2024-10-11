@@ -146,6 +146,22 @@ Set-PSReadLineKeyHandler -Key Ctrl+H `
     [Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
 }
 
+Set-PSReadLineKeyHandler -Key Ctrl+g -ScriptBlock {
+    if (Get-Command git -ErrorAction SilentlyContinue) {
+        [Microsoft.PowerShell.PSConsoleReadLine]::RevertLine()
+        [Microsoft.PowerShell.PSConsoleReadLine]::Insert('git pull')
+        [Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
+    }
+}
+
+Set-PSReadLineKeyHandler -Key Ctrl+G -ScriptBlock {
+    if (Get-Command git -ErrorAction SilentlyContinue) {
+        [Microsoft.PowerShell.PSConsoleReadLine]::RevertLine()
+        [Microsoft.PowerShell.PSConsoleReadLine]::Insert('git mpush')
+        [Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
+    }
+}
+
 # In Emacs mode - Tab acts like in bash, but the Windows style completion
 # is still useful sometimes, so bind some keys so we can do both
 Set-PSReadLineKeyHandler -Key Ctrl+q -Function TabCompleteNext
@@ -668,6 +684,7 @@ Set-PSReadLineOption -CommandValidationHandler {
         'git' = @{
             'cmt'   = 'commit'
             'mpush' = "@whole:git add . ; git commit -m $(Get-Date -Format 'yyMMdd') ; git push"
+            'mcheckout' = "@whole:git checkout master --"
             # 'mlog'  = '@whole:git log --graph --pretty=format:"%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset" --abbrev-commit'
             'mlog'  = '@whole:git log --no-merges --color --stat --graph --date=format:"%Y-%m-%d %H:%M:%S" --pretty=format:"%Cred%h%Creset -%C(yellow)%d%Cblue %s %Cgreen(%cd) %C(bold blue)<%an>%Creset" --abbrev-commit'
             'mclone'= '@whole:git clone --depth 1 --filter=blob:none --no-checkout'
