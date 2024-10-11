@@ -5,6 +5,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const vndbSearchTab = document.getElementById('vndbSearchTab');
   const localSearchForm = document.getElementById('localSearchForm');
   const vndbSearchForm = document.getElementById('vndbSearchForm');
+  const vndbMoreOptions = document.getElementById('vndbMoreOptions');
+  const vndbMoreOptionsContent = document.getElementById('vndbMoreOptionsContent');
 
   // Function to open the search modal
   function openSearchModal() {
@@ -39,6 +41,12 @@ document.addEventListener('DOMContentLoaded', () => {
     localSearchTab.classList.remove('active');
     vndbSearchForm.classList.add('active');
     localSearchForm.classList.remove('active');
+  });
+
+  // Toggle More Options
+  vndbMoreOptions.addEventListener('click', () => {
+    vndbMoreOptionsContent.classList.toggle('active');
+    vndbMoreOptions.textContent = vndbMoreOptionsContent.classList.contains('active') ? 'Less Options' : 'More Options';
   });
 
   // Event listener for keydown events

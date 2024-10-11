@@ -4,7 +4,9 @@ from vndb.db import connect_db
 from vndb.utils import format_description, judge_sexual, judge_violence
 from vndb.search import generate_fields, generate_filters, search_vndb, search_local
 from vndb.search import VN_Operactor_And, VN_Operactor_Or
-from vndb.search import VN_Filter_ID, VN_Filter_Developer, VN_Filter_Staff, VN_Filter_Character, VN_Filter_Tag 
+from vndb.search import (VN_Filter_ID, VN_Filter_Developer, VN_Filter_Staff, VN_Filter_Character, 
+                         VN_Filter_Length, VN_Filter_DevStatus, VN_Filter_HasDescription, VN_Filter_ReleasedDate,
+                         VN_Filter_HasAnime, VN_Filter_HasScreenshot, VN_Filter_HasReview)
 
 vn_bp = Blueprint('vn', __name__, url_prefix='/vn', template_folder='templates')
 
@@ -20,7 +22,13 @@ def handle_form(form = None) -> dict:
         'vndbDevelopers':     form.get('vndbDevelopers')    if form.get('vndbDevelopers')   != None else '',
         'vndbStaffs':         form.get('vndbStaffs')        if form.get('vndbStaffs')       != None else '',
         'vndbCharacters':     form.get('vndbCharacters')    if form.get('vndbCharacters')   != None else '',
-        'vndbTags':           form.get('vndbTags')          if form.get('vndbTags')         != None else '',
+        'vndbReleasedDate':   form.get('vndbReleasedDate')  if form.get('vndbReleasedDate') != None else '',
+        'vndbLength':         form.get('vndbLength')        if form.get('vndbLength')       != None else '',
+        'vndbDevStatus':      form.get('vndbDevStatus')     if form.get('vndbDevStatus')    != None else '',
+        'vndbHasDescription': form.get('vndbHasDescription') if form.get('vndbHasDescription')!= None else '',
+        'vndbHasAnime':       form.get('vndbHasAnime')      if form.get('vndbHasAnime')     != None else '',
+        'vndbHasScreenshot':  form.get('vndbHasScreenshot') if form.get('vndbHasScreenshot')!= None else '',
+        'vndbHasReview':      form.get('vndbHasReview')     if form.get('vndbHasReview')    != None else '',
         'sortSelect':         form.get('sortSelect')        if form.get('sortSelect')       != None else 'title',
         'sortOrder':          form.get('sortOrder')         if form.get('sortOrder')        != None else 'asc'
     } if form else {
@@ -34,7 +42,13 @@ def handle_form(form = None) -> dict:
         'vndbDevelopers':     '',
         'vndbStaffs':         '',
         'vndbCharacters':     '',
-        'vndbTags':           '',
+        'vndbReleasedDate':   '',
+        'vndbLength':         '',
+        'vndbDevStatus':      '',
+        'vndbHasDescription': '',
+        'vndbHasAnime':       '',
+        'vndbHasScreenshot':  '',
+        'vndbHasReview':      '',
         'sortSelect':         'title',
         'sortOrder':          'asc'
     } 
@@ -79,14 +93,35 @@ def index():
                 or_container += VN_Filter_Character(character.strip())
             and_container += or_container
 
-        if form['vndbTags']:
+        if form['vndbReleasedDate']:
             or_container = VN_Operactor_Or()
-            for tag in form['vndbTags'].split(','):
-                or_container += VN_Filter_Tag(tag.strip())
+            for character in form['localCharacters'].split(','):
+                import re
+                match = re.match(r'(\<|\<=|\>|\>=|=|\!=)\s*(\d{4}-\d{2}-\d{2}|\d{4}-\d{2}|\d{4})', form['vndbReleasedDate'])
+                if match:
+                    or_container += VN_Filter_ReleasedDate(operator=match.group(1), date=match.group(2))
+                else:
+                    abort(400, "Invalid released date format")
             and_container += or_container
 
+        if form['vndbLength']:
+            and_container += VN_Filter_Length({'very-short': 1,'short': 2, 'medium': 3, 'long': 4,'very-long': 5}[form['vndbLength']])
+
+        if form['vndbDevStatus']:
+            and_container += VN_Filter_DevStatus(int(form['vndbDevStatus']))
+        
+        if form['vndbHasDescription'] == 'on':
+            and_container += VN_Filter_HasDescription(query=True)
+        if form['vndbHasAnime'] == 'on':
+            and_container += VN_Filter_HasAnime(query=True)
+        if form['vndbHasScreenshot'] == 'on':
+            and_container += VN_Filter_HasScreenshot(query=True)
+        if form['vndbHasReview'] == 'on':
+            and_container += VN_Filter_HasReview(query=True)
+
         filters = and_container.get_filters()
-        return render_template('test.html', test=filters)
+        # return render_template('test.html', test=filters)
+
         filters = filters if len(filters) > 1 else []
 
         fields = generate_fields("""id, title, image.thumbnail, image.sexual, image.violence""")
@@ -94,8 +129,11 @@ def index():
 
         result = search_vndb(filters=filters, fields=fields, sort=form['sortSelect'], reverse=(form['sortOrder'] == 'desc'))
         result = result['results'] if result else []
-        result = [[row['id'], row['title'], row['image']['thumbnail'], row['image']['sexual'], 
-                   row['image']['violence']] for row in result] if result else []
+        result = [[row['id'], row['title'], 
+                   row['image']['thumbnail'] if row['image'] is not None and 'thumbnail' in row['image'] else '',
+                   row['image']['sexual']    if row['image'] is not None and 'sexual' in row['image'] else 0,
+                   row['image']['violence']  if row['image'] is not None and 'violence' in row['image'] else 0
+                   ] for row in result] if result else []
 
     if request.method == 'GET':
 
@@ -140,8 +178,9 @@ def show(id):
             abort(404, "VN not found")
         
     result[0]['description'] = format_description(result[0]['description'])
-    result[0]['image']['sexual'] = judge_violence(float(result[0]['image']['sexual']))
-    result[0]['image']['violence'] = judge_violence(float(result[0]['image']['violence']))
+    if result[0]['image'] is not None:
+        result[0]['image']['sexual'] = judge_violence(float(result[0]['image']['sexual']))
+        result[0]['image']['violence'] = judge_violence(float(result[0]['image']['violence']))
 
     for screenshot in result[0]['screenshots']:
         screenshot['sexual'] = judge_violence(float(screenshot['sexual']))

@@ -19,7 +19,7 @@
         {% for field in 
           ['searchType', 
            'localTitle', 'localDevelopers', 'localCharacters', 'localTags', 'localLength', 
-           'vndbQuery',  'vndbDevelopers',  'vndbCharacters',  'vndbTags',  'vndbStaffs']
+           'vndbQuery',  'vndbDevelopers',  'vndbCharacters',  'vndbLength',  'vndbStaffs', 'vndbReleasedDate']
         %}
         <input type="hidden" id="{{ field }}" name="{{ field }}" value="{{ form[field] }}">
         {% endfor %}
@@ -54,6 +54,7 @@
       </div>
       {% endfor %}
     </div>
+
     <div class="pagination">
       <button id="firstPage" class="pagination-button"><span>First</span></button>
       <button id="prevPage" class="pagination-button">&#x2039; <span>Prev</span></button>

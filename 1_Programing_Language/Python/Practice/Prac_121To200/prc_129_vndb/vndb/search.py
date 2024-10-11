@@ -54,6 +54,13 @@ class VN_Filter_Developer(VN_Filter):
         query = [] if not query else ["developer", "=", ["search", "=", query]]
         super().__init__(query)
 
+class VN_Filter_Length(VN_Filter):
+    def __init__(self, query: int = 1) -> None:
+        if query < 1 or query > 5:
+            raise ValueError("Invalid length")
+        query = [] if not query else ["length", "=", query]
+        super().__init__(query)
+
 class VN_Filter_Language(VN_Filter):
     def __init__(self, query: str = "") -> None:
         query = [] if not query else ["lang", "=", query]
@@ -71,7 +78,34 @@ class VN_Filter_Platform(VN_Filter):
 
 class VN_Filter_Tag(VN_Filter):
     def __init__(self, query: str = "") -> None:
-        query = [] if not query else ["tag", "=", ["search", "=", query]]
+        pass
+        super().__init__(query)
+
+class VN_Filter_DevStatus(VN_Filter):
+    def __init__(self, query: int = 0) -> None:
+        if query < 0 or query > 2:
+            raise ValueError("Invalid devstatus")
+        query = [] if not query else ["devstatus", "=", query]
+        super().__init__(query)
+
+class VN_Filter_HasDescription(VN_Filter):
+    def __init__(self, query: bool = False) -> None:
+        query = [] if not query else ["has_description", "=", 1]
+        super().__init__(query)
+    
+class VN_Filter_HasAnime(VN_Filter):
+    def __init__(self, query: bool = False) -> None:
+        query = [] if not query else ["has_anime", "=", 1]
+        super().__init__(query)
+
+class VN_Filter_HasScreenshot(VN_Filter):
+    def __init__(self, query: bool = False) -> None:
+        query = [] if not query else ["has_screenshot", "=", 1]
+        super().__init__(query)
+
+class VN_Filter_HasReview(VN_Filter):
+    def __init__(self, query: bool = False) -> None:
+        query = [] if not query else ["has_review", "=", 1]
         super().__init__(query)
 
 class VN_Filter_ReleasedDate(VN_Filter):
@@ -80,7 +114,18 @@ class VN_Filter_ReleasedDate(VN_Filter):
             raise ValueError("Invalid operator")
         if not check_date(date):
             raise ValueError("Invalid date format")
-        super().__init__(["released", operator, date])
+        query = (
+        ["release", "=", 
+          ["and", 
+            ["released", operator, date], 
+              ["platform", "=", "win"], 
+              ["or", 
+                ["lang", "=", "ja"], 
+                # ["lang", "=", "zh-Hans"]
+              ]
+          ]
+        ])
+        super().__init__(query)
 
 def generate_filters(query: str | None = None, filters: list | None = None) -> list:
     if not filters:
@@ -217,7 +262,6 @@ def search_vndb(filters: list,
                 results: int=100,
                 sort: str="",
                 reverse: bool=False,
-                page: int=1
                 ) -> dict|None:
 
     url = "https://api.vndb.org/kana/vn"
@@ -238,20 +282,40 @@ def search_vndb(filters: list,
         "results":  results,
         "sort":     sort,
         "reverse":  reverse,
-        "page":     page
+        "page":     1
     }
 
     response = requests.post(url, headers=headers, data=json.dumps(data))
     if response.status_code == 200:
-        return json.loads(response.text)
-    else:
-        print(f"{datetime.datetime.now()}: {response.status_code} {response.text}\n")
-        with open("error.log", "a") as f:
-            f.write(f"{datetime.datetime.now()}: {response.status_code} {response.text}\n")
+
+        with open("search.log", "a") as f:
+            f.write(f"{datetime.datetime.now()}: {response.status_code} page {data['page']}\n")
+
+        content = json.loads(response.text)
+        more = content['more']
+        while more:
+            data['page'] += 1
+            response = requests.post(url, headers=headers, data=json.dumps(data))
+            if response.status_code == 200:
+
+                with open("search.log", "a") as f:
+                    f.write(f"{datetime.datetime.now()}: {response.status_code} page {data['page']}\n")
+
+                more_content = json.loads(response.text)
+                content['results'] += more_content['results']
+                more = more_content['more']
+            else:
+                return content
+
+        return content
+
+    print(f"{datetime.datetime.now()}: {response.status_code} {response.text}\n")
+    with open("error.log", "a") as f:
+        f.write(f"{datetime.datetime.now()}: {response.status_code} {response.text}\n")
     return None
 
 
-def search_local(title: str = "", developers: str = "", characters: str = "", tags: str = "", length: str = "", sort_by: str = "", sort_order: bool = False) -> list | None:
+def search_local(title: str = "", developers: str = "", characters: str = "", tags: str = "", length: int | str = "", sort_by: str = "", sort_order: bool = False) -> list | None:
     localTitle      = title
     localDevelopers = developers
     localCharacters = characters
@@ -307,7 +371,10 @@ def search_local(title: str = "", developers: str = "", characters: str = "", ta
             )"""
         if localLength:
             select_sentence += " INTERSECT " if select_sentence else ""
-            localLength = {'very-short': 1,'short': 2, 'medium': 3, 'long': 4,'very-long': 5}[localLength]
+            if isinstance(localLength, str):
+                localLength = {'very-short': 1,'short': 2, 'medium': 3, 'long': 4,'very-long': 5}[localLength]
+            elif localLength < 1 or localLength > 5:
+                raise ValueError("Invalid length")
             select_sentence += f"""(
             SELECT DISTINCT data->>'id' AS id
             FROM vn

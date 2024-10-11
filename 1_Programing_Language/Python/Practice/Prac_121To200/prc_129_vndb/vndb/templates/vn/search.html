@@ -47,19 +47,63 @@
         </div>
         <div class="form-group">
           <label for="vndbDevelopers">Developers</label>
-          <input type="text" id="vndbDevelopers" name="vndbDevelopers" placeholder="Enter developers">
+          <input type="text" id="vndbDevelopers" name="vndbDevelopers" placeholder="Enter developers. Separated by commas">
         </div>
         <div class="form-group">
           <label for="vndbStaffs">Staffs</label>
-          <input type="text" id="vndbStaffs" name="vndbStaffs" placeholder="Enter staffs">
+          <input type="text" id="vndbStaffs" name="vndbStaffs" placeholder="Enter staffs. Separated by commas">
         </div>
         <div class="form-group">
           <label for="vndbCharacters">Characters</label>
-          <input type="text" id="vndbCharacters" name="vndbCharacters" placeholder="Enter characters">
+          <input type="text" id="vndbCharacters" name="vndbCharacters" placeholder="Enter characters. Separated by commas">
         </div>
         <div class="form-group">
-          <label for="vndbTags">Tags</label>
-          <input type="text" id="vndbTags" name="vndbTags" placeholder="Enter tags">
+          <button type="button" id="vndbMoreOptions" class="more-options-button">More Options</button>
+        </div>
+        <div id="vndbMoreOptionsContent" class="more-options-content">
+          <div class="form-group">
+            <label for="vndbReleasedDate">Released Date</label>
+            <input type="text" id="vndbReleasedDate" name="vndbReleasedDate" placeholder="Format: ['<' | '>' | '=' | '<=' | '>=' ] YYYY-MM-DD , ...">
+          </div>
+          <div class="form-group">
+            <label for="vndbLength">Length</label>
+            <select id="vndbLength" name="vndbLength">
+              <option value="">Any</option>
+              <option value="very-short">Very Short</option>
+              <option value="short">Short</option>
+              <option value="medium">Medium</option>
+              <option value="long">Long</option>
+              <option value="very-long">Very Long</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="vndbDevStatus">Development Status</label>
+            <select id="vndbDevStatus" name="vndbDevStatus">
+              <option value="">Any</option>
+              <option value="0">Finished</option>
+              <option value="1">In development</option>
+              <option value="2">Cancelled</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Additional Filters</label>
+            <div class="checkbox-group">
+              <input type="checkbox" id="vndbHasDescription" name="vndbHasDescription">
+              <label for="vndbHasDescription">Has Description</label>
+            </div>
+            <div class="checkbox-group">
+              <input type="checkbox" id="vndbHasAnime" name="vndbHasAnime">
+              <label for="vndbHasAnime">Has Anime</label>
+            </div>
+            <div class="checkbox-group">
+              <input type="checkbox" id="vndbHasScreenshot" name="vndbHasScreenshot">
+              <label for="vndbHasScreenshot">Has Screenshot</label>
+            </div>
+            <div class="checkbox-group">
+              <input type="checkbox" id="vndbHasReview" name="vndbHasReview">
+              <label for="vndbHasReview">Has Review</label>
+            </div>
+          </div>
         </div>
         <button type="submit" class="search-button">Search VNDB</button>
       </form>

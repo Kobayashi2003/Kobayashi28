@@ -176,7 +176,7 @@ Set-PSReadLineKeyHandler -Key Alt+F -Function SelectShellForwardWord
 # parens, and braces a nicer experience.  I'd like to include functions
 # in the module that do this, but this implementation still isn't as smart
 # as ReSharper, so I'm just providing it as a sample.
-
+<# TODO
 Set-PSReadLineKeyHandler -Key '"',"'" `
                          -BriefDescription SmartInsertQuote `
                          -LongDescription "Insert paired quotes if not already on a quote" `
@@ -283,9 +283,9 @@ Set-PSReadLineKeyHandler -Key '(','{','[' `
 
     $closeChar = switch ($key.KeyChar)
     {
-        <#case#> '(' { [char]')'; break }
-        <#case#> '{' { [char]'}'; break }
-        <#case#> '[' { [char]']'; break }
+        '(' { [char]')'; break }
+        '{' { [char]'}'; break }
+        '[' { [char]']'; break }
     }
 
     $selectionStart = $null
@@ -353,11 +353,11 @@ Set-PSReadLineKeyHandler -Key Backspace `
         {
             switch ($line[$cursor])
             {
-                <#case#> '"' { $toMatch = '"'; break }
-                <#case#> "'" { $toMatch = "'"; break }
-                <#case#> ')' { $toMatch = '('; break }
-                <#case#> ']' { $toMatch = '['; break }
-                <#case#> '}' { $toMatch = '{'; break }
+                '"' { $toMatch = '"'; break }
+                "'" { $toMatch = "'"; break }
+                ')' { $toMatch = '('; break }
+                ']' { $toMatch = '['; break }
+                '}' { $toMatch = '{'; break }
             }
         }
 
@@ -371,6 +371,7 @@ Set-PSReadLineKeyHandler -Key Backspace `
         }
     }
 }
+#>
 
 #endregion Smart Insert/Delete
 
@@ -1312,4 +1313,42 @@ Set-PSReadLineKeyHandler -Key Ctrl+SpaceBar `
     } catch {
         Write-Error $_
     }
+}
+
+Set-PSReadLineKeyHandler -Key Ctrl+u `
+                         -BriefDescription GoToBeginningOfLine `
+                         -LongDescription "Move cursor to beginning of line" `
+                         -ScriptBlock {
+
+    [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition(0)
+}
+
+Set-PSReadLineKeyHandler -Key Ctrl+U `
+                         -BriefDescription GoToEndOfLine `
+                         -LongDescription "Move cursor to end of line" `
+                         -ScriptBlock {
+    $line = $null
+    $cursor = $null
+    [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
+    [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($line.Length)
+}
+
+Set-PSReadLineKeyHandler -Key Alt+u `
+                         -BriefDescription DelectToBeginningOfLine `
+                         -LongDescription "Delete from cursor to beginning of line" `
+                         -ScriptBlock {
+    $line = $null
+    $cursor = $null
+    [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
+    [Microsoft.PowerShell.PSConsoleReadLine]::Delete(0, $cursor)
+}
+
+Set-PSReadLineKeyHandler -Key Alt+U `
+                         -BriefDescription DelectToEndOfLine `
+                         -LongDescription "Delete from cursor to end of line" `
+                         -ScriptBlock {
+    $line = $null
+    $cursor = $null
+    [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
+    [Microsoft.PowerShell.PSConsoleReadLine]::Delete($cursor, $line.Length - $cursor)
 }

@@ -48,3 +48,13 @@
 
 2024-10-11 02:38:23.990920: 400 Invalid 'tag' filter: Invalid value.
 
+2024-10-11 10:40:17.982052: 400 Invalid 'id' filter: Invalid value.
+
+2024-10-11 10:42:37.451549: 400 Invalid 'filters' member: Invalid predicate
+
+2024-10-11 12:25:33.163994: 400 Invalid 'id' filter: Invalid value.
+
+2024-10-11 12:33:36.482539: 400 Invalid 'id' filter: Invalid value.
+
+2024-10-11 12:41:21.641990: 400 Invalid 'id' filter: Invalid value.
+
