@@ -86,7 +86,7 @@ def index():
             and_container += or_container
 
         filters = and_container.get_filters()
-        # return render_template('test.html', test=filters)
+        return render_template('test.html', test=filters)
         filters = filters if len(filters) > 1 else []
 
         fields = generate_fields("""id, title, image.thumbnail, image.sexual, image.violence""")

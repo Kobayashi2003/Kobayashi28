@@ -38,3 +38,13 @@
 
 2024-10-11 00:43:43.722538: 400 Invalid 'name' filter: Unknown field.
 
+2024-10-11 01:42:00.099195: 400 Invalid 'id' filter: Invalid value.
+
+2024-10-11 01:54:56.904906: 400 Invalid 'id' filter: Invalid value.
+
+2024-10-11 02:08:11.640873: 400 Invalid 'id' filter: Invalid value.
+
+2024-10-11 02:38:03.943452: 400 Invalid 'tag' filter: Invalid value.
+
+2024-10-11 02:38:23.990920: 400 Invalid 'tag' filter: Invalid value.
+
