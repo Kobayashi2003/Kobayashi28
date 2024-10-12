@@ -157,7 +157,7 @@ Set-PSReadLineKeyHandler -Key Ctrl+g -ScriptBlock {
 Set-PSReadLineKeyHandler -Key Ctrl+G -ScriptBlock {
     if (Get-Command git -ErrorAction SilentlyContinue) {
         [Microsoft.PowerShell.PSConsoleReadLine]::RevertLine()
-        [Microsoft.PowerShell.PSConsoleReadLine]::Insert("git add . ; git commit -m $(Get-Date -Format "yyyy-MM-dd HH:mm:ss") ; git push")
+        [Microsoft.PowerShell.PSConsoleReadLine]::Insert("git add . ; git commit -m '$(Get-Date -Format "yyyy-MM-dd-HH-mm-ss")' ; git push")
         [Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
     }
 }
