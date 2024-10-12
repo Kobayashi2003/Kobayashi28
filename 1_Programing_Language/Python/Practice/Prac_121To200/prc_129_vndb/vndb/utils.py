@@ -13,7 +13,7 @@ def judge_violence(violence: float) -> bool:
     return False
 
 def check_date(date_str: str) -> bool:
-    # date should match format YYYY-MM-DD or YYYY-MM or YYYY
+    # Format: YYYY-MM-DD or YYYY-MM or YYYY
     match = re.match(r"^(\d{4})(-\d{2})?(-\d{2})?$", date_str)
     if not match:
         return False

@@ -18,7 +18,7 @@ def connect_db():
 
 def close_db(e=None):
     conn = g.pop('conn', None)
-    if conn is not None:
+    if conn:
         conn.close()
 
 

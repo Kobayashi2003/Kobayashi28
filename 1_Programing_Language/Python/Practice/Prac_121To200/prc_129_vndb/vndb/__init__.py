@@ -27,11 +27,6 @@ def create_app(test_config=None):
     except OSError:
         pass
 
-    # a simple page that says hello
-    @app.route('/hello')
-    def hello():
-        return 'Yep, I am KOBAYASHI.'
-
     @app.route('/test', methods=('GET', 'POST'))
     def test():
         from flask import request, render_template

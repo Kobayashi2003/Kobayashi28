@@ -25,7 +25,7 @@ def handle_form(form = None) -> dict:
         'vndbReleasedDate':   form.get('vndbReleasedDate')  if form.get('vndbReleasedDate') != None else '',
         'vndbLength':         form.get('vndbLength')        if form.get('vndbLength')       != None else '',
         'vndbDevStatus':      form.get('vndbDevStatus')     if form.get('vndbDevStatus')    != None else '',
-        'vndbHasDescription': form.get('vndbHasDescription') if form.get('vndbHasDescription')!= None else '',
+        'vndbHasDescription': form.get('vndbHasDescription') if form.get('vndbHasDescription') != None else '',
         'vndbHasAnime':       form.get('vndbHasAnime')      if form.get('vndbHasAnime')     != None else '',
         'vndbHasScreenshot':  form.get('vndbHasScreenshot') if form.get('vndbHasScreenshot')!= None else '',
         'vndbHasReview':      form.get('vndbHasReview')     if form.get('vndbHasReview')    != None else '',
@@ -195,10 +195,10 @@ def show(id):
     return render_template('vn/vn.html', vndata=result[0])
 
 
-@vn_bp.route('/download/<id', methods=['POST'])
-def download():
+@vn_bp.route('/download/<id>', methods=['GET','POST'])
+def download(id):
     import requests
-    # save all image to local static/images folder
+    # save all image to local vndb/static/images folder
     conn = connect_db()
     with conn.cursor() as curs:
         curs.execute("SELECT data FROM vn WHERE id = %s", (id,))
@@ -208,34 +208,59 @@ def download():
         data = result[0]
         if 'url' in data['image'] and data['image']['url']:
             response = requests.get(data['image']['url'])
+            image_name = data['image']['url'].split('/')[-1]
             if response.status_code == 200:
-                with open(f'static/images/{data['image']['id']}.jpg', 'wb') as f:
+                with open(f'vndb/static/images/{image_name}', 'wb') as f:
                     f.write(response.content)
-                curs.execute("UPDATE vn SET data = jsonb_set(data, '{image,local}', '\"/static/images/{0}.jpg\"') WHERE id = %s", (data['image']['id'], id))
+                curs.execute('UPDATE vn SET data = jsonb_set(data, \'{image, local}\', %s) WHERE id = %s', (f"\"images/{image_name}\"", id))
                 conn.commit()
+                with open(f'download.log', 'a') as f:
+                    f.write(f'{image_name}\n')
+            else:
+                with open(f'error.log', 'a') as f:
+                    f.write(f'{data["image"]["url"]} {response.status_code}\n')
         for screenshot in data['screenshots']:
             if 'url' in screenshot and screenshot['url']:
                 response = requests.get(screenshot['url'])
+                image_name = screenshot['url'].split('/')[-1]
                 if response.status_code == 200:
-                    with open(f'static/images/{screenshot["id"]}.jpg', 'wb') as f:
+                    with open(f'vndb/static/images/{image_name}', 'wb') as f:
                         f.write(response.content)
-                    curs.execute("UPDATE vn SET data = jsonb_set(data, '{screenshots, #, %s, local}', '\"/static/images/{0}.jpg\"') WHERE id = %s", (screenshot['id'], id))
-                    conn.commit()
+                    # curs.execute("UPDATE vn SET data = jsonb_set(data, '{screenshots, #, %s, url, local}', '%s') WHERE id = %s", (screenshot['id'], url_for('static', filename=f'images/{image_name}', _external=True), id))
+                    # conn.commit()
+                    with open(f'download.log', 'a') as f:
+                        f.write(f'{image_name}\n')
+                else:
+                    with open(f'error.log', 'a') as f:
+                        f.write(f'{screenshot["url"]} {response.status_code}\n')
             if 'thumbnail' in screenshot and screenshot['thumbnail']:
                 response = requests.get(screenshot['thumbnail'])
+                image_name = screenshot['thumbnail'].split('/')[-1]
                 if response.status_code == 200:
-                    with open(f'static/images/{screenshot["id"]}_thumbnail.jpg', 'wb') as f:
+                    with open(f'vndb/static/images/{image_name}', 'wb') as f:
                         f.write(response.content)
-                    curs.execute("UPDATE vn SET data = jsonb_set(data, '{screenshots, #, %s, thumbnail}', '\"/static/images/{0}_thumbnail.jpg\"') WHERE id = %s", (screenshot['id'], id))
-                    conn.commit()
+                    # curs.execute("UPDATE vn SET data = jsonb_set(data, '{screenshots, #, %s, thumbnail, local}', '%s') WHERE id = %s", (screenshot['id'], url_for('static', filename=f'images/{image_name}', _external=True), id))
+                    # conn.commit()
+                    with open(f'download.log', 'a') as f:
+                        f.write(f'{image_name}_thumbnail\n')
+                else:
+                    with open(f'error.log', 'a') as f:
+                        f.write(f'{screenshot["thumbnail"]} {response.status_code}\n')
         for va in data['va']:
             if 'character' in va and 'url' in va['character']['image'] and va['character']['image']['url']:
                 response = requests.get(va['character']['image']['url'])
+                image_name = va['character']['image']['url'].split('/')[-1]
                 if response.status_code == 200:
-                    with open(f'static/images/{va["character"]["image"]["id"]}.jpg', 'wb') as f:
+                    with open(f'vndb/static/images/{image_name}', 'wb') as f:
                         f.write(response.content)
-                    curs.execute("UPDATE vn SET data = jsonb_set(data, '{va, #, %s, character, image, local}', '\"/static/images/{0}.jpg\"') WHERE id = %s", (va['character']['image']['id'], id))
-                    conn.commit()
+                    # curs.execute("UPDATE vn SET data = jsonb_set(data, '{va, #, %s, character, image, url, local}', '%s') WHERE id = %s", (va['id'], url_for('static', filename=f'images/{image_name}', _external=True), id))
+                    # conn.commit()
+                    with open(f'download.log', 'a') as f:
+                        f.write(f'{image_name}\n')
+                else:
+                    with open(f'error.log', 'a') as f:
+                        f.write(f'{va["character"]["image"]["url"]} {response.status_code}\n')
+
     return redirect(url_for('vn.show', id=id))
 
 @vn_bp.route('/config')

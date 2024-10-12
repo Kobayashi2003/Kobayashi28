@@ -25,7 +25,7 @@
         {% endfor %}
         <label for="sortSelect">Sort by:</label>
         <select id="sortSelect" name="sortSelect">
-          {% for value, label in [('title', 'Title'), ('release_date', 'Release Date'), ('id', 'ID')] %}
+          {% for value, label in [('title', 'Title'), ('released', 'Release Date'), ('id', 'ID')] %}
           <option value="{{ value }}" {% if form['sortSelect'] == value %}selected{% endif %}>{{ label }}</option>
           {% endfor %}
         </select>

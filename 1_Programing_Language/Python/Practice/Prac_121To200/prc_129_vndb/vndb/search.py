@@ -7,6 +7,9 @@ import requests
 import json
 import re
 import datetime
+import logging
+
+logger = logging.getLogger(__name__)
 
 class VN_Filter:
     def __init__(self, query: list) -> None:
@@ -76,11 +79,6 @@ class VN_Filter_Platform(VN_Filter):
         query = [] if not query else ["platform", "=", query]
         super().__init__(query)
 
-class VN_Filter_Tag(VN_Filter):
-    def __init__(self, query: str = "") -> None:
-        pass
-        super().__init__(query)
-
 class VN_Filter_DevStatus(VN_Filter):
     def __init__(self, query: int = 0) -> None:
         if query < 0 or query > 2:
@@ -134,19 +132,18 @@ def generate_filters(query: str | None = None, filters: list | None = None) -> l
         return ["search", "=", query] + filters
     return filters
 
-
-def generate_fields(fields:             str = "",
-                    vn_info:            bool=False,
-                    tags_info:          bool=False,
-                    developers_info:    bool=False,
-                    extlinks_info:      bool=False,
-                    staff_info:         bool=False,
-                    character_info:     bool=False,
-                    character_va_info:  bool=False,
-                    character_vns_info: bool=False,
-                    character_traits_info: bool=False,
-                    relations_info:     bool=False,
-                    relations_vn_info:  bool=False,
+def generate_fields(fields:                 str = "",
+                    vn_info:                bool=False,
+                    tags_info:              bool=False,
+                    developers_info:        bool=False,
+                    extlinks_info:          bool=False,
+                    staff_info:             bool=False,
+                    character_info:         bool=False,
+                    character_va_info:      bool=False,
+                    character_vns_info:     bool=False,
+                    character_traits_info:  bool=False,
+                    relations_info:         bool=False,
+                    relations_vn_info:      bool=False,
                     ) -> str:
 
     if vn_info:
@@ -252,17 +249,19 @@ def generate_fields(fields:             str = "",
 """
 
     fields = fields.strip().replace("\n", "").replace(" ", "")
-    if fields[-1] == ",":
-        fields = fields[:-1]
+    fields = fields[-1] if fields[-1] == "," else fields
+
     return fields
 
+def search_vndb(filters:    list,
+                fields:     str,
+                results:    int=100,
+                sort:       str="",
+                reverse:    bool=False,
+                ) -> dict | None:
 
-def search_vndb(filters: list,
-                fields: str,
-                results: int=100,
-                sort: str="",
-                reverse: bool=False,
-                ) -> dict|None:
+    logging.basicConfig(filename="search.log", level=logging.INFO)
+    logger.info(f"{datetime.datetime.now()}: Searching VNDB with filters {filters}, fields {fields}, results {results}, sort {sort}, reverse {reverse}")
 
     url = "https://api.vndb.org/kana/vn"
 
@@ -270,11 +269,7 @@ def search_vndb(filters: list,
         "Content-Type": "application/json"
     }
 
-    sort = {
-        "id":           "id",
-        "title":        "title",
-        "release_date": "released"
-    }.get(sort, "title")
+    sort = sort if sort in ['id', 'title', 'released'] else 'title'
 
     data = {
         "filters":  filters,
@@ -285,42 +280,54 @@ def search_vndb(filters: list,
         "page":     1
     }
 
-    response = requests.post(url, headers=headers, data=json.dumps(data))
-    if response.status_code == 200:
+    more = True
+    responses = []
 
-        with open("search.log", "a") as f:
-            f.write(f"{datetime.datetime.now()}: {response.status_code} page {data['page']}\n")
-
-        content = json.loads(response.text)
-        more = content['more']
-        while more:
+    while more:
+        response = requests.post(url, headers=headers, data=json.dumps(data))
+        if response.status_code == 200:
+            response_json = json.loads(response.text)
+            more = response_json['more']
+            responses.append(response_json)
             data['page'] += 1
-            response = requests.post(url, headers=headers, data=json.dumps(data))
-            if response.status_code == 200:
+            logger.info(f"{datetime.datetime.now()}: {response.status_code} page {data['page']}") 
+        else:
+            logger.error(f"{datetime.datetime.now()}: {response.status_code} {response.text}")
+            break
 
-                with open("search.log", "a") as f:
-                    f.write(f"{datetime.datetime.now()}: {response.status_code} page {data['page']}\n")
+    if not responses:
+        return None
 
-                more_content = json.loads(response.text)
-                content['results'] += more_content['results']
-                more = more_content['more']
-            else:
-                return content
+    # Merge responses results
+    merged_results = []
+    for response in responses:
+        merged_results += response['results']
 
-        return content
+    logger.info(f"{datetime.datetime.now()}: {len(merged_results)} results found")
+    
+    return {
+        "results": merged_results,
+        "count":   len(merged_results)
+    }
+        
+def search_local(title:      str = "", 
+                 tags:       str = "", 
+                 developers: str = "", 
+                 characters: str = "", 
+                 length:     int | str = "", 
+                 sort_by:    str = "", 
+                 sort_order: bool = False
+                 ) -> list | None:
 
-    print(f"{datetime.datetime.now()}: {response.status_code} {response.text}\n")
-    with open("error.log", "a") as f:
-        f.write(f"{datetime.datetime.now()}: {response.status_code} {response.text}\n")
-    return None
+    logging.basicConfig(filename="search.log", level=logging.INFO)
+    logger.info(f"{datetime.datetime.now()}: Searching local database with title {title}, tags {tags}, developers {developers}, characters {characters}, length {length}, sort_by {sort_by}, sort_order {sort_order}")
 
-
-def search_local(title: str = "", developers: str = "", characters: str = "", tags: str = "", length: int | str = "", sort_by: str = "", sort_order: bool = False) -> list | None:
     localTitle      = title
     localDevelopers = developers
     localCharacters = characters
     localTags       = tags
     localLength     = length
+
     conn = connect_db()
     with conn.cursor() as curs:
         select_sentence = ""
@@ -392,14 +399,16 @@ def search_local(title: str = "", developers: str = "", characters: str = "", ta
             {select_sentence if select_sentence else "SELECT data->>'id' FROM vn"}
         ) ORDER BY {
             {
-                "title": "data ->> 'title'",
-                "release_date": "data ->> 'released'",
-                "id": "data ->> 'id'"
+                "id":       "data ->> 'id'",
+                "title":    "data ->> 'title'",
+                "released": "data ->> 'released'",
             }.get(sort_by, "data ->> 'title'")
         } {
             "DESC" if sort_order else "ASC"
         }""")
         result = curs.fetchall()
+
+        logger.info(f"{datetime.datetime.now()}: {len(result)} results found")
 
         return result
 
@@ -437,13 +446,3 @@ def test3():
         print("Result saved to result.json")
     else:
         print("No result found")
-
-
-# @lambda _:_()
-def test4():
-    and_container = VN_Operactor_And()
-    or_container = VN_Operactor_Or()
-    or_container += VN_Filter_Developer('HOOKSOFT')
-    or_container += VN_Filter_Developer('SMEE')
-    and_container += or_container
-    print(and_container.get_filters())
