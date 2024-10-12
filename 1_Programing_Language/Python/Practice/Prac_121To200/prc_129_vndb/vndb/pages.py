@@ -4,7 +4,7 @@ from vndb.db import connect_db
 from vndb.utils import format_description, judge_sexual, judge_violence
 from vndb.search import generate_fields, generate_filters, search_vndb, search_local
 from vndb.search import VN_Operactor_And, VN_Operactor_Or
-from vndb.search import (VN_Filter_ID, VN_Filter_Developer, VN_Filter_Staff, VN_Filter_Character, 
+from vndb.search import (VN_Filter_ID, VN_Filter_Developer, VN_Filter_Staff, VN_Filter_Character,
                          VN_Filter_Length, VN_Filter_DevStatus, VN_Filter_HasDescription, VN_Filter_ReleasedDate,
                          VN_Filter_HasAnime, VN_Filter_HasScreenshot, VN_Filter_HasReview)
 
@@ -51,7 +51,7 @@ def handle_form(form = None) -> dict:
         'vndbHasReview':      '',
         'sortSelect':         'title',
         'sortOrder':          'asc'
-    } 
+    }
 
 @vn_bp.route('/', methods=['GET', 'POST'])
 def index():
@@ -63,8 +63,8 @@ def index():
 
         form = handle_form(request.form)
 
-        result = search_local(title=form['localTitle'], developers=form['localDevelopers'], characters=form['localCharacters'], 
-                              tags=form['localTags'], length=form['localLength'], sort_by=form['sortSelect'], 
+        result = search_local(title=form['localTitle'], developers=form['localDevelopers'], characters=form['localCharacters'],
+                              tags=form['localTags'], length=form['localLength'], sort_by=form['sortSelect'],
                               sort_order=(form['sortOrder'] == 'desc'))
         result = result if result else []
 
@@ -109,7 +109,7 @@ def index():
 
         if form['vndbDevStatus']:
             and_container += VN_Filter_DevStatus(int(form['vndbDevStatus']))
-        
+
         if form['vndbHasDescription'] == 'on':
             and_container += VN_Filter_HasDescription(query=True)
         if form['vndbHasAnime'] == 'on':
@@ -129,7 +129,7 @@ def index():
 
         result = search_vndb(filters=filters, fields=fields, sort=form['sortSelect'], reverse=(form['sortOrder'] == 'desc'))
         result = result['results'] if result else []
-        result = [[row['id'], row['title'], 
+        result = [[row['id'], row['title'],
                    row['image']['thumbnail'] if row['image'] is not None and 'thumbnail' in row['image'] else '',
                    row['image']['sexual']    if row['image'] is not None and 'sexual' in row['image'] else 0,
                    row['image']['violence']  if row['image'] is not None and 'violence' in row['image'] else 0
@@ -176,7 +176,7 @@ def show(id):
             result = result['results'] if result else []
         if not result:
             abort(404, "VN not found")
-        
+
     result[0]['description'] = format_description(result[0]['description'])
     if result[0]['image'] is not None:
         result[0]['image']['sexual'] = judge_violence(float(result[0]['image']['sexual']))
@@ -194,6 +194,49 @@ def show(id):
 
     return render_template('vn/vn.html', vndata=result[0])
 
+
+@vn_bp.route('/download/<id', methods=['POST'])
+def download():
+    import requests
+    # save all image to local static/images folder
+    conn = connect_db()
+    with conn.cursor() as curs:
+        curs.execute("SELECT data FROM vn WHERE id = %s", (id,))
+        result = curs.fetchone()
+        if not result:
+            abort(404, "VN not found")
+        data = result[0]
+        if 'url' in data['image'] and data['image']['url']:
+            response = requests.get(data['image']['url'])
+            if response.status_code == 200:
+                with open(f'static/images/{data['image']['id']}.jpg', 'wb') as f:
+                    f.write(response.content)
+                curs.execute("UPDATE vn SET data = jsonb_set(data, '{image,local}', '\"/static/images/{0}.jpg\"') WHERE id = %s", (data['image']['id'], id))
+                conn.commit()
+        for screenshot in data['screenshots']:
+            if 'url' in screenshot and screenshot['url']:
+                response = requests.get(screenshot['url'])
+                if response.status_code == 200:
+                    with open(f'static/images/{screenshot["id"]}.jpg', 'wb') as f:
+                        f.write(response.content)
+                    curs.execute("UPDATE vn SET data = jsonb_set(data, '{screenshots, #, %s, local}', '\"/static/images/{0}.jpg\"') WHERE id = %s", (screenshot['id'], id))
+                    conn.commit()
+            if 'thumbnail' in screenshot and screenshot['thumbnail']:
+                response = requests.get(screenshot['thumbnail'])
+                if response.status_code == 200:
+                    with open(f'static/images/{screenshot["id"]}_thumbnail.jpg', 'wb') as f:
+                        f.write(response.content)
+                    curs.execute("UPDATE vn SET data = jsonb_set(data, '{screenshots, #, %s, thumbnail}', '\"/static/images/{0}_thumbnail.jpg\"') WHERE id = %s", (screenshot['id'], id))
+                    conn.commit()
+        for va in data['va']:
+            if 'character' in va and 'url' in va['character']['image'] and va['character']['image']['url']:
+                response = requests.get(va['character']['image']['url'])
+                if response.status_code == 200:
+                    with open(f'static/images/{va["character"]["image"]["id"]}.jpg', 'wb') as f:
+                        f.write(response.content)
+                    curs.execute("UPDATE vn SET data = jsonb_set(data, '{va, #, %s, character, image, local}', '\"/static/images/{0}.jpg\"') WHERE id = %s", (va['character']['image']['id'], id))
+                    conn.commit()
+    return redirect(url_for('vn.show', id=id))
 
 @vn_bp.route('/config')
 def config():
