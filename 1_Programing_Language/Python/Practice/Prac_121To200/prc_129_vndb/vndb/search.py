@@ -1,7 +1,9 @@
-from vndb.utils import check_date
-from vndb.db import connect_db
-# from utils import check_date
-# from db import connect_db
+try:
+    from vndb.utils import check_date
+    from vndb.db import connect_db
+except ImportError:
+    from utils import check_date
+    from db import connect_db
 
 import requests
 import json
@@ -90,7 +92,7 @@ class VN_Filter_HasDescription(VN_Filter):
     def __init__(self, query: bool = False) -> None:
         query = [] if not query else ["has_description", "=", 1]
         super().__init__(query)
-    
+
 class VN_Filter_HasAnime(VN_Filter):
     def __init__(self, query: bool = False) -> None:
         query = [] if not query else ["has_anime", "=", 1]
@@ -113,12 +115,12 @@ class VN_Filter_ReleasedDate(VN_Filter):
         if not check_date(date):
             raise ValueError("Invalid date format")
         query = (
-        ["release", "=", 
-          ["and", 
-            ["released", operator, date], 
-              ["platform", "=", "win"], 
-              ["or", 
-                ["lang", "=", "ja"], 
+        ["release", "=",
+          ["and",
+            ["released", operator, date],
+              ["platform", "=", "win"],
+              ["or",
+                ["lang", "=", "ja"],
                 # ["lang", "=", "zh-Hans"]
               ]
           ]
@@ -249,7 +251,7 @@ def generate_fields(fields:                 str = "",
 """
 
     fields = fields.strip().replace("\n", "").replace(" ", "")
-    fields = fields[-1] if fields[-1] == "," else fields
+    fields = fields[:-1] if fields[-1] == "," else fields
 
     return fields
 
@@ -290,7 +292,7 @@ def search_vndb(filters:    list,
             more = response_json['more']
             responses.append(response_json)
             data['page'] += 1
-            logger.info(f"{datetime.datetime.now()}: {response.status_code} page {data['page']}") 
+            logger.info(f"{datetime.datetime.now()}: {response.status_code} page {data['page']}")
         else:
             logger.error(f"{datetime.datetime.now()}: {response.status_code} {response.text}")
             break
@@ -304,18 +306,18 @@ def search_vndb(filters:    list,
         merged_results += response['results']
 
     logger.info(f"{datetime.datetime.now()}: {len(merged_results)} results found")
-    
+
     return {
         "results": merged_results,
         "count":   len(merged_results)
     }
-        
-def search_local(title:      str = "", 
-                 tags:       str = "", 
-                 developers: str = "", 
-                 characters: str = "", 
-                 length:     int | str = "", 
-                 sort_by:    str = "", 
+
+def search_local(title:      str = "",
+                 tags:       str = "",
+                 developers: str = "",
+                 characters: str = "",
+                 length:     int | str = "",
+                 sort_by:    str = "",
                  sort_order: bool = False
                  ) -> list | None:
 

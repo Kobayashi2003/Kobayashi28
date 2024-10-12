@@ -3,6 +3,19 @@ import psycopg2
 import click
 from flask import current_app, g
 
+def __connect_db():
+    conn = psycopg2.connect(
+        user     = 'postgres',
+        password = 'postgres',
+        database = 'flask_db',
+        # host     = 'localhost',
+        host     = "172.18.42.211",
+        port     = '5432'
+    )
+    return conn
+
+def __close_db(conn):
+    conn.close()
 
 def connect_db():
     if 'conn' not in g:
