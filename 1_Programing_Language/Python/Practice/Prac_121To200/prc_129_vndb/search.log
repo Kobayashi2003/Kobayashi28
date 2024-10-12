@@ -106,3 +106,21 @@ INFO:werkzeug:127.0.0.1 - - [12/Oct/2024 13:11:47] "[36mGET /static/css/header.
 INFO:werkzeug:127.0.0.1 - - [12/Oct/2024 13:11:47] "[36mGET /static/js/header.js HTTP/1.1[0m" 304 -
 INFO:werkzeug:127.0.0.1 - - [12/Oct/2024 13:11:47] "[36mGET /static/js/search.js HTTP/1.1[0m" 304 -
 INFO:werkzeug: * Detected change in 'D:\\Program\\Code\\1_Programing_Language\\Python\\Practice\\Prac_121To200\\prc_129_vndb\\vndb\\search.py', reloading
+INFO:vndb.search:2024-10-12 14:22:52.968989: Searching VNDB with filters ['and', ['id', '=', 'favicon.ico']], fields ,, results 100, sort , reverse False
+ERROR:vndb.search:2024-10-12 14:22:56.061580: 400 Invalid 'fields' member: Expected (sub)field, got comma
+
+INFO:werkzeug:127.0.0.1 - - [12/Oct/2024 14:22:56] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+INFO:werkzeug:172.19.112.0 - - [12/Oct/2024 15:08:57] "[36mGET /static/css/Meyer.css HTTP/1.1[0m" 304 -
+INFO:werkzeug:172.19.112.0 - - [12/Oct/2024 15:08:57] "[36mGET /static/css/global.css HTTP/1.1[0m" 304 -
+INFO:werkzeug:172.19.112.0 - - [12/Oct/2024 15:08:57] "[36mGET /static/css/vn-tags.css HTTP/1.1[0m" 304 -
+INFO:werkzeug:172.19.112.0 - - [12/Oct/2024 15:08:57] "[36mGET /static/css/vn-details.css HTTP/1.1[0m" 304 -
+INFO:werkzeug:172.19.112.0 - - [12/Oct/2024 15:08:57] "[36mGET /static/css/vn-navigation.css HTTP/1.1[0m" 304 -
+INFO:werkzeug:172.19.112.0 - - [12/Oct/2024 15:08:57] "[36mGET /static/css/vn-character-summary.css HTTP/1.1[0m" 304 -
+INFO:werkzeug:172.19.112.0 - - [12/Oct/2024 15:08:57] "[36mGET /static/css/vn-screenshots.css HTTP/1.1[0m" 304 -
+INFO:werkzeug:172.19.112.0 - - [12/Oct/2024 15:08:57] "[36mGET /static/js/vn-navigation.js HTTP/1.1[0m" 304 -
+INFO:werkzeug:172.19.112.0 - - [12/Oct/2024 15:08:57] "[36mGET /static/js/vn-screenshot-carousel.js HTTP/1.1[0m" 304 -
+INFO:vndb.search:2024-10-12 15:08:58.114790: Searching VNDB with filters ['and', ['id', '=', 'favicon.ico']], fields ,, results 100, sort , reverse False
+ERROR:vndb.search:2024-10-12 15:08:59.265735: 400 Invalid 'id' filter: Invalid value.
+
+INFO:werkzeug:172.19.112.0 - - [12/Oct/2024 15:08:59] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+INFO:werkzeug: * Detected change in 'D:\\Program\\Code\\1_Programing_Language\\Python\\Practice\\Prac_121To200\\prc_129_vndb\\vndb\\search.py', reloading
