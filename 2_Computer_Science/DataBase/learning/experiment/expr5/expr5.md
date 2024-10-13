@@ -4,6 +4,20 @@
 
 熟悉SQL语句的数据查询语言，能够使用SQL语句对数据库进行嵌套查询。
 
+## 实验环境
+
+- OS: Windows 11
+
+![OS](./img/OS.png)
+
+- Database: PostgreSQL 16
+
+![Postgres](./img/Postgres.png)
+
+- UI: harlequin-postgres
+
+![UI](./img/UI.png)
+
 ## 实验内容
 
 本节实验的主要内容包括：
@@ -56,10 +70,10 @@
 
 ```sql
 select *
-from STUDENTS
+from students 
 where grade = (
   select grade 
-  from STUDENTS 
+  from students 
   where sid = '850955252'
 );
 ```
@@ -70,10 +84,10 @@ where grade = (
 
 ```sql
 select *
-from STUDENTS
+from students 
 where sid in (
   select sid
-  from CHOICES
+  from choices 
 );
 ```
 
@@ -83,10 +97,10 @@ where sid in (
 
 ```sql
 select cid
-from COURSES
+from courses 
 where cid not in (
   select cid
-  from CHOICES
+  from choices 
 );
 ```
 
@@ -96,13 +110,15 @@ where cid not in (
 
 ```sql
 select sid, sname
-from STUDENTS
-where sid in (
+from students 
+where sid in 
+(
   select sid
-  from CHOICES
-  where cid = (
+  from choices 
+  where cid = 
+  (
     select cid
-    from COURSES
+    from courses 
     where cname = 'c++'
   )
 );
@@ -114,10 +130,10 @@ where sid in (
 
 ```sql
 select *
-from CHOICES
+from choices 
 where score = (
   select min(score)
-  from CHOICES
+  from choices 
 );
 ```
 
@@ -127,10 +143,10 @@ where score = (
 
 ```sql
 select cname
-from COURSES
+from courses 
 where hour in (
   select hour 
-  from COURSES
+  from courses 
   where cname in ('uml', 'c++')
 );
 ```
@@ -141,10 +157,10 @@ where hour in (
 
 ```sql
 select sname
-from STUDENTS
+from students 
 where sid in (
   select sid
-  from CHOICES
+  from choices 
   where cid = '10001'
 );
 ```
@@ -154,7 +170,53 @@ where sid in (
 8. 查询选修了所有课程的学生姓名：
 
 ```sql
+-- I am not recommand this way. It is TOO SLOW.
+select sname
+from students
+where not exists (
+  select cid
+  from courses
+  except 
+  select cid 
+  from choices
+  where choices.sid = students.sid
+)
 ```
+
+或者：
+
+```sql
+select sname
+from students
+where sid in 
+(
+  select sid
+  from choices
+  group by sid  
+  having count(distinct cid) =
+  (
+    select count(*)
+    from courses
+  )
+)
+```
+
+或者:
+
+```sql
+select s.sname from students s
+join (
+  select sid, count(distinct cid) as num_courses 
+  from choices 
+  group by sid 
+) c on s.sid = c.sid
+join (
+  select count(*) as num_courses
+  from courses
+) c2 on c.num_courses = c2.num_courses;
+```
+
+![008](./img/008.png)
 
 
 ### 自我实践
@@ -185,35 +247,38 @@ where sid in (
 1. 查询选修C++课程的成绩比姓名为znkoo的学生高的所有学生的编号和姓名：
 
 ```sql
-with 
-cpp_cid as (
-  select cid
-  from courses
-  where cname = 'c++'
-), 
-znkoo_cpp_score as (
-  select score
-  from choices choi, students stu
-  where choi.sid = stu.sid
-    and stu.sname = 'znkoo'
-    and choi.cid = (select cid from cpp_cid)
+select sid, sname
+from students
+where sid in 
+(
+  select stu.sid
+  from choices choi, students stu, courses cour
+  where choi.sid = stu.sid 
+    and choi.cid = cour.cid
+    and cour.cname = 'c++'
+    and choi.score > 
+  (
+    select score
+    from choices choi2, students stu2, courses cour2
+    where choi2.sid = stu2.sid
+      and choi2.cid = cour2.cid
+      and stu2.sname = 'znkoo'
+      and cour2.cname = 'c++'
+  )
 )
-select stu.sid, stu.sname 
-from students stu, choices choi
-where stu.sid = choi.sid
-  and choi.cid = (select cid from cpp_cid)
-  and choi.score > (select score from znkoo_cpp_score) 
 ```
+
 
 ![009](./img/009.png)
 
 
-2. 找出和学生883794999或学生850955252的年级一样的学生的姓名：
+1. 找出和学生883794999或学生850955252的年级一样的学生的姓名：
 
 ```sql
 select sname
 from students
-where grade in (
+where grade in 
+(
   select grade
   from students
   where sid in ('883794999', '850955252')
@@ -227,11 +292,16 @@ where grade in (
 ```sql
 select stu.sname
 from students stu
-where sid not in (
+where sid not in 
+(
   select sid
-  from choices choi, courses cour
-  where choi.cid = cour.cid
-    and cour.cname = 'java'
+  from choices 
+  where cid = 
+  (
+    select cid
+    from courses
+    where cname = 'java'
+  )
 )
 ```
 
@@ -255,14 +325,129 @@ where hour = (
 ```sql
 select tid, cid
 from choices
-where tid in (
+where tid in 
+(
   select tid
   from teachers
-  where salary = (
+  where salary = 
+  (
     select max(salary)
     from teachers
   )
 )
 group by tid, cid
+```
   
+![013](./img/013.png)
 
+6. 找出选修课程ERP成绩最高的学生编号
+
+```sql
+select sid
+from choices choi, courses cour
+where choi.cid = cour.cid
+  and cour.cname = 'erp'
+  and choi.score = 
+(
+  select max(score)
+  from choices choi2, courses cour2
+  where choi2.cid = cour2.cid
+    and cour2.cname = 'erp'
+)
+```
+
+![014](./img/014.png)
+
+7. 查询没有学生选修的课程的名称：
+
+```sql
+select cname
+from courses
+where cid not in (
+  select cid
+  from choices
+)
+```
+
+![015](./img/015.png)
+
+8. 找出讲授课程UML的教师讲授的所有课程名称：
+
+```sql
+select cname
+from courses
+where cid in 
+(
+  select cid
+  from choices
+  where tid in 
+  (
+    select tid
+    from choices
+    where cid =
+    (
+      select cid
+      from courses
+      where cname = 'uml'
+    )
+  )
+)
+```
+
+![016](./img/016.png)
+
+9. 查询选修了编号200102901的教师开设的所有课程的学生编号：
+
+```sql
+select sid
+from choices
+where sid no in (
+  select sid
+  from choices
+  except 
+  select sid
+  from choices
+  where tid = '200102901'
+)
+```
+
+![017](./img/017.png)
+
+10. 查询选修课程Database的学生集合与选修课程UML的学生集合的并集：
+
+```sql
+select sid
+from students
+where sid in 
+(
+  select sid
+  from choices
+  where cid in 
+  (
+    select cid
+    from courses
+    where cname = 'database'
+  )
+)
+union
+select sid
+from students
+where sid in 
+(
+  select sid
+  from choices
+  where cid in 
+  (
+    select cid
+    from courses
+    where cname = 'uml'
+  )
+)
+```
+
+![018](./img/018.png)
+
+
+## 实验总结
+
+一到了嵌套查询，CHOICES中庞大的数据量便会带来巨大的挑战。如何合理地组织优化查询语句是本次实验的关键点。
