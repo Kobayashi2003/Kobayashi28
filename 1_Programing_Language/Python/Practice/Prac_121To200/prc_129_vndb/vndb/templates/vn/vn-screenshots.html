@@ -2,8 +2,9 @@
   <h2 class="screenshots__title">Screenshots</h2>
   <div class="screenshots__carousel">
     {% for screenshot in vndata.screenshots %}
+      {% set screenshot_url = screenshot.local if 'local' in screenshot else screenshot.url %}
       <div class="screenshots__item {% if loop.first %}active{% endif %}">
-        <img src="{{ screenshot.url }}" alt="Screenshot of the VN"
+        <img src="{{ screenshot_url }}" alt="Screenshot of the VN"
              class="screenshots__img {% if screenshot.sexual %}screenshots__img--sexual{% endif %} {% if screenshot.violence %}screenshots__img--violence{% endif %}">
       </div>
     {% endfor %}
@@ -12,6 +13,7 @@
   </div>
   <div class="screenshots__thumbnails">
     {% for screenshot in vndata.screenshots %}
+      {% set screenshot_thumbnail = screenshot.local_thumbnail if 'local_thumbnail' in screenshot else screenshot.thumbnail %}
       <a href="#" class="screenshots__thumbnail-link">
         <img src="{{ screenshot.thumbnail }}" alt="Thumbnail"
              class="screenshots__thumbnail {% if loop.first %}active{% endif %}">

@@ -1,17 +1,11 @@
-try:
-    from vndb.utils import check_date
-    from vndb.db import connect_db
-except ImportError:
-    from utils import check_date
-    from db import connect_db
+from flask import current_app, render_template, request, abort, redirect, url_for, Blueprint, jsonify
+
+from vndb.db import connect_db
+from vndb.utils import format_description, judge_violence, judge_sexual, check_date
 
 import requests
 import json
 import re
-import datetime
-import logging
-
-logger = logging.getLogger(__name__)
 
 class VN_Filter:
     def __init__(self, query: list) -> None:
@@ -118,21 +112,80 @@ class VN_Filter_ReleasedDate(VN_Filter):
         ["release", "=",
           ["and",
             ["released", operator, date],
-              ["platform", "=", "win"],
-              ["or",
-                ["lang", "=", "ja"],
-                # ["lang", "=", "zh-Hans"]
-              ]
+            ["platform", "=", "win"],
+            ["or",
+              ["lang", "=", "ja"],
+              # ["lang", "=", "zh-Hans"]
+            ]
           ]
         ])
         super().__init__(query)
 
-def generate_filters(query: str | None = None, filters: list | None = None) -> list:
+def __generate_filters(query: str | None = None, filters: list | None = None) -> list:
     if not filters:
         filters = []
     if query:
         return ["search", "=", query] + filters
     return filters
+
+def generate_filters(query:         str | None = None,
+                     id:            str | None = None,
+                     developers:    list | None = None,
+                     characters:    list | None = None,
+                     staffs:        list | None = None,
+                     released_date_expressions: list | None = None,
+                     length:        int | None = None,
+                     dev_status:    int | None = None, 
+                     has_anime:     bool | None = None,
+                     has_screenshot:bool | None = None,
+                     has_review:    bool | None = None,
+                     has_description: bool | None = None,
+                    ) -> list:
+
+    and_container = VN_Operactor_And()
+
+    if id:
+        and_container += VN_Filter_ID(id)
+    if developers:
+        or_container = VN_Operactor_Or()
+        for developer in developers:
+            or_container += VN_Filter_Developer(developer)
+        and_container += or_container
+    if characters:
+        or_container = VN_Operactor_Or()
+        for character in characters:
+            or_container += VN_Filter_Character(character)
+        and_container += or_container
+    if staffs:
+        or_container = VN_Operactor_Or()
+        for staff in staffs:
+            or_container += VN_Filter_Staff(staff)
+        and_container += or_container
+    if released_date_expressions:
+        expression_match = re.compile(r'(\<|\<=|\>|\>=|=|\!=)\s*(\d{4}-\d{2}-\d{2}|\d{4}-\d{2}|\d{4})')
+        for expression in released_date_expressions:
+            match = expression_match.match(expression)
+            if not match:
+                raise ValueError("Invalid released date expression")
+            operator, date = match.groups()
+            and_container += VN_Filter_ReleasedDate(operator, date)
+    if length:
+        and_container += VN_Filter_Length(length)
+    if dev_status:
+        and_container += VN_Filter_DevStatus(dev_status)
+    if has_anime:
+        and_container += VN_Filter_HasAnime(has_anime)
+    if has_screenshot:
+        and_container += VN_Filter_HasScreenshot(has_screenshot)
+    if has_review:
+        and_container += VN_Filter_HasReview(has_review)
+    if has_description:
+        and_container += VN_Filter_HasDescription(has_description)
+    
+    filters = and_container.get_filters()
+    filters = filters if len(filters) > 1 else []
+
+    return __generate_filters(query, filters)
 
 def generate_fields(fields:                 str = "",
                     vn_info:                bool=False,
@@ -262,9 +315,6 @@ def search_vndb(filters:    list,
                 reverse:    bool=False,
                 ) -> dict | None:
 
-    logging.basicConfig(filename="search.log", level=logging.INFO)
-    logger.info(f"{datetime.datetime.now()}: Searching VNDB with filters {filters}, fields {fields}, results {results}, sort {sort}, reverse {reverse}")
-
     url = "https://api.vndb.org/kana/vn"
 
     headers = {
@@ -292,9 +342,7 @@ def search_vndb(filters:    list,
             more = response_json['more']
             responses.append(response_json)
             data['page'] += 1
-            logger.info(f"{datetime.datetime.now()}: {response.status_code} page {data['page']}")
         else:
-            logger.error(f"{datetime.datetime.now()}: {response.status_code} {response.text}")
             break
 
     if not responses:
@@ -305,7 +353,6 @@ def search_vndb(filters:    list,
     for response in responses:
         merged_results += response['results']
 
-    logger.info(f"{datetime.datetime.now()}: {len(merged_results)} results found")
 
     return {
         "results": merged_results,
@@ -318,11 +365,8 @@ def search_local(title:      str = "",
                  characters: str = "",
                  length:     int | str = "",
                  sort_by:    str = "",
-                 sort_order: bool = False
+                 reverse: bool = False
                  ) -> list | None:
-
-    logging.basicConfig(filename="search.log", level=logging.INFO)
-    logger.info(f"{datetime.datetime.now()}: Searching local database with title {title}, tags {tags}, developers {developers}, characters {characters}, length {length}, sort_by {sort_by}, sort_order {sort_order}")
 
     localTitle      = title
     localDevelopers = developers
@@ -395,7 +439,8 @@ def search_local(title:      str = "",
             data ->> 'title' as title,
             data -> 'image' ->> 'thumbnail' as thumbnail,
             data -> 'image' ->> 'sexual' as image__sexual,
-            data -> 'image' ->> 'violence' as image__violence
+            data -> 'image' ->> 'violence' as image__violence,
+            date
         FROM vn
         WHERE data ->> 'id' IN (
             {select_sentence if select_sentence else "SELECT data->>'id' FROM vn"}
@@ -406,45 +451,126 @@ def search_local(title:      str = "",
                 "released": "data ->> 'released'",
             }.get(sort_by, "data ->> 'title'")
         } {
-            "DESC" if sort_order else "ASC"
+            "DESC" if reverse else "ASC"
         }""")
         result = curs.fetchall()
 
-        logger.info(f"{datetime.datetime.now()}: {len(result)} results found")
-
         return result
 
+def filters_params() -> dict:
+    return {
+        "query": None, # str = "",
+        "id": None, # str | None = None,
+        "developers": None, # list | None = None,
+        "characters": None, # list | None = None,
+        "staffs": None, # list | None = None,
+        "released_date_expressions": None, # list | None = None,
+        "length": None, # int | None = None,
+        "dev_status": None, # int | None = None,
+        "has_anime": None, # bool | None = None,
+        "has_screenshot": None, # bool | None = None,
+        "has_review": None, # bool | None = None,
+        "has_description": None, # bool | None = None,
+    }
 
-def test1():
-    filters = generate_filters(filters=(
-        VN_Operactor_And() + VN_Filter_Developer('HOOKSOFT') + VN_Filter_ReleasedDate('>', '2021-01-01')).get_filters())
-    result = search_vndb(filters=filters, fields=generate_fields())
-    if result:
-        with open("result.json", "w") as f:
-            json.dump(result, f, indent=4)
-        print("Result saved to result.json")
+def fields_params() -> dict:
+    return {
+        "vn_info": True, # bool=False,
+        "tags_info": True, # bool=False,
+        "developers_info": True, # bool=False,
+        "extlinks_info": True, # bool=False,
+        "staff_info": True, # bool=False,
+        "character_info": True, # bool=False,
+        "character_va_info": True, # bool=False,
+        "character_vns_info": True, # bool=False,
+        "character_traits_info": True, # bool=False,
+        "relations_info": True, # bool=False,
+        "relations_vn_info": True, # bool=False,
+    }
+
+
+search_bp = Blueprint('search', __name__, url_prefix='/search')
+
+@search_bp.route('/', methods=['GET'])
+def search():
+
+    searchType  = request.args.get('searchType') 
+
+    if searchType == 'local':
+        localTitle      = request.args.get('localTitle')
+        localDevelopers = request.args.get('localDevelopers')
+        localCharacters = request.args.get('localCharacters')
+        localTags       = request.args.get('localTags')
+        localLength     = request.args.get('localLength')
+
+        results = search_local(title=localTitle, developers=localDevelopers, characters=localCharacters, 
+                              tags=localTags, length=localLength)
+        results = results if results else []
+
+        # return render_template('test.html', test=localTitle)
+
+    elif searchType == 'vndb':
+
+        params = filters_params()
+
+        vndbQuery       = request.args.get('vndbQuery')
+        vndbDevelopers  = request.args.get('vndbDevelopers')
+        vndbCharacters  = request.args.get('vndbCharacters')
+        vndbStaffs      = request.args.get('vndbStaffs')
+        vndbReleasedDate= request.args.get('vndbReleasedDate')
+        vndbLength      = request.args.get('vndbLength')
+        vndbDevStatus   = request.args.get('vndbDevStatus')
+        vndbHasDescription = request.args.get('vndbHasDescription')
+        vndbHasAnime    = request.args.get('vndbHasAnime')
+        vndbHasScreenshot = request.args.get('vndbHasScreenshot')
+        vndbHasReview   = request.args.get('vndbHasReview')
+
+        if vndbQuery:
+            params['query'] = vndbQuery
+        if vndbDevelopers:
+            params['developers'] = [ developer.strip() for developer in vndbDevelopers.split(',') ]
+        if vndbStaffs:
+            params['staffs'] = [ staff.strip() for staff in vndbStaffs.split(',') ]
+        if vndbCharacters:
+            params['characters'] = [ character.strip() for character in vndbCharacters.split(',') ]
+        if vndbReleasedDate:
+            params['released_date_expressions'] = vndbReleasedDate.split(',')
+        if vndbLength:
+            params['length'] = int(vndbLength)
+        if vndbDevStatus:
+            params['dev_status'] = int(vndbDevStatus)
+        if vndbHasDescription == 'on':
+            params['has_description'] = True
+        if vndbHasAnime == 'on':
+            params['has_anime'] = True
+        if vndbHasScreenshot == 'on':
+            params['has_screenshot'] = True
+        if vndbHasReview == 'on':
+            params['has_review'] = True
+
+        fields = generate_fields("""id, title, image.thumbnail, image.sexual, image.violence""")
+        filters = generate_filters(**params)
+        # return render_template('test.html', test=filters)
+        results = search_vndb(filters=filters, fields=fields)
+        results = results['results'] if results else []
+        results = [[result['id'], result['title'],
+                   result['image']['thumbnail'] if result['image'] is not None and 'thumbnail' in result['image'] else '',
+                   result['image']['sexual']    if result['image'] is not None and 'sexual' in result['image'] else 0,
+                   result['image']['violence']  if result['image'] is not None and 'violence' in result['image'] else 0
+                   ] for result in results] if results else []
     else:
-        print("No result found")
+        results = []
+        
+    vns = [{
+        'id':               result[0],
+        'title':            result[1],
+        'thumbnail':        result[2],
+        'image__sexual':    judge_sexual(float(result[3])),
+        'image__violence':  judge_violence(float(result[4])),
+        'date':             result[5] if searchType == 'local' else ''
+    } for result in results]
+    
+    if request.args.get('format') == 'json':
+        return jsonify(vns), 200
 
-
-def test2():
-    filters = generate_filters(query='セレクトオブリージュ')
-    result = search_vndb(filters=filters, fields=generate_fields())
-    if result:
-        with open("result.json", "w") as f:
-            json.dump(result, f, indent=4)
-        print("Result saved to result.json")
-    else:
-        print("No result found")
-
-
-def test3():
-    filters = generate_filters(query='セレクトオブリージュ')
-    fields = generate_fields("""id, title, image.thumbnail, image.sexual, image.violence""")
-    result = search_vndb(filters=filters, fields=fields)
-    if result:
-        with open("result.json", "w") as f:
-            json.dump(result, f, indent=4)
-        print("Result saved to result.json")
-    else:
-        print("No result found")
+    return render_template('index/index.html', vns=vns)

@@ -2,10 +2,11 @@
   <h2 class="character-summary__title">Character Summary</h2>
   {% for va in vndata.va|sort(attribute='character.id') %}
     <article id="{{ va.character.id }}" class="character">
+      {% set character_image = va.character.image.local if 'local' in va.character.image else va.character.image.url %}
       <div class="character__image">
-        <a href="{{ va.character.image.url }}">
+        <a href="{{ character_image }}">
           <img alt="Image of {{ va.character.name }}"
-              src="{%if va.character.image.url %}{{ va.character.image.url }}{% else %}{{ url_for('static', filename='images/no-image.png') }}{% endif %}"
+              src="{%if character_image %}{{ character_image }}{% else %}{{ url_for('static', filename='images/no-image.png') }}{% endif %}"
               class="character__img {% if va.character.image.sexual %}character__img--sexual{% endif %} {% if va.character.image.violence %}character__img--violence{% endif %}">
         </a>
       </div>

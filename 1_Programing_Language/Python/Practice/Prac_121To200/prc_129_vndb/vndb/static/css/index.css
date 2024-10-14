@@ -58,7 +58,7 @@ main {
   transition: transform 0.3s ease;
 }
 
-#sortOrder[value="asc"] + label svg {
+#sortOrder + label svg {
   transform: rotate(180deg);
 }
 

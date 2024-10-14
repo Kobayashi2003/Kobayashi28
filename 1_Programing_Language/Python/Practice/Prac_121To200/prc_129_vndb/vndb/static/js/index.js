@@ -119,11 +119,6 @@ document.addEventListener('DOMContentLoaded', () => {
     sortForm.submit();
   });
 
-  sortOrder.addEventListener('change', () => {
-    sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc';
-    sortForm.submit();
-  });
-
   window.addEventListener('resize', () => {
     showPage(currentPage);
   });

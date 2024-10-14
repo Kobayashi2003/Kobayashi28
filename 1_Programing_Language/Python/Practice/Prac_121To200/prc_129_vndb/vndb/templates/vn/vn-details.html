@@ -1,8 +1,9 @@
 <section class="vn-details" id="vn-details">
   <div class="vn-details__container">
     <div class="vn-details__cover">
-      <a href="{{ vndata.image.url}}">
-        <img src="{{ vndata.image.url }}" alt="Cover image of {{ vndata.titles[0].title }}"
+      {% set cover_image = vndata.image.local if 'local' in vndata.image else vndata.image.url %}
+      <a href="{{ cover_image }}">
+        <img src="{{ cover_image }}" alt="Cover image of {{ vndata.titles[0].title }}"
              class="vn-details__cover-img {% if vndata.image.sexual %}cover__img--sexual{% endif %} {% if vndata.image.violence %}cover__img--violence{% endif %}">
       </a>
     </div>
@@ -30,7 +31,7 @@
           <h2 class="vn-details__item-title">Developers</h2>
           <ul class="vn-details-list vn-details__developer-list">
             {% for developer in vndata.developers %}
-              <form action="{{ url_for('vn.index') }}" method="post">
+              <form method="post">
                 <input type="hidden" id="searchType" name="searchType" value="local">
                 <input type="hidden" id="localDevelopers" name="localDevelopers" value="{{ developer.name }}">
                   <button type="submit" class="vn-details__developer-link">

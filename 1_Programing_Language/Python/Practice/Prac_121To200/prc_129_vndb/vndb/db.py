@@ -7,7 +7,7 @@ def __connect_db():
     conn = psycopg2.connect(
         user     = 'postgres',
         password = 'postgres',
-        database = 'flask_db',
+        database = 'vndb',
         # host     = 'localhost',
         host     = "172.18.42.211",
         port     = '5432'
@@ -28,12 +28,10 @@ def connect_db():
         )
     return g.conn
 
-
 def close_db(e=None):
     conn = g.pop('conn', None)
     if conn:
         conn.close()
-
 
 def init_db():
     conn = connect_db()
@@ -42,12 +40,10 @@ def init_db():
             curs.execute(f.read().decode('utf8'))
     conn.commit()
 
-
 @click.command('init-db')
 def init_db_command():
     init_db()
     click.echo('Initialized the database.')
-
 
 def init_app(app):
     app.teardown_appcontext(close_db)

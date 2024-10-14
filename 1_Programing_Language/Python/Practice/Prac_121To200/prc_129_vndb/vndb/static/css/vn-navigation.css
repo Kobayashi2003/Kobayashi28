@@ -90,6 +90,46 @@
 	cursor: pointer;
 }
 
+.vn-nav__download {
+  display: flex;
+  align-items: center;
+  margin-left: 1rem;
+}
+
+.vn-nav__download-button {
+  background-color: var(--primary-color);
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.vn-nav__download-button:hover {
+  background-color: var(--primary-color-dark);
+}
+
+.vn-nav__download-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.vn-nav__download-status {
+  margin-left: 0.5rem;
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+.vn-nav__download-status--success {
+  color: #4caf50;
+}
+
+.vn-nav__download-status--error {
+  color: #f44336;
+}
+
 @media (max-width: 768px) {
 	.vn-nav {
 		flex-direction: column;
@@ -133,5 +173,11 @@
 		position: absolute;
 		top: 1rem;
 		right: 1rem;
+	}
+
+	.vn-nav__download {
+		width: 100%;
+		margin-left: 0;
+		margin-top: 1rem;
 	}
 }

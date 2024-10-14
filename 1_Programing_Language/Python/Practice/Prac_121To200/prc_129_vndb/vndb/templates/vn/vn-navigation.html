@@ -1,6 +1,6 @@
 <nav class="vn-nav">
   <div class="vn-nav__home">
-    <h1><a href="javascript:if (window.history.length > 1) { history.go(-1) } else { window.location.href = '{{ url_for('vn.index') }}'  }">
+    <h1><a href="javascript:if (window.history.length > 1) { history.go(-1) } else { window.location.href = '{{ url_for('index.index') }}'  }">
       {{ vndata.title }}</a></h1>
   </div>
   <button class="vn-nav__toggle" aria-label="Toggle navigation menu" aria-expanded="false">☰</button>
@@ -20,6 +20,12 @@
         <input type="checkbox" id="showViolent" class="vn-nav__filter-checkbox" checked>
         Show Violent Content
       </label>
+    </div>
+    <div class="vn-nav__download">
+      <button id="downloadButton" class="vn-nav__download-button" data-vn-id="{{ vndata.id }}">
+        Download VN
+      </button>
+      <span id="downloadStatus" class="vn-nav__download-status"></span>
     </div>
   </div>
 </nav>

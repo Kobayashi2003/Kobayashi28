@@ -4,6 +4,8 @@ document.addEventListener('DOMContentLoaded', function() {
   const navMenu = document.querySelector('.vn-nav__menu');
   const showSexualCheckbox = document.getElementById('showSexual');
   const showViolentCheckbox = document.getElementById('showViolent');
+  const downloadButton = document.getElementById('downloadButton');
+  const downloadStatus = document.getElementById('downloadStatus');
 
   let lastScrollTop = 0;
   let isMenuOpen = false;
@@ -61,4 +63,38 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Initial update
   updateContentVisibility();
+
+  // Download functionality
+  if (downloadButton) {
+    downloadButton.addEventListener('click', function() {
+      const vnId = this.getAttribute('data-vn-id');
+      downloadButton.disabled = true;
+      downloadStatus.textContent = 'Initiating download...';
+      downloadStatus.className = 'vn-nav__download-status';
+
+      fetch(`/download/${vnId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          downloadStatus.textContent = 'Download completed successfully!';
+          downloadStatus.className = 'vn-nav__download-status vn-nav__download-status--success';
+        } else {
+          throw new Error(data.message || 'Download failed');
+        }
+      })
+      .catch(error => {
+        downloadStatus.textContent = `Download failed: ${error.message}`;
+        downloadStatus.className = 'vn-nav__download-status vn-nav__download-status--error';
+      })
+      .finally(() => {
+        downloadButton.disabled = false;
+      });
+    });
+  }
 });
