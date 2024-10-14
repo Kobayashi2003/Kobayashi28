@@ -56,7 +56,13 @@ if (!(Get-Command "scoop" -ErrorAction SilentlyContinue)) {
     }
 
     try {
-        [Environment]::SetEnvironmentVariable('SCOOP', $env:SCOOP, 'Machine')
+        if ($admin_flg) {
+            [Environment]::SetEnvironmentVariable('SCOOP', $env:SCOOP, 'Machine')
+            [Environment]::SetEnvironmentVariable('SCOOP_GLOBAL', $env:SCOOP_GLOBAL, 'Machine')
+        } else {
+            [Environment]::SetEnvironmentVariable('SCOOP', $env:SCOOP, 'User')
+            [Environment]::SetEnvironmentVariable('SCOOP_GLOBAL', $env:SCOOP_GLOBAL, 'User')
+        }
     } catch {
         Write-Warning "Failed to set the SCOOP environment variable."
         Write-Host "Please add the SCOOP environment variable manually." -ForegroundColor Yellow
