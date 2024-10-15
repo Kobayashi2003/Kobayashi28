@@ -9,31 +9,33 @@
     </div>
     <div class="vn-details__info">
       <div class="vn-details__grid">
-        <div class="vn-details__item vn-details__item--horizontal {% if not vndata.titles %}vn-details__item--hidden{% endif %}">
-          <h2 class="vn-details__item-title">Titles</h2>
-          <ul class="vn-details-list vn-details__title-list">
-            {% for title in vndata.titles %}
-              <li class="{{ 'vn-details__title-item--main' if title.main else 'vn-details__title-item' }}">
-                {{ title.title }}
-              </li>
-            {% endfor %}
-          </ul>
-        </div>
-        <div class="vn-details__item vn-details__item--horizontal {% if not vndata.aliases %}vn-details__item--hidden{% endif %}">
-          <h2 class="vn-details__item-title">Aliases</h2>
-          <ul class="vn-details-list vn-details__alias-list">
-            {% for alias in vndata.aliases %}
-              <li>{{ alias }}</li>
-            {% endfor %}
-          </ul>
+        <div class="vn-details__section">
+          <div class="vn-details__item vn-details__item--horizontal {% if not vndata.titles %}vn-details__item--hidden{% endif %}">
+            <h2 class="vn-details__item-title">Titles</h2>
+            <ul class="vn-details-list vn-details__title-list">
+              {% for title in vndata.titles %}
+                <li class="{{ 'vn-details__title-item--main' if title.main else 'vn-details__title-item' }}">
+                  {{ title.title }}
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+          <div class="vn-details__item vn-details__item--horizontal {% if not vndata.aliases %}vn-details__item--hidden{% endif %}">
+            <h2 class="vn-details__item-title">Aliases</h2>
+            <ul class="vn-details-list vn-details__alias-list">
+              {% for alias in vndata.aliases %}
+                <li>{{ alias }}</li>
+              {% endfor %}
+            </ul>
+          </div>
         </div>
         <div class="vn-details__item vn-details__item--horizontal {% if not vndata.developers %}vn-details__item--hidden{% endif %}">
           <h2 class="vn-details__item-title">Developers</h2>
           <ul class="vn-details-list vn-details__developer-list">
             {% for developer in vndata.developers %}
-              <form method="post">
-                <input type="hidden" id="searchType" name="searchType" value="local">
-                <input type="hidden" id="localDevelopers" name="localDevelopers" value="{{ developer.name }}">
+              <form method="get" action="{{ url_for('search.search') }}">
+                <input type="hidden" name="searchType" value="local">
+                <input type="hidden" name="localDevelopers" value="{{ developer.name }}">
                   <button type="submit" class="vn-details__developer-link">
                     {% if developer.original %}
                       <li>{{ developer.name }}({{ developer.original }})</li>
@@ -49,7 +51,7 @@
           <h2 class="vn-details__item-title">Platforms</h2>
           <ul class="vn-details-list vn-details__platforms-list">
             {% for platform in vndata.platforms %}
-              <li>{{ platform }}</li>
+              <li class="vn-details__platform-item">{{ platform }}</li>
             {% endfor %}
           </ul>
         </div>
@@ -57,7 +59,7 @@
           <h2 class="vn-details__item-title">Languages</h2>
           <ul class="vn-details-list vn-details__languages-list">
             {% for language in vndata.languages %}
-              <li>{{ language }}</li>
+              <li class="vn-details__language-item">{{ language }}</li>
             {% endfor %}
           </ul>
         </div>

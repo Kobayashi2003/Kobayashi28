@@ -1,8 +1,7 @@
 from vndb.db import connect_db
 from vndb.search import search_vndb, generate_fields, generate_filters
 
-from flask import current_app, url_for, Blueprint, jsonify, redirect
-from werkzeug.utils import secure_filename
+from flask import current_app, url_for, Blueprint, jsonify 
 
 import os
 import json
@@ -49,6 +48,7 @@ def download_vn(id: str) -> bool:
             images.append(data['image']['url'])
             data['image']['local'] = url_for('static', filename=os.path.join('images', id, os.path.basename(data['image']['url'])).replace('\\', '/'))
             data['image']['local_thumbnail'] = url_for('static', filename=os.path.join('images', id, os.path.basename(data['image']['thumbnail'])).replace('\\', '/'))
+
         for screenshot in data['screenshots']:
             if 'url' in screenshot and screenshot['url']:
                 images.append(screenshot['url'])
@@ -56,10 +56,12 @@ def download_vn(id: str) -> bool:
             if 'thumbnail' in screenshot and screenshot['thumbnail']:
                 images.append(screenshot['thumbnail'])
                 screenshot['local_thumbnail'] = url_for('static', filename=os.path.join('images', id, os.path.basename(screenshot['thumbnail'])).replace('\\', '/'))
+
         for va in data['va']:
             if 'character' in va and va['character'] and 'url' in va['character']['image'] and va['character']['image']['url']:
                 images.append(va['character']['image']['url'])
                 va['character']['image']['local'] = url_for('static', filename=os.path.join('images', id, os.path.basename(va['character']['image']['url'])).replace('\\', '/'))
+
         curs.execute("UPDATE vn SET data = %s WHERE id = %s", (json.dumps(data), id))
         curs.execute("UPDATE vn SET downloaded = true WHERE id = %s", (id,))
         conn.commit()
@@ -69,6 +71,7 @@ def download_vn(id: str) -> bool:
             executor.submit(download_image, image, download_path)
 
     return True
+
 
 download_bp = Blueprint('download', __name__, url_prefix='/download')
 

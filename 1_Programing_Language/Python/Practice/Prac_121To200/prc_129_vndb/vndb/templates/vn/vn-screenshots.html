@@ -4,8 +4,10 @@
     {% for screenshot in vndata.screenshots %}
       {% set screenshot_url = screenshot.local if 'local' in screenshot else screenshot.url %}
       <div class="screenshots__item {% if loop.first %}active{% endif %}">
-        <img src="{{ screenshot_url }}" alt="Screenshot of the VN"
-             class="screenshots__img {% if screenshot.sexual %}screenshots__img--sexual{% endif %} {% if screenshot.violence %}screenshots__img--violence{% endif %}">
+        <a href="{{ screenshot_url }}" target="_blank" rel="noopener noreferrer" class="screenshots__link screenshots__link--large">
+          <img src="{{ screenshot_url }}" alt="Screenshot of the VN"
+               class="screenshots__img {% if screenshot.sexual %}screenshots__img--sexual{% endif %} {% if screenshot.violence %}screenshots__img--violence{% endif %}">
+        </a>
       </div>
     {% endfor %}
     <a href="#" class="screenshots__nav screenshots__nav--prev">&#x2039;</a>

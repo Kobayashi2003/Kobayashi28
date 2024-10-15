@@ -1,5 +1,4 @@
 import re
-from typing import List
 
 
 def judge_sexual(sexual: float) -> bool:

@@ -50,6 +50,10 @@ def create_app(test_config=None):
 
     from . import download
     app.register_blueprint(download.download_bp)
-    app.add_url_rule('/download', endpoint='download', view_func=download.download, methods=['GET'])
+    app.add_url_rule('/download', endpoint='download', view_func=download.download, methods=['POST'])
+
+    from . import delete
+    app.register_blueprint(delete.delete_bp)
+    app.add_url_rule('/delete', endpoint='delete', view_func=delete.delete, methods=['POST'])
 
     return app

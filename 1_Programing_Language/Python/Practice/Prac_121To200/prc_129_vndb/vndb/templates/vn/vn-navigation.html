@@ -1,6 +1,6 @@
 <nav class="vn-nav">
   <div class="vn-nav__home">
-    <h1><a href="javascript:if (window.history.length > 1) { history.go(-1) } else { window.location.href = '{{ url_for('index.index') }}'  }">
+    <h1><a href="javascript:if (window.history.length > 1) { location.replace(document.referrer) } else { window.location.href = '{{ url_for('index.index') }}'  }">
       {{ vndata.title }}</a></h1>
   </div>
   <button class="vn-nav__toggle" aria-label="Toggle navigation menu" aria-expanded="false">☰</button>
@@ -21,11 +21,17 @@
         Show Violent Content
       </label>
     </div>
-    <div class="vn-nav__download">
-      <button id="downloadButton" class="vn-nav__download-button" data-vn-id="{{ vndata.id }}">
-        Download VN
-      </button>
-      <span id="downloadStatus" class="vn-nav__download-status"></span>
+    <div class="vn-nav__action">
+      {% if vndata.downloaded %}
+        <button id="deleteButton" class="vn-nav__action-button vn-nav__action-button--delete" data-vn-id="{{ vndata.id }}">
+          Delete VN
+        </button>
+      {% else %}
+        <button id="downloadButton" class="vn-nav__action-button vn-nav__action-button--download" data-vn-id="{{ vndata.id }}">
+          Download VN
+        </button>
+      {% endif %}
+      <span id="actionStatus" class="vn-nav__action-status"></span>
     </div>
   </div>
 </nav>

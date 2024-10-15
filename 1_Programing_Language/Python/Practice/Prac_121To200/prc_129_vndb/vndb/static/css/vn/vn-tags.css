@@ -1,0 +1,68 @@
+/* VN Tags Container */
+.vn-tags {
+  margin-bottom: 2rem;
+}
+
+.vn-tags--hidden {
+  display: none;
+}
+
+/* VN Tags Title */
+.vn-tags h2 {
+  margin-top: 0;
+  color: var(--secondary-color);
+  font-size: 1.8em;
+}
+
+/* VN Tags List */
+.vn-tags__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* VN Tag Link */
+.vn-tags__link {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.vn-tags__link:hover,
+.vn-tags__link:focus {
+  text-decoration: none;
+}
+
+/* VN Tag Item */
+.vn-tags__item {
+  background-color: rgba(52, 152, 219, 0.7);
+  color: #fff;
+  padding: 8px 15px;
+  border-radius: 20px;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.vn-tags__item:hover {
+  background-color: rgba(41, 128, 185, 0.9);
+}
+
+/* VN Tag Categories */
+.vn-tags__item--ero {
+  background-color: #e74c3c;
+}
+
+.vn-tags__item--tech {
+  background-color: #2ecc71;
+}
+
+.vn-tags__item--cont {
+  background-color: #f39c12;
+}

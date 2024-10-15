@@ -8,11 +8,11 @@
   <title>{{ vndata.title }}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/Meyer.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/vn-navigation.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/vn-details.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/vn-tags.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/vn-character-summary.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/vn-screenshots.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/vn/vn-navigation.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/vn/vn-details.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/vn/vn-tags.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/vn/vn-character-summary.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/vn/vn-screenshots.css') }}">
 </head>
 <body>
   <div class="background-image" style="background-image: url('{{ vndata.image.url }}');"></div>
@@ -23,7 +23,7 @@
     {% include 'vn/vn-character_summary.html' %}
     {% include 'vn/vn-screenshots.html' %}
   </main>
-  <script src="{{ url_for('static', filename='js/vn-navigation.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/vn-screenshot-carousel.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/vn/vn-navigation.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/vn/vn-screenshot-carousel.js') }}"></script>
 </body>
 </html>

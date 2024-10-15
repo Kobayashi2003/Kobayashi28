@@ -13,7 +13,6 @@
       <div class="character__info">
         <h3 class="character__name">{{ va.character.name or 'Unknown' }} ({{ va.character.original or 'Unknown' }})</h3>
         <dl class="character__details">
-
           {% set details = [
             ('Apparent Sex' , {'m': 'Male', 'f': 'Female', 'b': 'Both'}.get(va.character.sex[0], 'Unknown')),
             ('Real Sex'     , {'m': 'Male', 'f': 'Female', 'b': 'Both'}.get(va.character.sex[1], 'Unknown')),

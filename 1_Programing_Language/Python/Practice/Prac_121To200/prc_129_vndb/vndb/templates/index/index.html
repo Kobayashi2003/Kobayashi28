@@ -6,33 +6,16 @@
   <meta name="google" content="notranslate" />
   <meta name="robots" content="notranslate" />
   <title>VNS INDEX</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='/css/index.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='/css/header.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='/css/search.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='/css/index/index.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='/css/index/header.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='/css/index/search.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='/css/index/sort-container.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='/css/index/pagination.css') }}">
 </head>
 <body>
   {% include 'index/header.html' %}
   <main>
-
-    <div class="sort-container">
-      <label for="sortSelect">Sort by:</label>
-      <select id="sortSelect" name="sortSelect">
-        {% for value, label in [('title', 'Title'), ('released', 'Release Date'), ('id', 'ID')] %}
-        <option value="{{ value }}">{{ label }}</option>
-        {% endfor %}
-      </select>
-      <div class="sort-order">
-        <input type="checkbox" id="sortOrder" name="sortOrder">
-        <label for="sortOrder">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="m3 16 4 4 4-4" />
-            <path d="M7 20V4" />
-          </svg>
-        </label>
-      </div>
-      </form>
-    </div>
+    {% include 'index/sort-container.html' %}
 
     <div class="vns" id="vnsContainer">
       {% for vn in vns %}
@@ -48,17 +31,13 @@
       {% endfor %}
     </div>
 
-    <div class="pagination">
-      <button id="firstPage" class="pagination-button"><span>First</span></button>
-      <button id="prevPage" class="pagination-button">&#x2039; <span>Prev</span></button>
-      <div id="pageNumbers" class="page-numbers"></div>
-      <button id="nextPage" class="pagination-button"><span>Next</span> &#x203A;</button>
-      <button id="lastPage" class="pagination-button"><span>Last</span></button>
-    </div>
+    {% include 'index/pagination.html' %}
   </main>
   {% include 'index/search.html' %}
-  <script src="{{ url_for('static', filename='/js/index.js') }}"></script>
-  <script src="{{ url_for('static', filename='/js/header.js') }}"></script>
-  <script src="{{ url_for('static', filename='/js/search.js') }}"></script>
+  <script src="{{ url_for('static', filename='/js/index/index.js') }}"></script>
+  <script src="{{ url_for('static', filename='/js/index/header.js') }}"></script>
+  <script src="{{ url_for('static', filename='/js/index/search.js') }}"></script>
+  <script src="{{ url_for('static', filename='/js/index/sort-container.js') }}"></script>
+  <script src="{{ url_for('static', filename='/js/index/pagination.js') }}"></script>
 </body>
 </html>

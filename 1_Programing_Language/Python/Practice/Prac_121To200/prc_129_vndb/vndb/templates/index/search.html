@@ -6,8 +6,8 @@
       <button id="vndbSearchTab" class="search-tab">VNDB Search</button>
     </div>
     <div id="localSearchForm" class="search-form active">
-      <form method="post" action="">
-        <input type="hidden" id="searchType" name="searchType" value="local">
+      <form method="get" action="{{ url_for('search.search') }}" class="search-form-local">
+        <input type="hidden" name="searchType" value="local">
         <div class="form-group">
           <label for="localTitle">Title</label>
           <input type="text" id="localTitle" name="localTitle" placeholder="Enter title">
@@ -35,8 +35,8 @@
       </form>
     </div>
     <div id="vndbSearchForm" class="search-form">
-      <form method="post" action="">
-        <input type="hidden" id="searchType" name="searchType" value="vndb">
+      <form method="get" action="{{ url_for('search.search') }}" class="search-form-vndb">
+        <input type="hidden" name="searchType" value="vndb">
         <div class="form-group">
           <label for="vndbQuery">Query</label>
           <input type="text" id="vndbQuery" name="vndbQuery" placeholder="Enter search query">

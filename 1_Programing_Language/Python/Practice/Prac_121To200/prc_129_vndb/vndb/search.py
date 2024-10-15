@@ -1,4 +1,4 @@
-from flask import current_app, render_template, request, abort, redirect, url_for, Blueprint, jsonify
+from flask import render_template, request, Blueprint, jsonify
 
 from vndb.db import connect_db
 from vndb.utils import format_description, judge_violence, judge_sexual, check_date
@@ -353,21 +353,30 @@ def search_vndb(filters:    list,
     for response in responses:
         merged_results += response['results']
 
+    for i in range(len(merged_results)):
+        result = search_local(id=merged_results[i]['id'])
+        if result:
+            merged_results[i] = result[0]
+        else:
+            merged_results[i]['downloaded'] = False
+            merged_results[i]['date'] = ''
 
     return {
         "results": merged_results,
         "count":   len(merged_results)
     }
 
-def search_local(title:      str = "",
+def search_local(id:         str = "",
+                 title:      str = "",
                  tags:       str = "",
                  developers: str = "",
                  characters: str = "",
-                 length:     int | str = "",
+                 length:     int = 0,
                  sort_by:    str = "",
                  reverse: bool = False
                  ) -> list | None:
 
+    localID         = id
     localTitle      = title
     localDevelopers = developers
     localCharacters = characters
@@ -377,7 +386,12 @@ def search_local(title:      str = "",
     conn = connect_db()
     with conn.cursor() as curs:
         select_sentence = ""
-
+        if localID:
+            select_sentence = f"""(
+            SELECT DISTINCT data->>'id' AS id
+            FROM vn
+            WHERE data ->> 'id' = '{localID}'
+            )"""
         if localTitle:
             localTitle = localTitle.replace("'",  "''")
             select_sentence += f"""(
@@ -424,23 +438,20 @@ def search_local(title:      str = "",
             )"""
         if localLength:
             select_sentence += " INTERSECT " if select_sentence else ""
-            if isinstance(localLength, str):
-                localLength = {'very-short': 1,'short': 2, 'medium': 3, 'long': 4,'very-long': 5}[localLength]
-            elif localLength < 1 or localLength > 5:
-                raise ValueError("Invalid length")
             select_sentence += f"""(
             SELECT DISTINCT data->>'id' AS id
             FROM vn
-            WHERE data->>'length' = '{localLength}'
+            WHERE data->>'length' = '{int(localLength)}'
             )"""
         curs.execute(f"""
         SELECT
-            data ->> 'id' as id,
-            data ->> 'title' as title,
-            data -> 'image' ->> 'thumbnail' as thumbnail,
-            data -> 'image' ->> 'sexual' as image__sexual,
-            data -> 'image' ->> 'violence' as image__violence,
-            date
+            -- data ->> 'id' as id,
+            -- data ->> 'title' as title,
+            -- data -> 'image' ->> 'thumbnail' as thumbnail,
+            -- data -> 'image' ->> 'sexual' as image__sexual,
+            -- data -> 'image' ->> 'violence' as image__violence,
+            -- date, downloaded
+            date, downloaded, data
         FROM vn
         WHERE data ->> 'id' IN (
             {select_sentence if select_sentence else "SELECT data->>'id' FROM vn"}
@@ -453,9 +464,15 @@ def search_local(title:      str = "",
         } {
             "DESC" if reverse else "ASC"
         }""")
-        result = curs.fetchall()
 
-        return result
+        results = curs.fetchall()
+        for i in range(len(results)):
+            result = results[i]
+            date, downloaded, data = result
+            data['date'] = date
+            data['downloaded'] = downloaded
+            results[i] = data
+        return results
 
 def filters_params() -> dict:
     return {
@@ -488,6 +505,18 @@ def fields_params() -> dict:
         "relations_vn_info": True, # bool=False,
     }
 
+def handle_for_index(results: list) -> list:
+
+    return [{
+        'id':               result['id'],
+        'date':             result['date'],
+        'title':            result['title'],
+        'downloaded':       result['downloaded'],
+        'thumbnail':        result['image']['thumbnail']                        if result['image'] else '',
+        'image__sexual':    judge_sexual(float(result['image']['sexual']))      if result['image'] else '',
+        'image__violence':  judge_violence(float(result['image']['violence']))  if result['image'] else '',
+    } for result in results]
+
 
 search_bp = Blueprint('search', __name__, url_prefix='/search')
 
@@ -497,17 +526,16 @@ def search():
     searchType  = request.args.get('searchType') 
 
     if searchType == 'local':
+        localID         = request.args.get('localID')
         localTitle      = request.args.get('localTitle')
         localDevelopers = request.args.get('localDevelopers')
         localCharacters = request.args.get('localCharacters')
         localTags       = request.args.get('localTags')
         localLength     = request.args.get('localLength')
 
-        results = search_local(title=localTitle, developers=localDevelopers, characters=localCharacters, 
-                              tags=localTags, length=localLength)
+        results = search_local(id=localID, title=localTitle, developers=localDevelopers, 
+                               characters=localCharacters, tags=localTags, length=localLength)
         results = results if results else []
-
-        # return render_template('test.html', test=localTitle)
 
     elif searchType == 'vndb':
 
@@ -550,27 +578,16 @@ def search():
 
         fields = generate_fields("""id, title, image.thumbnail, image.sexual, image.violence""")
         filters = generate_filters(**params)
-        # return render_template('test.html', test=filters)
         results = search_vndb(filters=filters, fields=fields)
         results = results['results'] if results else []
-        results = [[result['id'], result['title'],
-                   result['image']['thumbnail'] if result['image'] is not None and 'thumbnail' in result['image'] else '',
-                   result['image']['sexual']    if result['image'] is not None and 'sexual' in result['image'] else 0,
-                   result['image']['violence']  if result['image'] is not None and 'violence' in result['image'] else 0
-                   ] for result in results] if results else []
+
     else:
         results = []
-        
-    vns = [{
-        'id':               result[0],
-        'title':            result[1],
-        'thumbnail':        result[2],
-        'image__sexual':    judge_sexual(float(result[3])),
-        'image__violence':  judge_violence(float(result[4])),
-        'date':             result[5] if searchType == 'local' else ''
-    } for result in results]
     
+    vns = handle_for_index(results)
+
     if request.args.get('format') == 'json':
+        # return render_template('test.html', test=vns)
         return jsonify(vns), 200
 
     return render_template('index/index.html', vns=vns)

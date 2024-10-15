@@ -11,17 +11,11 @@ vn_bp = Blueprint('vn', __name__, url_prefix='/vn', template_folder='templates')
 @vn_bp.route('/<id>', methods=['GET'])
 def show(id):
 
-    conn = connect_db()
-    with conn.cursor() as curs:
-        curs.execute("SELECT data FROM vn WHERE id = %s", (id,))
-        result = curs.fetchone()
-        if not result:
-            fields = generate_fields()
-            filter = generate_filters(id=id)
-            result = search_vndb(filters=filter, fields=fields)
-            result = result['results'] if result else []
-        if not result:
-            abort(404, "VN not found")
+    result = search_local(id=id)
+    if not result:
+        result = search_vndb(filters=generate_filters(id=id), fields=generate_fields())['results']
+    if not result:
+        abort(404, "VN not found")
 
     result[0]['description'] = format_description(result[0]['description'])
     if result[0]['image'] is not None:

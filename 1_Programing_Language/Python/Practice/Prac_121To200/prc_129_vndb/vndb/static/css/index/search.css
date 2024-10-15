@@ -1,0 +1,215 @@
+/* Search Modal */
+.search-modal {
+  display: none;
+  position: fixed;
+  z-index: 1001;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  transition: backdrop-filter 0.3s ease;
+}
+
+/* Search Content */
+.search-content {
+  background-color: rgba(244, 244, 244, 0.8);
+  margin: 10% auto;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  max-width: 500px;
+  width: 90%;
+  position: relative;
+  backdrop-filter: blur(5px);
+  transition: all 0.3s ease;
+}
+
+.search-content:hover {
+  backdrop-filter: blur(15px);
+  background-color: rgba(244, 244, 244, 0.9);
+  transform: scale(1.02);
+}
+
+/* Search Tabs */
+.search-tabs {
+  display: flex;
+  margin-bottom: 20px;
+}
+
+.search-tab {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background-color: rgba(221, 221, 221, 0.7);
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.search-tab.active {
+  background-color: rgba(51, 51, 51, 0.8);
+  color: #fff;
+}
+
+/* Search Forms */
+.search-form {
+  display: none;
+}
+
+.search-form.active {
+  display: block;
+}
+
+/* Form Groups */
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px;
+  border: 1px solid rgba(221, 221, 221, 0.7);
+  border-radius: 3px;
+  background-color: rgba(255, 255, 255, 0.8);
+  transition: background-color 0.3s, border-color 0.3s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  background-color: rgba(255, 255, 255, 1);
+  border-color: rgba(51, 51, 51, 0.8);
+  outline: none;
+}
+
+/* Search Button */
+.search-button {
+  width: 100%;
+  padding: 10px;
+  background-color: rgba(51, 51, 51, 0.8);
+  color: #fff;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.search-button:hover {
+  background-color: rgba(85, 85, 85, 0.9);
+  transform: translateY(-2px);
+}
+
+/* Close Button */
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 24px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: rgba(0, 0, 0, 0.5);
+  transition: color 0.3s;
+}
+
+.close-button:hover {
+  color: rgba(0, 0, 0, 0.8);
+}
+
+/* Checkbox Groups */
+.checkbox-group {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.checkbox-group input[type="checkbox"] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(51, 51, 51, 0.8);
+  border-radius: 3px;
+  outline: none;
+  transition: all 0.3s;
+  position: relative;
+  cursor: pointer;
+  margin-right: 8px;
+}
+
+.checkbox-group input[type="checkbox"]:checked {
+  background-color: rgba(51, 51, 51, 0.8);
+}
+
+.checkbox-group input[type="checkbox"]:checked::before {
+  content: '\2713';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  font-size: 12px;
+}
+
+.checkbox-group input[type="checkbox"]:hover {
+  border-color: rgba(85, 85, 85, 0.9);
+}
+
+.checkbox-group label {
+  display: inline;
+  margin-bottom: 0;
+  font-weight: normal;
+  cursor: pointer;
+}
+
+.form-group .checkbox-group:last-child {
+  margin-bottom: 0;
+}
+
+/* More Options Button */
+.more-options-button {
+  width: 100%;
+  padding: 10px;
+  background-color: rgba(51, 51, 51, 0.8);
+  color: #fff;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+  margin-bottom: 15px;
+}
+
+.more-options-button:hover {
+  background-color: rgba(85, 85, 85, 0.9);
+  transform: translateY(-2px);
+}
+
+/* More Options Content */
+.more-options-content {
+  transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.more-options-content.active {
+  max-height: 1000px;
+  opacity: 1;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .search-content {
+    margin: 20% auto;
+  }
+}
