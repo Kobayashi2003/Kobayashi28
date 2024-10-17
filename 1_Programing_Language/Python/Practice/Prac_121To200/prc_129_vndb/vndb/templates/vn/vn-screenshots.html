@@ -17,7 +17,7 @@
     {% for screenshot in vndata.screenshots %}
       {% set screenshot_thumbnail = screenshot.local_thumbnail if 'local_thumbnail' in screenshot else screenshot.thumbnail %}
       <a href="#" class="screenshots__thumbnail-link">
-        <img src="{{ screenshot.thumbnail }}" alt="Thumbnail"
+        <img src="{{ screenshot_thumbnail }}" alt="Thumbnail"
              class="screenshots__thumbnail {% if loop.first %}active{% endif %}">
       </a>
     {% endfor %}

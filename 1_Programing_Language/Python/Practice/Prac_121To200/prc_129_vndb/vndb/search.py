@@ -445,12 +445,6 @@ def search_local(id:         str = "",
             )"""
         curs.execute(f"""
         SELECT
-            -- data ->> 'id' as id,
-            -- data ->> 'title' as title,
-            -- data -> 'image' ->> 'thumbnail' as thumbnail,
-            -- data -> 'image' ->> 'sexual' as image__sexual,
-            -- data -> 'image' ->> 'violence' as image__violence,
-            -- date, downloaded
             date, downloaded, data
         FROM vn
         WHERE data ->> 'id' IN (
@@ -511,10 +505,12 @@ def handle_for_index(results: list) -> list:
         'id':               result['id'],
         'date':             result['date'],
         'title':            result['title'],
+        'released':         result['released'],
         'downloaded':       result['downloaded'],
-        'thumbnail':        result['image']['thumbnail']                        if result['image'] else '',
-        'image__sexual':    judge_sexual(float(result['image']['sexual']))      if result['image'] else '',
-        'image__violence':  judge_violence(float(result['image']['violence']))  if result['image'] else '',
+        'thumbnail':        result['image']['thumbnail']                        if result['image'] and 'thumbnail'       in result['image'] else '',
+        'local_thumbnail':  result['image']['local_thumbnail']                  if result['image'] and 'local_thumbnail' in result['image'] else '',
+        'image__sexual':    judge_sexual(float(result['image']['sexual']))      if result['image'] and 'sexual'          in result['image'] else '',
+        'image__violence':  judge_violence(float(result['image']['violence']))  if result['image'] and 'violence'        in result['image'] else ''
     } for result in results]
 
 
@@ -576,7 +572,7 @@ def search():
         if vndbHasReview == 'on':
             params['has_review'] = True
 
-        fields = generate_fields("""id, title, image.thumbnail, image.sexual, image.violence""")
+        fields = generate_fields("""id, title, released, image.thumbnail, image.sexual, image.violence""")
         filters = generate_filters(**params)
         results = search_vndb(filters=filters, fields=fields)
         results = results['results'] if results else []

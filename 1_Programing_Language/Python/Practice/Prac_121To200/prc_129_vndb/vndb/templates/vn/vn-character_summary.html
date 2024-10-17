@@ -2,7 +2,7 @@
   <h2 class="character-summary__title">Character Summary</h2>
   {% for va in vndata.va|sort(attribute='character.id') %}
     <article id="{{ va.character.id }}" class="character">
-      {% set character_image = va.character.image.local if 'local' in va.character.image else va.character.image.url %}
+      {% set character_image = (va.character.image.local if 'local' in va.character.image else va.character.image.url) if va.character.image else url_for('static', filename='images/no-image.png') %}
       <div class="character__image">
         <a href="{{ character_image }}">
           <img alt="Image of {{ va.character.name }}"

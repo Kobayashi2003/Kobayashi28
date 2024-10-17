@@ -1,4 +1,5 @@
-/* Sort Container Styles */
+/* Sort Container
+   ========================================================================== */
 .sort-container {
   display: flex;
   justify-content: flex-end;
@@ -6,22 +7,30 @@
   margin-bottom: 1rem;
 }
 
-/* Sort Select Styles */
+/* Sort Select
+   ========================================================================== */
 #sortSelect {
   padding: 0.25rem;
   border-radius: 3px;
   border: 1px solid #ccc;
   margin-right: 0.5rem;
+  font-size: 1rem;
 }
 
-/* Sort Order Styles */
+/* Sort Order
+   ========================================================================== */
 .sort-order {
   display: flex;
   align-items: center;
 }
 
 #sortOrder {
-  display: none;
+  /* Hide the default checkbox */
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
 }
 
 #sortOrder + label {

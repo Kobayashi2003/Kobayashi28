@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+  // DOM Elements
   const showSexualCheckbox = document.getElementById('showSexual');
   const showViolentCheckbox = document.getElementById('showViolent');
   const mainTitle = document.getElementById('mainTitle');
@@ -8,9 +9,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const configToggle = document.getElementById('configToggle');
   const configMenu = document.getElementById('configMenu');
 
-  let lastScrollTop = 0;
+  // Constants
   const scrollThreshold = 5;
+  let lastScrollTop = 0;
 
+  // Content Visibility Management
   function updateContentVisibility() {
     const showSexual = showSexualCheckbox.checked;
     const showViolent = showViolentCheckbox.checked;
@@ -24,24 +27,24 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Header Visibility Management
   function handleScroll() {
     const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
     
     if (Math.abs(scrollTop - lastScrollTop) <= scrollThreshold) return;
 
     if (scrollTop > lastScrollTop && scrollTop > header.offsetHeight) {
-      header.classList.remove('visible');
-      header.classList.add('hidden');
+      header.classList.replace('visible', 'hidden');
       dropdownMenu.classList.remove('show');
       configMenu.classList.remove('show');
     } else {
-      header.classList.remove('hidden');
-      header.classList.add('visible');
+      header.classList.replace('hidden', 'visible');
     }
 
     lastScrollTop = scrollTop;
   }
 
+  // Responsive Menu Management
   function handleResize() {
     if (window.innerWidth > 768) {
       dropdownMenu.classList.remove('show');
@@ -51,23 +54,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  showSexualCheckbox.addEventListener('change', updateContentVisibility);
-  showViolentCheckbox.addEventListener('change', updateContentVisibility);
-
-  menuToggle.addEventListener('click', (e) => {
+  // Menu Toggle Handlers
+  function toggleDropdownMenu(e) {
     e.stopPropagation();
     dropdownMenu.classList.toggle('show');
     configMenu.classList.remove('show');
     handleResize();
-  });
+  }
 
-  configToggle.addEventListener('click', (e) => {
+  function toggleConfigMenu(e) {
     e.stopPropagation();
     configMenu.classList.toggle('show');
     dropdownMenu.classList.remove('show');
-  });
+  }
 
-  document.addEventListener('click', (e) => {
+  // Close Menus When Clicking Outside
+  function closeMenusOnClickOutside(e) {
     if (!dropdownMenu.contains(e.target) && e.target !== menuToggle) {
       dropdownMenu.classList.remove('show');
     }
@@ -75,36 +77,44 @@ document.addEventListener('DOMContentLoaded', () => {
       configMenu.classList.remove('show');
     }
     handleResize();
-  });
+  }
 
+  // Dropdown Item Click Handler
+  function handleDropdownItemClick(e) {
+    const action = e.currentTarget.getAttribute('aria-label').toLowerCase();
+    switch(action) {
+      case 'search':
+        if (typeof openSearchModal === 'function') {
+          openSearchModal();
+        }
+        break;
+      case 'user profile':
+        console.log('User profile clicked');
+        // Add your user profile action here
+        break;
+    }
+    dropdownMenu.classList.remove('show');
+    handleResize();
+  }
+
+  // Event Listeners
+  showSexualCheckbox.addEventListener('change', updateContentVisibility);
+  showViolentCheckbox.addEventListener('change', updateContentVisibility);
+  menuToggle.addEventListener('click', toggleDropdownMenu);
+  configToggle.addEventListener('click', toggleConfigMenu);
+  document.addEventListener('click', closeMenusOnClickOutside);
   mainTitle.addEventListener('click', () => {
     if (typeof resetPagination === 'function') {
       resetPagination();
     }
   });
-
   document.querySelectorAll('.dropdown-item').forEach(item => {
-    item.addEventListener('click', (e) => {
-      const action = e.currentTarget.getAttribute('aria-label').toLowerCase();
-      switch(action) {
-        case 'search':
-          if (typeof openSearchModal === 'function') {
-            openSearchModal();
-          }
-          break;
-        case 'user profile':
-          console.log('User profile clicked');
-          // Add your user profile action here
-          break;
-      }
-      dropdownMenu.classList.remove('show');
-      handleResize();
-    });
+    item.addEventListener('click', handleDropdownItemClick);
   });
-
   window.addEventListener('scroll', handleScroll, { passive: true });
   window.addEventListener('resize', handleResize);
 
+  // Initialization
   updateContentVisibility();
   handleResize();
 });

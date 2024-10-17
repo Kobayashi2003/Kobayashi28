@@ -1,5 +1,6 @@
-/* Search Modal */
-.search-modal {
+/* Search Modal
+  ========================================================================== */
+  .search-modal {
   display: none;
   position: fixed;
   z-index: 1001;
@@ -13,7 +14,8 @@
   transition: backdrop-filter 0.3s ease;
 }
 
-/* Search Content */
+/* Search Content
+    ========================================================================== */
 .search-content {
   background-color: rgba(244, 244, 244, 0.8);
   margin: 10% auto;
@@ -33,7 +35,8 @@
   transform: scale(1.02);
 }
 
-/* Search Tabs */
+/* Search Tabs
+    ========================================================================== */
 .search-tabs {
   display: flex;
   margin-bottom: 20px;
@@ -53,7 +56,8 @@
   color: #fff;
 }
 
-/* Search Forms */
+/* Search Forms
+    ========================================================================== */
 .search-form {
   display: none;
 }
@@ -62,7 +66,8 @@
   display: block;
 }
 
-/* Form Groups */
+/* Form Groups
+    ========================================================================== */
 .form-group {
   margin-bottom: 15px;
 }
@@ -86,13 +91,15 @@
 
 .form-group input:focus,
 .form-group select:focus {
-  background-color: rgba(255, 255, 255, 1);
+  background-color: #fff;
   border-color: rgba(51, 51, 51, 0.8);
   outline: none;
 }
 
-/* Search Button */
-.search-button {
+/* Buttons
+    ========================================================================== */
+.search-button,
+.more-options-button {
   width: 100%;
   padding: 10px;
   background-color: rgba(51, 51, 51, 0.8);
@@ -103,12 +110,16 @@
   transition: background-color 0.3s, transform 0.2s;
 }
 
-.search-button:hover {
+.search-button:hover,
+.more-options-button:hover {
   background-color: rgba(85, 85, 85, 0.9);
   transform: translateY(-2px);
 }
 
-/* Close Button */
+.more-options-button {
+  margin-bottom: 15px;
+}
+
 .close-button {
   position: absolute;
   top: 10px;
@@ -125,7 +136,8 @@
   color: rgba(0, 0, 0, 0.8);
 }
 
-/* Checkbox Groups */
+/* Checkbox Groups
+    ========================================================================== */
 .checkbox-group {
   display: flex;
   align-items: center;
@@ -176,25 +188,8 @@
   margin-bottom: 0;
 }
 
-/* More Options Button */
-.more-options-button {
-  width: 100%;
-  padding: 10px;
-  background-color: rgba(51, 51, 51, 0.8);
-  color: #fff;
-  border: none;
-  border-radius: 3px;
-  cursor: pointer;
-  transition: background-color 0.3s, transform 0.2s;
-  margin-bottom: 15px;
-}
-
-.more-options-button:hover {
-  background-color: rgba(85, 85, 85, 0.9);
-  transform: translateY(-2px);
-}
-
-/* More Options Content */
+/* More Options Content
+    ========================================================================== */
 .more-options-content {
   transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
   max-height: 0;
@@ -207,7 +202,8 @@
   opacity: 1;
 }
 
-/* Responsive Design */
+/* Responsive Design
+    ========================================================================== */
 @media (max-width: 768px) {
   .search-content {
     margin: 20% auto;

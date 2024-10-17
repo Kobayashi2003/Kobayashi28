@@ -1,27 +1,32 @@
-/* Pagination Container */
+/* Pagination
+   ========================================================================== */
+
+/* Container
+   ========================================================================== */
 .pagination {
   display: flex;
   justify-content: center;
   align-items: center;
   margin-top: 2rem;
-  flex-wrap: nowrap;
   font-size: 14px;
 }
 
-/* Pagination Buttons and Page Numbers */
+/* Buttons and Page Numbers
+     ========================================================================== */
 .pagination-button,
 .page-number {
   border: none;
+  border-radius: 3px;
   padding: 0.25rem 0.5rem;
   margin: 0 0.125rem;
-  cursor: pointer;
-  border-radius: 3px;
-  transition: background-color 0.3s ease-in-out;
   min-width: 2rem;
   text-align: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease-in-out;
 }
 
-/* Pagination Buttons */
+/* Buttons
+     ========================================================================== */
 .pagination-button {
   background-color: #333;
   color: #fff;
@@ -36,16 +41,17 @@
   cursor: not-allowed;
 }
 
-/* Page Numbers Container */
+/* Page Numbers
+     ========================================================================== */
 .page-numbers {
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-/* Individual Page Number */
 .page-number {
-  cursor: pointer;
+  background-color: transparent;
+  color: #333;
 }
 
 .page-number.active {
@@ -53,12 +59,12 @@
   color: #fff;
 }
 
-.page-number:hover {
-  background-color: #555;
-  color: #fff;
+.page-number:hover:not(.active) {
+  background-color: #e0e0e0;
 }
 
-/* Responsive Design */
+/* Responsive Design
+     ========================================================================== */
 @media (max-width: 768px) {
   .pagination {
     font-size: 12px;

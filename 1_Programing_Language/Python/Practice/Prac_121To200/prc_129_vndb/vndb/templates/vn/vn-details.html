@@ -1,7 +1,7 @@
 <section class="vn-details" id="vn-details">
   <div class="vn-details__container">
     <div class="vn-details__cover">
-      {% set cover_image = vndata.image.local if 'local' in vndata.image else vndata.image.url %}
+      {% set cover_image = (vndata.image.local if 'local' in vndata.image else vndata.image.url) if vndata.image else url_for('static', filename='images/no-image.png') %}
       <a href="{{ cover_image }}">
         <img src="{{ cover_image }}" alt="Cover image of {{ vndata.titles[0].title }}"
              class="vn-details__cover-img {% if vndata.image.sexual %}cover__img--sexual{% endif %} {% if vndata.image.violence %}cover__img--violence{% endif %}">

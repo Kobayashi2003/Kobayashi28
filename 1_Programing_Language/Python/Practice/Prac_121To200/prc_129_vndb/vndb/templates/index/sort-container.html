@@ -1,7 +1,7 @@
 <div class="sort-container">
   <label for="sortSelect">Sort by:</label>
   <select id="sortSelect" name="sortSelect">
-    {% for value, label in [('title', 'Title'), ('released', 'Release Date'), ('id', 'ID')] %}
+    {% for value, label in [('title', 'Title'), ('released', 'Release Date'), ('date', 'Creation Date'), ('id', 'ID')] %}
     <option value="{{ value }}">{{ label }}</option>
     {% endfor %}
   </select>

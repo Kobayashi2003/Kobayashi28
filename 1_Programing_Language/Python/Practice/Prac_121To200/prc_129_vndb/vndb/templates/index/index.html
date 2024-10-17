@@ -6,7 +6,7 @@
   <meta name="google" content="notranslate" />
   <meta name="robots" content="notranslate" />
   <title>VNS INDEX</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='/css/index/index.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='/css/index/vns-container.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='/css/index/header.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='/css/index/search.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='/css/index/sort-container.css') }}">
@@ -16,25 +16,11 @@
   {% include 'index/header.html' %}
   <main>
     {% include 'index/sort-container.html' %}
-
-    <div class="vns" id="vnsContainer">
-      {% for vn in vns %}
-      <div class="vn {% if vn.image__sexual %}vn-sexual{% endif %} {% if vn.image__violence %}vn-violent{% endif %}">
-        <a href="{{ url_for('vn.show', id=vn.id) }}">
-          <div class="vn-image-container">
-            <img src="{{ vn.thumbnail }}" alt="{{ vn.title }}"
-                 class="{% if vn.image__sexual %}index-cover__sexual{% endif %} {% if vn.image__violence %}index-cover__violence{% endif %}">
-          </div>
-          <h2>{{ vn.title }}</h2>
-        </a>
-      </div>
-      {% endfor %}
-    </div>
-
+    {% include 'index/vns-container.html' %}
     {% include 'index/pagination.html' %}
   </main>
   {% include 'index/search.html' %}
-  <script src="{{ url_for('static', filename='/js/index/index.js') }}"></script>
+  <script src="{{ url_for('static', filename='/js/index/vns-container.js') }}"></script>
   <script src="{{ url_for('static', filename='/js/index/header.js') }}"></script>
   <script src="{{ url_for('static', filename='/js/index/search.js') }}"></script>
   <script src="{{ url_for('static', filename='/js/index/sort-container.js') }}"></script>

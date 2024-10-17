@@ -1,4 +1,6 @@
-:root {
+/* Global Variables
+   ========================================================================== */
+  :root {
   --primary-color: #3498db;
   --secondary-color: #2c3e50;
   --background-color: #f0f2f5;
@@ -8,14 +10,14 @@
   --transition: all 0.3s ease;
 }
 
+/* Base Styles
+    ========================================================================== */
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   font-size: 16px;
   font-weight: 400;
   line-height: 1.6;
   color: var(--text-color);
-  margin: 0;
-  padding: 0;
   background-color: var(--background-color);
 }
 
@@ -26,10 +28,14 @@ body {
   position: relative;
 }
 
+/* Typography
+    ========================================================================== */
 h1, h2, h3 {
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
+/* Background
+    ========================================================================== */
 .background-image {
   position: fixed;
   top: 0;
@@ -42,7 +48,8 @@ h1, h2, h3 {
   z-index: -1;
 }
 
-/* Common styles for main sections */
+/* Common Section Styles
+    ========================================================================== */
 .vn-details,
 .vn-tags,
 .character-summary,
@@ -70,6 +77,8 @@ h1, h2, h3 {
   -webkit-backdrop-filter: blur(25px);
 }
 
+/* Responsive Design
+    ========================================================================== */
 @media (max-width: 768px) {
   .vn-container {
     max-width: 95vw;

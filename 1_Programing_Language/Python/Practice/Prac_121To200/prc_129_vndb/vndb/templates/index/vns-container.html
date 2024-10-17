@@ -1,0 +1,16 @@
+<div class="vns" id="vnsContainer">
+  {% for vn in vns %}k
+  {% set vn_thumbnail = vn.local_thumbnail if vn.local_thumbnail else vn.thumbnail %}
+  <div class="vn {% if vn.image__sexual %}vn-sexual{% endif %} {% if vn.image__violence %}vn-violent{% endif %}"
+        data-id="{{ vn.id }}" data-released="{{ vn.released }}" data-date="{{ vn.date }}" data-title="{{ vn.title }}">
+    <a href="{{ url_for('vn.show', id=vn.id) }}">
+      <div class="vn-image-container">
+        <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" 
+              data-src="{{ vn_thumbnail }}" alt="{{ vn.title }}"
+              class="lazy {% if vn.image__sexual %}index-cover__sexual{% endif %} {% if vn.image__violence %}index-cover__violence{% endif %}">
+      </div>
+      <h2>{{ vn.title }}</h2>
+    </a>
+  </div>
+  {% endfor %}
+</div>

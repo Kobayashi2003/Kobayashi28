@@ -58,7 +58,9 @@ def download_vn(id: str) -> bool:
                 screenshot['local_thumbnail'] = url_for('static', filename=os.path.join('images', id, os.path.basename(screenshot['thumbnail'])).replace('\\', '/'))
 
         for va in data['va']:
-            if 'character' in va and va['character'] and 'url' in va['character']['image'] and va['character']['image']['url']:
+            if 'character' in va and va['character'] and  \
+                'image' in va['character'] and  va['character']['image'] and \
+                'url' in va['character']['image'] and va['character']['image']['url']:
                 images.append(va['character']['image']['url'])
                 va['character']['image']['local'] = url_for('static', filename=os.path.join('images', id, os.path.basename(va['character']['image']['url'])).replace('\\', '/'))
 
