@@ -1,7 +1,0 @@
-# Ubuntu 16.04 init
-FROM ubuntu:16.04
-# set bell-style in /etc/inputrc to "none"  
-RUN echo "set bell-style none" >> /etc/inputrc
-# Update and install necessary packages
-RUN apt-get update && apt-get install criu -y
-# https://github.com/checkpoint-restore/criu/issues/1199

@@ -3,7 +3,11 @@ from flask import Blueprint, render_template
 from vndb.search import search_local, handle_for_index
 
 
-index_bp = Blueprint('index', __name__, url_prefix='/')
+index_bp = Blueprint('index', __name__, 
+                     url_prefix='/',
+                     template_folder='templates',
+                     static_folder='static')
+
 
 @index_bp.route('/', methods=['GET'])
 def index():

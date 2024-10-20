@@ -20,7 +20,10 @@ def delete_vn(id: str) -> bool:
     return True
 
 
-delete_bp = Blueprint('delete', __name__, url_prefix='/delete')
+delete_bp = Blueprint('delete', __name__, 
+                      url_prefix='/delete',
+                      template_folder='templates',
+                      static_folder='static')
 
 @delete_bp.route('/<id>', methods=['POST'])
 def delete(id):

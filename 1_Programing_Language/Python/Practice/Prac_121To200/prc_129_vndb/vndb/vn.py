@@ -6,7 +6,10 @@ from vndb.search import generate_fields, generate_filters, search_vndb, search_l
 from vndb.search import fields_params, filters_params
 from vndb.download import download_vn
 
-vn_bp = Blueprint('vn', __name__, url_prefix='/vn', template_folder='templates')
+vn_bp = Blueprint('vn', __name__, 
+                  url_prefix='/vn', 
+                  template_folder='templates',
+                  static_folder='static')
 
 @vn_bp.route('/<id>', methods=['GET'])
 def show(id):

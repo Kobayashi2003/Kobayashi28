@@ -15,7 +15,8 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/vn/vn-screenshots.css') }}">
 </head>
 <body>
-  <div class="background-image" style="background-image: url('{{ vndata.image.url }}');"></div>
+  <div class="background-image" style="background-image: 
+              url('{{ vndata.image.local if vndata.image.local else vndata.image.url }}');"></div>
   <main>
     {% include 'vn/vn-navigation.html' %}
     {% include 'vn/vn-details.html' %}

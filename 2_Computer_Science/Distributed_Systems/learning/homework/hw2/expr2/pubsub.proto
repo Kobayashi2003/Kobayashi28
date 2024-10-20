@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package pubsub;
+
+message Message {
+  string topic = 1;
+  string content = 2;
+  int64 timestamp = 3;
+  int32 ttl = 4;  // Time-to-live in seconds
+}
+
+message SubscribeRequest {
+  string topic = 1;
+}
+
+message PublishRequest {
+  Message message = 1;
+}
+
+message Empty {}
+
+service PubSubService {
+  rpc Subscribe(SubscribeRequest) returns (stream Message);
+  rpc Publish(PublishRequest) returns (Empty);
+}

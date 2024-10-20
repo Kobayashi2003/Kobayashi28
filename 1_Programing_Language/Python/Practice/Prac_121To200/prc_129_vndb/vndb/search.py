@@ -514,7 +514,11 @@ def handle_for_index(results: list) -> list:
     } for result in results]
 
 
-search_bp = Blueprint('search', __name__, url_prefix='/search')
+search_bp = Blueprint('search', __name__, 
+                      url_prefix='/search',
+                      template_folder='templates',
+                      static_folder='static')
+
 
 @search_bp.route('/', methods=['GET'])
 def search():
