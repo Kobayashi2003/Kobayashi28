@@ -10,3 +10,4 @@ platforms = ["win-64"]
 
 [dependencies]
 harlequin-postgres = ">=0.4.0,<0.5"
+linkify-it-py = ">=2.0.3,<3"
