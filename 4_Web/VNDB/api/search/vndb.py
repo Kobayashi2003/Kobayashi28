@@ -1,13 +1,15 @@
 import requests
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 from api.search.local import search_local
-from api.utils.logger import vndb_logger
+from api.search.utils import generate_local_filters
+from api.utils.logger import search_logger
+from api.utils.logger import test_logger
 
 def search_vndb(
     filters:    list,
     fields:     str,
     results:    int=100,
-    sort:       str="",
+    sort_field: str="",
     reverse:    bool=False
 ) -> Optional[Dict]:
 
@@ -17,20 +19,20 @@ def search_vndb(
     }
 
     valid_sort_fields = {'id', 'title', 'released'}
-    sort = sort if sort in valid_sort_fields else 'title'
+    sort_field = sort_field if sort_field in valid_sort_fields else 'title'
 
     data = {
         "filters":  filters,
         "fields":   fields,
         "results":  results,
-        "sort":     sort,
+        "sort":     sort_field,
         "reverse":  reverse,
         "page":     1
     }
 
     all_results = []
 
-    vndb_logger.info(f"Sending request to VNDB API.")
+    search_logger.info(f"Sending request to VNDB API.")
 
     while True:
         try:
@@ -43,23 +45,24 @@ def search_vndb(
 
             data['page'] += 1
         except requests.RequestException as e:
-            vndb_logger.error(f"Error fetching data from VNDB: {e}", exc_info=True)
+            search_logger.error(f"Error fetching data from VNDB: {e}", exc_info=True)
+            search_logger.error(f"Response from VNDB: {response.text}")
             break
 
     if not all_results: return None
 
     for result in all_results:
         try:
-            local_result = search_local(id=result['id'])
+            local_result = search_local(generate_local_filters(id=result['id']), fields=fields)
             if local_result:
                 result.update(local_result[0])
             else:
                 result['download'] = False
                 result['date'] = ''
         except Exception as e:
-            vndb_logger.error(f"Error processing local data for ID {result['id']}: {e}", exc_info=True)
+            search_logger.error(f"Error processing local data for ID {result['id']}: {e}", exc_info=True)
 
-    vndb_logger.info(f"Search completed. Total results: {len(all_results)}")
+    search_logger.info(f"Search completed. Total results: {len(all_results)}")
     return {
         "results": all_results,
         "count": len(all_results)
