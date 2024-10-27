@@ -1,9 +1,9 @@
 from api.celery_app import celery
 from api.search.vndb import search_vndb
 from api.search.local import search_local
-from api.search.utils import generate_vndb_fields, generate_vndb_filters 
-from api.search.utils import generate_local_fields, generate_local_filters 
-from api.search.utils import VNDB_FIELDS_SIMPLE, LOCAL_FIELDS_SIMPLE 
+from api.search.utils import generate_vndb_fields, generate_vndb_filters
+from api.search.utils import generate_local_fields, generate_local_filters
+from api.search.utils import VNDB_FIELDS_SIMPLE, LOCAL_FIELDS_SIMPLE
 from api.download.server import download2server
 from api.download.client import download2client
 from api.utils.logger import download_logger, search_logger
@@ -33,6 +33,16 @@ def search_task(search_type, filters, fields, sort_field=None, reverse=False):
     except Exception as e:
         search_logger.error(f"Error in async combined search task: {str(e)}")
         raise
+
+@celery.task
+def download_task(download_type, vn_id):
+    try:
+        if download_type == 'server':
+            downloaded_images = download2server()
+        elif download_type == 'client':
+            pass
+    except Exception as e:
+        pass
 
 @celery.task
 def download_server_task(filters):
