@@ -20,6 +20,6 @@ def create_app(config_class=Config):
     app.register_blueprint(hello_bp)
 
     # Initialize Celery
-    create_celery_app(app)
+    celery.conf.update(app.config)
 
     return app

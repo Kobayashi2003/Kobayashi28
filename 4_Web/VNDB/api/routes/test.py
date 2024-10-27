@@ -6,9 +6,9 @@ test_bp = Blueprint('test', __name__, url_prefix='/')
 
 @test_bp.route('/', methods=['GET'])
 def test_search():
-    return render_template_string(form_template)
+    return render_template_string(template)
 
-form_template = '''
+template = '''
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -18,27 +18,20 @@ form_template = '''
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-        .search-modal {
-            display: none;
-            position: fixed;
-            z-index: 1;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.4);
-        }
-        .search-content {
-            background-color: #fefefe;
-            margin: 15% auto;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
             padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-            max-width: 600px;
+        }
+        h1 {
+            text-align: center;
+        }
+        .search-container {
+            background-color: #f4f4f4;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
         }
         .search-tabs {
             display: flex;
@@ -47,12 +40,12 @@ form_template = '''
         .search-tab {
             flex: 1;
             padding: 10px;
-            border: none;
-            background-color: #f1f1f1;
+            text-align: center;
+            background-color: #ddd;
             cursor: pointer;
         }
         .search-tab.active {
-            background-color: #ccc;
+            background-color: #f4f4f4;
         }
         .search-form {
             display: none;
@@ -70,192 +63,147 @@ form_template = '''
         input[type="text"], select {
             width: 100%;
             padding: 8px;
-            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 4px;
         }
-        .search-button {
-            background-color: #4CAF50;
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #5cb85c;
             color: white;
-            padding: 10px 15px;
             border: none;
+            border-radius: 4px;
             cursor: pointer;
         }
-        .close-button {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
+        button:hover {
+            background-color: #4cae4c;
         }
-        .more-options-button {
-            background-color: #008CBA;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            cursor: pointer;
-        }
-        .more-options-content {
-            display: none;
-        }
-        .checkbox-group {
-            margin-bottom: 10px;
+        #searchResults {
+            background-color: #f4f4f4;
+            padding: 20px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
         }
     </style>
 </head>
 <body>
-    <button id="openSearch">Open Search</button>
-
-    <div id="searchModal" class="search-modal">
-        <div class="search-content">
-            <h2>Search Visual Novels</h2>
-            <div class="search-tabs">
-                <button id="localSearchTab" class="search-tab active">Local Search</button>
-                <button id="vndbSearchTab" class="search-tab">VNDB Search</button>
-            </div>
-            <div id="localSearchForm" class="search-form active">
-                <form method="get" action="/api/search" class="search-form-local">
-                    <input type="hidden" name="searchType" value="local">
-                    <div class="form-group">
-                        <label for="localTitle">Title</label>
-                        <input type="text" id="localTitle" name="localTitle" placeholder="Enter title">
-                    </div>
-                    <div class="form-group">
-                        <label for="localDevelopers">Developers</label>
-                        <input type="text" id="localDevelopers" name="localDevelopers" placeholder="Enter developers">
-                    </div>
-                    <div class="form-group">
-                        <label for="localCharacters">Characters</label>
-                        <input type="text" id="localCharacters" name="localCharacters" placeholder="Enter characters">
-                    </div>
-                    <div class="form-group">
-                        <label for="localLength">Length</label>
-                        <select id="localLength" name="localLength">
-                            <option value="">Any</option>
-                            <option value="1">Very Short</option>
-                            <option value="2">Short</option>
-                            <option value="3">Medium</option>
-                            <option value="4">Long</option>
-                            <option value="5">Very Long</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="search-button">Search Local</button>
-                </form>
-            </div>
-            <div id="vndbSearchForm" class="search-form">
-                <form method="get" action="/api/search" class="search-form-vndb">
-                    <input type="hidden" name="searchType" value="vndb">
-                    <div class="form-group">
-                        <label for="vndbQuery">Query</label>
-                        <input type="text" id="vndbQuery" name="vndbQuery" placeholder="Enter search query">
-                    </div>
-                    <div class="form-group">
-                        <label for="vndbDevelopers">Developers</label>
-                        <input type="text" id="vndbDevelopers" name="vndbDevelopers" placeholder="Enter developers. Separated by commas">
-                    </div>
-                    <div class="form-group">
-                        <label for="vndbStaffs">Staffs</label>
-                        <input type="text" id="vndbStaffs" name="vndbStaffs" placeholder="Enter staffs. Separated by commas">
-                    </div>
-                    <div class="form-group">
-                        <label for="vndbCharacters">Characters</label>
-                        <input type="text" id="vndbCharacters" name="vndbCharacters" placeholder="Enter characters. Separated by commas">
-                    </div>
-                    <div class="form-group">
-                        <button type="button" id="vndbMoreOptions" class="more-options-button">More Options</button>
-                    </div>
-                    <div id="vndbMoreOptionsContent" class="more-options-content">
-                        <div class="form-group">
-                            <label for="vndbReleasedDate">Released Date</label>
-                            <input type="text" id="vndbReleasedDate" name="vndbReleasedDate" placeholder="Format: ['<' | '>' | '=' | '<=' | '>=' ] YYYY-MM-DD , ...">
-                        </div>
-                        <div class="form-group">
-                            <label for="vndbLength">Length</label>
-                            <select id="vndbLength" name="vndbLength">
-                                <option value="">Any</option>
-                                <option value="1">Very Short</option>
-                                <option value="2">Short</option>
-                                <option value="3">Medium</option>
-                                <option value="4">Long</option>
-                                <option value="5">Very Long</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="vndbDevStatus">Development Status</label>
-                            <select id="vndbDevStatus" name="vndbDevStatus">
-                                <option value="">Any</option>
-                                <option value="0">Finished</option>
-                                <option value="1">In development</option>
-                                <option value="2">Cancelled</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Additional Filters</label>
-                            <div class="checkbox-group">
-                                <input type="checkbox" id="vndbHasDescription" name="vndbHasDescription">
-                                <label for="vndbHasDescription">Has Description</label>
-                            </div>
-                            <div class="checkbox-group">
-                                <input type="checkbox" id="vndbHasAnime" name="vndbHasAnime">
-                                <label for="vndbHasAnime">Has Anime</label>
-                            </div>
-                            <div class="checkbox-group">
-                                <input type="checkbox" id="vndbHasScreenshot" name="vndbHasScreenshot">
-                                <label for="vndbHasScreenshot">Has Screenshot</label>
-                            </div>
-                            <div class="checkbox-group">
-                                <input type="checkbox" id="vndbHasReview" name="vndbHasReview">
-                                <label for="vndbHasReview">Has Review</label>
-                            </div>
-                        </div>
-                    </div>
-                    <button type="submit" class="search-button">Search VNDB</button>
-                </form>
-            </div>
-            <button id="closeSearch" class="close-button">&times;</button>
+    <h1>Visual Novel Search</h1>
+    <div class="search-container">
+        <div class="search-tabs">
+            <div class="search-tab active" data-tab="local">Local Search</div>
+            <div class="search-tab" data-tab="vndb">VNDB Search</div>
         </div>
+        <form id="localSearchForm" class="search-form active">
+            <input type="hidden" name="searchType" value="local">
+            <div class="form-group">
+                <label for="localTitle">Title</label>
+                <input type="text" id="localTitle" name="localTitle" placeholder="Enter title">
+            </div>
+            <div class="form-group">
+                <label for="localDevelopers">Developers</label>
+                <input type="text" id="localDevelopers" name="localDevelopers" placeholder="Enter developers">
+            </div>
+            <div class="form-group">
+                <label for="localCharacters">Characters</label>
+                <input type="text" id="localCharacters" name="localCharacters" placeholder="Enter characters">
+            </div>
+            <div class="form-group">
+                <label for="localLength">Length</label>
+                <select id="localLength" name="localLength">
+                    <option value="">Any</option>
+                    <option value="1">Very Short</option>
+                    <option value="2">Short</option>
+                    <option value="3">Medium</option>
+                    <option value="4">Long</option>
+                    <option value="5">Very Long</option>
+                </select>
+            </div>
+            <button type="submit">Search Local</button>
+        </form>
+        <form id="vndbSearchForm" class="search-form">
+            <input type="hidden" name="searchType" value="vndb">
+            <div class="form-group">
+                <label for="vndbQuery">Query</label>
+                <input type="text" id="vndbQuery" name="vndbQuery" placeholder="Enter search query">
+            </div>
+            <div class="form-group">
+                <label for="vndbDevelopers">Developers</label>
+                <input type="text" id="vndbDevelopers" name="vndbDevelopers" placeholder="Enter developers. Separated by commas">
+            </div>
+            <div class="form-group">
+                <label for="vndbStaffs">Staffs</label>
+                <input type="text" id="vndbStaffs" name="vndbStaffs" placeholder="Enter staffs. Separated by commas">
+            </div>
+            <div class="form-group">
+                <label for="vndbCharacters">Characters</label>
+                <input type="text" id="vndbCharacters" name="vndbCharacters" placeholder="Enter characters. Separated by commas">
+            </div>
+            <button type="submit">Search VNDB</button>
+        </form>
     </div>
+    <div id="searchResults"></div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const modal = document.getElementById('searchModal');
-            const openBtn = document.getElementById('openSearch');
-            const closeBtn = document.getElementById('closeSearch');
-            const localTab = document.getElementById('localSearchTab');
-            const vndbTab = document.getElementById('vndbSearchTab');
+            const tabs = document.querySelectorAll('.search-tab');
+            const forms = document.querySelectorAll('.search-form');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    forms.forEach(f => f.classList.remove('active'));
+                    tab.classList.add('active');
+                    document.querySelector(`#${tab.dataset.tab}SearchForm`).classList.add('active');
+                });
+            });
+
             const localForm = document.getElementById('localSearchForm');
             const vndbForm = document.getElementById('vndbSearchForm');
-            const moreOptionsBtn = document.getElementById('vndbMoreOptions');
-            const moreOptionsContent = document.getElementById('vndbMoreOptionsContent');
+            const resultsDiv = document.getElementById('searchResults');
 
-            openBtn.onclick = function() {
-                modal.style.display = 'block';
-            }
+            [localForm, vndbForm].forEach(form => {
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    resultsDiv.textContent = 'Searching...';
+                    const formData = new FormData(form);
+                    try {
+                        const response = await fetch(`/api/search?${new URLSearchParams(formData)}`, {
+                            method: 'GET'
+                        });
+                        const data = await response.json();
+                        if (data.task_id) {
+                            await pollForResults(data.task_id);
+                        } else {
+                            displayResults(data);
+                        }
+                    } catch (error) {
+                        resultsDiv.textContent = `Error: ${error.message}`;
+                    }
+                });
+            });
 
-            closeBtn.onclick = function() {
-                modal.style.display = 'none';
-            }
-
-            window.onclick = function(event) {
-                if (event.target == modal) {
-                    modal.style.display = 'none';
+            async function pollForResults(taskId) {
+                const maxAttempts = 30;
+                const interval = 1000; // 1 second
+                for (let attempt = 0; attempt < maxAttempts; attempt++) {
+                    const response = await fetch(`/api/search/status/${taskId}`);
+                    const data = await response.json();
+                    if (data.state === 'SUCCESS') {
+                        displayResults(data.result);
+                        return;
+                    } else if (data.state === 'FAILURE') {
+                        resultsDiv.textContent = 'Search failed';
+                        return;
+                    }
+                    await new Promise(resolve => setTimeout(resolve, interval));
                 }
+                resultsDiv.textContent = 'Search timed out';
             }
 
-            localTab.onclick = function() {
-                localTab.classList.add('active');
-                vndbTab.classList.remove('active');
-                localForm.classList.add('active');
-                vndbForm.classList.remove('active');
-            }
-
-            vndbTab.onclick = function() {
-                vndbTab.classList.add('active');
-                localTab.classList.remove('active');
-                vndbForm.classList.add('active');
-                localForm.classList.remove('active');
-            }
-
-            moreOptionsBtn.onclick = function() {
-                moreOptionsContent.style.display = moreOptionsContent.style.display === 'none' ? 'block' : 'none';
+            function displayResults(results) {
+                resultsDiv.textContent = JSON.stringify(results, null, 2);
             }
         });
     </script>

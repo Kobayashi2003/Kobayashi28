@@ -1,7 +1,7 @@
 import re
-import json
 from api.search.filter import *
-from typing import List, Dict, Any, Optional, Tuple
+from api.utils.logger import search_logger
+from typing import Dict, Set, List, Any, Optional, Tuple 
 
 
 def generate_vndb_filters(
@@ -94,6 +94,8 @@ def generate_vndb_fields(
     relations_vn_info:  bool = False,
     **kwargs
 ) -> str:
+
+    if not fields: fields = ""
 
     if vn_info:
         fields += """
@@ -221,72 +223,112 @@ def generate_local_filters(
         filters.append((
             """
             (vn.data->>'title' ILIKE %s
-            OR vn.data->'titles' @> %s::jsonb
-            OR vn.data->'aliases' @> %s::jsonb)
+            OR EXISTS (
+                SELECT 1
+                FROM jsonb_array_elements(vn.data->'titles') AS t
+                WHERE t->>'title' ILIKE %s
+            )
+            OR EXISTS (
+                SELECT 1
+                FROM jsonb_array_elements_text(vn.data->'aliases') AS alias
+                WHERE alias ILIKE %s
+            ))
             """,
-            [title_param, json.dumps([{"title": title_param}]), json.dumps([title_param])]
+            [title_param, title_param, title_param]
         ))
 
     if length:
         filters.append(("vn.data->>'length' = %s", [str(length)]))
 
     if tags:
-        filters.append(("vn.data->'tags' @> %s::jsonb", [json.dumps([{"name": tag} for tag in tags])]))
+        tag_conditions = []
+        tag_params = []
+        for tag in tags:
+            tag_param = f"%{tag}%"
+            tag_conditions.append("EXISTS (SELECT 1 FROM jsonb_array_elements(vn.data->'tags') AS t WHERE t->>'name' ILIKE %s)")
+            tag_params.append(tag_param)
+        filters.append((
+            f"({' AND '.join(tag_conditions)})",
+            tag_params
+        ))
 
     if developers:
-        filters.append(("vn.data->'developers' @> %s::jsonb", [json.dumps([{"name": dev} for dev in developers])]))
+        dev_conditions = []
+        dev_params = []
+        for dev in developers:
+            dev_param = f"%{dev}%"
+            dev_conditions.append("EXISTS (SELECT 1 FROM jsonb_array_elements(vn.data->'developers') AS d WHERE d->>'name' ILIKE %s)")
+            dev_params.append(dev_param)
+        filters.append((
+            f"({' OR '.join(dev_conditions)})",
+            dev_params
+        ))
 
     if characters:
+        char_conditions = []
+        char_params = []
+        for char in characters:
+            char_param = f"%{char}%"
+            char_conditions.append("EXISTS (SELECT 1 FROM jsonb_array_elements(vn.data->'va') AS va WHERE va->'character'->>'name' ILIKE %s)")
+            char_params.append(char_param)
         filters.append((
-            """
-            EXISTS (
-                SELECT 1
-                FROM jsonb_array_elements(vn.data->'va') AS va
-                WHERE va->'character'->>'name' ILIKE ANY(%s)
-            )
-            """,
-            [[f"%{char}%" for char in characters]]
+            f"({' OR '.join(char_conditions)})",
+            char_params
         ))
 
     return filters
 
-def generate_local_fields(
-    fields: str = "", 
-    **kwargs
-) -> str:
-    if not fields:
-        return generate_local_fields("date, downloaded" + generate_vndb_fields())
+def generate_local_fields(fields: str = "", **kwargs) -> str:
+    DEFAULT_FIELDS: str = (
+        # vn.{field} -> str 
+        "id,date,downloaded,"
+        # vn.data.{field} -> str
+        "title,olang,released,description,length,length_minutes,"
+        # vn.data.{field} -> list[str]
+        "languages,platforms,"
+        # vn.data.{field} -> dict[str, str]
+        "image,"
+        # vn.data.{field} -> list[dict[str, str]]
+        "titles,aliases,screenshots,tags,developers,relations,va,extlinks"
+    )
 
-    fields = fields.strip().replace("\n", "").replace(" ", "").split(",")
-    output_fields = []
+    VN_FIELDS: Set[str] = {
+        "id", "date", "downloaded", "data"
+    }
+    STRING_FIELDS: Set[str] = {
+        "title", "olang", "released", 
+        "description", "length", "length_minutes"
+    }
+    JSON_FIELDS: Set[str] = {
+        "languages", "platforms", "image", "titles", 
+        "aliases",  "screenshots", "va", "tags", 
+        "developers", "relations", "extlinks"
+    }
+
+    FIELD_MAPPING: Dict[str, str] = {
+        "vn": "vn.{} AS {}",
+        "string": "vn.data->>'{}' AS {}",
+        "json": "COALESCE(vn.data->'{}', '[]')::jsonb AS {}"
+    }
+
+    fields: List[str] = (fields or DEFAULT_FIELDS).replace(" ", "").split(",")
+    output_fields: List[str] = []
 
     for field in fields:
-        if field in {"id", "date", "downloaded", "data"}:
-            output_fields.append(f'vn.{field}')
+        if field in VN_FIELDS:
+            output_fields.append(FIELD_MAPPING["vn"].format(field, field))
+        elif field in STRING_FIELDS:
+            output_fields.append(FIELD_MAPPING["string"].format(field, field))
+        elif field in JSON_FIELDS:
+            output_fields.append(FIELD_MAPPING["json"].format(field, field))
         else:
-            output_fields.append(f"vn.data->'{'->'.join(field.split('.'))}' AS {field.replace('.', '_')}")
-        
+            search_logger.warning(f"Unrecognized field: {field}")
+
     if "id" not in fields:
-        output_fields.insert(0, "DISTINCT vn.data->>'id' AS id")
+        output_fields.insert(0, "DISTINCT " + FIELD_MAPPING["string"].format("id", "id"))
 
     return ", ".join(output_fields)
 
-def generate_filters(search_type: str, **kwargs) -> Any:
-    if search_type == "vndb":
-        return generate_vndb_filters(**kwargs)
-    elif search_type == "local":
-        return generate_local_filters(**kwargs)
 
-    return None
-
-def generate_fields(search_type: str, **kwargs) -> str:
-    if search_type == "vndb":
-        return generate_vndb_fields(**kwargs)
-    elif search_type == "local":
-        return generate_local_fields(**kwargs)
-    
-    return None
-
-
-VNDB_FIELDS_SIMPLE = generate_vndb_fields("title, released, image.thumbnail, image.sexual, image.violence")
-LOCAL_FILELDS_SIMPLE = generate_local_fields("date, download, title, released, image.thumbnail, image.sexual, image.violence")
+VNDB_FIELDS_SIMPLE = "title, released, image.thumbnail, image.sexual, image.violence"
+LOCAL_FIELDS_SIMPLE = "date, downloaded, title, released, image"

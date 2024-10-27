@@ -3,7 +3,7 @@ from api.search.vndb import search_vndb
 from api.search.local import search_local
 from api.search.utils import generate_vndb_fields, generate_vndb_filters 
 from api.search.utils import generate_local_fields, generate_local_filters 
-from api.search.utils import VNDB_FIELDS_SIMPLE, LOCAL_FILELDS_SIMPLE
+from api.search.utils import VNDB_FIELDS_SIMPLE, LOCAL_FIELDS_SIMPLE 
 from api.download.server import download2server
 from api.download.client import download2client
 from api.utils.logger import download_logger, search_logger
@@ -24,7 +24,7 @@ def search_task(search_type, filters, fields, sort_field=None, reverse=False):
             search_results = search_vndb(filters=vndb_filters, fields=vndb_fields, sort_field=sort_field, reverse=reverse)
 
         if search_results:
-            search_logger.info(f"Async combined search completed. Found {len(search_results)} results.")
+            search_logger.info(f"Async combined search completed. Found {search_results['count']} results.")
             return search_results
         else:
             search_logger.info("Async combined search completed. No results found.")

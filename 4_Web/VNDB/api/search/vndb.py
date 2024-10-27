@@ -1,9 +1,9 @@
 import requests
 from typing import Dict, Optional
 from api.search.local import search_local
-from api.search.utils import generate_local_filters
 from api.utils.logger import search_logger
-from api.utils.logger import test_logger
+from api.search.utils import generate_local_filters, generate_local_fields 
+
 
 def search_vndb(
     filters:    list,
@@ -51,16 +51,16 @@ def search_vndb(
 
     if not all_results: return None
 
-    for result in all_results:
-        try:
-            local_result = search_local(generate_local_filters(id=result['id']), fields=fields)
-            if local_result:
-                result.update(local_result[0])
-            else:
-                result['download'] = False
-                result['date'] = ''
-        except Exception as e:
-            search_logger.error(f"Error processing local data for ID {result['id']}: {e}", exc_info=True)
+    # for result in all_results:
+    #     try:
+    #         local_result = search_local(generate_local_filters(id=result['id']), fields=generate_local_fields(fields=f'downloaded, date, {fields}'))
+    #         if local_result:
+    #             result.update(local_result[0])
+    #         else:
+    #             result['download'] = False
+    #             result['date'] = ''
+    #     except Exception as e:
+    #         search_logger.error(f"Error processing local data for ID {result['id']}: {e}", exc_info=True)
 
     search_logger.info(f"Search completed. Total results: {len(all_results)}")
     return {

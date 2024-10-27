@@ -1,7 +1,8 @@
 from flask import Blueprint, request, jsonify, abort
 from api.celery_app import celery
 from api.tasks import search_task
-from api.search.utils import VNDB_FIELDS_SIMPLE, LOCAL_FILELDS_SIMPLE
+from api.search.utils import VNDB_FIELDS_SIMPLE, LOCAL_FIELDS_SIMPLE
+from api.routes.utils import get_filters
 
 search_bp = Blueprint('search', __name__)
 
@@ -9,42 +10,21 @@ search_bp = Blueprint('search', __name__)
 def search():
     search_type = request.args.get('searchType')
     
-    if search_type == 'local':
-        task = search_task.delay(
-            search_type='local',
-            filters={
-                'id': request.args.get('localID'),
-                'title': request.args.get('localTitle'),
-                'developers': request.args.get('localDevelopers'),
-                'characters': request.args.get('localCharacters'),
-                'tags': request.args.get('localTags'),
-                'length': request.args.get('localLength')
-            },
-            fields=LOCAL_FILELDS_SIMPLE
-        )
-    elif search_type == 'vndb':
-        task = search_task.delay(
-            search_type='vndb',
-            filters = {
-                'query': request.args.get('vndbQuery'),
-                'developers': request.args.get('vndbDevelopers', '').split(','),
-                'characters': request.args.get('vndbCharacters', '').split(','),
-                'staffs': request.args.get('vndbStaffs', '').split(','),
-                'released_date_expressions': request.args.get('vndbReleasedDate', '').split(','),
-                'length': int(request.args.get('vndbLength')) if request.args.get('vndbLength') else None,
-                'dev_status': int(request.args.get('vndbDevStatus')) if request.args.get('vndbDevStatus') else None,
-                'has_description': request.args.get('vndbHasDescription') == 'on',
-                'has_anime': request.args.get('vndbHasAnime') == 'on',
-                'has_screenshot': request.args.get('vndbHasScreenshot') == 'on',
-                'has_review': request.args.get('vndbHasReview') == 'on'
-            },
-            fields=VNDB_FIELDS_SIMPLE
-        )
-    else:
+    if search_type not in ['local', 'vndb']:
         abort(400, description="Invalid search type")
     
+    filters = get_filters(search_type)
+    fields = (LOCAL_FIELDS_SIMPLE if search_type == 'local' else VNDB_FIELDS_SIMPLE) if request.args.get('simple', '') else None
+    # fields = LOCAL_FIELDS_SIMPLE if search_type == 'local' else VNDB_FIELDS_SIMPLE
+    
+    task = search_task.delay(
+        search_type=search_type,
+        filters=filters,
+        fields=fields
+    )
+    
     return jsonify({"task_id": task.id}), 202
-
+    
 @search_bp.route('/api/search/status/<task_id>', methods=['GET'])
 def search_status(task_id):
     task = celery.AsyncResult(task_id)

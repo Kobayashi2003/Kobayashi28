@@ -6,7 +6,7 @@ def search_local(filters: List[Tuple[str, Any]], fields: str, sort_field: Option
     try:
         search_logger.info(f"Searching local database.")
         results = db_search(filters=filters, fields=fields, sort_field=sort_field, reverse=reverse, limit=limit, offset=offset)
-        search_logger.info(f"Local search completed. Found {len(results)} results.")
+        search_logger.info(f"Local search completed. Found {results['count']} results.")
         
         return results
     except Exception as e:

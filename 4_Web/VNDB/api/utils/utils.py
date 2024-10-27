@@ -1,6 +1,7 @@
 import re
 import datetime
 
+
 def judge_sexual(sexual: float) -> bool:
     return sexual > 1
 
