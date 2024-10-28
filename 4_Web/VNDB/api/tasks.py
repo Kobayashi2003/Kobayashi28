@@ -3,9 +3,6 @@ from api.search.vndb import search_vndb
 from api.search.local import search_local
 from api.search.utils import generate_vndb_fields, generate_vndb_filters 
 from api.search.utils import generate_local_fields, generate_local_filters 
-from api.search.utils import VNDB_FIELDS_SIMPLE, LOCAL_FIELDS_SIMPLE 
-# from api.search.utils import generate_vndb_fields, generate_vndb_filters 
-# from api.search.utils import generate_local_fields, generate_local_filters 
 from api.download.server import download2server
 from api.download.client import download2client
 from api.db.operations import create, update, delete
