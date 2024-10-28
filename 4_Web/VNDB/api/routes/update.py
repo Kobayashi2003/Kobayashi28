@@ -1,52 +1,57 @@
 from flask import Blueprint, request, jsonify, abort
 from api.celery_app import celery
-from api.tasks import delete_task
+from api.tasks import update_task
 from api.utils.logger import db_logger
 
-delete_bp = Blueprint('delete', __name__)
+update_bp = Blueprint('update', __name__)
 
-@delete_bp.route('/api/delete', methods=['POST'])
-def delete():
+@update_bp.route('/api/update', methods=['POST'])
+def update():
     vn_id = request.json.get('id')
+    vn_data = request.json.get('data')
+    downloaded = request.json.get('downloaded')
     
     if not vn_id:
         abort(400, description="Missing VN ID")
     
-    task = delete_task.delay(vn_id)
+    if vn_data is None and downloaded is None:
+        abort(400, description="No update data provided")
+    
+    task = update_task.delay(vn_id, vn_data, downloaded)
     
     return jsonify({"task_id": task.id}), 202
 
-@delete_bp.route('/api/delete/status/<task_id>', methods=['GET'])
-def delete_status(task_id):
+@update_bp.route('/api/update/status/<task_id>', methods=['GET'])
+def update_status(task_id):
     task = celery.AsyncResult(task_id)
     if task.state == 'PENDING':
         response = {
             'state': task.state,
-            'status': 'Delete operation is pending...'
+            'status': 'Update operation is pending...'
         }
     elif task.state != 'FAILURE':
         response = {
             'state': task.state,
-            'status': 'Delete operation is in progress...'
+            'status': 'Update operation is in progress...'
         }
         if task.info:
             response['result'] = task.info
     else:
         response = {
             'state': task.state,
-            'status': 'Delete operation failed',
+            'status': 'Update operation failed',
             'error': str(task.info)
         }
     return jsonify(response)
 
-@delete_bp.errorhandler(400)
+@update_bp.errorhandler(400)
 def bad_request(e):
     return jsonify(error=str(e.description)), 400
 
-@delete_bp.errorhandler(404)
+@update_bp.errorhandler(404)
 def not_found(e):
     return jsonify(error="Resource not found"), 404
 
-@delete_bp.errorhandler(500)
+@update_bp.errorhandler(500)
 def server_error(e):
     return jsonify(error="An unexpected error occurred"), 500

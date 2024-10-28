@@ -1,7 +1,8 @@
 from flask import Blueprint, request, jsonify, abort
 from api.celery_app import celery
 from api.tasks import search_task
-from api.search.utils import VNDB_FIELDS_SIMPLE, LOCAL_FIELDS_SIMPLE
+from api.search.utils import VNDB_FIELDS_SMALL, LOCAL_FIELDS_SMALL
+from api.search.utils import VNDB_FIELDS_LARGE, LOCAL_FIELDS_LARGE
 from api.routes.utils import get_filters
 
 search_bp = Blueprint('search', __name__)
@@ -14,8 +15,13 @@ def search():
         abort(400, description="Invalid search type")
     
     filters = get_filters(search_type)
-    fields = (LOCAL_FIELDS_SIMPLE if search_type == 'local' else VNDB_FIELDS_SIMPLE) if request.args.get('simple', '') else None
-    # fields = LOCAL_FIELDS_SIMPLE if search_type == 'local' else VNDB_FIELDS_SIMPLE
+    responseSize = request.args.get('responseSize', 'small')
+    if responseSize == 'small':
+        fields = (LOCAL_FIELDS_SMALL if search_type == 'local' else VNDB_FIELDS_SMALL)
+    elif responseSize == 'large':
+        fields = (LOCAL_FIELDS_LARGE if search_type == 'local' else VNDB_FIELDS_LARGE)
+    else:
+        abort(400, description="Invalid response size")
     
     task = search_task.delay(
         search_type=search_type,

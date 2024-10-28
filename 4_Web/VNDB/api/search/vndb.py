@@ -1,7 +1,7 @@
 import requests
 from typing import Dict, Optional
-from api.search.local import search_local
 from api.utils.logger import search_logger
+from api.search.local import search_local
 from api.search.utils import generate_local_filters, generate_local_fields 
 
 

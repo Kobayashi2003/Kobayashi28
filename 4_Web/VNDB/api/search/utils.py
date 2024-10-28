@@ -1,7 +1,7 @@
 import re
 from api.search.filter import *
 from api.utils.logger import search_logger
-from typing import Dict, Set, List, Any, Optional, Tuple 
+from typing import Dict, Set, List, Any, Optional, Tuple, Callable
 
 
 def generate_vndb_filters(
@@ -179,118 +179,78 @@ def generate_vndb_fields(
         extlinks.url, extlinks.label, extlinks.name
 """
 
-    if not fields:
-        fields += """
-        title, titles.title, titles.lang, titles.official, titles.main, aliases,
-        image.url, image.dims, image.sexual, image.violence,
-        image.thumbnail, image.thumbnail_dims,
-        screenshots.url, screenshots.dims, screenshots.sexual, screenshots.violence,
-        screenshots.thumbnail, screenshots.thumbnail_dims,
-        olang, languages, platforms, released, length, length_minutes, description,
-        tags.name, tags.category, developers.name, developers.original,
-        relations.relation, relations.relation_official, relations.title,
-        va.character.name, va.character.original, va.character.aliases,
-        va.character.description, va.character.blood_type, va.character.sex,
-        va.character.height, va.character.weight, va.character.age, va.character.birthday,
-        va.character.bust, va.character.waist, va.character.hips, va.character.cup,
-        va.character.image.url, va.character.image.dims,
-        va.character.image.sexual, va.character.image.violence,
-        va.character.vns.role, va.character.vns.title,
-        va.staff.name, va.staff.original, extlinks.url,
-"""
-
     fields = fields.strip().replace("\n", "").replace(" ", "")
     fields = fields[:-1] if fields[-1] == "," else fields
 
     return fields
 
 def generate_local_filters(
-    id:         Optional[str] = None,
-    title:      Optional[str] = None,
-    length:     Optional[int] = None,
-    tags:       Optional[List[str]] = None,
+    id: Optional[str] = None,
+    title: Optional[str] = None,
+    length: Optional[int] = None,
+    tags: Optional[List[str]] = None,
     developers: Optional[List[str]] = None,
     characters: Optional[List[str]] = None,
     **kwargs
 ) -> List[Tuple[str, List[Any]]]:
     filters = []
 
-    if id:
-        filters.append(("vn.data->>'id' = %s", [id]))
+    def add_filter(condition: str, params: List[Any]):
+        if condition.strip() and any(params):
+            filters.append((condition, params))
 
-    if title:
-        title_param = f"%{title}%"
-        filters.append((
-            """
-            (vn.data->>'title' ILIKE %s
-            OR EXISTS (
-                SELECT 1
-                FROM jsonb_array_elements(vn.data->'titles') AS t
-                WHERE t->>'title' ILIKE %s
-            )
-            OR EXISTS (
-                SELECT 1
-                FROM jsonb_array_elements_text(vn.data->'aliases') AS alias
-                WHERE alias ILIKE %s
-            ))
-            """,
-            [title_param, title_param, title_param]
-        ))
+    def like_filter(field: str, value: str, is_array: bool = False) -> Tuple[str, List[str]]:
+        param = f"%{value}%"
+        if is_array:
+            condition = f"EXISTS (SELECT 1 FROM jsonb_array_elements(vn.data->'{field}') AS t WHERE t->>'name' ILIKE %s)"
+        else:
+            condition = f"vn.data->>'{field}' ILIKE %s"
+        return condition, [param]
 
-    if length:
-        filters.append(("vn.data->>'length' = %s", [str(length)]))
+    def complex_filter(field: str, values: List[str], conditions: List[str]) -> Tuple[str, List[str]]:
+        if not values: 
+            return "", []
+        all_conditions = []
+        all_params = []
+        for value in values:
+            if value.strip():
+                all_conditions.append(f"({' OR '.join(conditions)})")
+                all_params.extend([f"%{value}%"] * len(conditions))
+        if not all_conditions: 
+            return "", []
+        return f"({' OR '.join(all_conditions)})", all_params
 
-    if tags:
-        tag_conditions = []
-        tag_params = []
-        for tag in tags:
-            tag_param = f"%{tag}%"
-            tag_conditions.append("EXISTS (SELECT 1 FROM jsonb_array_elements(vn.data->'tags') AS t WHERE t->>'name' ILIKE %s)")
-            tag_params.append(tag_param)
-        filters.append((
-            f"({' AND '.join(tag_conditions)})",
-            tag_params
-        ))
+    filter_map: Dict[str, Callable] = {
+        'id': lambda x: ("vn.data->>'id' = %s", [x]) if x else ("", []),
+        'title': lambda x: complex_filter('title', [x] if x else [], [
+            "vn.data->>'title' ILIKE %s",
+            "EXISTS (SELECT 1 FROM jsonb_array_elements(vn.data->'titles') AS t WHERE t->>'title' ILIKE %s)",
+            "EXISTS (SELECT 1 FROM jsonb_array_elements_text(vn.data->'aliases') AS alias WHERE alias ILIKE %s)"
+        ]),
+        'length': lambda x: ("vn.data->>'length' = %s", [str(x)]) if x is not None else ("", []),
+        'tags': lambda x: complex_filter('tags', x or [], [
+            "EXISTS (SELECT 1 FROM jsonb_array_elements(vn.data->'tags') AS t WHERE t->>'name' ILIKE %s)"
+        ]),
+        'developers': lambda x: complex_filter('developers', x or [], [
+            "EXISTS (SELECT 1 FROM jsonb_array_elements(vn.data->'developers') AS d WHERE d->>'name' ILIKE %s)",
+            "EXISTS (SELECT 1 FROM jsonb_array_elements(vn.data->'developers') AS d WHERE d->>'original' ILIKE %s)",
+            "EXISTS (SELECT 1 FROM jsonb_array_elements(vn.data->'developers') AS d WHERE EXISTS (SELECT 1 FROM jsonb_array_elements_text(d->'aliases') AS alias WHERE alias ILIKE %s))"
+        ]),
+        'characters': lambda x: complex_filter('va', x or [], [
+            "EXISTS (SELECT 1 FROM jsonb_array_elements(vn.data->'va') AS va WHERE va->'character'->>'name' ILIKE %s)",
+            "EXISTS (SELECT 1 FROM jsonb_array_elements(vn.data->'va') AS va WHERE va->'character'->>'original' ILIKE %s)",
+            "EXISTS (SELECT 1 FROM jsonb_array_elements(vn.data->'va') AS va WHERE EXISTS (SELECT 1 FROM jsonb_array_elements_text(va->'character'->'aliases') AS alias WHERE alias ILIKE %s))"
+        ])
+    }
 
-    if developers:
-        dev_conditions = []
-        dev_params = []
-        for dev in developers:
-            dev_param = f"%{dev}%"
-            dev_conditions.append("EXISTS (SELECT 1 FROM jsonb_array_elements(vn.data->'developers') AS d WHERE d->>'name' ILIKE %s)")
-            dev_params.append(dev_param)
-        filters.append((
-            f"({' OR '.join(dev_conditions)})",
-            dev_params
-        ))
-
-    if characters:
-        char_conditions = []
-        char_params = []
-        for char in characters:
-            char_param = f"%{char}%"
-            char_conditions.append("EXISTS (SELECT 1 FROM jsonb_array_elements(vn.data->'va') AS va WHERE va->'character'->>'name' ILIKE %s)")
-            char_params.append(char_param)
-        filters.append((
-            f"({' OR '.join(char_conditions)})",
-            char_params
-        ))
+    for key, value in locals().items():
+        if key in filter_map:
+            condition, params = filter_map[key](value)
+            add_filter(condition, params)
 
     return filters
 
 def generate_local_fields(fields: str = "", **kwargs) -> str:
-    DEFAULT_FIELDS: str = (
-        # vn.{field} -> str 
-        "id,date,downloaded,"
-        # vn.data.{field} -> str
-        "title,olang,released,description,length,length_minutes,"
-        # vn.data.{field} -> list[str]
-        "languages,platforms,"
-        # vn.data.{field} -> dict[str, str]
-        "image,"
-        # vn.data.{field} -> list[dict[str, str]]
-        "titles,aliases,screenshots,tags,developers,relations,va,extlinks"
-    )
 
     VN_FIELDS: Set[str] = {
         "id", "date", "downloaded", "data"
@@ -311,7 +271,7 @@ def generate_local_fields(fields: str = "", **kwargs) -> str:
         "json": "COALESCE(vn.data->'{}', '[]')::jsonb AS {}"
     }
 
-    fields: List[str] = (fields or DEFAULT_FIELDS).replace(" ", "").split(",")
+    fields: List[str] = (fields or "").replace(" ", "").split(",")
     output_fields: List[str] = []
 
     for field in fields:
@@ -330,5 +290,35 @@ def generate_local_fields(fields: str = "", **kwargs) -> str:
     return ", ".join(output_fields)
 
 
-VNDB_FIELDS_SIMPLE = "title, released, image.thumbnail, image.sexual, image.violence"
-LOCAL_FIELDS_SIMPLE = "date, downloaded, title, released, image"
+VNDB_FIELDS_SMALL: str = "title, released, image.thumbnail, image.sexual, image.violence"
+LOCAL_FIELDS_SMALL: str = "date, downloaded, title, released, image"
+VNDB_FIELDS_LARGE: str = """
+    title, titles.title, titles.lang, titles.official, titles.main, aliases,
+    image.url, image.dims, image.sexual, image.violence,
+    image.thumbnail, image.thumbnail_dims,
+    screenshots.url, screenshots.dims, screenshots.sexual, screenshots.violence,
+    screenshots.thumbnail, screenshots.thumbnail_dims,
+    olang, languages, platforms, released, length, length_minutes, description,
+    tags.name, tags.category, developers.name, developers.original,
+    relations.relation, relations.relation_official, relations.title,
+    va.character.name, va.character.original, va.character.aliases,
+    va.character.description, va.character.blood_type, va.character.sex,
+    va.character.height, va.character.weight, va.character.age, va.character.birthday,
+    va.character.bust, va.character.waist, va.character.hips, va.character.cup,
+    va.character.image.url, va.character.image.dims,
+    va.character.image.sexual, va.character.image.violence,
+    va.character.vns.role, va.character.vns.title,
+    va.staff.name, va.staff.original, extlinks.url,
+"""
+LOCAL_FIELDS_LARGE: str = (
+    # vn.{field} -> str 
+    "id,date,downloaded,"
+    # vn.data.{field} -> str
+    "title,olang,released,description,length,length_minutes,"
+    # vn.data.{field} -> list[str]
+    "languages,platforms,"
+    # vn.data.{field} -> dict[str, str]
+    "image,"
+    # vn.data.{field} -> list[dict[str, str]]
+    "titles,aliases,screenshots,tags,developers,relations,va,extlinks"
+)

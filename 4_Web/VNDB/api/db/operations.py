@@ -1,5 +1,6 @@
 import json
 import psycopg2
+from typing import Dict, Any, List, Optional, Tuple
 from flask import g, current_app
 from psycopg2 import pool
 from psycopg2.extras import RealDictCursor
@@ -49,6 +50,69 @@ def close_db(e=None):
     if db_conn is not None:
         DatabasePool.get_pool().putconn(db_conn)
 
+def create(vn_data: Dict[str, Any]) -> bool:
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cur:
+            vn_id = vn_data['id']
+            query = "INSERT INTO vn (id, data) VALUES (%s, %s)"
+            cur.execute(query, (vn_id, json.dumps(vn_data)))
+            conn.commit()
+        db_logger.info(f"Created new VN with ID: {vn_id}")
+        return True
+    except (Exception, psycopg2.Error) as error:
+        conn.rollback()
+        db_logger.error(f"Error creating new VN: {error}")
+        return False
+    finally:
+        release_db_connection(conn)
+
+def delete(vn_id: str) -> bool:
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cur:
+            query = "DELETE FROM vn WHERE id = %s"
+            cur.execute(query, (vn_id,))
+            rows_affected = cur.rowcount
+            conn.commit()
+        db_logger.info(f"Deleted VN with ID: {vn_id}. Rows affected: {rows_affected}")
+        return rows_affected > 0
+    except (Exception, psycopg2.Error) as error:
+        conn.rollback()
+        db_logger.error(f"Error deleting VN with ID {vn_id}: {error}")
+        return False
+    finally:
+        release_db_connection(conn)
+
+def update(vn_id: str, vn_data: Optional[Dict[str, Any]] = None, downloaded: Optional[bool] = None) -> bool:
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cur:
+            if vn_data is not None:
+                query = "UPDATE vn SET data = data || %s::jsonb WHERE id = %s"
+                cur.execute(query, (json.dumps(vn_data), vn_id))
+            if downloaded is not None:
+                query = "UPDATE vn SET downloaded = %s WHERE id = %s"
+                cur.execute(query, (downloaded, vn_id))
+            
+            rows_affected = cur.rowcount
+            conn.commit()
+        
+        if vn_data is not None and downloaded is not None:
+            db_logger.info(f"Updated VN with ID: {vn_id}. Full data update and downloaded status: {downloaded}. Rows affected: {rows_affected}")
+        elif vn_data is not None:
+            db_logger.info(f"Updated VN with ID: {vn_id}. Full data update. Rows affected: {rows_affected}")
+        elif downloaded is not None:
+            db_logger.info(f"Updated VN with ID: {vn_id}. Downloaded status: {downloaded}. Rows affected: {rows_affected}")
+        
+        return rows_affected > 0
+    except (Exception, psycopg2.Error) as error:
+        conn.rollback()
+        db_logger.error(f"Error updating VN with ID {vn_id}: {error}")
+        return False
+    finally:
+        release_db_connection(conn)
+
 def search(filters, fields, sort_field=None, reverse=False, limit=1000, offset=0):
     where_clauses = []
     params = []
@@ -83,3 +147,4 @@ def search(filters, fields, sort_field=None, reverse=False, limit=1000, offset=0
         raise
     finally:
         release_db_connection(conn)
+ 

@@ -1,12 +1,15 @@
 from api.celery_app import celery
 from api.search.vndb import search_vndb
 from api.search.local import search_local
-from api.search.utils import generate_vndb_fields, generate_vndb_filters
-from api.search.utils import generate_local_fields, generate_local_filters
-from api.search.utils import VNDB_FIELDS_SIMPLE, LOCAL_FIELDS_SIMPLE
+from api.search.utils import generate_vndb_fields, generate_vndb_filters 
+from api.search.utils import generate_local_fields, generate_local_filters 
+from api.search.utils import VNDB_FIELDS_SIMPLE, LOCAL_FIELDS_SIMPLE 
+# from api.search.utils import generate_vndb_fields, generate_vndb_filters 
+# from api.search.utils import generate_local_fields, generate_local_filters 
 from api.download.server import download2server
 from api.download.client import download2client
-from api.utils.logger import download_logger, search_logger
+from api.db.operations import create, update, delete
+from api.utils.logger import download_logger, search_logger, db_logger
 
 
 @celery.task
@@ -62,4 +65,46 @@ def download_client_task(filters):
         return zip_file_path
     except Exception as e:
         download_logger.error(f"Error in async client download task: {str(e)}")
+        raise
+
+@celery.task
+def create_task(vn_data):
+    try:
+        result = create(vn_data)
+        if result:
+            db_logger.info(f"Successfully created VN with ID: {vn_data['id']}")
+            return {"success": True, "message": f"VN with ID {vn_data['id']} created successfully"}
+        else:
+            db_logger.error(f"Failed to create VN with ID: {vn_data['id']}")
+            return {"success": False, "message": f"Failed to create VN with ID {vn_data['id']}"}
+    except Exception as e:
+        db_logger.error(f"Error in create task: {str(e)}")
+        raise
+
+@celery.task
+def update_task(vn_id, vn_data=None, downloaded=None):
+    try:
+        result = update(vn_id, vn_data, downloaded)
+        if result:
+            db_logger.info(f"Successfully updated VN with ID: {vn_id}")
+            return {"success": True, "message": f"VN with ID {vn_id} updated successfully"}
+        else:
+            db_logger.error(f"Failed to update VN with ID: {vn_id}")
+            return {"success": False, "message": f"Failed to update VN with ID {vn_id}"}
+    except Exception as e:
+        db_logger.error(f"Error in update task: {str(e)}")
+        raise
+
+@celery.task
+def delete_task(vn_id):
+    try:
+        result = delete(vn_id)
+        if result:
+            db_logger.info(f"Successfully deleted VN with ID: {vn_id}")
+            return {"success": True, "message": f"VN with ID {vn_id} deleted successfully"}
+        else:
+            db_logger.error(f"Failed to delete VN with ID: {vn_id}")
+            return {"success": False, "message": f"Failed to delete VN with ID {vn_id}"}
+    except Exception as e:
+        db_logger.error(f"Error in delete task: {str(e)}")
         raise
