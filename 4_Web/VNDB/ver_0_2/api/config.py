@@ -19,7 +19,7 @@ class Config:
 
     # Download configuration
     TEMP_FOLDER = os.environ.get('TEMP_FOLDER', '/tmp')
-    IMAGES_FOLDER = os.environ.get('IMAGES_FOLDER', '/path/to/images')
+    IMAGES_FOLDER = os.environ.get('IMAGES_FOLDER', '/images/vn')
     IMAGES_URL_PREFIX = os.environ.get('IMAGES_URL_PREFIX', '/images')
 
     # Other configurations

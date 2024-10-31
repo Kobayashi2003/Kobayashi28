@@ -1,0 +1,148 @@
+/* Screenshots Section
+   ========================================================================== */
+
+.screenshots {
+  margin-bottom: 2rem;
+}
+
+.screenshots--hidden {
+  display: none;
+}
+
+/* Title
+     ========================================================================== */
+
+.screenshots__title {
+  margin-top: 0;
+  color: var(--secondary-color);
+  font-size: 1.8em;
+}
+
+/* Carousel
+     ========================================================================== */
+
+.screenshots__carousel {
+  position: relative;
+  width: 100%;
+  height: 0;
+  padding-bottom: 56.25%;
+  /* 16:9 aspect ratio */
+  overflow: hidden;
+}
+
+.screenshots__item {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+  pointer-events: none;
+  /* Disable pointer events for inactive items */
+  z-index: 1;
+  /* Set a base z-index for all items */
+}
+
+.screenshots__item.active {
+  opacity: 1;
+  pointer-events: auto;
+  /* Enable pointer events for the active item */
+  z-index: 2;
+  /* Set a higher z-index for the active item */
+}
+
+
+/* Images
+     ========================================================================== */
+
+.screenshots__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.screenshots__link {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.screenshots__link--large {
+  cursor: zoom-in;
+}
+
+/* Navigation
+     ========================================================================== */
+
+.screenshots__nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 5em;
+  padding: 0.1em;
+  text-decoration: none;
+  text-align: center;
+  color: white;
+  transition: color 0.3s ease;
+  z-index: 3; /* Ensure navigation buttons are always on top */
+}
+
+.screenshots__nav:hover {
+  color: #333;
+}
+
+.screenshots__nav--prev {
+  left: 10px;
+}
+
+.screenshots__nav--next {
+  right: 10px;
+}
+
+/* Thumbnails
+     ========================================================================== */
+
+.screenshots__thumbnails {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.screenshots__thumbnail-link {
+  display: block;
+  margin: 5px;
+}
+
+.screenshots__thumbnail {
+  width: 60px;
+  height: 40px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  border-color: #333;
+  transition: border-color 0.3s ease;
+  object-fit: cover;
+}
+
+.screenshots__thumbnail.active {
+  border-color: var(--primary-color);
+}
+
+/* Responsive Design
+     ========================================================================== */
+
+@media (max-width: 768px) {
+  .screenshots__thumbnails {
+    justify-content: flex-start;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 10px;
+  }
+
+  .screenshots__thumbnail-link {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+  }
+}

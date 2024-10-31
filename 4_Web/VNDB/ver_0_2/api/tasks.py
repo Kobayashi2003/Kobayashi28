@@ -35,36 +35,6 @@ def search_task(search_type, filters, fields, sort_field=None, reverse=False):
         raise
 
 @celery.task
-def download_task(download_type, vn_id):
-    try:
-        if download_type == 'server':
-            downloaded_images = download2server()
-        elif download_type == 'client':
-            pass
-    except Exception as e:
-        pass
-
-@celery.task
-def download_server_task(filters):
-    try:
-        downloaded_images = download2server(filters)
-        download_logger.info(f"Async server download completed. Downloaded {len(downloaded_images)} images.")
-        return downloaded_images
-    except Exception as e:
-        download_logger.error(f"Error in async server download task: {str(e)}")
-        raise
-
-@celery.task
-def download_client_task(filters):
-    try:
-        zip_file_path = download2client(filters)
-        download_logger.info(f"Async client download completed. Created zip file: {zip_file_path}")
-        return zip_file_path
-    except Exception as e:
-        download_logger.error(f"Error in async client download task: {str(e)}")
-        raise
-
-@celery.task
 def create_task(vn_data):
     try:
         result = create(vn_data)

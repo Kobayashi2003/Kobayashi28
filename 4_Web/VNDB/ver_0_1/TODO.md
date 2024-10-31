@@ -1,0 +1,2 @@
+- 为主页vn的显示增加downloaded标签，并添加过滤downloaed的功能
+- 回退首页后，保持排序选项

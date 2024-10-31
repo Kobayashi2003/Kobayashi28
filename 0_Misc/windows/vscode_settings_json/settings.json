@@ -197,6 +197,14 @@
         "before": ["k", "j"],
         "after": ["<Escape>"]
       },
+      { 
+        "BEFORE": ["J", "K"],
+        "AFTER": ["<ESCAPE>"]
+      },
+      { 
+        "before": ["K", "J"],
+        "after": ["<Escape>"]
+      },
       {
         "before": ["<C-c>"],
         "commands": ["editor.action.clipboardCopyAction"]

@@ -1,0 +1,109 @@
+<div id="searchModal" class="search-modal">
+  <div class="search-content">
+    <h2>Search Visual Novels</h2>
+    <div class="search-tabs">
+      <button id="localSearchTab" class="search-tab active">Local Search</button>
+      <button id="vndbSearchTab" class="search-tab">VNDB Search</button>
+    </div>
+    <div id="localSearchForm" class="search-form active">
+      <form method="get" action="{{ url_for('search.search') }}" class="search-form-local">
+        <input type="hidden" name="searchType" value="local">
+        <div class="form-group">
+          <label for="localTitle">Title</label>
+          <input type="text" id="localTitle" name="localTitle" placeholder="Enter title">
+        </div>
+        <div class="form-group">
+          <label for="localDevelopers">Developers</label>
+          <input type="text" id="localDevelopers" name="localDevelopers" placeholder="Enter developers">
+        </div>
+        <div class="form-group">
+          <label for="localCharacters">Characters</label>
+          <input type="text" id="localCharacters" name="localCharacters" placeholder="Enter characters">
+        </div>
+        <div class="form-group">
+          <label for="localLength">Length</label>
+          <select id="localLength" name="localLength">
+            <option value="">Any</option>
+            <option value="1">Very Short</option>
+            <option value="2">Short</option>
+            <option value="3">Medium</option>
+            <option value="4">Long</option>
+            <option value="5">Very Long</option>
+          </select>
+        </div>
+        <button type="submit" class="search-button">Search Local</button>
+      </form>
+    </div>
+    <div id="vndbSearchForm" class="search-form">
+      <form method="get" action="{{ url_for('search.search') }}" class="search-form-vndb">
+        <input type="hidden" name="searchType" value="vndb">
+        <div class="form-group">
+          <label for="vndbQuery">Query</label>
+          <input type="text" id="vndbQuery" name="vndbQuery" placeholder="Enter search query">
+        </div>
+        <div class="form-group">
+          <label for="vndbDevelopers">Developers</label>
+          <input type="text" id="vndbDevelopers" name="vndbDevelopers" placeholder="Enter developers. Separated by commas">
+        </div>
+        <div class="form-group">
+          <label for="vndbStaffs">Staffs</label>
+          <input type="text" id="vndbStaffs" name="vndbStaffs" placeholder="Enter staffs. Separated by commas">
+        </div>
+        <div class="form-group">
+          <label for="vndbCharacters">Characters</label>
+          <input type="text" id="vndbCharacters" name="vndbCharacters" placeholder="Enter characters. Separated by commas">
+        </div>
+        <div class="form-group">
+          <button type="button" id="vndbMoreOptions" class="more-options-button">More Options</button>
+        </div>
+        <div id="vndbMoreOptionsContent" class="more-options-content">
+          <div class="form-group">
+            <label for="vndbReleasedDate">Released Date</label>
+            <input type="text" id="vndbReleasedDate" name="vndbReleasedDate" placeholder="Format: ['<' | '>' | '=' | '<=' | '>=' ] YYYY-MM-DD , ...">
+          </div>
+          <div class="form-group">
+            <label for="vndbLength">Length</label>
+            <select id="vndbLength" name="vndbLength">
+              <option value="">Any</option>
+              <option value="1">Very Short</option>
+              <option value="2">Short</option>
+              <option value="3">Medium</option>
+              <option value="4">Long</option>
+              <option value="5">Very Long</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="vndbDevStatus">Development Status</label>
+            <select id="vndbDevStatus" name="vndbDevStatus">
+              <option value="">Any</option>
+              <option value="0">Finished</option>
+              <option value="1">In development</option>
+              <option value="2">Cancelled</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Additional Filters</label>
+            <div class="checkbox-group">
+              <input type="checkbox" id="vndbHasDescription" name="vndbHasDescription">
+              <label for="vndbHasDescription">Has Description</label>
+            </div>
+            <div class="checkbox-group">
+              <input type="checkbox" id="vndbHasAnime" name="vndbHasAnime">
+              <label for="vndbHasAnime">Has Anime</label>
+            </div>
+            <div class="checkbox-group">
+              <input type="checkbox" id="vndbHasScreenshot" name="vndbHasScreenshot">
+              <label for="vndbHasScreenshot">Has Screenshot</label>
+            </div>
+            <div class="checkbox-group">
+              <input type="checkbox" id="vndbHasReview" name="vndbHasReview">
+              <label for="vndbHasReview">Has Review</label>
+            </div>
+          </div>
+        </div>
+        <button type="submit" class="search-button">Search VNDB</button>
+      </form>
+    </div>
+    <button id="closeSearch" class="close-button">&times;</button>
+  </div>
+</div>

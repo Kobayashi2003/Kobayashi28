@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en" class="notranslate" translate="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="google" content="notranslate" />
+  <meta name="robots" content="notranslate" />
+  <title>VNS INDEX</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='/css/index/vns-container.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='/css/index/header.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='/css/index/search.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='/css/index/sort-container.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='/css/index/pagination.css') }}">
+</head>
+<body>
+  {% include 'index/header.html' %}
+  <main>
+    {% include 'index/sort-container.html' %}
+    {% include 'index/vns-container.html' %}
+    {% include 'index/pagination.html' %}
+  </main>
+  {% include 'index/search.html' %}
+  <script src="{{ url_for('static', filename='/js/index/vns-container.js') }}"></script>
+  <script src="{{ url_for('static', filename='/js/index/header.js') }}"></script>
+  <script src="{{ url_for('static', filename='/js/index/search.js') }}"></script>
+  <script src="{{ url_for('static', filename='/js/index/sort-container.js') }}"></script>
+  <script src="{{ url_for('static', filename='/js/index/pagination.js') }}"></script>
+</body>
+</html>

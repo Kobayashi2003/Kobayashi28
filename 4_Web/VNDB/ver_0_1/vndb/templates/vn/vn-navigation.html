@@ -1,0 +1,37 @@
+<nav class="vn-nav">
+  <div class="vn-nav__home">
+    <h1><a href="javascript:if (window.history.length > 1) { location.replace(document.referrer) } else { window.location.href = '{{ url_for('index.index') }}'  }">
+      {{ vndata.title }}</a></h1>
+  </div>
+  <button class="vn-nav__toggle" aria-label="Toggle navigation menu" aria-expanded="false">☰</button>
+  <div class="vn-nav__menu">
+    <ul class="vn-nav__list">
+      <li><a href="#vn-details">Details</a></li>
+      <li><a href="#vn-tags">Tags</a></li>
+      <li><a href="#character-summary">Characters</a></li>
+      <li><a href="#screenshots">Screenshots</a></li>
+    </ul>
+    <div class="vn-nav__content-filters">
+      <label for="showSexual" class="vn-nav__filter-label">
+        <input type="checkbox" id="showSexual" class="vn-nav__filter-checkbox" checked>
+        Show Sexual Content
+      </label>
+      <label for="showViolent" class="vn-nav__filter-label">
+        <input type="checkbox" id="showViolent" class="vn-nav__filter-checkbox" checked>
+        Show Violent Content
+      </label>
+    </div>
+    <div class="vn-nav__action">
+      {% if vndata.downloaded %}
+        <button id="deleteButton" class="vn-nav__action-button vn-nav__action-button--delete" data-vn-id="{{ vndata.id }}">
+          Delete VN
+        </button>
+      {% else %}
+        <button id="downloadButton" class="vn-nav__action-button vn-nav__action-button--download" data-vn-id="{{ vndata.id }}">
+          Download VN
+        </button>
+      {% endif %}
+      <span id="actionStatus" class="vn-nav__action-status"></span>
+    </div>
+  </div>
+</nav>

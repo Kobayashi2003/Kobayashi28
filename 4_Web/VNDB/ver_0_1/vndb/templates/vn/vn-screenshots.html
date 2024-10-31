@@ -1,0 +1,25 @@
+<section id="screenshots" class="screenshots {% if not vndata.screenshots %}screenshots--hidden{% endif %}">
+  <h2 class="screenshots__title">Screenshots</h2>
+  <div class="screenshots__carousel">
+    {% for screenshot in vndata.screenshots %}
+      {% set screenshot_url = screenshot.local if 'local' in screenshot else screenshot.url %}
+      <div class="screenshots__item {% if loop.first %}active{% endif %}">
+        <a href="{{ screenshot_url }}" target="_blank" rel="noopener noreferrer" class="screenshots__link screenshots__link--large">
+          <img src="{{ screenshot_url }}" alt="Screenshot of the VN"
+               class="screenshots__img {% if screenshot.sexual %}screenshots__img--sexual{% endif %} {% if screenshot.violence %}screenshots__img--violence{% endif %}">
+        </a>
+      </div>
+    {% endfor %}
+    <a href="#" class="screenshots__nav screenshots__nav--prev">&#x2039;</a>
+    <a href="#" class="screenshots__nav screenshots__nav--next">&#x203A;</a>
+  </div>
+  <div class="screenshots__thumbnails">
+    {% for screenshot in vndata.screenshots %}
+      {% set screenshot_thumbnail = screenshot.local_thumbnail if 'local_thumbnail' in screenshot else screenshot.thumbnail %}
+      <a href="#" class="screenshots__thumbnail-link">
+        <img src="{{ screenshot_thumbnail }}" alt="Thumbnail"
+             class="screenshots__thumbnail {% if loop.first %}active{% endif %}">
+      </a>
+    {% endfor %}
+  </div>
+</section>

@@ -1,0 +1,89 @@
+<section class="vn-details" id="vn-details">
+  <div class="vn-details__container">
+    <div class="vn-details__cover">
+      {% set cover_image = (vndata.image.local if 'local' in vndata.image else vndata.image.url) if vndata.image else url_for('static', filename='images/no-image.png') %}
+      <a href="{{ cover_image }}">
+        <img src="{{ cover_image }}" alt="Cover image of {{ vndata.titles[0].title }}"
+             class="vn-details__cover-img {% if vndata.image.sexual %}cover__img--sexual{% endif %} {% if vndata.image.violence %}cover__img--violence{% endif %}">
+      </a>
+    </div>
+    <div class="vn-details__info">
+      <div class="vn-details__grid">
+        <div class="vn-details__section">
+          <div class="vn-details__item vn-details__item--horizontal {% if not vndata.titles %}vn-details__item--hidden{% endif %}">
+            <h2 class="vn-details__item-title">Titles</h2>
+            <ul class="vn-details-list vn-details__title-list">
+              {% for title in vndata.titles %}
+                <li class="{{ 'vn-details__title-item--main' if title.main else 'vn-details__title-item' }}">
+                  {{ title.title }}
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+          <div class="vn-details__item vn-details__item--horizontal {% if not vndata.aliases %}vn-details__item--hidden{% endif %}">
+            <h2 class="vn-details__item-title">Aliases</h2>
+            <ul class="vn-details-list vn-details__alias-list">
+              {% for alias in vndata.aliases %}
+                <li>{{ alias }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+        <div class="vn-details__item vn-details__item--horizontal {% if not vndata.developers %}vn-details__item--hidden{% endif %}">
+          <h2 class="vn-details__item-title">Developers</h2>
+          <ul class="vn-details-list vn-details__developer-list">
+            {% for developer in vndata.developers %}
+              <form method="get" action="{{ url_for('search.search') }}">
+                <input type="hidden" name="searchType" value="local">
+                <input type="hidden" name="localDevelopers" value="{{ developer.name }}">
+                  <button type="submit" class="vn-details__developer-link">
+                    {% if developer.original %}
+                      <li>{{ developer.name }}({{ developer.original }})</li>
+                    {% else %}
+                      <li>{{ developer.name }}</li>
+                    {% endif %}
+                  </button>
+              </form>
+            {% endfor %}
+          </ul>
+        </div>
+        <div class="vn-details__item vn-details__item--horizontal {% if not vndata.platforms %}vn-details__item--hidden{% endif %}">
+          <h2 class="vn-details__item-title">Platforms</h2>
+          <ul class="vn-details-list vn-details__platforms-list">
+            {% for platform in vndata.platforms %}
+              <li class="vn-details__platform-item">{{ platform }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div class="vn-details__item vn-details__item--horizontal {% if not vndata.languages %}vn-details__item--hidden{% endif %}">
+          <h2 class="vn-details__item-title">Languages</h2>
+          <ul class="vn-details-list vn-details__languages-list">
+            {% for language in vndata.languages %}
+              <li class="vn-details__language-item">{{ language }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div class="vn-details__item vn-details__item--horizontal {% if not vndata.released %}vn-details__item--hidden{% endif %}">
+          <h2 class="vn-details__item-title">Release Date</h2>
+          <p class="vn-details__item-content">{{ vndata.released }}</p>
+        </div>
+        <div class="vn-details__item vn-details__item--horizontal {% if not vndata.length and not vndata.length_minutes %}vn-details__item--hidden{% endif %}">
+          <h2 class="vn-details__item-title">Play Time</h2>
+          <p class="vn-details__item-content">
+            {% if vndata.length %}
+              {% set length_labels = ['Very Short', 'Short', 'Middle', 'Long', 'Very Long'] %}
+              {{ length_labels[vndata.length - 1] if 1 <= vndata.length <= 5 else 'Unknown' }}
+            {% endif %}
+            {% if vndata.length_minutes %}
+              ({{ '%dh%02dm'|format(vndata.length_minutes // 60, vndata.length_minutes % 60) }})
+            {% endif %}
+          </p>
+        </div>
+        <div class="vn-details__item vn-details__item--vertical {% if not vndata.description %}vn-details__item--hidden{% endif %}">
+          <h2 class="vn-details__item-title">Description</h2>
+          <p class="vn-details__item-content">{{ vndata.description }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

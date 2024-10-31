@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en" class="notranslate" translate="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="google" content="notranslate" />
+  <meta name="robots" content="notranslate" />
+  <title>{{ vndata.title }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/Meyer.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/vn/vn-navigation.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/vn/vn-details.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/vn/vn-tags.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/vn/vn-character-summary.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/vn/vn-screenshots.css') }}">
+</head>
+<body>
+  <div class="background-image" style="background-image: 
+              url('{{ vndata.image.local if vndata.image.local else vndata.image.url }}');"></div>
+  <main>
+    {% include 'vn/vn-navigation.html' %}
+    {% include 'vn/vn-details.html' %}
+    {% include 'vn/vn-tags.html' %}
+    {% include 'vn/vn-character_summary.html' %}
+    {% include 'vn/vn-screenshots.html' %}
+  </main>
+  <script src="{{ url_for('static', filename='js/vn/vn-navigation.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/vn/vn-screenshot-carousel.js') }}"></script>
+</body>
+</html>

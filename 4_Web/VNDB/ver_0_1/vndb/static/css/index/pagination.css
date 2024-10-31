@@ -1,0 +1,105 @@
+/* Pagination
+   ========================================================================== */
+
+/* Container
+   ========================================================================== */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 2rem;
+  font-size: 14px;
+}
+
+/* Buttons and Page Numbers
+     ========================================================================== */
+.pagination-button,
+.page-number {
+  border: none;
+  border-radius: 3px;
+  padding: 0.25rem 0.5rem;
+  margin: 0 0.125rem;
+  min-width: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease-in-out;
+}
+
+/* Buttons
+     ========================================================================== */
+.pagination-button {
+  background-color: #333;
+  color: #fff;
+}
+
+.pagination-button:hover:not(:disabled) {
+  background-color: #555;
+}
+
+.pagination-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* Page Numbers
+     ========================================================================== */
+.page-numbers {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.page-number {
+  background-color: transparent;
+  color: #333;
+}
+
+.page-number.active {
+  background-color: #333;
+  color: #fff;
+}
+
+.page-number:hover:not(.active) {
+  background-color: #e0e0e0;
+}
+
+/* Responsive Design
+     ========================================================================== */
+@media (max-width: 768px) {
+  .pagination {
+    font-size: 12px;
+  }
+
+  .pagination-button,
+  .page-number {
+    padding: 0.2rem 0.4rem;
+    min-width: 1.5rem;
+  }
+}
+
+@media (max-width: 540px) {
+  .pagination {
+    font-size: 10px;
+  }
+
+  .pagination-button,
+  .page-number {
+    padding: 0.15rem 0.3rem;
+    min-width: 1.2rem;
+  }
+
+  #firstPage::after {
+    content: '\00AB';
+  }
+
+  #lastPage::before {
+    content: '\00BB';
+  }
+
+  #firstPage span,
+  #lastPage span,
+  #prevPage span,
+  #nextPage span {
+    display: none;
+  }
+}
