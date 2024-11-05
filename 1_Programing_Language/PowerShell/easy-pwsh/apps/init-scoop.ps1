@@ -149,6 +149,10 @@ function global:scoop-check-update {
     ($scoop_apps_update = @(& scoop status | Where-Object { $_.'Latest Version' }).Name) *>$null
 
     foreach ($app in $scoop_apps_update) {
+        if ($global:SCOOP_UPDATE_IGNORE -contains $app) {
+            Write-Host "Ignored $app update." -ForegroundColor DarkYellow
+            continue
+        }
         Write-Host "Updating $app..." -ForegroundColor Yellow
         & scoop update $app
         Write-Host "Updated $app." -ForegroundColor Green

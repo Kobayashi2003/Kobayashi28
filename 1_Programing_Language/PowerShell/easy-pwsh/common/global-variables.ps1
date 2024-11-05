@@ -86,6 +86,9 @@ $global:SCOOP_APPLICATION = $(if (-not $SCOOP_INSTALL_APPLICATION) { @() } else 
     $(if ($scoop_buckets -contains "versions") { $global:SCOOP_APPLICATION_VERSION } else { @() })
 })
 
+$global:SCOOP_UPDATE_IGNORE = @(
+    'postgresql'
+)
 
 $global:MODULES = $( if (-not $IMPORT_MODULES) { @{} } else {
 @{
