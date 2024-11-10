@@ -23,4 +23,4 @@ def create_celery_app(app=None):
 celery = create_celery_app()
 
 # Import tasks here to ensure they are registered with Celery
-from api.tasks import search_task, download_server_task, download_client_task
+from api.tasks import search_task

@@ -1,0 +1,338 @@
+\documentclass{article}
+\usepackage[UTF8]{ctex}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{tcolorbox}
+\usepackage{enumitem}
+
+\graphicspath{{img/}}
+
+% New command for image display
+\newcommand{\displayimage}[3][0.6]{
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=#1\textwidth]{\detokenize{#2}}
+        \caption{#3}
+    \end{figure}
+}
+
+% New command for side-by-side images
+\newcommand{\sidebysideimages}[6][0.48]{
+    \begin{figure}[H]
+        \centering
+        \begin{subfigure}[b]{#1\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{\detokenize{#2}}
+            \caption{#3}
+        \end{subfigure}
+        \hfill
+        \begin{subfigure}[b]{#1\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{\detokenize{#4}}
+            \caption{#5}
+        \end{subfigure}
+        \caption{#6}
+    \end{figure}
+}
+
+\newcommand{\highlightedquestion}[1]{
+    \noindent\fcolorbox{blue!75!black}{blue!5}{
+        \parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule}{
+            \textbf{#1}
+        }
+    }
+}
+
+\begin{document}
+
+{\centering
+\Large\textbf{静态路由实验}
+\par}
+
+\section*{{\color{blue}【实验目的】}}
+掌握通过静态路由方式实现网络互联。
+
+\section*{{\color{blue}【实验内容】}}
+
+\begin{enumerate}
+    \item 阅读教材 P230-231 了解静态路由基本知识
+    \item 阅读教材 P231-233 了解静态路由配置命令
+    \item 完成教材 P233-235 实验 7-1 静态路由，并回答该实验的所有【实验思考】
+\end{enumerate}
+
+\section*{{\color{blue}【实验设备】}}
+路由器 2 台，计算机 2 台。
+
+\section*{{\color{blue}【实验拓扑】}}
+本实验的拓扑结构如图 7-13 所示。
+
+\displayimage{实验拓扑.png}{静态路由实验拓扑}
+
+\section*{{\color{blue}【实验步骤】}}
+\noindent\textbf{分析：}本实验的预期目标是在路由器 R1 和 R2 上配置静态路由，使 PC1 和 PC2 在经路由器的情况下能互连通。配置之前，应该测试 2 台计算机的连通性，以便与配置后的连通性作对比。
+
+\vspace{0.5cm}
+
+\noindent\textbf{步骤 1：}
+
+\begin{enumerate}
+    \item 按拓扑图上的标示，配置 PC1 和 PC2 的 IP 地址、子网掩码、网关，并测试它们的连通性。
+
+    \sidebysideimages{配置PC1.png}{配置PC1的IP地址、子网掩码、网关}{配置PC2.png}{配置PC2的IP地址、子网掩码、网关}{PC配置}
+    \displayimage[0.6]{测试PC1与PC2之间的连通性.png}{测试PC1与PC2之间的连通性}
+
+    \item 在路由器R1（或R2）上执行 \lstinline{show ip route} 命令，记录路由表信息。
+
+    \displayimage[0.8]{初始路由器配置.png}{路由器初始配置}
+    \displayimage{路由器初始路由表.png}{路由器初始路由表}
+
+    \item 在计算机命令窗口执行 \lstinline{route print} 命令，记录路由表信息。
+
+    \displayimage{PC1路由表.png}{PC1初始路由表}
+\end{enumerate}
+
+\noindent\textbf{步骤 2：}在路由器R1上配置端口的IP地址，并验证路由器端口的配置。
+
+\displayimage{路由器R1端口配置.png}{在R1上配置端口的IP地址，并验证端口配置}
+
+记录端口信息。注意：查看端口状态：UP表示开启，DOWN表示关闭。
+
+\vspace{0.5cm}
+
+\noindent\textbf{步骤 3：}在路由器R1上配置静态路由，并验证路由器R1上的静态路由配置。
+
+\displayimage{在路由器R1上配置静态路由.png}{在R1上配置静态路由，并验证静态路由配置}
+
+\noindent\fbox{%
+    \parbox{\dimexpr\textwidth-2\fboxsep-2\fboxrule\relax}{%
+        \textbf{分析路由表，表中有 S 条目吗？如果有，是如何产生的？}
+
+        答：有。S 条目是通过手动配置静态路由产生的。在本例中，我们使用 ip route 命令配置了一条指向 192.168.3.0/24 网络的静态路由，下一跳为 192.168.2.2。这条静态路由会在路由表中显示为 S 类型的条目。
+    }%
+}
+
+\vspace{0.5cm}
+
+\noindent\textbf{步骤 4：}在路由器R2上配置端口的IP地址，并验证路由器的端口配置。
+
+\displayimage{路由器R2端口配置.png}{在R2上配置端口的IP地址，并验证端口配置}
+
+\noindent\textbf{步骤 5：}在路由器R2上配置静态路由，并验证路由器的静态路由配置。
+
+\displayimage{在路由器R2上配置静态路由.png}{在R2上配置静态路由，并验证静态路由配置}
+
+\noindent\textbf{步骤 6：}测试网络的连通性。（首先需要关闭PC1与PC2的防火墙）
+
+\sidebysideimages{测试PC1与PC2之间的连通性.png}{测试PC1与PC2之间的连通性}{测试PC1与PC2之间的连通性.png}{测试PC1与PC2之间的连通性}{PC之间的连通性测试}
+
+\begin{enumerate}[label=\textbf{\arabic*.}]
+    \item \textbf{将此时的路由表与步骤 1 的路由表进行比较，有什么结论？}
+
+    \noindent\fbox{%
+        \parbox{\dimexpr\textwidth-2\fboxsep-2\fboxrule-5em\relax}{%
+            答：经过比较，可以发现：
+
+            \begin{itemize}
+                \item 初始状态：
+
+                可以从步骤1的初始路由条目中看出，未配置时路由表中没有任何条目。
+
+                \item 配置PC与路由器端口后：
+            
+                路由表中增加直连路由（C类型），这些是配置接口IP地址时自动生成的。
+
+                \item 配置静态路由后：
+            
+                路由表中增加了一条静态路由（S类型），这是我们通过命令手动配置的。
+            \end{itemize}
+        }%
+    }
+
+    \vspace{0.5cm}
+
+    \item \textbf{对 PC1（或 PC2）执行 traceroute 命令。}
+
+    \sidebysideimages{PC1tracertPC2.png}{PC1 traceroute PC2}{PC2tracertPC1.png}{PC2 traceroute PC1}{PC之间的路由测试}
+
+    \item \textbf{启动 Wireshark 测试连通性，分析捕获的数据包。}
+
+    答：此处为PC2 ping PC1，如下：
+
+    \sidebysideimages{PC2pingPC1_wireshark捕获_PC1.png}{PC1 wireshark捕获}{PC2pingPC1_wireshark捕获_PC2.png}{PC2 wireshark捕获}{Wireshark测试}
+
+    \noindent\fbox{%
+        \parbox{\dimexpr\textwidth-2\fboxsep-2\fboxrule-5em\relax}{%
+            \textbf{分析：}通过分析Wireshark捕获的数据包可知，PC2发送的ICMP请求包正常发送给PC1，PC1正确接收后返回的ICMP应答包也正确到达PC2。
+        }%
+    }
+
+    \vspace{0.5cm}
+
+    \item 在计算机的命令窗口中执行 \lstinline{route print} 命令，此时的路由表信息与步骤1记录的相同吗？
+
+    答：此时PC路由表信息如下：
+
+    \sidebysideimages{PC1路由表.png}{PC1路由表}{PC2路由表.png}{PC2路由表}{PC路由表}
+
+    \noindent\fbox{%
+        \parbox{\dimexpr\textwidth-2\fboxsep-2\fboxrule-5em\relax}{%
+            \textbf{分析：}经过比较，发现此时的路由表信息与步骤1记录的相同。这是因为静态路由的配置在路由器上，此时PC只需要知道自己的网关，而不需要知道整个网络的路由信息。
+        }%
+    }
+
+\end{enumerate}
+
+\section*{{\color{blue}【实验思考】}}
+
+\begin{enumerate}[label=\textbf{\arabic*.}]
+
+    \item \textbf{实验中如果在步骤5时ping不通，试分析一下可能的原因。}
+
+    答：这里给出我们在实验过程中遇到的问题：
+
+    \begin{itemize}
+        \item 防火墙设置：ping命令基于ICMP协议，在未设置的情况下Windows的防火墙会禁止ICMP的流量；
+        \item 静态路由配置错误：可能在R1或R2上配置的静态路由有误，导致无法到达目标地址；
+        \item PC网关设置错误：可能PC的网关设置错误，导致下一跳地址有误。
+    \end{itemize}
+
+    \item \textbf{show命令功能强大，使用灵活。写出下列满足要求的show命令。}
+
+    答：给出命令如下：
+
+    \begin{enumerate}
+        \item 查看关于路由器R1的快速以太网端口0/1的具体信息。
+
+        使用命令 \lstinline{show interfaces fastethernet 0/1} 查看快速以太网端口0/1的具体信息：
+
+        （注：为适配实验室路由器类型，此处使用的是gigabitethernet）
+
+        \displayimage{思考2_1.png}{使用show命令查看快速以太网端口的具体信息}
+
+        \item 找出路由器R2所有端口上关于IP地址配置的信息。
+
+        使用命令 \lstinline{show ip interface} 查看所有端口上关于IP地址配置的信息：
+
+        \displayimage{思考2_2.png}{使用show命令查看所有端口上关于IP地址配置的信息}
+
+        \item 查看路由器R1的路由表，并指出哪一个路由条目是静态路由。
+
+        使用命令 \lstinline{show ip route} 查看路由器R1的路由表：
+
+        \displayimage{思考2_3.png}{使用show命令查看R1的路由表}
+
+        其中，带有S标记的路由条目是静态路由。
+
+    \end{enumerate}
+
+    \item \textbf{每个路由条目包含哪几项？分别有什么含义？}
+
+    答：\lstinline{show ip route} 命令的输出样例如下：
+
+    \displayimage{csg116-01-show-ip-route-output}{show ip route output}
+
+    此命令的输出分为三个部分：\textbf{Codes、默认路由（Default route）、路由（Routes）}。
+
+    \begin{itemize}
+        \item \textbf{代码}
+
+        路由表使用缩写代码来存储路由类型。此部分显示每个缩写代码的含义。
+
+        \item \textbf{默认路由}
+
+        此部分显示默认路由。路由器使用路由表中的路由来转发数据包。如果数据包的目的地址没有可用路由，路由器使用默认路由转发数据包。如果未设置默认路由，路由器将丢弃数据包。
+
+        \item \textbf{路由}
+
+        路由表将所有的路由放在此部分。为了安排路由，路由表使用块。每个块包含一个有类网络和从该有类网络创建的无类网络。如果一个有类网络被子网化为小的无类网络，并且路由器知道这些无类网络的路由，路由表使用标题来分组同一有类网络的所有无类网络。
+
+        路由表仅在知道有类网络的多个路由时才使用标题。如果网络只有一个路由，路由表会在没有标题的情况下添加该路由。
+
+        \displayimage{csg116-02-routes-with-heading.png}{routes with heading}
+
+        其中标题包括三个内容：\textbf{有类网络、子网总数、用于创建子网的掩码总数}
+
+        最后，路由条目中包括的内容如下：
+
+        \begin{itemize}
+            \item \textbf{Legend Code}
+
+            路由类型代码是路由条目中的第一项，用于指示路由的来源或学习方式。它用缩写表示，缩写所代表的含义在指令输出开头的“Codes”部分给出。
+
+            \displayimage{csg116-04-legend-codes.png}{legend codes}
+
+            \item \textbf{Network address / Subnet Mask}
+
+            路由条目中的第二项是有类网络地址和子网掩码。
+
+            \displayimage{csg116-05-destination-network-subnet-mask.png}{destination network subnet mask}
+
+            \item \textbf{AD(Administrative Distance)/Metric}
+
+            路由条目中的第三项是路由的距离或度量值。方括号内的第一个值为AD值，或者称为“管理距离”。AD值用于表示路由源的可信度，数值越小，可信度越高。路由器使用AD值选择从不同来源学习到的最佳路由。
+
+            方括号内的第二个值为度量值，表示到达目标网络的成本。如果路由器从同一来源学习到多个目的地的路由，路由器使用路由的度量值来选择最佳路由。
+
+            \displayimage{csg116-07-ad-metirc.png}{ad metirc}
+
+            \item \textbf{The IP address of the next hop}
+
+            路由条目中的第四项是路由的下一跳地址。
+
+            \displayimage{csg116-08-ip-address-of-next-hop-router.png}{ip address of next hop router}
+
+            \item \textbf{EIGRP/OSPF Timer}
+            
+            EIGRP和OSPF路由协议为每个学习到的路由使用计时器。
+
+            如果路由是由EIGRP或OSPF学习的，路由议会在路由信息中包含计时器。
+
+            \displayimage{csg116-09-ospf-eigrp-timer.png}{ospf eigrp timer}
+
+            \item \textbf{Exit interface}
+
+            这是路由器用于转发数据包的本地接口。
+
+            \displayimage{csg116-10-exit-interface.png}{exit interface}
+
+        \end{itemize}
+
+    \end{itemize}
+
+    \item \textbf{路由器中如果同时存在去往同一网段的静态路由信息和动态路由信息，路由器会采用哪一个进行转发？}
+    
+    答：路由器会通过比较AD值，并选择AD值较小的路由进行转发。在大多数路由器的默认配置下，路由器会优先选择静态路由信息进行转发。当然也存在例外，例如华为厂的路由器静态路由AD为60，甚至高于OSPF。
+
+    \displayimage{huawei-router.png}{huawei router}
+
+\end{enumerate}
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|l|l|l|l|l|l|}
+        \hline
+        院系 & 计算机学院 & 班级 & 计科二班 & 组长 & 林隽哲 \\
+        \hline
+        学号 & 21312450 & 22365043 & 22302056 & & \\
+        \hline
+        学生 & 林隽哲 & 江颢怡 & 刘彦凤 & & \\
+        \hline
+        \multicolumn{6}{|c|}{实验分工} \\
+        \hline
+        \multicolumn{2}{|c|}{林隽哲} & \multicolumn{2}{c|}{江颢怡} & \multicolumn{2}{c|}{刘彦凤} \\
+        \hline
+        \multicolumn{2}{|c|}{实验 \& 报告} & \multicolumn{2}{c|}{实验} & \multicolumn{2}{c|}{实验} \\
+        \hline
+        \multicolumn{6}{|c|}{自评分} \\
+        \hline
+        \multicolumn{2}{|c|}{100} & \multicolumn{2}{c|}{100} & \multicolumn{2}{c|}{100} \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\end{document}

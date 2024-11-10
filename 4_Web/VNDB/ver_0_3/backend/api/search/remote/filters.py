@@ -1,4 +1,5 @@
 from enum import Enum, auto
+from typing import Optional
 
 class FilterOperator(Enum):
     EQUAL = "="
@@ -19,10 +20,11 @@ class FilterType(Enum):
     NESTED = auto()
 
 class VNDBFilter:
-    def __init__(self, name: str, filter_type: FilterType, flags: str = ""):
+    def __init__(self, name: str, filter_type: FilterType, flags: str = "", associated_domain: Optional[str] = None):
         self.name = name
         self.filter_type = filter_type
         self.flags = flags
+        self.associated_domain = associated_domain
 
 class VNDBFilters:
     VN = {
@@ -45,9 +47,9 @@ class VNDBFilters:
         "anime_id": VNDBFilter("anime_id", FilterType.INTEGER),
         "label": VNDBFilter("label", FilterType.ARRAY, "m"),
         "release": VNDBFilter("release", FilterType.NESTED, "m"),
-        "character": VNDBFilter("character", FilterType.NESTED, "m"),
-        "staff": VNDBFilter("staff", FilterType.NESTED, "m"),
-        "developer": VNDBFilter("developer", FilterType.NESTED, "m"),
+        "character": VNDBFilter("character", FilterType.NESTED, "m", associated_domain="CHARACTER"),
+        "staff": VNDBFilter("staff", FilterType.NESTED, "m", associated_domain="STAFF"),
+        "developer": VNDBFilter("developer", FilterType.NESTED, "m", associated_domain="PRODUCER"),
     }
 
     CHARACTER = {
@@ -66,8 +68,8 @@ class VNDBFilters:
         "trait": VNDBFilter("trait", FilterType.ARRAY, "m"),
         "dtrait": VNDBFilter("dtrait", FilterType.ARRAY, "m"),
         "birthday": VNDBFilter("birthday", FilterType.ARRAY, "n"),
-        "seiyuu": VNDBFilter("seiyuu", FilterType.NESTED, "m"),
-        "vn": VNDBFilter("vn", FilterType.NESTED, "m"),
+        "seiyuu": VNDBFilter("seiyuu", FilterType.NESTED, "m", associated_domain="STAFF"),
+        "vn": VNDBFilter("vn", FilterType.NESTED, "m", associated_domain="VN"),
     }
 
     PRODUCER = {

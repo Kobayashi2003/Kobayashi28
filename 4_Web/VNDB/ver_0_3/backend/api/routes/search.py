@@ -1,32 +1,35 @@
 from flask import Blueprint, request, jsonify, abort
+
 from api.celery_app import celery
 from api.tasks import search_task
-from api.search.utils import VNDB_FIELDS_SMALL, LOCAL_FIELDS_SMALL
-from api.search.utils import VNDB_FIELDS_LARGE, LOCAL_FIELDS_LARGE
-from api.routes.utils import get_filters
 
 search_bp = Blueprint('search', __name__)
 
-@search_bp.route('/api/search', methods=['GET'])
+@search_bp.route('/api/search', methods=['GET', 'POST'])
 def search():
-    search_type = request.args.get('searchType')
-    
-    if search_type not in ['local', 'vndb']:
-        abort(400, description="Invalid search type")
-    
-    filters = get_filters(search_type)
-    responseSize = request.args.get('responseSize', 'small')
-    if responseSize == 'small':
-        fields = (LOCAL_FIELDS_SMALL if search_type == 'local' else VNDB_FIELDS_SMALL)
-    elif responseSize == 'large':
-        fields = (LOCAL_FIELDS_LARGE if search_type == 'local' else VNDB_FIELDS_LARGE)
+    if request.method == 'GET':
+        params = request.args
+    elif request.method == 'POST':
+        params = request.json
     else:
+        abort(405)
+
+    search_from = params.get('searchFrom', 'local')
+    search_type = params.get('searchType', 'vn')
+    response_size = params.get('responseSize', 'small')
+    
+    if search_from not in ['local', 'remote']:
+        abort(400, description="Invalid search type")
+    if search_type not in ['vn', 'character', 'tag', 'producer', 'staff', 'trait']:
+        abort(400, description="Invalid search type")
+    if response_size not in ['small', 'large']:
         abort(400, description="Invalid response size")
     
     task = search_task.delay(
+        search_from=search_from,
         search_type=search_type,
-        filters=filters,
-        fields=fields
+        response_size=response_size,
+        params=params
     )
     
     return jsonify({"task_id": task.id}), 202

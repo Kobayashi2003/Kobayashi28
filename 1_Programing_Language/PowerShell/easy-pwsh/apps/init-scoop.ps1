@@ -146,6 +146,8 @@ function global:scoop-check-failed {
 }
 
 function global:scoop-check-update {
+    & scoop update
+
     ($scoop_apps_update = @(& scoop status | Where-Object { $_.'Latest Version' }).Name) *>$null
 
     foreach ($app in $scoop_apps_update) {

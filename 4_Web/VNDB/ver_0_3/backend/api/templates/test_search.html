@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VNDB {{ search_type.capitalize() }} Search Test</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 800px; 
+            margin: 0 auto; 
+            padding: 20px; 
+        }
+        h1 { 
+            text-align: center; 
+        }
+        form { 
+            background-color: #f0f0f0; 
+            padding: 20px; 
+            border-radius: 5px; 
+        }
+        .form-group { 
+            margin-bottom: 15px; 
+        }
+        label { 
+            display: block; 
+            margin-bottom: 5px; 
+        }
+        input[type="text"], select { 
+            width: 100%; 
+            padding: 8px; 
+            box-sizing: border-box; 
+        }
+        button { 
+            display: block; 
+            width: 100%; 
+            padding: 10px; 
+            background-color: #007bff; 
+            color: white; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+        }
+        button:hover { 
+            background-color: #0056b3; 
+        }
+        #results { 
+            margin-top: 20px; 
+            white-space: pre-wrap; 
+        }
+        .hidden { 
+            display: none; 
+        }
+    </style>
+</head>
+<body>
+    <h1>VNDB {{ search_type.capitalize() }} Search Test</h1>
+    <form id="searchForm" method="post">
+        <div class="form-group">
+            <label for="searchType">Search Type:</label>
+            <select id="searchType" name="searchType">
+                <option value="vn">Visual Novel</option>
+                <option value="character">Character</option>
+                <option value="producer">Producer</option>
+                <option value="staff">Staff</option>
+                <option value="tag">Tag</option>
+                <option value="trait">Trait</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="responseSize">Response Size:</label>
+            <select id="responseSize" name="responseSize">
+                <option value="small">Small</option>
+                <option value="large">Large</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="search">Search Query:</label>
+            <input type="text" id="search" name="search" placeholder="Enter search query">
+        </div>
+        <div id="vnFields">
+            <div class="form-group">
+                <label for="lang">Language:</label>
+                <input type="text" id="lang" name="lang" placeholder="e.g., en,ja">
+            </div>
+            <div class="form-group">
+                <label for="olang">Original Language:</label>
+                <input type="text" id="olang" name="olang" placeholder="e.g., ja">
+            </div>
+            <div class="form-group">
+                <label for="platform">Platform:</label>
+                <input type="text" id="platform" name="platform" placeholder="e.g., win,lin">
+            </div>
+            <div class="form-group">
+                <label for="released">Released:</label>
+                <input type="text" id="released" name="released" placeholder="e.g., 2020-01-01..2021-12-31">
+            </div>
+            <div class="form-group">
+                <label for="length">Length:</label>
+                <input type="text" id="length" name="length" placeholder="e.g., 2..10">
+            </div>
+            <div class="form-group">
+                <label for="tag">Tags:</label>
+                <input type="text" id="tag" name="tag" placeholder="e.g., 12,34+56">
+            </div>
+            <div class="form-group">
+                <label for="developer">Developer:</label>
+                <input type="text" id="developer" name="developer" placeholder="e.g., nitroplus,key">
+            </div>
+        </div>
+        <div id="characterFields" class="hidden">
+            <div class="form-group">
+                <label for="role">Role:</label>
+                <input type="text" id="role" name="role" placeholder="e.g., main,side">
+            </div>
+            <div class="form-group">
+                <label for="sex">Sex:</label>
+                <input type="text" id="sex" name="sex" placeholder="e.g., f,m">
+            </div>
+            <div class="form-group">
+                <label for="blood_type">Blood Type:</label>
+                <input type="text" id="blood_type" name="blood_type" placeholder="e.g., a,b,ab,o">
+            </div>
+            <div class="form-group">
+                <label for="height">Height:</label>
+                <input type="text" id="height" name="height" placeholder="e.g., 150..170">
+            </div>
+            <div class="form-group">
+                <label for="cup">Cup Size:</label>
+                <select id="cup" name="cup">
+                    <option value="">Any</option>
+                    <option value="AAA">AAA</option>
+                    <option value="AA">AA</option>
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                    <option value="D">D</option>
+                    <option value="E">E</option>
+                    <option value="F">F</option>
+                    <option value="G">G</option>
+                    <option value="H">H</option>
+                    <option value="I">I</option>
+                    <option value="J">J</option>
+                    <option value="K">K</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="trait">Traits:</label>
+                <input type="text" id="trait" name="trait" placeholder="e.g., 12,34+56">
+            </div>
+            <div class="form-group">
+                <label for="vn">Visual Novel:</label>
+                <input type="text" id="vn" name="vn" placeholder="e.g., v11,v12">
+            </div>
+        </div>
+        <div id="producerFields" class="hidden">
+            <div class="form-group">
+                <label for="lang">Language:</label>
+                <input type="text" id="lang" name="lang" placeholder="e.g., en,ja">
+            </div>
+            <div class="form-group">
+                <label for="type">Type:</label>
+                <input type="text" id="type" name="type" placeholder="e.g., co,in">
+            </div>
+        </div>
+        <div id="staffFields" class="hidden">
+            <div class="form-group">
+                <label for="lang">Language:</label>
+                <input type="text" id="lang" name="lang" placeholder="e.g., en,ja">
+            </div>
+            <div class="form-group">
+                <label for="role">Role:</label>
+                <input type="text" id="staffRole" name="role" placeholder="e.g., scenario,music">
+            </div>
+            <div class="form-group">
+                <label for="gender">Gender:</label>
+                <input type="text" id="gender" name="gender" placeholder="e.g., m,f">
+            </div>
+            <div class="form-group">
+                <label for="ismain">Is Main:</label>
+                <select id="ismain" name="ismain">
+                    <option value="">Any</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                </select>
+            </div>
+        </div>
+        <div id="tagFields" class="hidden">
+            <div class="form-group">
+                <label for="category">Category:</label>
+                <input type="text" id="category" name="category" placeholder="e.g., tech,cont">
+            </div>
+        </div>
+        <div id="traitFields" class="hidden">
+            <!-- No additional fields for trait searches -->
+        </div>
+        <button type="submit">Search</button>
+    </form>
+    <div id="results"></div>
+
+    <script>
+        function clearInputFields() {
+            const inputs = document.querySelectorAll('input[type="text"], select');
+            inputs.forEach(input => {
+                if (input.id !== 'searchType' && input.id !== 'responseSize') {
+                    input.value = '';
+                }
+            });
+        }
+
+        function updateVisibleFields() {
+            const searchType = document.getElementById('searchType').value;
+            const fieldSets = ['vnFields', 'characterFields', 'producerFields', 'staffFields', 'tagFields', 'traitFields'];
+            fieldSets.forEach(set => {
+                document.getElementById(set).classList.add('hidden');
+            });
+            document.getElementById(searchType + 'Fields').classList.remove('hidden');
+            
+            // Clear input fields when search type changes
+            clearInputFields();
+            
+            // Clear previous results when search type changes
+            document.getElementById('results').textContent = '';
+        }
+
+        document.getElementById('searchType').addEventListener('change', updateVisibleFields);
+
+        document.getElementById('searchForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.textContent = 'Searching...';
+            const formData = new FormData(e.target);
+            try {
+                const response = await fetch('', { method: 'POST', body: formData });
+                const data = await response.json();
+                if (data.task_id) {
+                    await pollTaskStatus(data.task_id);
+                } else {
+                    resultsDiv.textContent = JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                resultsDiv.textContent = `Error: ${error.message}`;
+            }
+        });
+
+        async function pollTaskStatus(taskId) {
+            const resultsDiv = document.getElementById('results');
+            while (true) {
+                try {
+                    const response = await fetch(`/api/search/status/${taskId}`);
+                    const data = await response.json();
+                    if (data.state === 'SUCCESS') {
+                        resultsDiv.textContent = JSON.stringify(data.result, null, 2);
+                        break;
+                    } else if (data.state === 'FAILURE') {
+                        resultsDiv.textContent = `Error: ${data.error}`;
+                        break;
+                    } else {
+                        resultsDiv.textContent = data.status;
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                    }
+                } catch (error) {
+                    resultsDiv.textContent = `Error: ${error.message}`;
+                    break;
+                }
+            }
+        }
+
+        // Call updateVisibleFields on page load to set the initial state
+        updateVisibleFields();
+    </script>
+</body>
+</html>

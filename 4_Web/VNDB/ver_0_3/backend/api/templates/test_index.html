@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VNDB Search Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        h1 { text-align: center; }
+        ul { list-style-type: none; padding: 0; }
+        li { margin-bottom: 10px; }
+        a { display: block; padding: 10px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; text-align: center; }
+        a:hover { background-color: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>VNDB Search Test</h1>
+    <ul>
+        <li><a href="{{ url_for('test.test_remote_search') }}">Remote Search Test</a></li>
+        <li><a href="{{ url_for('test.test_local_search') }}">Local Search Test</a></li>
+        <li><a href="{{ url_for('test.test_crud') }}">CRUD Operations Test</a></li>
+    </ul>
+</body>
+</html>

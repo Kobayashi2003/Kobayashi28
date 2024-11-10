@@ -29,11 +29,7 @@ def setup_logger(name, log_file, level=logging.INFO):
 
     return logger
 
-# Create a logger for db operations
-db_logger = setup_logger('db_operations', 'logs/db.log')
-# Create a logger for download operations
-download_logger = setup_logger('download_operations', 'logs/download.log')
-# Create a logger for search operations
-search_logger = setup_logger('search_operations', 'logs/search.log')
-
 test_logger = setup_logger('test_logger', 'logs/test.log')
+crud_logger = setup_logger('db_operations', 'logs/crud.log')
+search_logger = setup_logger('search_operations', 'logs/search.log')
+download_logger = setup_logger('download_operations', 'logs/download.log')
