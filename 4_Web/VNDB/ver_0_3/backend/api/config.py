@@ -1,6 +1,10 @@
 import os
 
 class Config:
+    # Cache configuration
+    CACHE_TYPE = 'simple'
+    CACHE_DEFAULT_TIMEOUT = 300
+    
     # Database configuration
     DB_NAME = os.environ.get('DB_NAME', 'flask_db')
     DB_USER = os.environ.get('DB_USER', 'postgres')

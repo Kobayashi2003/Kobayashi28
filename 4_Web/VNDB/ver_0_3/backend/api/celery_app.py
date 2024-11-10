@@ -18,9 +18,10 @@ def create_celery_app(app=None):
                 return self.run(*args, **kwargs)
 
     celery.Task = ContextTask
+    
     return celery
 
 celery = create_celery_app()
 
 # Import tasks here to ensure they are registered with Celery
-from api.tasks import search_task
+from api.tasks import search_task, crud_task, get_data_task

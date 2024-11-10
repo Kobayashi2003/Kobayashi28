@@ -338,6 +338,9 @@ def get_remote_filters(search_type: str, params: Dict[str, Any]) -> Dict[str, An
     Raises:
         ValueError: If an invalid search_type is provided.
     """
+
+    if id := params.get('id'): return {"id": id}
+
     if search_type == 'vn':
         return get_vn_filters(params)
     elif search_type == 'character':

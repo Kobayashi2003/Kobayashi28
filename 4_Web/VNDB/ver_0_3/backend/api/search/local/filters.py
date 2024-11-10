@@ -352,6 +352,22 @@ def get_local_filters(search_type: str, params: Dict[str, Any]) -> List:
     Raises:
         ValueError: If an invalid search_type is provided.
     """
+
+    if id := params.get('id'):
+        model = {
+            'vn': VN,
+            'character': Character,
+            'producer': Producer,
+            'staff': Staff,
+            'tag': Tag,
+            'trait': Trait
+        }.get(search_type)
+
+        if model:
+            return [model.id == id]
+        else:
+            raise ValueError(f"Invalid search_type: {search_type}")
+
     if search_type == 'vn':
         return get_vn_filters(params)
     elif search_type == 'character':

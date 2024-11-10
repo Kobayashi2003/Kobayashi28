@@ -67,3 +67,9 @@ def get_all(type: str) -> List[ModelType]:
         raise ValueError(f"Invalid model type: {type}")
 
     return model.query.all()
+
+def exists(type: str, id: str) -> bool:
+    model = MODEL_MAP.get(type)
+    if not model:
+        raise ValueError(f"Invalid model type: {type}")
+    return model.query.filter_by(id=id).first() is not None

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VNDB Search Test</title>
+    <title>VNDB Test</title>
     <style>
         body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
         h1 { text-align: center; }
@@ -14,11 +14,13 @@
     </style>
 </head>
 <body>
-    <h1>VNDB Search Test</h1>
+    <h1>VNDB Test</h1>
     <ul>
-        <li><a href="{{ url_for('test.test_remote_search') }}">Remote Search Test</a></li>
-        <li><a href="{{ url_for('test.test_local_search') }}">Local Search Test</a></li>
-        <li><a href="{{ url_for('test.test_crud') }}">CRUD Operations Test</a></li>
+        <li><a href="{{ url_for('test.search_test.test_remote_search') }}">Remote Search Test</a></li>
+        <li><a href="{{ url_for('test.search_test.test_local_search') }}">Local Search Test</a></li>
+        <li><a href="{{ url_for('test.crud_test.test_crud') }}">CRUD Operations Test</a></li>
+        <li><a href="{{ url_for('test.data_test.test_data') }}">Data Operations Test</a></li>
+        <li><a href="{{ url_for('test.update_test.test_update') }}">Update Operations Test</a></li>
     </ul>
 </body>
 </html>

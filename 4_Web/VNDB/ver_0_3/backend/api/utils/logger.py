@@ -32,4 +32,6 @@ def setup_logger(name, log_file, level=logging.INFO):
 test_logger = setup_logger('test_logger', 'logs/test.log')
 crud_logger = setup_logger('db_operations', 'logs/crud.log')
 search_logger = setup_logger('search_operations', 'logs/search.log')
+data_logger = setup_logger('data_operations', 'logs/data.log')
+update_logger = setup_logger('update_operations', 'logs/update.log')
 download_logger = setup_logger('download_operations', 'logs/download.log')

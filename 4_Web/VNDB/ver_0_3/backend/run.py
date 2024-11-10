@@ -113,9 +113,9 @@ def main():
     processes.append(celery_process)
 
     # Start Flask in a separate process
-    flask_process = multiprocessing.Process(target=run_flask, args=(config,))
-    flask_process.start()
-    processes.append(flask_process)
+    # flask_process = multiprocessing.Process(target=run_flask, args=(config,))
+    # flask_process.start()
+    # processes.append(flask_process)
 
     def signal_handler(signum, frame):
         print("\nReceived interrupt signal. Terminating processes...")
