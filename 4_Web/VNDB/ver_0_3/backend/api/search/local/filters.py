@@ -2,9 +2,9 @@ import re
 from datetime import date
 from typing import Dict, Any, List, Tuple, Callable
 
-from sqlalchemy import or_, and_, text, cast, Integer, String
+from sqlalchemy import or_, and_, text, cast, Integer 
 
-from api.db.models import VN, Tag, Producer, Staff, Character, Trait
+from api.database.models import VN, Tag, Producer, Staff, Character, Trait
 
 def parse_comparison(value: str, field: Any, value_parser: Callable[[str], Any]):
     operators = {

@@ -9,7 +9,8 @@ backend_dir = os.path.abspath(os.path.join(current_dir, '..', '..', '..'))
 sys.path.insert(0, backend_dir)
 
 from flask import Flask
-from api.db.database import db
+
+from api import db
 from api.search.local.search import search
 from api.config import Config
 

@@ -1,7 +1,9 @@
 from typing import Dict, Any, List
-from api.db.models import VN, Tag, Producer, Staff, Character, Trait
-from api.search.local.fields import get_local_fields
-from api.search.local.filters import get_local_filters
+
+from api.database.models import VN, Tag, Producer, Staff, Character, Trait
+
+from .fields import get_local_fields
+from .filters import get_local_filters
 
 def search_vn(params: Dict[str, Any], response_size: str = 'small') -> List[Dict[str, Any]]:
     fields = get_local_fields('vn', response_size)

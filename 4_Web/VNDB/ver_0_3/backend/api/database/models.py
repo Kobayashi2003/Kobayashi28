@@ -1,7 +1,7 @@
-from api.db.database import db
-
 from sqlalchemy.dialects.postgresql import JSONB, ARRAY
 from sqlalchemy.sql import func
+
+from api import db
 
 class VN(db.Model):
     __tablename__ = 'vn'
@@ -113,7 +113,7 @@ class LocalVN(db.Model):
     __tablename__ = 'local_vn'
 
     id = db.Column(db.String(255), db.ForeignKey('vn.id'), primary_key=True)
-    downloaded = db.Column(db.Boolean, default=True)
+    downloaded = db.Column(db.Boolean, default=False)
     last_updated = db.Column(db.DateTime, default=func.now())
 
     vn = db.relationship("VN", back_populates="local_vn")
@@ -122,7 +122,7 @@ class LocalTag(db.Model):
     __tablename__ = 'local_tag'
 
     id = db.Column(db.String(255), db.ForeignKey('tag.id'), primary_key=True)
-    downloaded = db.Column(db.Boolean, default=True)
+    downloaded = db.Column(db.Boolean, default=False)
     last_updated = db.Column(db.DateTime, default=func.now())
 
     tag = db.relationship("Tag", back_populates="local_tag")
@@ -131,7 +131,7 @@ class LocalProducer(db.Model):
     __tablename__ = 'local_producer'
 
     id = db.Column(db.String(255), db.ForeignKey('producer.id'), primary_key=True)
-    downloaded = db.Column(db.Boolean, default=True)
+    downloaded = db.Column(db.Boolean, default=False)
     last_updated = db.Column(db.DateTime, default=func.now())
 
     producer = db.relationship("Producer", back_populates="local_producer")
@@ -140,7 +140,7 @@ class LocalStaff(db.Model):
     __tablename__ = 'local_staff'
 
     id = db.Column(db.String(255), db.ForeignKey('staff.id'), primary_key=True)
-    downloaded = db.Column(db.Boolean, default=True)
+    downloaded = db.Column(db.Boolean, default=False)
     last_updated = db.Column(db.DateTime, default=func.now())
 
     staff = db.relationship("Staff", back_populates="local_staff")
@@ -149,7 +149,7 @@ class LocalCharacter(db.Model):
     __tablename__ = 'local_character'
 
     id = db.Column(db.String(255), db.ForeignKey('character.id'), primary_key=True)
-    downloaded = db.Column(db.Boolean, default=True)
+    downloaded = db.Column(db.Boolean, default=False)
     last_updated = db.Column(db.DateTime, default=func.now())
 
     character = db.relationship("Character", back_populates="local_character")
@@ -158,7 +158,7 @@ class LocalTrait(db.Model):
     __tablename__ = 'local_trait'
 
     id = db.Column(db.String(255), db.ForeignKey('trait.id'), primary_key=True)
-    downloaded = db.Column(db.Boolean, default=True)
+    downloaded = db.Column(db.Boolean, default=False)
     last_updated = db.Column(db.DateTime, default=func.now())
 
     trait = db.relationship("Trait", back_populates="local_trait")

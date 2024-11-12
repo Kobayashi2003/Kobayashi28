@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VNDB {{ operation|capitalize }} Test</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <a href="{{ url_for('test.index') }}" class="home-link">← Back to Home</a>
+    <h1>VNDB {{ operation|capitalize }} Test</h1>
+    <form id="{{ operation }}Form">
+        <div class="form-group">
+            <label for="filename">Filename:</label>
+            <input type="text" id="filename" name="filename" {% if operation == 'restore' %}required{% endif %}>
+        </div>
+        <button type="submit">Start {{ operation|capitalize }}</button>
+    </form>
+    <div id="results"></div>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

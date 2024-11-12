@@ -1,7 +1,6 @@
 from flask import Blueprint, request, jsonify, abort
-
-from api.celery_app import celery
-from api.tasks import search_task
+from api import celery
+from ..tasks import search_task
 
 search_bp = Blueprint('search', __name__)
 
@@ -25,37 +24,18 @@ def search():
     if response_size not in ['small', 'large']:
         abort(400, description="Invalid response size")
     
-    task = search_task.delay(
-        search_from=search_from,
-        search_type=search_type,
-        response_size=response_size,
-        params=params
-    )
-    
+    task = search_task.delay(search_from=search_from, search_type=search_type, response_size=response_size, params=params)
     return jsonify({"task_id": task.id}), 202
     
 @search_bp.route('/api/search/status/<task_id>', methods=['GET'])
 def search_status(task_id):
     task = celery.AsyncResult(task_id)
-    if task.state == 'PENDING':
-        response = {
-            'state': task.state,
-            'status': 'Search is pending...'
-        }
-    elif task.state != 'FAILURE':
-        response = {
-            'state': task.state,
-            'status': 'Search is in progress...'
-        }
-        if task.info:
-            response['result'] = task.info
-    else:
-        response = {
-            'state': task.state,
-            'status': 'Search failed',
-            'error': str(task.info)
-        }
-    return jsonify(response)
+    return jsonify({
+        'state': task.state,
+        'status': task.info.get('status', 'Task is in progress...') if task.state != 'FAILURE' else 'Task failed',
+        'result': task.result if task.state == 'SUCCESS' else None,
+        'error': str(task.result) if task.state == 'FAILURE' else None
+    })
     
 @search_bp.errorhandler(400)
 def bad_request(e):

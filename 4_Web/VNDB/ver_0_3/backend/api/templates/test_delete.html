@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VNDB Delete Test</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <a href="{{ url_for('test.index') }}" class="home-link">← Back to Home</a>
+    <h1>VNDB Delete Test</h1>
+    <form id="deleteForm">
+        <div class="form-group">
+            <label for="deleteType">Delete Type:</label>
+            <select id="deleteType" name="deleteType">
+                <option value="vn">Visual Novel</option>
+                <option value="character">Character</option>
+                <option value="producer">Producer</option>
+                <option value="staff">Staff</option>
+                <option value="tag">Tag</option>
+                <option value="trait">Trait</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="id">ID:</label>
+            <input type="text" id="id" name="id" placeholder="Enter ID">
+        </div>
+        <button type="submit">Delete Data</button>
+    </form>
+    <div id="results"></div>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

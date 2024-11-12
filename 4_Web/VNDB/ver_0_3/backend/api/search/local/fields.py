@@ -1,6 +1,6 @@
 from typing import List
 
-from api.db.models import VN, Tag, Producer, Staff, Character, Trait
+from api.database.models import VN, Tag, Producer, Staff, Character, Trait
 
 class LocalFields:
     VN = [column.key for column in VN.__table__.columns]

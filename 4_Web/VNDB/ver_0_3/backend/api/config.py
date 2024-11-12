@@ -4,7 +4,11 @@ class Config:
     # Cache configuration
     CACHE_TYPE = 'simple'
     CACHE_DEFAULT_TIMEOUT = 300
-    
+
+    # Scheduler configuration
+    SCHEDULER_API_ENABLED = True
+    SCHEDULER_TIMEZONE = "UTC"
+
     # Database configuration
     DB_NAME = os.environ.get('DB_NAME', 'flask_db')
     DB_USER = os.environ.get('DB_USER', 'postgres')
@@ -18,11 +22,11 @@ class Config:
     # Celery configuration
     CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://localhost:6379/0')
     CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
-
     CELERY_ACCEPT_CONTENT = ['json']
     CELERY_TASK_SERIALIZER = 'json'
     CELERY_RESULT_SERIALIZER = 'json'
     CELERY_TIMEZONE = 'UTC'
+    CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
     # Download configuration
     TEMP_FOLDER = os.environ.get('TEMP_FOLDER', '/tmp')
@@ -30,6 +34,7 @@ class Config:
     IMAGES_URL_PREFIX = os.environ.get('IMAGES_URL_PREFIX', '/images')
 
     # Other configurations
-    DEBUG = os.environ.get('DEBUG', True)
+    DEBUG = os.environ.get('DEBUG', False)
+    USE_RELOADER = os.environ.get('USE_RELOADER', False)
     SECRET_KEY = os.environ.get('SECRET_KEY', 'dev')
     APP_PORT = int(os.environ.get('APP_PORT', 5000))

@@ -143,7 +143,9 @@ Set-PSReadLineKeyHandler -Key Ctrl+H `
                          -ScriptBlock {
     [Microsoft.PowerShell.PSConsoleReadLine]::RevertLine()
     [Microsoft.PowerShell.PSConsoleReadLine]::Insert('shutdown -h')
-    [Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
+    [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition(0)
+    [Microsoft.PowerShell.PSConsoleReadLine]::SelectLine()
+    # [Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
 }
 
 Set-PSReadLineKeyHandler -Key Ctrl+g -ScriptBlock {
@@ -157,8 +159,12 @@ Set-PSReadLineKeyHandler -Key Ctrl+g -ScriptBlock {
 Set-PSReadLineKeyHandler -Key Ctrl+G -ScriptBlock {
     if (Get-Command git -ErrorAction SilentlyContinue) {
         [Microsoft.PowerShell.PSConsoleReadLine]::RevertLine()
-        [Microsoft.PowerShell.PSConsoleReadLine]::Insert("git add . ; git commit -m '$(Get-Date -Format "yyyy-MM-dd-HH-mm-ss")' ; git push")
-        [Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
+        $commitMessage = Get-Date -Format "yyyy-MM-dd-HH-mm-ss"
+        $command = "git add . ; git commit -m '$commitMessage' ; git push"
+        [Microsoft.PowerShell.PSConsoleReadLine]::Insert($command)
+        $cursorPosition = $command.IndexOf($commitMessage)
+        [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($cursorPosition)
+        [Microsoft.PowerShell.PSConsoleReadLine]::SelectForwardChar($null, $commitMessage.Length)
     }
 }
 
@@ -192,6 +198,7 @@ Set-PSReadLineKeyHandler -Key Alt+F -Function SelectShellForwardWord
 # parens, and braces a nicer experience.  I'd like to include functions
 # in the module that do this, but this implementation still isn't as smart
 # as ReSharper, so I'm just providing it as a sample.
+
 <# TODO
 Set-PSReadLineKeyHandler -Key '"',"'" `
                          -BriefDescription SmartInsertQuote `
@@ -290,7 +297,9 @@ Set-PSReadLineKeyHandler -Key '"',"'" `
     # We failed to be smart, so just insert a single quote
     [Microsoft.PowerShell.PSConsoleReadLine]::Insert($quote)
 }
+#>
 
+<# TODO
 Set-PSReadLineKeyHandler -Key '(','{','[' `
                          -BriefDescription InsertPairedBraces `
                          -LongDescription "Insert matching braces" `
@@ -331,7 +340,9 @@ Set-PSReadLineKeyHandler -Key '(','{','[' `
         }
     }
 }
+#>
 
+<# TODO
 Set-PSReadLineKeyHandler -Key ')',']','}' `
                          -BriefDescription SmartCloseBraces `
                          -LongDescription "Insert closing brace or skip" `
@@ -351,7 +362,9 @@ Set-PSReadLineKeyHandler -Key ')',']','}' `
         [Microsoft.PowerShell.PSConsoleReadLine]::Insert("$($key.KeyChar)")
     }
 }
+#>
 
+<#TODO
 Set-PSReadLineKeyHandler -Key Backspace `
                          -BriefDescription SmartBackspace `
                          -LongDescription "Delete previous character or matching quotes/parens/braces" `
@@ -889,11 +902,18 @@ Set-PSReadLineKeyHandler -Key Ctrl+RightArrow `
                          -ScriptBlock {
     param($key, $arg)
 
+
     $special_chars = @('/','\','(',')','{','}','[',']','<','>','"','''','`', ':', '.', ';')
 
     $line = $null
     $cursor = $null
     [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
+
+    # if is the end of line, accept the next suggestion word
+    if ($cursor -eq $line.Length) {
+        [Microsoft.PowerShell.PSConsoleReadLine]::AcceptNextSuggestionWord($key, $arg)
+        return
+    }
 
     $nextWordStart = $cursor
     if ($line[$cursor] -match '\s') {

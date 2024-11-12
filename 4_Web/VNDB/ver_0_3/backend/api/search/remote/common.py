@@ -1,6 +1,6 @@
 from typing import List, Dict, Any, Optional
 
-from api.search.remote.fields import VNDBFields
+from .fields import VNDBFields
 
 SMALL_FIELDS_VN: List[str] = [
     VNDBFields.VN.ID,

@@ -1,10 +1,6 @@
 from flask import Blueprint, request, jsonify, abort 
-
-from api.celery_app import celery
-from api.cache_app import cache
-from api.tasks import get_data_task
-from api.search.local.search import search as local_search
-from api.search.remote.search import search as remote_search
+from api import cache, celery
+from ..tasks import get_data_task
 
 data_bp = Blueprint('data', __name__)
 
@@ -22,25 +18,13 @@ def get_data(data_type, id, data_size):
 
 @data_bp.route('/api/data/status/<task_id>')
 def get_status(task_id):
-    task_result = celery.AsyncResult(task_id)
-    if task_result.state == 'PENDING':
-        response = {
-            'state': task_result.state,
-            'status': 'Task is pending...'
-        }
-    elif task_result.state != 'FAILURE':
-        response = {
-            'state': task_result.state,
-            'status': task_result.info.get('status', '')
-        }
-        if 'result' in task_result.info:
-            response['result'] = task_result.info['result']
-    else:
-        response = {
-            'state': task_result.state,
-            'status': str(task_result.info)
-        }
-    return jsonify(response)
+    task = celery.AsyncResult(task_id)
+    return jsonify({
+        'state': task.state,
+        'status': task.info.get('status', 'Task is in progress...') if task.state != 'FAILURE' else 'Task failed',
+        'result': task.result if task.state == 'SUCCESS' else None,
+        'error': str(task.result) if task.state == 'FAILURE' else None
+    })
 
 @data_bp.errorhandler(400)
 def bad_request(e):

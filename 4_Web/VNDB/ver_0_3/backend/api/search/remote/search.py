@@ -1,11 +1,9 @@
 import requests
-from typing import Dict, List, Any, Union, Optional
+from typing import Dict, List, Any, Optional
 from enum import Enum
 
-from api.utils.logger import search_logger
-from api.search.remote.fields import VNDBFields
-from api.search.remote.filters import VNDBFilters, FilterOperator, FilterType
-from api.search.remote.common import get_remote_fields
+from .filters import VNDBFilters, FilterOperator, FilterType
+from .common import get_remote_fields, get_remote_filters
 
 VNDB_API_URL = "https://api.vndb.org/kana"
 
@@ -176,13 +174,10 @@ def paginated_search(search_function, filters: Dict[str, Any], fields: List[str]
         try:
             response = search_function(filters, fields, page=page)
             all_results.extend(response['results'])
-
             if not response.get('more', False):
                 break
-
             page += 1
         except Exception as e:
-            search_logger.error(f"Error fetching data from VNDB: {e}", exc_info=True)
             break
 
     return {"results": all_results, "count": len(all_results)}
@@ -205,7 +200,7 @@ def search_staff(filters: Dict[str, Any], fields: List[str], page: int = 1) -> D
 def search_trait(filters: Dict[str, Any], fields: List[str], page: int = 1) -> Dict[str, Any]:
     return api.get_trait(filters, fields, page=page)
 
-def search(search_type: str, filters: Dict[str, Any], response_size: str = 'small') -> Dict[str, Any]:
+def search(search_type: str, params: Dict[str, Any], response_size: str = 'small') -> Dict[str, Any]:
     search_functions = {
         'vn': search_vn,
         'character': search_character,
@@ -218,6 +213,7 @@ def search(search_type: str, filters: Dict[str, Any], response_size: str = 'smal
     if search_type not in search_functions:
         raise ValueError(f"Invalid search type: {search_type}")
 
+    filters = get_remote_filters(search_type, params)
     fields = get_remote_fields(search_type, response_size)
 
     return paginated_search(search_functions[search_type], filters, fields)

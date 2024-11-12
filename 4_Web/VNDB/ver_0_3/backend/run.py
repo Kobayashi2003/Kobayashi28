@@ -1,94 +1,14 @@
-import multiprocessing
-import signal
-import sys
-import subprocess
 import os
-import logging
+import sys
 import shutil
-from flask import request
-from api import create_app
-from api.celery_app import create_celery_app
+import signal
+import multiprocessing
 from api.config import Config
+from run_flask import run_flask
+from run_celery import run_celery_worker
+from run_redis import run_redis_server
 
-# Create logs directory if it doesn't exist
-logs_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs')
-os.makedirs(logs_dir, exist_ok=True)
-
-def setup_logger(name, log_file, level=logging.INFO):
-    formatter = logging.Formatter('%(asctime)s %(levelname)s: %(message)s')
-    
-    file_handler = logging.FileHandler(log_file)
-    file_handler.setFormatter(formatter)
-
-    logger = logging.getLogger(name)
-    logger.setLevel(level)
-    logger.addHandler(file_handler)
-
-    return logger
-
-def run_celery_worker(config):
-    app = create_app(config)
-    celery_app = create_celery_app(app)
-    logger = setup_logger('celery', os.path.join(logs_dir, 'celery.log'))
-
-    logger.info("Starting Celery worker")
-    worker = celery_app.Worker(
-        pool='solo',
-        loglevel='info',
-        logfile=os.path.join(logs_dir, 'celery.log'),
-        quiet=True
-    )
-    worker.start()
-
-def run_redis_server():
-    logger = setup_logger('redis', os.path.join(logs_dir, 'redis.log'))
-
-    logger.info("Starting Redis server")
-    with open(os.path.join(logs_dir, 'redis.log'), 'a') as redis_log:
-        redis_process = subprocess.Popen([
-            'redis-server',
-            '--save', '""',  # Disable RDB snapshots
-            '--appendonly', 'no',  # Disable AOF persistence
-            '--logfile', '/dev/stdout'
-        ], stdout=redis_log, stderr=subprocess.STDOUT)
-        redis_process.wait()
-
-def terminate_processes(processes):
-    for process in processes:
-        if process.is_alive():
-            process.terminate()
-            process.join()
-
-def setup_flask_logging(app, log_file):
-    formatter = logging.Formatter('%(asctime)s %(levelname)s: %(message)s')
-    file_handler = logging.FileHandler(log_file)
-    file_handler.setFormatter(formatter)
-    file_handler.setLevel(logging.INFO)
-    
-    # Remove default handlers
-    app.logger.handlers = []
-    
-    # Add our custom handler
-    app.logger.addHandler(file_handler)
-    app.logger.setLevel(logging.INFO)
-
-    # Log all requests
-    @app.before_request
-    def log_request_info():
-        app.logger.info('Request: %s %s %s %s', request.remote_addr, request.method, request.url, dict(request.args))
-
-    # Log all responses
-    @app.after_request
-    def log_response_info(response):
-        app.logger.info('Response: %s %s %s %s', request.remote_addr, request.method, request.url, response.status)
-        return response
-
-def run_flask(config):
-    app = create_app(config)
-    setup_flask_logging(app, os.path.join(logs_dir, 'flask.log'))
-    app.logger.info("Starting Flask application")
-    app.run(host='0.0.0.0', port=config.APP_PORT, debug=config.DEBUG, use_reloader=False)
-
+# Function to delete __pycache__ folders
 def delete_pycache_folders():
     for root, dirs, files in os.walk('.'):
         for dir in dirs:
@@ -97,6 +17,14 @@ def delete_pycache_folders():
                 shutil.rmtree(pycache_path)
                 print(f"Deleted __pycache__ folder: {pycache_path}")
 
+# Function to terminate all processes
+def terminate_processes(processes):
+    for process in processes:
+        if process.is_alive():
+            process.terminate()
+            process.join()
+
+# Main function to run the application
 def main():
     multiprocessing.set_start_method('spawn')
     processes = []
@@ -112,11 +40,12 @@ def main():
     celery_process.start()
     processes.append(celery_process)
 
-    # Start Flask in a separate process
-    # flask_process = multiprocessing.Process(target=run_flask, args=(config,))
-    # flask_process.start()
-    # processes.append(flask_process)
+    # Start Flask in the main process
+    flask_process = multiprocessing.Process(target=run_flask, args=(config,))
+    flask_process.start()
+    processes.append(flask_process)
 
+    # Signal handler for graceful shutdown
     def signal_handler(signum, frame):
         print("\nReceived interrupt signal. Terminating processes...")
         terminate_processes(processes)

@@ -1,13 +1,36 @@
-from api.db.database import db
-from api.db.models  import VN, Tag, Producer, Staff, Character, Trait
+import random 
+from faker import Faker
 
 import click
 from flask.cli import with_appcontext
 
-from faker import Faker
-import random 
+from api import db
+from . import models
+from .crud import backup_database_pg_dump, restore_database_pg_dump
 
 fake = Faker()
+
+@click.command('backup-db')
+@click.option('--filename', default=None, help='Specify a filename for the backup')
+@with_appcontext
+def backup_db(filename):
+    """Backup the database using pg_dump."""
+    try:
+        backup_file = backup_database_pg_dump(filename)
+        click.echo(f"Database backup created successfully: {backup_file}")
+    except Exception as e:
+        click.echo(f"Error creating database backup: {str(e)}", err=True)
+
+@click.command('restore-db')
+@click.argument('filename', type=click.Path(exists=True))
+@with_appcontext
+def restore_db(filename):
+    """Restore the database from a backup file."""
+    try:
+        restore_database_pg_dump(filename)
+        click.echo(f"Database restored successfully from: {filename}")
+    except Exception as e:
+        click.echo(f"Error restoring database: {str(e)}", err=True)
 
 @click.command('initdb')
 @click.option('--drop', is_flag=True, help='Create after drop.')
@@ -36,7 +59,7 @@ def forge(count):
 
 def generate_fake_vns(count):
     for _ in range(count):
-        vn = VN(
+        vn = models.VN(
             id=fake.uuid4(),
             title=fake.catch_phrase(),
             aliases=[fake.word() for _ in range(3)],
@@ -121,7 +144,7 @@ def generate_fake_vns(count):
 
 def generate_fake_tags(count):
     for _ in range(count):
-        tag = Tag(
+        tag = models.Tag(
             id=fake.uuid4(),
             name=fake.word(),
             aliases=[fake.word() for _ in range(3)],
@@ -136,7 +159,7 @@ def generate_fake_tags(count):
 
 def generate_fake_producers(count):
     for _ in range(count):
-        producer = Producer(
+        producer = models.Producer(
             id=fake.uuid4(),
             name=fake.company(),
             original=fake.company(),
@@ -150,7 +173,7 @@ def generate_fake_producers(count):
 
 def generate_fake_staff(count):
     for _ in range(count):
-        staff = Staff(
+        staff = models.Staff(
             id=fake.uuid4(),
             ismain=fake.boolean(),
             name=fake.name(),
@@ -170,7 +193,7 @@ def generate_fake_staff(count):
 
 def generate_fake_characters(count):
     for _ in range(count):
-        character = Character(
+        character = models.Character(
             id=fake.uuid4(),
             name=fake.name(),
             original=fake.name(),
@@ -213,7 +236,7 @@ def generate_fake_characters(count):
 
 def generate_fake_traits(count):
     for _ in range(count):
-        trait = Trait(
+        trait = models.Trait(
             id=fake.uuid4(),
             name=fake.word(),
             aliases=[fake.word() for _ in range(3)],

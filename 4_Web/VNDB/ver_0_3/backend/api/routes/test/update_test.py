@@ -1,24 +1,16 @@
-from flask import Blueprint, jsonify, request, render_template, current_app
-import requests
+from flask import Blueprint, request, render_template
+from .utils import make_api_request, get_task_status
 
 update_test_routes = Blueprint('update_test', __name__)
 
 @update_test_routes.route('/update', methods=['GET', 'POST'])
 def test_update():
     if request.method == 'POST':
-        return handle_update_request()
+        update_type = request.form.get('updateType')
+        id = request.form.get('id')
+        return make_api_request('POST', f'update/{update_type}/{id}')
     return render_template('test_update.html')
 
-def handle_update_request():
-    update_type = request.form.get('updateType')
-    id = request.form.get('id')
-
-    try:
-        port = current_app.config['APP_PORT']
-        api_url = f'http://localhost:{port}/api/update/{update_type}/{id}'
-        api_response = requests.post(api_url)
-        api_response.raise_for_status()
-        task_id = api_response.json()['task_id']
-        return jsonify({'task_id': task_id})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
+@update_test_routes.route('/update/status/<task_id>', methods=['GET'])
+def get_update_status(task_id):
+    return get_task_status('update', task_id)

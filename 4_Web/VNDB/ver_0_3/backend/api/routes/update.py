@@ -1,7 +1,6 @@
 from flask import Blueprint, request, jsonify, abort
-
-from api.celery_app import celery
-from api.tasks import update_data_task
+from api import celery
+from ..tasks import update_data_task
 
 update_bp = Blueprint('update_db', __name__)
 
@@ -15,25 +14,13 @@ def update_data(update_type, id):
 
 @update_bp.route('/api/update/status/<task_id>')
 def get_update_status(task_id):
-    task_result = celery.AsyncResult(task_id)
-    if task_result.state == 'PENDING':
-        response = {
-            'state': task_result.state,
-            'status': 'Task is pending...'
-        }
-    elif task_result.state != 'FAILURE':
-        response = {
-            'state': task_result.state,
-            'status': task_result.info.get('status', '')
-        }
-        if 'result' in task_result.info:
-            response['result'] = task_result.info['result']
-    else:
-        response = {
-            'state': task_result.state,
-            'status': str(task_result.info)
-        }
-    return jsonify(response)
+    task = celery.AsyncResult(task_id)
+    return jsonify({
+        'state': task.state,
+        'status': task.info.get('status', 'Task is in progress...') if task.state != 'FAILURE' else 'Task failed',
+        'result': task.result if task.state == 'SUCCESS' else None,
+        'error': str(task.result) if task.state == 'FAILURE' else None
+    })
 
 @update_bp.errorhandler(400)
 def bad_request(e):
