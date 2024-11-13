@@ -4,8 +4,8 @@ from ..tasks import get_data_task
 
 data_bp = Blueprint('data', __name__)
 
-@data_bp.route('/api/data/<string:data_type>/<string:id>', defaults={'data_size': 'small'}, methods=['GET'])
-@data_bp.route('/api/data/<string:data_type>/<string:id>/<string:data_size>', methods=['GET'])
+@data_bp.route('/data/<string:data_type>/<string:id>', defaults={'data_size': 'small'}, methods=['GET'])
+@data_bp.route('/data/<string:data_type>/<string:id>/<string:data_size>', methods=['GET'])
 @cache.memoize(timeout=300)
 def get_data(data_type, id, data_size):
     if data_type not in ['vn', 'character', 'tag', 'producer', 'staff', 'trait']:
@@ -16,7 +16,7 @@ def get_data(data_type, id, data_size):
     task = get_data_task.delay(data_type, id, data_size)
     return jsonify({"task_id": task.id}), 202
 
-@data_bp.route('/api/data/status/<task_id>')
+@data_bp.route('/data/status/<task_id>')
 def get_status(task_id):
     task = celery.AsyncResult(task_id)
     return jsonify({

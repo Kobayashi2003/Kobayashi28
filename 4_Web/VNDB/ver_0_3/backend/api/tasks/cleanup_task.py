@@ -2,11 +2,11 @@ from api import celery
 from ..database import cleanup, cleanup_all
 
 @celery.task(bind=True)
-def cleanup_task(self, type=None):
+def cleanup_task(self, type):
     self.update_state(state='PROGRESS', meta={'status': 'Starting database cleanup...'})
     
     try:
-        if type:
+        if type != 'all':
             deleted = cleanup(type)
             result = {type: deleted}
         else:

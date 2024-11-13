@@ -4,7 +4,7 @@ from ..tasks import search_task
 
 search_bp = Blueprint('search', __name__)
 
-@search_bp.route('/api/search', methods=['GET', 'POST'])
+@search_bp.route('/search', methods=['GET', 'POST'])
 def search():
     if request.method == 'GET':
         params = request.args
@@ -27,7 +27,7 @@ def search():
     task = search_task.delay(search_from=search_from, search_type=search_type, response_size=response_size, params=params)
     return jsonify({"task_id": task.id}), 202
     
-@search_bp.route('/api/search/status/<task_id>', methods=['GET'])
+@search_bp.route('/search/status/<task_id>', methods=['GET'])
 def search_status(task_id):
     task = celery.AsyncResult(task_id)
     return jsonify({

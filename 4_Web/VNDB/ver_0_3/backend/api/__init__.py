@@ -1,9 +1,13 @@
-from flask import Flask 
+from flask import Flask, jsonify
 from api.config import Config
 
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
+
+    @app.errorhandler(Exception)
+    def handle_exception(e):
+        return jsonify(error=str(e)), 500
 
     # Global variable declarations
     global db
@@ -11,6 +15,13 @@ def create_app(config_class=Config):
     global scheduler
     global scheduled_task
     global celery
+
+    # ----------------------------------------
+    # Cors Initialization
+    # This section sets up the CORS (Cross-Origin Resource Sharing) mechanism for cross-domain communication
+    # ----------------------------------------
+    from flask_cors import CORS
+    CORS(app)
 
     # ----------------------------------------
     # Database Initialization
@@ -94,34 +105,18 @@ def create_app(config_class=Config):
     # Blueprint Registration
     # This section registers all the blueprints (modular components) of the application
     # ----------------------------------------
-    from .routes import hello_bp
-    from .routes import test_bp
-    from .routes import search_bp
-    from .routes import crud_bp
-    from .routes import data_bp
-    from .routes import update_bp
-    from .routes import delete_bp
-    from .routes import cleanup_bp
-    from .routes import backup_restore_bp
 
-    app.register_blueprint(hello_bp)
-    app.register_blueprint(test_bp)
-    app.register_blueprint(search_bp)
-    app.register_blueprint(crud_bp)
-    app.register_blueprint(data_bp)
-    app.register_blueprint(update_bp)
-    app.register_blueprint(delete_bp)
-    app.register_blueprint(cleanup_bp)
-    app.register_blueprint(backup_restore_bp)
+    from .routes import api_bp
+    app.register_blueprint(api_bp)
 
     # ----------------------------------------
     # CLI Command Registration
     # This section adds custom CLI commands for database operations
     # ----------------------------------------
-    from api.database.command import initdb
-    from api.database.command import forge
-    from api.database.command import backup_db 
-    from api.database.command import restore_db
+    from .database.command import initdb
+    from .database.command import forge
+    from .database.command import backup_db 
+    from .database.command import restore_db
 
     app.cli.add_command(initdb)
     app.cli.add_command(forge)

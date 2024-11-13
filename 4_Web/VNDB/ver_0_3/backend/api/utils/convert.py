@@ -1,7 +1,7 @@
 def convert_model_to_dict(model):
     from sqlalchemy.inspection import inspect
     from datetime import datetime, date
-    from api.db import models
+    from ..database import models
 
     if model is None:
         return None

@@ -3,7 +3,7 @@ from ..database import create, update, delete, get, get_all
 from ..utils import convert_model_to_dict
 
 @celery.task(bind=True)
-def crud_task(self, operation, model_type, id, data):
+def crud_task(self, operation, model_type, id, data=None):
     self.update_state(state='PROGRESS', meta={'status': f'Performing {operation} operation...'})
     
     try:

@@ -4,7 +4,7 @@ from ..tasks import delete_data_task
 
 delete_bp = Blueprint('delete', __name__)
 
-@delete_bp.route('/api/delete/<string:delete_type>/<string:id>', methods=['DELETE'])
+@delete_bp.route('/delete/<string:delete_type>/<string:id>', methods=['DELETE'])
 def delete_data(delete_type, id):
     if delete_type not in ['vn', 'character', 'tag', 'producer', 'staff', 'trait']:
         abort(400, description="Invalid delete type")
@@ -12,7 +12,7 @@ def delete_data(delete_type, id):
     task = delete_data_task.delay(delete_type, id)
     return jsonify({"task_id": task.id}), 202
 
-@delete_bp.route('/api/delete/status/<task_id>')
+@delete_bp.route('/delete/status/<task_id>')
 def get_delete_status(task_id):
     task_result = celery.AsyncResult(task_id)
     if task_result.state == 'PENDING':

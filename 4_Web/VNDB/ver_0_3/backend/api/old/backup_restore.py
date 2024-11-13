@@ -4,7 +4,7 @@ from ..tasks import backup_task, restore_task
 
 backup_restore_bp = Blueprint('backup_restore', __name__)
 
-@backup_restore_bp.route('/api/backup', methods=['POST'])
+@backup_restore_bp.route('/backup', methods=['POST'])
 def backup_database():
     data = request.json
     filename = data.get('filename')
@@ -12,7 +12,7 @@ def backup_database():
     task = backup_task.delay(filename)
     return jsonify({"task_id": task.id}), 202
 
-@backup_restore_bp.route('/api/restore', methods=['POST'])
+@backup_restore_bp.route('/restore', methods=['POST'])
 def restore_database():
     data = request.json
     filename = data.get('filename')
@@ -23,8 +23,8 @@ def restore_database():
     task = restore_task.delay(filename)
     return jsonify({"task_id": task.id}), 202
 
-@backup_restore_bp.route('/api/backup/status/<task_id>')
-@backup_restore_bp.route('/api/restore/status/<task_id>')
+@backup_restore_bp.route('/backup/status/<task_id>')
+@backup_restore_bp.route('/restore/status/<task_id>')
 def get_task_status(task_id):
     task = celery.AsyncResult(task_id)
     return jsonify({

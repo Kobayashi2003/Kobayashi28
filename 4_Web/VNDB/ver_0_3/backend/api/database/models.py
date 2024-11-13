@@ -1,4 +1,5 @@
 from sqlalchemy.dialects.postgresql import JSONB, ARRAY
+from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.sql import func
 
 from api import db
@@ -28,6 +29,7 @@ class VN(db.Model):
     extlinks = db.Column(ARRAY(JSONB))
 
     local_vn = db.relationship("LocalVN", back_populates="vn", uselist=False)
+    images = db.relationship("VNImage", back_populates="vn", cascade="all, delete-orphan")
 
 class Tag(db.Model):
     __tablename__ = 'tag'
@@ -93,6 +95,7 @@ class Character(db.Model):
     traits = db.Column(ARRAY(JSONB))
 
     local_character = db.relationship("LocalCharacter", back_populates="character", uselist=False)
+    images = db.relationship("CharacterImage", back_populates="character", cascade="all, delete-orphan")
 
 class Trait(db.Model):
     __tablename__ = 'trait'
@@ -162,3 +165,21 @@ class LocalTrait(db.Model):
     last_updated = db.Column(db.DateTime, default=func.now())
 
     trait = db.relationship("Trait", back_populates="local_trait")
+
+class Image(db.Model):
+    __abstract__ = True
+
+    id = db.Column(db.String(255), primary_key=True)
+    image_type = db.Column(db.String(50))
+
+    @declared_attr
+    def __tablename__(cls):
+        return cls.__name__.lower()
+
+class VNImage(Image):
+    vn_id = db.Column(db.String(255), db.ForeignKey('vn.id'))
+    vn = db.relationship("VN", back_populates="images")
+
+class CharacterImage(Image):
+    character_id = db.Column(db.String(255), db.ForeignKey('character.id'))
+    character = db.relationship("Character", back_populates="images")

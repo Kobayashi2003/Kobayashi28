@@ -4,7 +4,7 @@ from ..tasks import crud_task
 
 crud_bp = Blueprint('crud', __name__)
 
-@crud_bp.route('/api/crud/<string:operation>', methods=['POST'])
+@crud_bp.route('/crud/<string:operation>', methods=['POST'])
 def handle_crud_operation(operation):
     if operation not in ['create', 'read', 'update', 'delete']:
         abort(400, description="Invalid operation")
@@ -20,7 +20,7 @@ def handle_crud_operation(operation):
     task = crud_task.delay(operation=operation, model_type=model_type, id=id, data=data)
     return jsonify({"task_id": task.id}), 202
 
-@crud_bp.route('/api/crud/status/<task_id>', methods=['GET'])
+@crud_bp.route('/crud/status/<task_id>', methods=['GET'])
 def crud_status(task_id):
     task = celery.AsyncResult(task_id)
     return jsonify({

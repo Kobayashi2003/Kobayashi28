@@ -1,6 +1,7 @@
+import os
+
 import logging
 from logging.handlers import RotatingFileHandler
-import os
 
 def setup_logger(name, log_file, level=logging.INFO):
     """Function to set up a logger with file and console handlers"""
@@ -30,10 +31,3 @@ def setup_logger(name, log_file, level=logging.INFO):
     return logger
 
 test_logger = setup_logger('test_logger', 'logs/test.log')
-crud_logger = setup_logger('db_operations', 'logs/crud.log')
-search_logger = setup_logger('search_operations', 'logs/search.log')
-data_logger = setup_logger('data_operations', 'logs/data.log')
-update_logger = setup_logger('update_operations', 'logs/update.log')
-delete_logger = setup_logger('delete_operations', 'logs/delete.log')
-cleanup_logger = setup_logger('cleanup_operations', 'logs/cleanup.log')
-download_logger = setup_logger('download_operations', 'logs/download.log')
