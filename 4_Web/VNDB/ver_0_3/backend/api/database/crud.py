@@ -6,8 +6,8 @@ from typing import List, Dict, Any, Union, Optional
 
 from sqlalchemy.exc import SQLAlchemyError
 
-from api import db
 from . import models
+from api import db
 
 ModelType = Union[models.VN, models.Tag, models.Producer, models.Staff, models.Character, models.Trait, models.LocalVN, models.LocalTag, models.LocalProducer, models.LocalStaff, models.LocalCharacter, models.LocalTrait]
 
@@ -24,6 +24,8 @@ MODEL_MAP = {
     'local_staff': models.LocalStaff,
     'local_character': models.LocalCharacter,
     'local_trait': models.LocalTrait,
+    'vn_image': models.VNImage,
+    'character_image': models.CharacterImage
 }
 
 def safe_commit():
@@ -101,6 +103,86 @@ def cleanup(type: str) -> int:
 
 def cleanup_all() -> Dict[str, int]:
     return { type: cleanup(type) for type in ['vn', 'tag', 'producer', 'staff', 'character', 'trait'] }
+
+def get_image(type: str, id: str) -> Dict[str, str]:
+    if type not in ['vn', 'character']:
+        raise ValueError(f"Invalid type for image retrieval: {type}")
+
+    image_model = models.VNImage if type == 'vn' else models.CharacterImage
+    
+    image = image_model.query.get(id)
+    if image:
+        image_path = os.path.join(current_app.config[f'IMAGE_{type.upper()}_FOLDER'], f"{image.id}.jpg")
+        return {
+            "id": image.id,
+            "type": image.image_type,
+            "path": image_path if os.path.exists(image_path) else None,
+            f"{type}_id": getattr(image, f"{type}_id")
+        }
+    return {}
+
+def get_images(type: str, id: str) -> List[Dict[str, str]]:
+    if type not in ['vn', 'character']:
+        raise ValueError(f"Invalid type for image retrieval: {type}")
+
+    image_model = models.VNImage if type == 'vn' else models.CharacterImage
+    foreign_key = 'vn_id' if type == 'vn' else 'character_id'
+
+    images = image_model.query.filter_by(**{foreign_key: id}).all()
+    result = []
+    for image in images:
+        image_path = os.path.join(current_app.config[f'IMAGE_{type.upper()}_FOLDER'], f"{image.id}.jpg")
+        result.append({
+            "id": image.id,
+            "type": image.image_type,
+            "path": image_path if os.path.exists(image_path) else None,
+            f"{type}_id": getattr(image, foreign_key)
+        })
+    return result
+
+def delete_image(type: str, id: str) -> bool:
+    if type not in ['vn', 'character']:
+        raise ValueError(f"Invalid type for image deletion: {type}")
+
+    image_model = models.VNImage if type == 'vn' else models.CharacterImage
+    
+    # Query for the image to delete
+    image = image_model.query.get(id)
+    
+    if image:
+        # Delete the image file
+        image_path = os.path.join(current_app.config[f'IMAGE_{type.upper()}_FOLDER'], f"{image.id}.jpg")
+        if os.path.exists(image_path):
+            os.remove(image_path)
+        
+        # Delete the database entry
+        db.session.delete(image)
+        safe_commit()
+        return True
+    
+    return False
+
+def delete_images(type: str, id: str) -> int:
+    if type not in ['vn', 'character']:
+        raise ValueError(f"Invalid type for image deletion: {type}")
+
+    image_model = models.VNImage if type == 'vn' else models.CharacterImage
+    foreign_key = 'vn_id' if type == 'vn' else 'character_id'
+
+    # Query for images to delete
+    images_to_delete = image_model.query.filter_by(**{foreign_key: id}).all()
+
+    # Delete image files
+    for image in images_to_delete:
+        image_path = os.path.join(current_app.config[f'IMAGE_{type.upper()}_FOLDER'], f"{image.id}.jpg")
+        if os.path.exists(image_path):
+            os.remove(image_path)
+
+    # Delete database entries
+    deleted_count = image_model.query.filter_by(**{foreign_key: id}).delete()
+    safe_commit()
+
+    return deleted_count
 
 def backup_database_pg_dump(filename=None):
     if filename is None:

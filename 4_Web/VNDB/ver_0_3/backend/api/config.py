@@ -30,10 +30,14 @@ class Config:
 
     # Download configuration
     TEMP_FOLDER = os.environ.get('TEMP_FOLDER', '/tmp')
-    IMAGES_FOLDER = os.environ.get('IMAGES_FOLDER', '/images/vn')
-    IMAGES_URL_PREFIX = os.environ.get('IMAGES_URL_PREFIX', '/images')
+    IMAGE_VN_FOLDER = os.environ.get('IMAGE_VN_FOLDER', os.path.join(os.path.dirname(__file__), 'images', 'vn'))
+    IMAGE_CHARACTER_FOLDER = os.environ.get('IMAGE_CHARACTER_FOLDER', os.path.join(os.path.dirname(__file__), 'images', 'character'))
 
     # Other configurations
+    SERVER_NAME = os.environ.get('SERVER_NAME', 'localhost:5000')
+    APPLICATION_ROOT = '/'
+    PREFERRED_URL_SCHEME = 'http'
+
     DEBUG = os.environ.get('DEBUG', False)
     USE_RELOADER = os.environ.get('USE_RELOADER', False)
     SECRET_KEY = os.environ.get('SECRET_KEY', 'dev')

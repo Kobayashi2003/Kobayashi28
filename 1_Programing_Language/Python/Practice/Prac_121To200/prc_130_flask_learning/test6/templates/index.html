@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-File Upload and Download</title>
+    <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        function App() {
+            const [files, setFiles] = React.useState([]);
+            const [uploadedFiles, setUploadedFiles] = React.useState([]);
+            const [message, setMessage] = React.useState('');
+
+            React.useEffect(() => {
+                fetchFiles();
+            }, []);
+
+            const fetchFiles = async () => {
+                try {
+                    const response = await axios.get('/files');
+                    setUploadedFiles(response.data.files);
+                } catch (error) {
+                    console.error('Error fetching files:', error);
+                }
+            };
+
+            const handleFileChange = (event) => {
+                setFiles(event.target.files);
+            };
+
+            const handleUpload = async (event) => {
+                event.preventDefault();
+                const formData = new FormData();
+                for (let i = 0; i < files.length; i++) {
+                    formData.append('files[]', files[i]);
+                }
+
+                try {
+                    const response = await axios.post('/upload', formData, {
+                        headers: {
+                            'Content-Type': 'multipart/form-data'
+                        }
+                    });
+                    setMessage(response.data.message);
+                    fetchFiles();
+                } catch (error) {
+                    setMessage('Error uploading files');
+                    console.error('Error:', error);
+                }
+            };
+
+            return (
+                <div className="container mx-auto p-4">
+                    <h1 className="text-2xl font-bold mb-4">Multi-File Upload and Download</h1>
+                    <form onSubmit={handleUpload} className="mb-4">
+                        <input 
+                            type="file" 
+                            onChange={handleFileChange} 
+                            multiple 
+                            className="mb-2 p-2 border rounded"
+                        />
+                        <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">
+                            Upload Files
+                        </button>
+                    </form>
+                    {message && <p className="mb-4 text-green-600">{message}</p>}
+                    <h2 className="text-xl font-semibold mb-2">Uploaded Files:</h2>
+                    <ul className="list-disc pl-5">
+                        {uploadedFiles.map((file, index) => (
+                            <li key={index} className="mb-1">
+                                <a 
+                                    href={`/download/${file}`} 
+                                    className="text-blue-600 hover:underline"
+                                >
+                                    {file}
+                                </a>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>

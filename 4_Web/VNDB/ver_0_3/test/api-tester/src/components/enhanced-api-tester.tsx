@@ -10,7 +10,7 @@ import { Switch } from "@/components/ui/switch"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useTheme } from "next-themes"
-import { Moon, Sun, Bookmark, List, Trash2 } from 'lucide-react'
+import { Moon, Sun, Bookmark, List, Trash2, ImageIcon } from 'lucide-react'
 import Bookmarks from './bookmarks'
 
 interface Param {
@@ -21,7 +21,7 @@ interface Param {
 interface BookmarkData {
   id: number
   name: string
-  host: string // Ensure host is included in the BookmarkData interface
+  host: string
   route: string
   method: string
   params: string
@@ -96,6 +96,8 @@ export default function APITester() {
   const [showBookmarks, setShowBookmarks] = useState(false)
   const [showSaveDialog, setShowSaveDialog] = useState(false)
   const [responseFormat, setResponseFormat] = useState('auto')
+  const [showImage, setShowImage] = useState(false)
+  const [imageUrl, setImageUrl] = useState('')
 
   useEffect(() => {
     setMounted(true)
@@ -111,7 +113,6 @@ export default function APITester() {
     };
   }, [taskId, autoFetch]);
 
-  // Clear response when form inputs change
   useEffect(() => {
     setResponse('')
   }, [apiHost, endpoint, method, body, params])
@@ -121,6 +122,8 @@ export default function APITester() {
     setLoading(true)
     setResponse('')
     setTaskId('')
+    setImageUrl('')
+    setShowImage(false)
 
     try {
       const options: RequestInit = {
@@ -135,7 +138,6 @@ export default function APITester() {
       }
 
       const url = new URL(endpoint, apiHost);
-      // Only add non-empty parameters
       params.forEach(param => {
         if (param.key.trim() && param.value.trim()) {
           url.searchParams.append(param.key.trim(), param.value.trim());
@@ -143,26 +145,35 @@ export default function APITester() {
       });
 
       const res = await fetch(url.toString(), options)
-      const responseText = await res.text()
+      const contentType = res.headers.get('content-type')
+      
+      if (contentType && contentType.includes('image')) {
+        const blob = await res.blob()
+        const imageUrl = URL.createObjectURL(blob)
+        setImageUrl(imageUrl)
+        setShowImage(true)
+        setResponse('Image received. Click "Show Image" to view.')
+      } else {
+        const responseText = await res.text()
+        let parsedResponse
 
-      // Parse response based on selected format
-      let parsedResponse
-      if (responseFormat === 'auto') {
-        try {
+        if (responseFormat === 'auto') {
+          try {
+            parsedResponse = JSON.parse(responseText)
+          } catch {
+            parsedResponse = responseText
+          }
+        } else if (responseFormat === 'json') {
           parsedResponse = JSON.parse(responseText)
-        } catch {
+        } else {
           parsedResponse = responseText
         }
-      } else if (responseFormat === 'json') {
-        parsedResponse = JSON.parse(responseText)
-      } else {
-        parsedResponse = responseText
-      }
 
-      setResponse(typeof parsedResponse === 'string' ? parsedResponse : JSON.stringify(parsedResponse, null, 2))
+        setResponse(typeof parsedResponse === 'string' ? parsedResponse : JSON.stringify(parsedResponse, null, 2))
 
-      if (parsedResponse.task_id) {
-        setTaskId(parsedResponse.task_id)
+        if (parsedResponse.task_id) {
+          setTaskId(parsedResponse.task_id)
+        }
       }
     } catch (error) {
       setResponse(`Error: ${error instanceof Error ? error.message : String(error)}`)
@@ -201,7 +212,6 @@ export default function APITester() {
 
   const saveBookmark = async (name: string) => {
     try {
-      // Only filter non-empty parameters
       const validParams = params.filter(param => param.key.trim() && param.value.trim());
 
       const res = await fetch(`${bookmarksHost}/api/bookmarks`, {
@@ -211,7 +221,7 @@ export default function APITester() {
         },
         body: JSON.stringify({
           name,
-          host: apiHost, // Save the host along with the URI
+          host: apiHost,
           route: endpoint,
           method,
           params: JSON.stringify(validParams),
@@ -230,12 +240,11 @@ export default function APITester() {
   }
 
   const loadBookmark = (bookmark: BookmarkData) => {
-    setApiHost(bookmark.host); // Set the API host from the bookmark
+    setApiHost(bookmark.host);
     setEndpoint(bookmark.route);
     setMethod(bookmark.method);
     try {
       const parsedParams = JSON.parse(bookmark.params);
-      // Ensure parsedParams is an array
       const paramArray = Array.isArray(parsedParams) ? parsedParams : [];
       setParams([...paramArray, { key: '', value: '' }]);
     } catch (error) {
@@ -247,7 +256,6 @@ export default function APITester() {
   }
 
   const handleApiHostChange = (value: string) => {
-    // Auto-complete localhost URLs
     if (value.startsWith('localhost')) {
       value = `http://${value}`;
     }
@@ -257,6 +265,12 @@ export default function APITester() {
   const clearResults = () => {
     setResponse('');
     setTaskId('');
+    setImageUrl('');
+    setShowImage(false);
+  }
+
+  const toggleImageDisplay = () => {
+    setShowImage(!showImage)
   }
 
   if (!mounted) {
@@ -384,18 +398,32 @@ export default function APITester() {
             </div>
           </form>
         )}
-        {response && (
+        {(response || imageUrl) && (
           <div className="mt-4">
             <div className="flex justify-between items-center mb-2">
               <h2 className="text-xl font-semibold">Response:</h2>
-              <Button variant="ghost" size="sm" onClick={clearResults}>
-                <Trash2 className="h-4 w-4 mr-2" />
-                Clear Results
-              </Button>
+              <div className="flex space-x-2">
+                {imageUrl && (
+                  <Button variant="outline" size="sm" onClick={toggleImageDisplay}>
+                    <ImageIcon className="h-4 w-4 mr-2" />
+                    {showImage ? 'Hide Image' : 'Show Image'}
+                  </Button>
+                )}
+                <Button variant="ghost" size="sm" onClick={clearResults}>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Clear Results
+                </Button>
+              </div>
             </div>
-            <pre className="bg-secondary p-4 rounded-md overflow-x-auto">
-              <code>{response}</code>
-            </pre>
+            {showImage && imageUrl ? (
+              <div className="mt-4">
+                <img src={imageUrl} alt="API Response" className="max-w-full h-auto" />
+              </div>
+            ) : (
+              <pre className="bg-secondary p-4 rounded-md overflow-x-auto">
+                <code>{response}</code>
+              </pre>
+            )}
           </div>
         )}
       </CardContent>

@@ -1,20 +1,13 @@
-- routes/image/download.py: 
-  - download-images
-
 - routes/image/upload.py:
-  - upload-image
+  - upload-images
 
-- routes/image/delete.py:
-  - delete-image
-  - delete-images
+- tasks/upload_images_task.py
 
-- routes/image/get.py
-  - get-image
-  - get-images
+- routes/savedata/upload.py:
+  - upload-savedata
 
-- tasks/download_images_task.py
-- tasks/upload_image_task.py
-- tasks/delete_image_task.py
-- tasks/delete_images_task.py
-- tasks/get_image_task.py
-- tasks/get_images_task.py
+- routes/savedata/get.py:
+  - get-savedata
+
+- routes/savedata/download.py
+  - download-savedata

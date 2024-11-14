@@ -100,6 +100,7 @@ def create_app(config_class=Config):
     from .tasks import cleanup_task
     from .tasks import backup_task 
     from .tasks import restore_task
+    from .tasks import download_images_task
 
     # ----------------------------------------
     # Blueprint Registration
@@ -115,11 +116,13 @@ def create_app(config_class=Config):
     # ----------------------------------------
     from .database.command import initdb
     from .database.command import forge
+    from .database.command import clean_db
     from .database.command import backup_db 
     from .database.command import restore_db
 
     app.cli.add_command(initdb)
     app.cli.add_command(forge)
+    app.cli.add_command(clean_db)
     app.cli.add_command(backup_db)
     app.cli.add_command(restore_db)
 
