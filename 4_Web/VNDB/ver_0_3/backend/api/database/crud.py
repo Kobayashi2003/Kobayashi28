@@ -4,6 +4,7 @@ from datetime import datetime
 from flask import current_app
 from typing import List, Dict, Any, Union, Optional
 
+from sqlalchemy import func
 from sqlalchemy.exc import SQLAlchemyError
 
 from . import models
@@ -103,6 +104,32 @@ def cleanup(type: str) -> int:
 
 def cleanup_all() -> Dict[str, int]:
     return { type: cleanup(type) for type in ['vn', 'tag', 'producer', 'staff', 'character', 'trait'] }
+
+def get_new_image_upload_id(type: str) -> str:
+    """Get the next available image ID starting with 'u'."""
+    if type not in ['vn', 'character']:
+        raise ValueError(f"Invalid image type: {type}")
+
+    image_model = models.VNImage if type == 'vn' else models.CharacterImage
+
+    # Query the maximum ID that starts with 'u'
+    max_id = db.session.query(func.max(image_model.id)).filter(image_model.id.like('u%')).scalar()
+
+    if max_id:
+        # Extract the numeric part and increment
+        try:
+            next_num = int(max_id[1:]) + 1
+        except ValueError:
+            # Handle the case where the ID doesn't follow the expected
+            next_num = 1
+    else:
+        # Extract the numeric part and increment
+        next_num = 1
+    
+    # Format the new ID
+    new_id = f'u{next_num}'
+
+    return new_id
 
 def get_image(type: str, id: str) -> Dict[str, str]:
     if type not in ['vn', 'character']:

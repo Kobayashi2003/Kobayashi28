@@ -1,3 +1,14 @@
+def convert_img_to_jpg(file):
+    """Convert image to JPG format using PTL."""
+    import io
+    from PIL import Image
+
+    img = Image.open(file)
+    if img.format != 'JPEG':
+        img = img.convert('RGB')
+        img_byte_arr = io.BytesIO()
+        
+
 def convert_imgpath_to_imgid(img_path: str) -> str:
     """
     Convert an image file path to its ID.
