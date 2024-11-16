@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from sqlalchemy.dialects.postgresql import JSONB, ARRAY
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.sql import func
@@ -30,6 +32,7 @@ class VN(db.Model):
 
     local_vn = db.relationship("LocalVN", back_populates="vn", uselist=False)
     local_images = db.relationship("VNImage", back_populates="vn", cascade="all, delete-orphan")
+    savedatas = db.relationship("SaveData", back_populates="vn", cascade="all, delete-orphan")
 
 class Tag(db.Model):
     __tablename__ = 'tag'
@@ -183,3 +186,10 @@ class VNImage(Image):
 class CharacterImage(Image):
     character_id = db.Column(db.String(255), db.ForeignKey('character.id'))
     character = db.relationship("Character", back_populates="local_images")
+
+class SaveData(db.Model):
+    id = db.Column(db.String, primary_key=True)
+    vnid = db.Column(db.String(255), db.ForeignKey('vn.id'), nullable=False)
+    time = db.Column(db.DateTime, nullable=False, default=func.now())
+    filename = db.Column(db.String(255), nullable=False)
+    vn = db.relationship("VN", back_populates="savedatas")

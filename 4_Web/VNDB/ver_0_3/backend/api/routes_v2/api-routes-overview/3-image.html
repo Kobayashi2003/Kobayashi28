@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VNDB Image Routes Summary</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #2980b9;
+            margin-top: 30px;
+        }
+        .route {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .method {
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        .path {
+            font-family: monospace;
+            background-color: #ecf0f1;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>VNDB Image Routes Summary</h1>
+
+    <h2>Download Images</h2>
+    <div class="route">
+        <p><span class="method">POST</span> <span class="path">/image/download/&lt;download_type&gt;/&lt;id&gt;</span></p>
+        <p><strong>Description:</strong> Download images for a VN or character</p>
+        <p><strong>Valid download types:</strong> vn, character</p>
+        <p><strong>ID format:</strong> 'v' for VN, 'c' for character</p>
+    </div>
+
+    <h2>Upload Images</h2>
+    <div class="route">
+        <p><span class="method">POST</span> <span class="path">/image/upload/&lt;upload_type&gt;/&lt;id&gt;</span></p>
+        <p><strong>Description:</strong> Upload images for a VN or character</p>
+        <p><strong>Valid upload types:</strong> vn, character</p>
+        <p><strong>ID format:</strong> 'v' for VN, 'c' for character</p>
+        <p><strong>Parameters:</strong> 'files[]' in request.files (multiple file upload)</p>
+    </div>
+
+    <h2>Update Images</h2>
+    <div class="route">
+        <p><span class="method">POST</span> <span class="path">/image/update/&lt;update_type&gt;/&lt;id&gt;</span></p>
+        <p><strong>Description:</strong> Update images for a VN or character</p>
+        <p><strong>Valid update types:</strong> vn, character</p>
+        <p><strong>ID format:</strong> 'v' for VN, 'c' for character</p>
+    </div>
+
+    <h2>Delete Image</h2>
+    <div class="route">
+        <p><span class="method">DELETE</span> <span class="path">/image/delete/&lt;delete_type&gt;/&lt;id&gt;</span></p>
+        <p><strong>Description:</strong> Delete a single image</p>
+        <p><strong>Valid delete types:</strong> vn, character</p>
+        <p><strong>ID format:</strong> Image ID</p>
+    </div>
+
+    <h2>Delete All Images</h2>
+    <div class="route">
+        <p><span class="method">DELETE</span> <span class="path">/image/delete/batch/&lt;delete_type&gt;/&lt;id&gt;</span></p>
+        <p><strong>Description:</strong> Delete all images for a VN or character</p>
+        <p><strong>Valid delete types:</strong> vn, character</p>
+        <p><strong>ID format:</strong> 'v' for VN, 'c' for character</p>
+    </div>
+
+    <h2>Get Image</h2>
+    <div class="route">
+        <p><span class="method">GET</span> <span class="path">/image/get/&lt;get_type&gt;/&lt;id&gt;</span></p>
+        <p><strong>Description:</strong> Get a single image</p>
+        <p><strong>Valid get types:</strong> vn, character</p>
+        <p><strong>ID format:</strong> Image ID</p>
+        <p><strong>Note:</strong> This route is cached for 60 seconds</p>
+    </div>
+
+    <h2>Get All Images</h2>
+    <div class="route">
+        <p><span class="method">GET</span> <span class="path">/image/get/batch/&lt;get_type&gt;/&lt;id&gt;</span></p>
+        <p><strong>Description:</strong> Get all images for a VN or character</p>
+        <p><strong>Valid get types:</strong> vn, character</p>
+        <p><strong>ID format:</strong> 'v' for VN, 'c' for character</p>
+        <p><strong>Note:</strong> This route is cached for 60 seconds</p>
+    </div>
+
+    <h2>Serve Image</h2>
+    <div class="route">
+        <p><span class="method">GET</span> <span class="path">/image/v/&lt;id&gt;</span></p>
+        <p><span class="method">GET</span> <span class="path">/image/c/&lt;id&gt;</span></p>
+        <p><strong>Description:</strong> Serve a specific image file</p>
+        <p><strong>ID format:</strong> Image ID</p>
+        <p><strong>Note:</strong> 'v' for VN images, 'c' for character images</p>
+    </div>
+
+    <h2>Error Handling</h2>
+    <p>The image blueprint includes error handlers for 400 (Bad Request), 404 (Not Found), and 500 (Server Error) status codes.</p>
+
+    <h2>Notes</h2>
+    <ul>
+        <li>All routes (except serve_image) return a task ID for asynchronous processing.</li>
+        <li>ID validation is performed using is_valid_id and infer_type_from_id functions.</li>
+        <li>Image ID validation is performed using is_valid_image_id function.</li>
+        <li>The serve_image route uses caching for image ID and path retrieval.</li>
+    </ul>
+</body>
+</html>

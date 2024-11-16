@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VNDB API v3 Image Routes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2 {
+            color: #2c3e50;
+        }
+        h1 {
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .route {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .method {
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        .path {
+            font-family: monospace;
+            background-color: #ecf0f1;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>VNDB API v3 Image Routes</h1>
+
+    <div class="route">
+        <h2>List Images</h2>
+        <p><span class="method">GET</span> <span class="path">/api/v3/images</span></p>
+        <p><strong>Description:</strong> Get a list of images</p>
+        <p><strong>Query Parameters:</strong></p>
+        <ul>
+            <li><code>type</code>: Image type (vn or character)</li>
+            <li><code>id</code>: VN or character ID</li>
+            <li><code>page</code>: Page number (default: 1)</li>
+            <li><code>limit</code>: Number of items per page (default: 20, max: 100)</li>
+        </ul>
+    </div>
+
+    <div class="route">
+        <h2>Get Image</h2>
+        <p><span class="method">GET</span> <span class="path">/api/v3/images/:id</span></p>
+        <p><strong>Description:</strong> Get a specific image</p>
+    </div>
+
+    <div class="route">
+        <h2>Upload Images</h2>
+        <p><span class="method">POST</span> <span class="path">/api/v3/images</span></p>
+        <p><strong>Description:</strong> Upload images for a VN or character</p>
+        <p><strong>Body:</strong> Form-data with 'files[]' containing image files</p>
+        <p><strong>Query Parameters:</strong></p>
+        <ul>
+            <li><code>type</code>: Image type (vn or character)</li>
+            <li><code>id</code>: VN or character ID</li>
+        </ul>
+    </div>
+
+    <div class="route">
+        <h2>Update Image</h2>
+        <p><span class="method">PUT</span> <span class="path">/api/v3/images/:id</span></p>
+        <p><strong>Description:</strong> Update a specific image</p>
+        <p><strong>Body:</strong> Form-data with updated image file</p>
+    </div>
+
+    <div class="route">
+        <h2>Delete Image</h2>
+        <p><span class="method">DELETE</span> <span class="path">/api/v3/images/:id</span></p>
+        <p><strong>Description:</strong> Delete a specific image</p>
+    </div>
+
+    <div class="route">
+        <h2>Delete All Images</h2>
+        <p><span class="method">DELETE</span> <span class="path">/api/v3/images</span></p>
+        <p><strong>Description:</strong> Delete all images for a VN or character</p>
+        <p><strong>Query Parameters:</strong></p>
+        <ul>
+            <li><code>type</code>: Image type (vn or character)</li>
+            <li><code>id</code>: VN or character ID</li>
+        </ul>
+    </div>
+
+    <div class="route">
+        <h2>Download Images</h2>
+        <p><span class="method">GET</span> <span class="path">/api/v3/images/download</span></p>
+        <p><strong>Description:</strong> Download images for a VN or character</p>
+        <p><strong>Query Parameters:</strong></p>
+        <ul>
+            <li><code>type</code>: Image type (vn or character)</li>
+            <li><code>id</code>: VN or character ID</li>
+        </ul>
+    </div>
+</body>
+</html>

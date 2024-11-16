@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -10,7 +10,7 @@ import { Switch } from "@/components/ui/switch"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useTheme } from "next-themes"
-import { Moon, Sun, Bookmark, List, Trash2, ImageIcon } from 'lucide-react'
+import { Moon, Sun, Bookmark, List, Trash2, ImageIcon, Upload, X } from 'lucide-react'
 import Bookmarks from './bookmarks'
 
 interface Param {
@@ -98,6 +98,8 @@ export default function APITester() {
   const [responseFormat, setResponseFormat] = useState('auto')
   const [showImage, setShowImage] = useState(false)
   const [imageUrl, setImageUrl] = useState('')
+  const [files, setFiles] = useState<File[]>([])
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     setMounted(true)
@@ -126,17 +128,6 @@ export default function APITester() {
     setShowImage(false)
 
     try {
-      const options: RequestInit = {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-
-      if (['POST', 'PUT'].includes(method) && body) {
-        options.body = body
-      }
-
       const url = new URL(endpoint, apiHost);
       params.forEach(param => {
         if (param.key.trim() && param.value.trim()) {
@@ -144,7 +135,30 @@ export default function APITester() {
         }
       });
 
+      let options: RequestInit = {
+        method: method,
+        headers: {},
+      }
+
+      if (['POST', 'PUT', 'PATCH'].includes(method)) {
+        if (files.length > 0) {
+          const formData = new FormData()
+          files.forEach(file => {
+            formData.append('files[]', file)
+            formData.append(`last_modified_${file.name}`, file.lastModified.toString())
+          })
+          if (body) {
+            formData.append('json', body)
+          }
+          options.body = formData
+        } else if (body) {
+          options.headers['Content-Type'] = 'application/json'
+          options.body = body
+        }
+      }
+
       const res = await fetch(url.toString(), options)
+
       const contentType = res.headers.get('content-type')
       
       if (contentType && contentType.includes('image')) {
@@ -273,6 +287,28 @@ export default function APITester() {
     setShowImage(!showImage)
   }
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setFiles(Array.from(e.target.files))
+    }
+  }
+
+  const triggerFileInput = () => {
+    fileInputRef.current?.click()
+  }
+
+  const clearFiles = () => {
+    setFiles([])
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
+  const formatFileInfo = (file: File) => {
+    const lastModified = new Date(file.lastModified).toLocaleString()
+    return `${file.name} (Last modified: ${lastModified})`
+  }
+
   if (!mounted) {
     return null
   }
@@ -332,6 +368,7 @@ export default function APITester() {
               <TabsList>
                 <TabsTrigger value="params">Query Parameters</TabsTrigger>
                 <TabsTrigger value="body">Request Body</TabsTrigger>
+                <TabsTrigger value="files">Files</TabsTrigger>
               </TabsList>
               <TabsContent value="params">
                 <div className="space-y-2">
@@ -365,6 +402,35 @@ export default function APITester() {
                   placeholder="Enter request body (JSON)"
                   className="min-h-[200px]"
                 />
+              </TabsContent>
+              <TabsContent value="files">
+                <div className="space-y-2">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    multiple
+                    className="hidden"
+                  />
+                  <div className="flex space-x-2">
+                    <Button type="button" onClick={triggerFileInput} variant="outline" className="flex-grow">
+                      <Upload className="mr-2 h-4 w-4" /> Select Files
+                    </Button>
+                    <Button type="button" onClick={clearFiles} variant="outline" className="flex-shrink-0">
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  {files.length > 0 && (
+                    <div className="mt-2">
+                      <h3 className="font-semibold">Selected Files:</h3>
+                      <ul className="list-disc pl-5">
+                        {files.map((file, index) => (
+                          <li key={index}>{formatFileInfo(file)}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
               </TabsContent>
             </Tabs>
             <div className="flex items-center space-x-4">

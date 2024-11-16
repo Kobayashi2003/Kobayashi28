@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VNDB CRUD Test</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <a href="{{ url_for('api_v1.test.index') }}" class="home-link">← Back to Home</a>
+    <h1>VNDB CRUD Test</h1>
+    <form id="crudForm">
+        <div class="form-group">
+            <label for="operation">Operation:</label>
+            <select id="operation" name="operation">
+                <option value="create">Create</option>
+                <option value="read">Read</option>
+                <option value="update">Update</option>
+                <option value="delete">Delete</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="modelType">Model Type:</label>
+            <select id="modelType" name="modelType">
+                <option value="vn">Visual Novel</option>
+                <option value="character">Character</option>
+                <option value="producer">Producer</option>
+                <option value="staff">Staff</option>
+                <option value="tag">Tag</option>
+                <option value="trait">Trait</option>
+            </select>
+        </div>
+        <div id="dataFields"></div>
+        <button type="submit">Submit</button>
+    </form>
+    <div id="results"></div>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

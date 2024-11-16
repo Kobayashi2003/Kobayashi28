@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VNDB API Initialization Summary</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #2980b9;
+            margin-top: 30px;
+        }
+        .section {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .code {
+            font-family: monospace;
+            background-color: #ecf0f1;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        ul {
+            padding-left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>VNDB API Initialization Summary</h1>
+
+    <div class="section">
+        <h2>Main API Blueprint</h2>
+        <p>The main API blueprint is created with the following configuration:</p>
+        <ul>
+            <li><strong>Name:</strong> <span class="code">api_v2</span></li>
+            <li><strong>URL Prefix:</strong> <span class="code">/api/v2</span></li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>Task Status Route</h2>
+        <p>A route for checking the status of asynchronous tasks is defined:</p>
+        <ul>
+            <li><strong>Route:</strong> <span class="code">/api/v2/status/&lt;task_id&gt;</span></li>
+            <li><strong>Method:</strong> GET</li>
+            <li><strong>Function:</strong> <span class="code">task_status(task_id: str)</span></li>
+            <li><strong>Return Type:</strong> <span class="code">Dict[str, Any]</span></li>
+        </ul>
+        <p>This route returns a JSON object with the following information:</p>
+        <ul>
+            <li><strong>state:</strong> The current state of the task</li>
+            <li><strong>status:</strong> A status message (either "Task is in progress..." or "Task failed")</li>
+            <li><strong>result:</strong> The task result if the state is SUCCESS, otherwise None</li>
+            <li><strong>error:</strong> An error message if the state is FAILURE, otherwise None</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>Registered Sub-Blueprints</h2>
+        <p>The following sub-blueprints are imported and registered with the main API blueprint:</p>
+        <ul>
+            <li><span class="code">hello_bp</span> from <span class="code">.hello</span></li>
+            <li><span class="code">search_bp</span> from <span class="code">.search</span></li>
+            <li><span class="code">database_bp</span> from <span class="code">.database</span></li>
+            <li><span class="code">image_bp</span> from <span class="code">.image</span></li>
+            <li><span class="code">savedata_bp</span> from <span class="code">.savedata</span></li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>Dependencies</h2>
+        <p>The file imports and uses the following dependencies:</p>
+        <ul>
+            <li><span class="code">typing.Dict</span> and <span class="code">typing.Any</span> for type hinting</li>
+            <li><span class="code">flask.Blueprint</span> and <span class="code">flask.jsonify</span> for creating the blueprint and JSON responses</li>
+            <li><span class="code">api.celery</span> for handling asynchronous tasks</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>Notes</h2>
+        <ul>
+            <li>The API uses Celery for asynchronous task processing.</li>
+            <li>The task status route allows clients to check the progress of long-running operations.</li>
+            <li>The API is versioned (v2) as indicated by the URL prefix.</li>
+            <li>The modular structure with sub-blueprints allows for easy organization and potential future expansion of the API.</li>
+        </ul>
+    </div>
+</body>
+</html>

@@ -4,7 +4,7 @@ from datetime import datetime
 from flask import current_app
 from typing import List, Dict, Any, Union, Optional
 
-from sqlalchemy import func
+from sqlalchemy import func, cast, Integer
 from sqlalchemy.exc import SQLAlchemyError
 
 from . import models
@@ -26,7 +26,8 @@ MODEL_MAP = {
     'local_character': models.LocalCharacter,
     'local_trait': models.LocalTrait,
     'vn_image': models.VNImage,
-    'character_image': models.CharacterImage
+    'character_image': models.CharacterImage,
+    'savedata': models.SaveData
 }
 
 def safe_commit():
@@ -35,6 +36,7 @@ def safe_commit():
     except SQLAlchemyError:
         db.session.rollback()
         raise
+
 
 def create(type: str, id: str, data: Dict[str, Any]) -> ModelType:
     model = MODEL_MAP.get(type)
@@ -90,6 +92,7 @@ def get_all(type: str) -> List[ModelType]:
 
     return model.query.all()
 
+
 def cleanup(type: str) -> int:
     local_model = MODEL_MAP.get(f'local_{type}')
     if not local_model:
@@ -105,7 +108,8 @@ def cleanup(type: str) -> int:
 def cleanup_all() -> Dict[str, int]:
     return { type: cleanup(type) for type in ['vn', 'tag', 'producer', 'staff', 'character', 'trait'] }
 
-def get_new_image_upload_id(type: str) -> str:
+
+def next_image_id(type: str) -> str:
     """Get the next available image ID starting with 'u'."""
     if type not in ['vn', 'character']:
         raise ValueError(f"Invalid image type: {type}")
@@ -113,23 +117,19 @@ def get_new_image_upload_id(type: str) -> str:
     image_model = models.VNImage if type == 'vn' else models.CharacterImage
 
     # Query the maximum ID that starts with 'u'
-    max_id = db.session.query(func.max(image_model.id)).filter(image_model.id.like('u%')).scalar()
+    try:
+        max_num = db.session.query(
+            func.max(
+                cast(func.substr(image_model.id, 2), Integer)
+            )
+        ).filter(image_model.id.like('u%')).scalar()
 
-    if max_id:
-        # Extract the numeric part and increment
-        try:
-            next_num = int(max_id[1:]) + 1
-        except ValueError:
-            # Handle the case where the ID doesn't follow the expected
-            next_num = 1
-    else:
-        # Extract the numeric part and increment
-        next_num = 1
-    
-    # Format the new ID
-    new_id = f'u{next_num}'
+        if max_num: return f'u{max_num + 1}'
 
-    return new_id
+    except SQLAlchemyError as exc:
+        ...
+
+    return 'u1'
 
 def get_image(type: str, id: str) -> Dict[str, str]:
     if type not in ['vn', 'character']:
@@ -210,6 +210,76 @@ def delete_images(type: str, id: str) -> int:
     safe_commit()
 
     return deleted_count
+
+
+def next_savedata_id() -> str:
+    """Get the next available savedata ID starting with 's'."""
+    try:
+        max_num = db.session.query(
+            func.max(
+                cast(func.substr(models.SaveData.id, 2), Integer)
+            )
+        ).filter(models.SaveData.id.like('s%')).scalar()
+
+        if max_num: return f's{max_num + 1}'
+
+    except SQLAlchemyError:
+        pass
+
+    return 's1'
+
+def get_savedata(id: str) -> Dict[str, str]:
+    savedata = models.SaveData.query.get(id)
+    if savedata:
+        return {
+            "id": savedata.id,
+            "vnid": savedata.vnid,
+            "time": savedata.time.isoformat(),
+            "filename": savedata.filename
+        }
+    return {}
+
+def get_savedatas(vnid: str) -> List[Dict[str, str]]:
+    savedatas = models.SaveData.query.filter_by(vnid=vnid).all()
+    result = []
+    for savedata in savedatas:
+        result.append({
+            "id": savedata.id,
+            "vnid": savedata.vnid,
+            "time": savedata.time.isoformat(),
+            "filename": savedata.filename
+        })
+    return result
+
+def delete_savedata(id: str) -> bool:
+    savedata = models.SaveData.query.get(id)
+    
+    if savedata:
+
+        savedata_path = os.path.join(current_app.config['SAVEDATA_FOLDER'], f"{savedata.id}")
+        if os.path.exists(savedata_path):
+            os.remove(savedata_path)
+
+        db.session.delete(savedata)
+        safe_commit()
+        return True
+    
+    return False
+
+def delete_savedatas(vnid: str) -> int:
+
+    savedatas_to_delete = models.SaveData.query.filter_by(vnid=vnid).all()
+
+    for savedata in savedatas_to_delete:
+        savedata_path = os.path.join(current_app.config['SAVEDATA_FOLDER'], f"{savedata.id}")
+        if os.path.exists(savedata_path):
+            os.remove(savedata_path)
+
+    deleted_count = models.SaveData.query.filter_by(vnid=vnid).delete()
+    safe_commit()
+
+    return deleted_count
+
 
 def backup_database_pg_dump(filename=None):
     if filename is None:

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VNDB {{ search_type.capitalize() }} Search Test</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body data-search-type="{{ search_type }}">
+    <a href="{{ url_for('api_v1.test.index') }}" class="home-link">← Back to Home</a>
+    <h1>VNDB {{ search_type.capitalize() }} Search Test</h1>
+    <form id="searchForm" method="post">
+        <div class="form-group">
+            <label for="searchType">Search Type:</label>
+            <select id="searchType" name="searchType">
+                <option value="vn">Visual Novel</option>
+                <option value="character">Character</option>
+                <option value="producer">Producer</option>
+                <option value="staff">Staff</option>
+                <option value="tag">Tag</option>
+                <option value="trait">Trait</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="responseSize">Response Size:</label>
+            <select id="responseSize" name="responseSize">
+                <option value="small">Small</option>
+                <option value="large">Large</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="search">Search Query:</label>
+            <input type="text" id="search" name="search" placeholder="Enter search query">
+        </div>
+
+        <div id="vnFields" class="search-fields">
+            <div class="form-group">
+                <label for="lang">Language:</label>
+                <input type="text" id="lang" name="lang" placeholder="e.g., en,ja">
+            </div>
+            <div class="form-group">
+                <label for="olang">Original Language:</label>
+                <input type="text" id="olang" name="olang" placeholder="e.g., ja">
+            </div>
+            <div class="form-group">
+                <label for="platform">Platform:</label>
+                <input type="text" id="platform" name="platform" placeholder="e.g., win,lin">
+            </div>
+            <div class="form-group">
+                <label for="released">Released:</label>
+                <input type="text" id="released" name="released" placeholder="e.g., 2020-01-01..2021-12-31">
+            </div>
+            <div class="form-group">
+                <label for="length">Length:</label>
+                <input type="text" id="length" name="length" placeholder="e.g., 2..10">
+            </div>
+            <div class="form-group">
+                <label for="tag">Tags:</label>
+                <input type="text" id="tag" name="tag" placeholder="e.g., 12,34+56">
+            </div>
+            <div class="form-group">
+                <label for="developer">Developer:</label>
+                <input type="text" id="developer" name="developer" placeholder="e.g., nitroplus,key">
+            </div>
+        </div>
+
+        <div id="characterFields" class="search-fields">
+            <!-- Character fields (unchanged) -->
+        </div>
+
+        <div id="producerFields" class="search-fields">
+            <!-- Producer fields (unchanged) -->
+        </div>
+
+        <div id="staffFields" class="search-fields">
+            <!-- Staff fields (unchanged) -->
+        </div>
+
+        <div id="tagFields" class="search-fields">
+            <!-- Tag fields (unchanged) -->
+        </div>
+
+        <div id="traitFields" class="search-fields">
+            <!-- No additional fields for trait searches -->
+        </div>
+
+        <button type="submit">Search</button>
+    </form>
+    <div id="results"></div>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

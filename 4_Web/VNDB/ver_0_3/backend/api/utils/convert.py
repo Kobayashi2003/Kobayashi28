@@ -1,14 +1,97 @@
-def convert_img_to_jpg(file):
-    """Convert image to JPG format using PTL."""
-    import io
-    from PIL import Image
+from typing import Tuple, Union
 
-    img = Image.open(file)
-    if img.format != 'JPEG':
-        img = img.convert('RGB')
-        img_byte_arr = io.BytesIO()
+import os
+import io
+import re
+from PIL import Image
+from urllib.parse import urlparse
+from datetime import datetime, date
+
+from flask import current_app
+from sqlalchemy.inspection import inspect
+
+from api.database import models
+
+def convert_id_to_savedata_path(savedata_id: str) -> str | None:
+    """
+    Convert a savedata ID to a file path.
+
+    Args:
+        savedata_id (str): The ID of the savedata file.
+
+    Returns:
+        str: The file path of the savedata, or None if the file doesn't exist.
+
+    Example:
+        >>> convert_id_to_savedata_path('abc123')
+        '/path/to/savedatas/abc123'
+    """
+    savedata_folder = current_app.config['SAVEDATA_FOLDER']
+    savedata_path = os.path.join(savedata_folder, savedata_id)
+    return savedata_path if os.path.exists(savedata_path) else None
+
+def convert_url_to_savedata_path(savedata_url: str) -> str | None:
+    """
+    Convert a savedata URL to a file path.
+
+    Args:
+        savedata_url (str): The URL of the savedata file.
+
+    Returns:
+        str: The file path of the savedata, or None if the input URL is invalid.
+
+    Example:
+        >>> convert_url_to_savedata_path('http://example.com/savedata/abc123')
+        '/path/to/savedatas/abc123'
+    """
+    parsed_url = urlparse(savedata_url)
+    savedata_id = os.path.basename(parsed_url.path)
+    savedata_folder = current_app.config['SAVEDATA_FOLDER']
+    savedata_path = os.path.join(savedata_folder, savedata_id)
+    return savedata_path if os.path.exists(savedata_path) else None
+
+def convert_img_to_jpg(file) -> Tuple[bool, Union[io.BytesIO, str]]:
+    """
+    Convert image to JPG format using PIL and validate the file.
+
+    Args:
+        file: The input file object or bytes-like object.
+
+    Returns:
+        A tuple (success, result), where:
+        - success (bool): True if conversion was successful, False otherwise.
+        - result (Union[io.BytesIO, str]): 
+            If successful, a BytesIO object containing the JPEG image.
+            If failed, a string describing the error.
+    """
+
+    try:
+        # Attempt to open the file as an image
+        img = Image.open(file)
         
-
+        # Verify it's a valid image by accessing its format
+        img.verify()
+        
+        # Reopen the image as verify() closes the file
+        img = Image.open(file)
+        
+        if img.format != 'JPEG':
+            img = img.convert('RGB')
+            img_byte_arr = io.BytesIO()
+            img.save(img_byte_arr, format='JPEG')
+            img_byte_arr.seek(0)
+            return True, img_byte_arr
+        else:
+            # If it's already a JPEG, just return the original file
+            file.seek(0)
+            return True, file
+    except IOError:
+        return False, "Error: Unable to open image file. The file may be corrupted or not an image."
+    except SyntaxError:
+        return False, "Error: Unable to parse image file. The file may not be a valid image."
+    except Exception as e:
+        return False, f"Error: An unexpected error occurred: {str(e)}"
+        
 def convert_imgpath_to_imgid(img_path: str) -> str:
     """
     Convert an image file path to its ID.
@@ -23,7 +106,6 @@ def convert_imgpath_to_imgid(img_path: str) -> str:
         >>> convert_imgpath_to_imgid('/path/to/images/vn/abc123.jpg')
         'abc123'
     """
-    import os
 
     if img_path is None:
         return None
@@ -62,8 +144,6 @@ def convert_imgid_to_imgpath(type: str, img_id: str) -> str | None:
         >>> convert_imgid_to_imgpath('vn', 'abc123')
         '/path/to/images/vn/abc123.jpg'
     """
-    import os
-    from flask import current_app
 
     if type not in ['vn', 'character']:
         return None
@@ -83,11 +163,6 @@ def convert_imgurl_to_imgid(url: str) -> str:
     Returns:
         str: A unique image ID.
     """
-
-    import re
-    import os
-    from urllib.parse import urlparse
-
     parsed_url = urlparse(url)
     path = parsed_url.path
     
@@ -104,10 +179,7 @@ def convert_imgurl_to_imgid(url: str) -> str:
     return re.sub(r'[^\w\-_\.]', '_', os.path.splitext(os.path.basename(path))[0])
 
 def convert_model_to_dict(model):
-    from sqlalchemy.inspection import inspect
-    from datetime import datetime, date
-    from ..database import models
-
+    
     if model is None:
         return None
     if isinstance(model, list):

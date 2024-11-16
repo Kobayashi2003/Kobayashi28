@@ -92,23 +92,44 @@ def create_app(config_class=Config):
     app.celery = celery
 
     # Import Celery tasks
-    from .tasks import crud_task
-    from .tasks import search_task
     from .tasks import get_data_task
+    from .tasks import search_task
+
+    from .tasks import create_data_task
+    from .tasks import read_data_task
     from .tasks import update_data_task
     from .tasks import delete_data_task
     from .tasks import cleanup_task
     from .tasks import backup_task 
     from .tasks import restore_task
+
+    from .tasks import get_image_task
+    from .tasks import get_images_task
+    from .tasks import upload_images_task
     from .tasks import download_images_task
+    from .tasks import update_images_task
+    from .tasks import delete_image_task
+    from .tasks import delete_images_task
+
+    from .tasks import get_savedata_task
+    from .tasks import get_savedatas_task
+    from .tasks import upload_savedatas_task
+    from .tasks import delete_savedata_task
+    from .tasks import delete_savedatas_task
 
     # ----------------------------------------
     # Blueprint Registration
     # This section registers all the blueprints (modular components) of the application
     # ----------------------------------------
 
-    from .routes import api_bp
-    app.register_blueprint(api_bp)
+    from .routes_v1 import api_bp as api_v1_bp
+    from .routes_v2 import api_bp as api_v2_bp
+    from .routes_v3 import api_bp as api_v3_bp
+
+    app.register_blueprint(api_v1_bp)
+    app.register_blueprint(api_v2_bp)
+    app.register_blueprint(api_v3_bp)
+
 
     # ----------------------------------------
     # CLI Command Registration

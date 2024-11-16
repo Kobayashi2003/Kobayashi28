@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VNDB API v3 Overview</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2 {
+            color: #2c3e50;
+        }
+        h1 {
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .section {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .code {
+            font-family: monospace;
+            background-color: #ecf0f1;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>VNDB API v3 Overview</h1>
+
+    <div class="section">
+        <h2>Base URL</h2>
+        <p>All API requests should be made to: <span class="code">/api/v3</span></p>
+    </div>
+
+    <div class="section">
+        <h2>Resources</h2>
+        <ul>
+            <li><strong>Database:</strong> <span class="code">/api/v3/database</span></li>
+            <li><strong>Images:</strong> <span class="code">/api/v3/images</span></li>
+            <li><strong>Savedata:</strong> <span class="code">/api/v3/savedata</span></li>
+            <li><strong>Search:</strong> <span class="code">/api/v3/search</span></li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>Authentication</h2>
+        <p>Authentication details to be determined. All endpoints currently do not require authentication.</p>
+    </div>
+
+    <div class="section">
+        <h2>Response Format</h2>
+        <p>All responses are returned in JSON format. Successful responses will include a <span class="code">data</span> field containing the requested information. Error responses will include an <span class="code">error</span> field with details about the error.</p>
+    </div>
+
+    <div class="section">
+        <h2>HTTP Status Codes</h2>
+        <ul>
+            <li><strong>200 OK:</strong> The request was successful</li>
+            <li><strong>201 Created:</strong> The request was successful and a resource was created</li>
+            <li><strong>204 No Content:</strong> The request was successful but there is no representation to return (i.e. the response is empty)</li>
+            <li><strong>400 Bad Request:</strong> The request could not be understood or was missing required parameters</li>
+            <li><strong>404 Not Found:</strong> Resource was not found</li>
+            <li><strong>500 Internal Server Error:</strong> An unexpected error occurred on the server</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>Rate Limiting</h2>
+        <p>Rate limiting details to be determined. Please use the API responsibly.</p>
+    </div>
+</body>
+</html>
