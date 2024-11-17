@@ -44,26 +44,24 @@
 
     <div class="route">
         <h2>List Images</h2>
-        <p><span class="method">GET</span> <span class="path">/api/v3/images</span></p>
-        <p><strong>Description:</strong> Get a list of images</p>
+        <p><span class="method">GET</span> <span class="path">/images</span></p>
+        <p><strong>Description:</strong> Get a list of images for a VN or character</p>
         <p><strong>Query Parameters:</strong></p>
         <ul>
             <li><code>type</code>: Image type (vn or character)</li>
             <li><code>id</code>: VN or character ID</li>
-            <li><code>page</code>: Page number (default: 1)</li>
-            <li><code>limit</code>: Number of items per page (default: 20, max: 100)</li>
         </ul>
     </div>
 
     <div class="route">
         <h2>Get Image</h2>
-        <p><span class="method">GET</span> <span class="path">/api/v3/images/:id</span></p>
+        <p><span class="method">GET</span> <span class="path">/images/:id</span></p>
         <p><strong>Description:</strong> Get a specific image</p>
     </div>
 
     <div class="route">
         <h2>Upload Images</h2>
-        <p><span class="method">POST</span> <span class="path">/api/v3/images</span></p>
+        <p><span class="method">POST</span> <span class="path">/images</span></p>
         <p><strong>Description:</strong> Upload images for a VN or character</p>
         <p><strong>Body:</strong> Form-data with 'files[]' containing image files</p>
         <p><strong>Query Parameters:</strong></p>
@@ -74,22 +72,9 @@
     </div>
 
     <div class="route">
-        <h2>Update Image</h2>
-        <p><span class="method">PUT</span> <span class="path">/api/v3/images/:id</span></p>
-        <p><strong>Description:</strong> Update a specific image</p>
-        <p><strong>Body:</strong> Form-data with updated image file</p>
-    </div>
-
-    <div class="route">
-        <h2>Delete Image</h2>
-        <p><span class="method">DELETE</span> <span class="path">/api/v3/images/:id</span></p>
-        <p><strong>Description:</strong> Delete a specific image</p>
-    </div>
-
-    <div class="route">
-        <h2>Delete All Images</h2>
-        <p><span class="method">DELETE</span> <span class="path">/api/v3/images</span></p>
-        <p><strong>Description:</strong> Delete all images for a VN or character</p>
+        <h2>Update Images</h2>
+        <p><span class="method">PUT</span> <span class="path">/images</span></p>
+        <p><strong>Description:</strong> Update images for a VN or character from remote database</p>
         <p><strong>Query Parameters:</strong></p>
         <ul>
             <li><code>type</code>: Image type (vn or character)</li>
@@ -98,9 +83,15 @@
     </div>
 
     <div class="route">
-        <h2>Download Images</h2>
-        <p><span class="method">GET</span> <span class="path">/api/v3/images/download</span></p>
-        <p><strong>Description:</strong> Download images for a VN or character</p>
+        <h2>Delete Image</h2>
+        <p><span class="method">DELETE</span> <span class="path">/images/:id</span></p>
+        <p><strong>Description:</strong> Delete a specific image</p>
+    </div>
+
+    <div class="route">
+        <h2>Delete All Images</h2>
+        <p><span class="method">DELETE</span> <span class="path">/images</span></p>
+        <p><strong>Description:</strong> Delete all images for a VN or character</p>
         <p><strong>Query Parameters:</strong></p>
         <ul>
             <li><code>type</code>: Image type (vn or character)</li>

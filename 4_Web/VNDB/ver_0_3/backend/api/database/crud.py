@@ -4,7 +4,7 @@ from datetime import datetime
 from flask import current_app
 from typing import List, Dict, Any, Union, Optional
 
-from sqlalchemy import func, cast, Integer
+from sqlalchemy import func, cast, desc, Integer
 from sqlalchemy.exc import SQLAlchemyError
 
 from . import models
@@ -85,12 +85,26 @@ def get(type: str, id: str) -> Optional[ModelType]:
     
     return model.query.get(id)
 
-def get_all(type: str) -> List[ModelType]:
+def get_all(type: str, page: Optional[int] = None, limit: Optional[int] = None, sort: Optional[str] = None, order: str = 'asc') -> List[ModelType]:
     model = MODEL_MAP.get(type)
     if not model:
         raise ValueError(f"Invalid model type: {type}")
 
-    return model.query.all()
+    query = model.query
+
+   # Apply sorting if specified
+    if sort:
+        sort_column = getattr(model, sort, None)
+        if sort_column is not None:
+            query = query.order_by(desc(sort_column) if order.lower() == 'desc' else sort_column)
+
+    # Apply pagination if both page and limit are specified
+    if page is not None and limit is not None:
+        page = max(1, page)  # Ensure page is at least 1
+        limit = min(max(1, limit), 100)  # Ensure limit is between 1 and 100
+        query = query.offset((page - 1) * limit).limit(limit)
+
+    return query.all()
 
 
 def cleanup(type: str) -> int:
@@ -211,6 +225,34 @@ def delete_images(type: str, id: str) -> int:
 
     return deleted_count
 
+def get_image_path(resource_type: str, resource_id: str, image_id: str) -> Optional[str]:
+    """
+    Get the path of an image file if it exists and is associated with the given resource.
+    
+    :param resource_type: The type of resource ('vn' or 'character')
+    :param resource_id: The ID of the resource (VN or character)
+    :param image_id: The ID of the image
+    :return: The path to the image file if it exists and is associated with the resource, None otherwise
+    """
+    if resource_type not in ['vn', 'character']:
+        raise ValueError(f"Invalid resource type: {resource_type}")
+
+    image_model = models.VNImage if resource_type == 'vn' else models.CharacterImage
+    foreign_key = f"{resource_type}_id"
+
+    # Check if the image exists in the database and is associated with the resource
+    image = image_model.query.filter_by(id=image_id, **{foreign_key: resource_id}).first()
+    
+    if image:
+        # Construct the path to the image file
+        image_path = os.path.join(current_app.config[f'IMAGE_{resource_type.upper()}_FOLDER'], f"{image.id}.jpg")
+        
+        # Check if the file exists
+        if os.path.exists(image_path):
+            return image_path
+    
+    return None
+
 
 def next_savedata_id() -> str:
     """Get the next available savedata ID starting with 's'."""
@@ -279,6 +321,27 @@ def delete_savedatas(vnid: str) -> int:
     safe_commit()
 
     return deleted_count
+
+def get_savedata_path(vn_id: str, savedata_id: str) -> Optional[str]:
+    """
+    Get the path of a savedata file if it exists and is associated with the given VN.
+    
+    :param vn_id: The ID of the visual novel
+    :param savedata_id: The ID of the savedata
+    :return: The path to the savedata file if it exists and is associated with the VN, None otherwise
+    """
+    # Check if the savedata exists in the database and is associated with the VN
+    savedata = models.SaveData.query.filter_by(id=savedata_id, vnid=vn_id).first()
+    
+    if savedata:
+        # Construct the path to the savedata file
+        savedata_path = os.path.join(current_app.config['SAVEDATA_FOLDER'], savedata.id)
+        
+        # Check if the file exists
+        if os.path.exists(savedata_path):
+            return savedata_path
+    
+    return None
 
 
 def backup_database_pg_dump(filename=None):

@@ -4,7 +4,7 @@ from flask import jsonify, abort
 from . import search_bp
 from api import cache 
 from api.tasks import get_data_task
-from api.utils.check import is_valid_id, infer_type_from_id
+from api.utils.check import infer_type_from_id
 
 @search_bp.route('/data/<string:data_type>/<string:data_size>/<string:id>', methods=['GET'])
 @cache.memoize(timeout=60)

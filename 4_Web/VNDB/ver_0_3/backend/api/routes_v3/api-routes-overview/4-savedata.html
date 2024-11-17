@@ -44,61 +44,72 @@
 
     <div class="route">
         <h2>List Savedata</h2>
-        <p><span class="method">GET</span> <span class="path">/api/v3/savedata</span></p>
-        <p><strong>Description:</strong> Get a list of savedata</p>
+        <p><span class="method">GET</span> <span class="path">/savedatas</span></p>
+        <p><strong>Description:</strong> Get a list of savedata for a specific VN</p>
         <p><strong>Query Parameters:</strong></p>
         <ul>
-            <li><code>vn_id</code>: VN ID to filter savedata</li>
+            <li><code>vn_id</code>: VN ID to filter savedata (required)</li>
             <li><code>page</code>: Page number (default: 1)</li>
             <li><code>limit</code>: Number of items per page (default: 20, max: 100)</li>
         </ul>
+        <p><strong>Response:</strong> JSON object with a task_id for asynchronous processing</p>
     </div>
 
     <div class="route">
         <h2>Get Savedata</h2>
-        <p><span class="method">GET</span> <span class="path">/api/v3/savedata/:id</span></p>
+        <p><span class="method">GET</span> <span class="path">/savedatas/:id</span></p>
         <p><strong>Description:</strong> Get a specific savedata</p>
+        <p><strong>Parameters:</strong></p>
+        <ul>
+            <li><code>id</code>: Savedata ID (must start with 's')</li>
+        </ul>
+        <p><strong>Response:</strong> JSON object with a task_id for asynchronous processing</p>
     </div>
 
     <div class="route">
         <h2>Upload Savedata</h2>
-        <p><span class="method">POST</span> <span class="path">/api/v3/savedata</span></p>
+        <p><span class="method">POST</span> <span class="path">/savedatas</span></p>
         <p><strong>Description:</strong> Upload savedata for a VN</p>
-        <p><strong>Body:</strong> Form-data with 'files[]' containing savedata files</p>
         <p><strong>Query Parameters:</strong></p>
         <ul>
-            <li><code>vn_id</code>: VN ID for the savedata</li>
+            <li><code>vn_id</code>: VN ID for the savedata (required)</li>
         </ul>
-    </div>
-
-    <div class="route">
-        <h2>Update Savedata</h2>
-        <p><span class="method">PUT</span> <span class="path">/api/v3/savedata/:id</span></p>
-        <p><strong>Description:</strong> Update a specific savedata</p>
-        <p><strong>Body:</strong> Form-data with updated savedata file</p>
+        <p><strong>Body:</strong> Form-data with 'files[]' containing savedata files</p>
+        <p><strong>Response:</strong> JSON object with a task_id for asynchronous processing</p>
     </div>
 
     <div class="route">
         <h2>Delete Savedata</h2>
-        <p><span class="method">DELETE</span> <span class="path">/api/v3/savedata/:id</span></p>
+        <p><span class="method">DELETE</span> <span class="path">/savedatas/:id</span></p>
         <p><strong>Description:</strong> Delete a specific savedata</p>
+        <p><strong>Parameters:</strong></p>
+        <ul>
+            <li><code>id</code>: Savedata ID (must start with 's')</li>
+        </ul>
+        <p><strong>Response:</strong> JSON object with a task_id for asynchronous processing</p>
     </div>
 
     <div class="route">
         <h2>Delete All Savedata</h2>
-        <p><span class="method">DELETE</span> <span class="path">/api/v3/savedata</span></p>
+        <p><span class="method">DELETE</span> <span class="path">/savedatas</span></p>
         <p><strong>Description:</strong> Delete all savedata for a VN</p>
         <p><strong>Query Parameters:</strong></p>
         <ul>
-            <li><code>vn_id</code>: VN ID to delete all savedata for</li>
+            <li><code>vn_id</code>: VN ID to delete all savedata for (required)</li>
         </ul>
+        <p><strong>Response:</strong> JSON object with a task_id for asynchronous processing</p>
     </div>
 
     <div class="route">
         <h2>Download Savedata</h2>
-        <p><span class="method">GET</span> <span class="path">/api/v3/savedata/download/:id</span></p>
+        <p><span class="method">GET</span> <span class="path">/savedatas/download/:id</span></p>
         <p><strong>Description:</strong> Download a specific savedata or all savedata for a VN</p>
-        <p><strong>Note:</strong> If :id is a savedata ID, it will download a single file. If :id is a VN ID, it will download a zip of all savedata for that VN.</p>
+        <p><strong>Parameters:</strong></p>
+        <ul>
+            <li><code>id</code>: Savedata ID (must start with 's') or VN ID (must start with 'v')</li>
+        </ul>
+        <p><strong>Note:</strong> If :id is a savedata ID, it will download a single file. If :id is a VN ID, it will download all savedata for that VN.</p>
+        <p><strong>Response:</strong> JSON object with a task_id for asynchronous processing</p>
     </div>
 </body>
 </html>

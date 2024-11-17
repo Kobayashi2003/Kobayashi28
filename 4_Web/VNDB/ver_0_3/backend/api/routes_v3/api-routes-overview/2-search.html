@@ -53,22 +53,26 @@
             <li><code>fields</code>: Comma-separated list of fields to search in</li>
             <li><code>page</code>: Page number (default: 1)</li>
             <li><code>limit</code>: Number of items per page (default: 20, max: 100)</li>
-            <li><code>sort</code>: Field to sort by</li>
-            <li><code>order</code>: Sort order (asc or desc)</li>
+            <li><code>sort</code>: Field to sort by (default: id)</li>
+            <li><code>order</code>: Sort order (asc or desc, default: asc)</li>
         </ul>
+        <p><strong>Response:</strong> JSON object with a task_id for asynchronous processing</p>
     </div>
 
     <div class="route">
-        <h2>Advanced Search</h2>
-        <p><span class="method">POST</span> <span class="path">/api/v3/search/advanced</span></p>
-        <p><strong>Description:</strong> Perform an advanced search with complex criteria</p>
-        <p><strong>Body:</strong> JSON object with search criteria</p>
+        <h2>Get Resource by ID</h2>
+        <p><span class="method">GET</span> <span class="path">/api/v3/search/:resource/:id</span></p>
+        <p><strong>Description:</strong> Get details of a specific resource by its ID</p>
+        <p><strong>Path Parameters:</strong></p>
+        <ul>
+            <li><code>resource</code>: Resource type (vns, characters, tags, producers, staff, traits)</li>
+            <li><code>id</code>: ID of the resource</li>
+        </ul>
         <p><strong>Query Parameters:</strong></p>
         <ul>
-            <li><code>type</code>: Search type (vn, character, tag, producer, staff, trait)</li>
-            <li><code>page</code>: Page number (default: 1)</li>
-            <li><code>limit</code>: Number of items per page (default: 20, max: 100)</li>
+            <li><code>size</code>: Response size (small or large, default: small)</li>
         </ul>
+        <p><strong>Response:</strong> JSON object with a task_id for asynchronous processing</p>
     </div>
 </body>
 </html>

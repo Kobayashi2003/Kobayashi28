@@ -65,14 +65,13 @@
         <h2>Create Resource</h2>
         <p><span class="method">POST</span> <span class="path">/api/v3/database/:resource</span></p>
         <p><strong>Description:</strong> Create a new resource</p>
-        <p><strong>Body:</strong> JSON object with resource details</p>
+        <p><strong>Body:</strong> JSON object or form data with resource details (must include 'id')</p>
     </div>
 
     <div class="route">
         <h2>Update Resource</h2>
         <p><span class="method">PUT</span> <span class="path">/api/v3/database/:resource/:id</span></p>
         <p><strong>Description:</strong> Update an existing resource</p>
-        <p><strong>Body:</strong> JSON object with updated resource details</p>
     </div>
 
     <div class="route">
@@ -85,14 +84,22 @@
         <h2>Backup Database</h2>
         <p><span class="method">POST</span> <span class="path">/api/v3/database/backup</span></p>
         <p><strong>Description:</strong> Create a database backup</p>
-        <p><strong>Body:</strong> JSON object with optional filename</p>
+        <p><strong>Query Parameters:</strong></p>
+        <ul>
+            <li><code>filename</code>: Optional filename for the backup</li>
+        </ul>
+        <p><strong>Body:</strong> JSON object or form data with optional filename</p>
     </div>
 
     <div class="route">
         <h2>Restore Database</h2>
         <p><span class="method">POST</span> <span class="path">/api/v3/database/restore</span></p>
         <p><strong>Description:</strong> Restore the database from a backup</p>
-        <p><strong>Body:</strong> JSON object with filename</p>
+        <p><strong>Query Parameters:</strong></p>
+        <ul>
+            <li><code>filename</code>: Filename of the backup to restore</li>
+        </ul>
+        <p><strong>Body:</strong> JSON object or form data with filename (required if not in query parameters)</p>
     </div>
 
     <div class="route">
