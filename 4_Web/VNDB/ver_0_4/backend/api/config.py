@@ -30,10 +30,10 @@ class Config:
 
     # Download configuration
     TEMP_FOLDER = os.environ.get('TEMP_FOLDER', '/tmp')
-    IMAGE_VN_FOLDER = os.environ.get('IMAGE_VN_FOLDER', os.path.join(os.path.dirname(__file__), 'images', 'vn'))
-    IMAGE_CHARACTER_FOLDER = os.environ.get('IMAGE_CHARACTER_FOLDER', os.path.join(os.path.dirname(__file__), 'images', 'character'))
-    SAVEDATA_FOLDER = os.environ.get('SAVEDATA_FOLDER', os.path.join(os.path.dirname(__file__), 'savedatas'))
-    BACKUP_FOLDER = os.environ.get('BACKUP_FOLDER', os.path.join(os.path.dirname(__file__), 'backups'))
+    IMAGE_VN_FOLDER = os.environ.get('IMAGE_VN_FOLDER', os.path.join(os.path.dirname(__file__), 'DATA/images', 'vn'))
+    IMAGE_CHARACTER_FOLDER = os.environ.get('IMAGE_CHARACTER_FOLDER', os.path.join(os.path.dirname(__file__), 'DATA/images', 'character'))
+    SAVEDATA_FOLDER = os.environ.get('SAVEDATA_FOLDER', os.path.join(os.path.dirname(__file__), 'DATA/savedatas'))
+    BACKUP_FOLDER = os.environ.get('BACKUP_FOLDER', os.path.join(os.path.dirname(__file__), 'DATA/backups'))
 
     # Other configurations
     SERVER_NAME = os.environ.get('SERVER_NAME', 'localhost:5000')

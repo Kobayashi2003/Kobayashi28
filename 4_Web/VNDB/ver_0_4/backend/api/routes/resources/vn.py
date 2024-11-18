@@ -31,6 +31,12 @@ class VNResourceBlueprint(BaseResourceBlueprint):
         self.bp.add_url_rule('/<string:id>/savedatas', 'delete_vn_savedatas', self.delete_vn_savedatas, methods=['DELETE'])
         self.bp.add_url_rule('/<string:id>/savedatas/<string:savedata_id>', 'delete_vn_savedata', self.delete_vn_savedata, methods=['DELETE'])
 
+    def update_resources(self):
+        ...
+
+    def update_resource(self, id):
+        ...
+
     def delete_resources(self):
         task = delete_vns_task.delay()
         return jsonify({"task_id": task.id}), 202
@@ -140,3 +146,35 @@ class VNResourceBlueprint(BaseResourceBlueprint):
     def delete_vn_savedata(self, id, savedata_id):
         task = delete_savedatas_task.delay('vn', id, savedata_id)
         return jsonify({"task_id": task.id}), 202
+
+vn_bp = VNResourceBlueprint().blueprint
+
+@vn_bp.route('/<string:vnid>/characters', methods=[])
+def vc1(vnid: str): ...
+
+@vn_bp.route('/<string:vnid>/characters/<string:charid>', methods=[])
+def vc2(vnid: str, charid: str): ...
+
+@vn_bp.route('/<string:vnid>/tags', methods=[])
+def vt1(vnid: str): ...
+
+@vn_bp.route('/<string:vnid>/tags/<string:tag_id>', methods=[])
+def vt2(vnid: str, tag_id: str): ...
+
+@vn_bp.route('/<string:vnid>/developers', methods=[])
+def vd1(vnid: str): ...
+
+@vn_bp.route('/<string:vnid>/deverlopers/<string:dev_id>', methods=[])
+def vd2(vnid: str, dev_id: str): ...
+
+@vn_bp.route('/<string:vnid>/staff', methods=[])
+def vs1(vnid: str): ...
+
+@vn_bp.route('/<string:vnid>/staff/<string:staff_id>', methods=[])
+def vs2(vnid: str, staff_id): ...
+
+@vn_bp.route('/<string:vnid>/traits', methods=[])
+def vtr1(vnid: str): ...
+
+@vn_bp.route('/<string:vnid>/traits/<string:trait_id>', methods=[])
+def vtr2(vnid: str, trait_id: str): ...

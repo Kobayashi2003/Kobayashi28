@@ -7,15 +7,7 @@ from api.config import Config
 from run_flask import run_flask
 from run_celery import run_celery_worker
 from run_redis import run_redis_server
-
-# Function to delete __pycache__ folders
-def delete_pycache_folders():
-    for root, dirs, files in os.walk('.'):
-        for dir in dirs:
-            if dir == '__pycache__':
-                pycache_path = os.path.join(root, dir)
-                shutil.rmtree(pycache_path)
-                print(f"Deleted __pycache__ folder: {pycache_path}")
+from clean import delete_empty_folders, delete_pycache_folders
 
 # Function to terminate all processes
 def terminate_processes(processes):
@@ -50,6 +42,7 @@ def main():
         print("\nReceived interrupt signal. Terminating processes...")
         terminate_processes(processes)
         delete_pycache_folders()
+        delete_empty_folders()
         sys.exit(0)
 
     # Register the signal handler for SIGINT (Ctrl+C)
@@ -61,6 +54,7 @@ def main():
 
     # Delete __pycache__ folders after all processes have completed
     delete_pycache_folders()
+    delete_empty_folders()
 
 if __name__ == '__main__':
     main()

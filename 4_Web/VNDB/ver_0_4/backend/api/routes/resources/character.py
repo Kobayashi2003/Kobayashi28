@@ -19,6 +19,12 @@ class CharacterResourceBlueprint(BaseResourceBlueprint):
         self.bp.add_url_rule('/<string:id>/images', 'delete_character_images', self.delete_character_images, methods=['DELETE'])
         self.bp.add_url_rule('/<string:id>/images/<string:image_id>', 'delete_character_image', self.delete_character_image, methods=['DELETE'])
 
+    def update_resources(self):
+        ...
+
+    def update_resource(self, id):
+        ...
+
     def get_character_images(self, id):
         task = get_images_task.delay('character', id)
         return jsonify({"task_id": task.id}), 202
@@ -61,3 +67,17 @@ class CharacterResourceBlueprint(BaseResourceBlueprint):
     def delete_character_image(self, id, image_id):
         task = delete_images_task.delay('character', id, image_id)
         return jsonify({"task_id": task.id}), 202
+
+character_bp = CharacterResourceBlueprint().blueprint
+
+@character_bp.route('/<string:charid>/vns')
+def cv1(charid: str): ...
+
+@character_bp.route('/<string:charid>/vns/<string:vnid>')
+def cv2(charid: str, vnid: str): ...
+
+@character_bp.route('/<string:charid>/traits')
+def ct1(charid: str): ...
+
+@character_bp.route('/<string:charid>/traits/<string:trait_id>')
+def ct2(charid: str, trait_id: str): ...
