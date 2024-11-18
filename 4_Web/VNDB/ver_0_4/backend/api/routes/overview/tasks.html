@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tasks API Documentation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        .endpoint {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .method {
+            font-weight: bold;
+            color: #007bff;
+        }
+        .path {
+            font-family: monospace;
+            background-color: #e9ecef;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+        .description {
+            margin-top: 10px;
+        }
+        .response {
+            margin-top: 10px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <h1>Tasks API Documentation</h1>
+    <p>This document describes the endpoints available for managing asynchronous tasks in the system.</p>
+
+    <div class="endpoint">
+        <h2><span class="method">GET</span> <span class="path">/tasks</span></h2>
+        <div class="description">Retrieve the status of all tasks.</div>
+        <div class="response">Response: Returns a list of all tasks with their IDs, statuses, and completion dates.</div>
+    </div>
+
+    <div class="endpoint">
+        <h2><span class="method">GET</span> <span class="path">/tasks/{task_id}</span></h2>
+        <div class="description">Retrieve the status of a specific task.</div>
+        <div class="response">Response: Returns the state and status of the specified task. For completed tasks, it includes the result or error message.</div>
+    </div>
+
+    <div class="endpoint">
+        <h2><span class="method">GET</span> <span class="path">/tasks/{task_id}/result</span></h2>
+        <div class="description">Retrieve the result of a specific task.</div>
+        <div class="response">Response: Returns the result of the task if it's completed, or the current state if it's still in progress.</div>
+    </div>
+
+    <div class="endpoint">
+        <h2><span class="method">POST</span> <span class="path">/tasks</span></h2>
+        <div class="description">Revoke (cancel) all active tasks.</div>
+        <div class="response">Response: Returns the number of tasks revoked and the total number of tasks.</div>
+    </div>
+
+    <div class="endpoint">
+        <h2><span class="method">POST</span> <span class="path">/tasks/{task_id}</span></h2>
+        <div class="description">Revoke (cancel) a specific task.</div>
+        <div class="response">Response: Returns a confirmation message that the task has been cancelled.</div>
+    </div>
+
+    <div class="endpoint">
+        <h2><span class="method">DELETE</span> <span class="path">/tasks</span></h2>
+        <div class="description">Delete all task results.</div>
+        <div class="response">Response: Returns the number of task results deleted and the total number of tasks.</div>
+    </div>
+
+    <div class="endpoint">
+        <h2><span class="method">DELETE</span> <span class="path">/tasks/{task_id}</span></h2>
+        <div class="description">Delete the result of a specific task.</div>
+        <div class="response">Response: Returns a confirmation message that the task result has been deleted.</div>
+    </div>
+
+    <h2>Notes</h2>
+    <ul>
+        <li>The {task_id} in the paths represents the unique identifier of a specific task.</li>
+        <li>Task states can be: PENDING, STARTED, SUCCESS, FAILURE, or RETRY.</li>
+        <li>Revoking a task will attempt to cancel it if it's still running.</li>
+        <li>Deleting a task result will remove it from the result backend but won't affect the task if it's still running.</li>
+    </ul>
+</body>
+</html>

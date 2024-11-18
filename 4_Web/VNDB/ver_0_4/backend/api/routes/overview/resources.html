@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resource API Documentation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .endpoint {
+            background-color: #e7f2fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .method {
+            font-weight: bold;
+            color: #2980b9;
+        }
+        .path {
+            font-family: monospace;
+            background-color: #f8f8f8;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Resource API Documentation</h1>
+
+    <h2>Common Endpoints</h2>
+    <p>The following endpoints are common to all resource types (VN, Character, Producer, Staff, Tag, Trait).</p>
+
+    <div class="endpoint">
+        <h3><span class="method">GET</span> <span class="path">/{resource_type}s</span></h3>
+        <p>Retrieve a list of resources.</p>
+        <h4>Query Parameters:</h4>
+        <table>
+            <tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr>
+            <tr><td>page</td><td>integer</td><td>1</td><td>Page number for pagination</td></tr>
+            <tr><td>limit</td><td>integer</td><td>20</td><td>Number of items per page</td></tr>
+            <tr><td>sort</td><td>string</td><td>'id'</td><td>Field to sort by</td></tr>
+            <tr><td>order</td><td>string</td><td>'asc'</td><td>Sort order ('asc' or 'desc')</td></tr>
+        </table>
+        <p>Returns: A task ID for asynchronous processing.</p>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method">GET</span> <span class="path">/{resource_type}s/{id}</span></h3>
+        <p>Retrieve a specific resource by ID.</p>
+        <p>Returns: A task ID for asynchronous processing.</p>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method">POST</span> <span class="path">/{resource_type}s</span></h3>
+        <p>Search for resources.</p>
+        <h4>Request Body:</h4>
+        <table>
+            <tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr>
+            <tr><td>search_from</td><td>string</td><td>'local'</td><td>Where to search from</td></tr>
+            <tr><td>response_size</td><td>string</td><td>'small'</td><td>Size of the response</td></tr>
+            <tr><td>page</td><td>integer</td><td>1</td><td>Page number for pagination</td></tr>
+            <tr><td>limit</td><td>integer</td><td>20</td><td>Number of items per page</td></tr>
+            <tr><td>sort</td><td>string</td><td>'id'</td><td>Field to sort by</td></tr>
+            <tr><td>order</td><td>string</td><td>'asc'</td><td>Sort order ('asc' or 'desc')</td></tr>
+        </table>
+        <p>Returns: A task ID for asynchronous processing.</p>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method">POST</span> <span class="path">/{resource_type}s/{id}</span></h3>
+        <p>Search for a specific resource by ID.</p>
+        <p>Returns: A task ID for asynchronous processing.</p>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method">PUT</span> <span class="path">/{resource_type}s</span></h3>
+        <p>Update multiple resources.</p>
+        <p>Returns: A task ID for asynchronous processing.</p>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method">PUT</span> <span class="path">/{resource_type}s/{id}</span></h3>
+        <p>Update a specific resource.</p>
+        <p>Returns: A task ID for asynchronous processing.</p>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method">PATCH</span> <span class="path">/{resource_type}s</span></h3>
+        <p>Edit multiple resources.</p>
+        <h4>Request Body:</h4>
+        <p>A list of update objects, each containing the resource ID and fields to update.</p>
+        <p>Returns: A task ID for asynchronous processing.</p>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method">PATCH</span> <span class="path">/{resource_type}s/{id}</span></h3>
+        <p>Edit a specific resource.</p>
+        <h4>Request Body:</h4>
+        <p>An object containing the fields to update.</p>
+        <p>Returns: A task ID for asynchronous processing.</p>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method">DELETE</span> <span class="path">/{resource_type}s</span></h3>
+        <p>Delete all resources of a specific type.</p>
+        <p>Returns: A task ID for asynchronous processing.</p>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method">DELETE</span> <span class="path">/{resource_type}s/{id}</span></h3>
+        <p>Delete a specific resource.</p>
+        <p>Returns: A task ID for asynchronous processing.</p>
+    </div>
+
+    <h2>VN-Specific Endpoints</h2>
+
+    <div class="endpoint">
+        <h3><span class="method">GET</span> <span class="path">/vns/{id}/images</span></h3>
+        <p>Retrieve images for a specific VN.</p>
+        <p>Returns: A task ID for asynchronous processing.</p>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method">GET</span> <span class="path">/vns/{id}/images/{image_id}</span></h3>
+        <p>Retrieve a specific image for a VN.</p>
+        <h4>Query Parameters:</h4>
+        <table>
+            <tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr>
+            <tr><td>format</td><td>string</td><td>'file'</td><td>Response format ('file' or 'json')</td></tr>
+        </table>
+        <p>Returns: The image file or a task ID for asynchronous processing.</p>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method">POST</span> <span class="path">/vns/{id}/images</span></h3>
+        <p>Upload images for a VN.</p>
+        <h4>Request Body:</h4>
+        <p>Form data with 'files' field containing image files.</p>
+        <p>Returns: A task ID for asynchronous processing.</p>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method">PUT</span> <span class="path">/vns/{id}/images</span></h3>
+        <p>Update all images for a VN.</p>
+        <p>Returns: A task ID for asynchronous processing.</p>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method">PUT</span> <span class="path">/vns/{id}/images/{image_id}</span></h3>
+        <p>Update a specific image for a VN.</p>
+        <h4>Request Body:</h4>
+        <p>Form data with 'file' field containing the image file.</p>
+        <p>Returns: A task ID for asynchronous processing.</p>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method">DELETE</span> <span class="path">/vns/{id}/images</span></h3>
+        <p>Delete all images for a VN.</p>
+        <p>Returns: A task ID for asynchronous processing.</p>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method">DELETE</span> <span class="path">/vns/{id}/images/{image_id}</span></h3>
+        <p>Delete a specific image for a VN.</p>
+        <p>Returns: A task ID for asynchronous processing.</p>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method">GET</span> <span class="path">/vns/{id}/savedatas</span></h3>
+        <p>Retrieve save data for a VN.</p>
+        <h4>Query Parameters:</h4>
+        <table>
+            <tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr>
+            <tr><td>format</td><td>string</td><td>'file'</td><td>Response format ('file' or 'json')</td></tr>
+        </table>
+        <p>Returns: A zip file containing save data or a task ID for asynchronous processing.</p>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method">GET</span> <span class="path">/vns/{id}/savedatas/{savedata_id}</span></h3>
+        <p>Retrieve specific save data for a VN.</p>
+        <h4>Query Parameters:</h4>
+        <table>
+            <tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr>
+            <tr><td>format</td><td>string</td><td>'file'</td><td>Response format ('file' or 'json')</td></tr>
+        </table>
+        <p>Returns: The save data file or a task ID for asynchronous processing.</p>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method">POST</span> <span class="path">/vns/{id}/savedatas</span></h3>
+        <p>Upload save data for a VN.</p>
+        <h4>Request Body:</h4>
+        <p>Form data with 'files' field containing save data files and 'last_modified_{filename}' fields for each file's last modified timestamp.</p>
+        <p>Returns: A task ID for asynchronous processing.</p>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method">DELETE</span> <span class="path">/vns/{id}/savedatas</span></h3>
+        <p>Delete all save data for a VN.</p>
+        <p>Returns: A task ID for asynchronous processing.</p>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method">DELETE</span> <span class="path">/vns/{id}/savedatas/{savedata_id}</span></h3>
+        <p>Delete specific save data for a VN.</p>
+        <p>Returns: A task ID for asynchronous processing.</p>
+    </div>
+
+    <h2>Character-Specific Endpoints</h2>
+
+    <div class="endpoint">
+        <h3><span class="method">GET</span> <span class="path">/characters/{id}/images</span></h3>
+        <p>Retrieve images for a specific character.</p>
+        <p>Returns: A task ID for asynchronous processing.</p>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method">GET</span> <span class="path">/characters/{id}/images/{image_id}</span></h3>
+        <p>Retrieve a specific image for a character.</p>
+        <h4>Query Parameters:</h4>
+        <table>
+            <tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr>
+            <tr><td>format</td><td>string</td><td>'file'</td><td>Response format ('file' or 'json')</td></tr>
+        </table>
+        <p>Returns: The image file or a task ID for asynchronous processing.</p>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method">POST</span> <span class="path">/characters/{id}/images</span></h3>
+        <p>Upload images for a character.</p>
+        <h4>Request Body:</h4>
+        <p>Form data with 'files' field containing image files.</p>
+        <p>Returns: A task ID for asynchronous processing.</p>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method">PUT</span> <span class="path">/characters/{id}/images</span></h3>
+        <p>Update all images for a character.</p>
+        <p>Returns: A task ID for asynchronous processing.</p>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method">PUT</span> <span class="path">/characters/{id}/images/{image_id}</span></h3>
+        <p>Update a specific image for a character.</p>
+        <h4>Request Body:</h4>
+        <p>Form data with 'file' field containing the image file.</p>
+        <p>Returns: A task ID for asynchronous processing.</p>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method">DELETE</span> <span class="path">/characters/{id}/images</span></h3>
+        <p>Delete all images for a character.</p>
+        <p>Returns: A task ID for asynchronous processing.</p>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method">DELETE</span> <span class="path">/characters/{id}/images/{image_id}</span></h3>
+        <p>Delete a specific image for a character.</p>
+        <p>Returns: A task ID for asynchronous processing.</p>
+    </div>
+
+</body>
+</html>

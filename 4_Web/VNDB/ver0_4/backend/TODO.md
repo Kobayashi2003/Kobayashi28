@@ -1,4 +1,0 @@
-- upload savedata 有问题
-- tester里面传文件的格式
-- get savedata
-- character 的图片get
