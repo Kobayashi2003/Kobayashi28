@@ -1,9 +1,7 @@
 from typing import Dict, Any, List, Union 
 
-from datetime import datetime, timezone
-
 from api import celery
-from api.database import exists, update 
+from api.database import update 
 
 @celery.task(bind=True)
 def edit_resources_task(self, resource_type: str, updates: Union[Dict[str, Any], List[Dict[str, Any]]]):
@@ -50,13 +48,9 @@ def perform_edit(self, resource_type: str, id: str, update_data: Dict[str, Any])
     self.update_state(state='PROGRESS', meta={'status': f'Editing {resource_type} with id {id}...'})
 
     try:
-        local_type = f'local_{resource_type}'
-        
-        if not exists(local_type, id) or not exists(resource_type, id):
-            return {'status': 'NOT_FOUND', 'result': f'{resource_type.capitalize()} with id {id} not found'}
-
-        update(resource_type, id, update_data)
-        update(local_type, id, {'last_updated': datetime.now(timezone.utc)})
+        result = update(resource_type, id, update_data)
+        if result is None:
+            return {'status': 'FAILURE', 'result': f'{resource_type.capitalize()} with id {id} FAILED to update'}
 
         return {'status': 'SUCCESS', 'result': f'{resource_type.capitalize()} with id {id} updated successfully'}
 

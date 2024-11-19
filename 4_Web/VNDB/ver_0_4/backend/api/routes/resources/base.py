@@ -28,7 +28,7 @@ class BaseResourceBlueprint(ABC, metaclass=SingletonABCMeta):
         self.bp.add_url_rule('', 'update_resources', self.update_resources, methods=['PUT'])
         self.bp.add_url_rule('/<string:id>', 'update_resource', self.update_resource, methods=['PUT'])
         self.bp.add_url_rule('', 'edit_resources', self.edit_resources, methods=['PATCH'])
-        self.bp.add_url_rule('/string:id>', 'edit_resource', self.edit_resource, methods=['PATCH'])
+        self.bp.add_url_rule('/<string:id>', 'edit_resource', self.edit_resource, methods=['PATCH'])
         self.bp.add_url_rule('', 'delete_resources', self.delete_resources, methods=['DELETE'])
         self.bp.add_url_rule('/<string:id>', 'delete_resource', self.delete_resource, methods=['DELETE'])
 

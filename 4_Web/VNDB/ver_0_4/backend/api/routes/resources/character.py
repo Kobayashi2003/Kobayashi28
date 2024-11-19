@@ -19,11 +19,11 @@ class CharacterResourceBlueprint(BaseResourceBlueprint):
         self.bp.add_url_rule('/<string:id>/images', 'delete_character_images', self.delete_character_images, methods=['DELETE'])
         self.bp.add_url_rule('/<string:id>/images/<string:image_id>', 'delete_character_image', self.delete_character_image, methods=['DELETE'])
 
-    def update_resources(self):
-        ...
+    # def update_resources(self):
+    #     ...
 
-    def update_resource(self, id):
-        ...
+    # def update_resource(self, id):
+    #     ...
 
     def get_character_images(self, id):
         task = get_images_task.delay('character', id)

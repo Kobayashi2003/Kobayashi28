@@ -10,7 +10,7 @@ class Config:
     SCHEDULER_TIMEZONE = "UTC"
 
     # Database configuration
-    DB_NAME = os.environ.get('DB_NAME', 'flask_db')
+    DB_NAME = os.environ.get('DB_NAME', 'test')
     DB_USER = os.environ.get('DB_USER', 'postgres')
     DB_PASSWORD = os.environ.get('DB_PASSWORD', 'postgres')
     DB_HOST = os.environ.get('DB_HOST', 'localhost')

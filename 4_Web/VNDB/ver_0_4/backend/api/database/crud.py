@@ -2,247 +2,374 @@ from typing import List, Dict, Any, Union, Optional
 
 import os
 import subprocess
-from datetime import datetime
+import uuid
+from datetime import datetime, timezone 
+from functools import wraps
 
 from flask import current_app
 
-from sqlalchemy import func, cast, desc, Integer
+from sqlalchemy import func, cast, desc, text, Integer
+from sqlalchemy.orm import joinedload 
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm.exc import NoResultFound
 
 from api import db
 from . import models
 
-ModelType = Union[models.VN, models.Tag, models.Producer, models.Staff, models.Character, models.Trait, models.LocalVN, models.LocalTag, models.LocalProducer, models.LocalStaff, models.LocalCharacter, models.LocalTrait]
+from .models import META_MODEL_MAP, MODEL_MAP, IMAGE_MODEL_MAP, MetaModelType, ModelType, ImageModelType
 
-MODEL_MAP = {
-    'vn': models.VN,
-    'tag': models.Tag,
-    'producer': models.Producer,
-    'staff': models.Staff,
-    'character': models.Character,
-    'trait': models.Trait,
-    'local_vn': models.LocalVN,
-    'local_tag': models.LocalTag,
-    'local_producer': models.LocalProducer,
-    'local_staff': models.LocalStaff,
-    'local_character': models.LocalCharacter,
-    'local_trait': models.LocalTrait,
-    'vn_image': models.VNImage,
-    'character_image': models.CharacterImage,
-    'savedata': models.SaveData,
-    'backup': models.BackUp
-}
-
-def safe_commit():
-    try:
-        db.session.commit()
-    except SQLAlchemyError:
-        db.session.rollback()
-        raise
+def db_transaction(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            with db.session.begin_nested():
+                result = func(*args, **kwargs)
+            if result is None:
+                return None
+            db.session.commit()
+            return result
+        except (SQLAlchemyError, ValueError) as e:
+            db.session.rollback()
+            print(f"Error in {func.__name__}: {str(e)}")
+            return None
+    return wrapper
 
 def exists(type: str, id: str) -> bool:
     model = MODEL_MAP.get(type)
-    if not model:
+    meta_model = META_MODEL_MAP.get(type)
+    if not model or not meta_model:
         raise ValueError(f"Invalid model type: {type}")
-    return model.query.filter_by(id=id).first() is not None
+    metadata = meta_model.query.filter_by(id=id).first()
+    return metadata is not None and metadata.is_active
 
-
-def create(type: str, id: str, data: Dict[str, Any]) -> ModelType:
+def _create(type: str, id: str, data: Dict[str, Any]) -> Optional[ModelType]:
     model = MODEL_MAP.get(type)
-    if not model:
+    meta_model = META_MODEL_MAP.get(type)
+    if not model or not meta_model: 
         raise ValueError(f"Invalid model type: {type}")
-    
+    data.pop('id')
+
+    if exists(type, id):
+        return None
+
+    model.query.filter_by(id=id).delete()
+    meta_model.query.filter_by(id=id).delete()
+
     item = model(id=id, **data)
     db.session.add(item)
-    safe_commit()
+
+    metadata_item = meta_model(id=id)
+    setattr(item, f"{type}_metadata", metadata_item)
+
     return item
 
-def update(type: str, id: str, data: Dict[str, Any]) -> Optional[ModelType]:
+def _update(type: str, id: str, data: Dict[str, Any]) -> Optional[ModelType]:
     model = MODEL_MAP.get(type)
-    if not model:
+    meta_model = META_MODEL_MAP.get(type)
+    if not model or not meta_model:
         raise ValueError(f"Invalid model type: {type}")
-    
+
     item = model.query.get(id)
-    if item:
-        for key, value in data.items():
-            setattr(item, key, value)
-        safe_commit()
+    if not item:
+        return None
+
+    for key, value in data.items():
+        setattr(item, key, value)
+            
+    metadata_attr = f"{type}_metadata"
+    metadata_item = getattr(item, metadata_attr, None)
+    if metadata_item is None:
+        metadata_item = meta_model(id=id)
+        setattr(item, metadata_attr, metadata_item)
+    metadata_item.last_modified_at = datetime.now(timezone.utc)
+    metadata_item.is_active = True
+    
     return item
 
-
-def delete(type: str, id: str) -> bool:
+def _delete(type: str, id: str) -> Optional[ModelType]:
     model = MODEL_MAP.get(type)
-    if not model:
+    meta_model = META_MODEL_MAP.get(type)
+    if not model or not meta_model:
         raise ValueError(f"Invalid model type: {type}")
-    
+
     item = model.query.get(id)
-    if item:
-        db.session.delete(item)
-        safe_commit()
-        return True
-    return False
+    if not item:
+        return None 
 
-def delete_all(type: str) -> int:
+    metadata_attr = f"{type}_metadata"
+    metadata_item = getattr(item, metadata_attr, None)
+
+    if metadata_item and metadata_item.is_active:
+        metadata_item.is_active = False
+    else:
+        model.query.filter_by(id=id).delete()
+        return None
+
+    return item
+
+def _delete_all(type: str) -> int:
     model = MODEL_MAP.get(type)
-    if not model:
+    meta_model = META_MODEL_MAP.get(type)
+    if not model or not meta_model:
         raise ValueError(f"Invalid model type: {type}")
 
-    count = model.query.count()
-    model.query.delete()
-    safe_commit()
+    # Count the number of active items
+    count = meta_model.query.filter_by(is_active=True).count()
+
+    # Bulk update to set is_active to False for all metadata items
+    meta_model.query.update({meta_model.is_active: False}, synchronize_session=False)
+    # Delete all items that are not in the active metadata items
+    model.query.filter(~model.id.in_(db.session.query(meta_model.id).filter_by(is_active=True))).delete(synchronize_session=False)
 
     return count
 
-
-def get(type: str, id: str) -> Optional[ModelType]:
+def _get(type: str, id: str) -> Optional[ModelType]:
     model = MODEL_MAP.get(type)
-    if not model: 
-        raise ValueError(f"Invalid model type: {type}")
-    
-    return model.query.get(id)
-
-def get_all(type: str, page: Optional[int] = None, limit: Optional[int] = None, sort: Optional[str] = None, order: str = 'asc') -> List[ModelType]:
-    model = MODEL_MAP.get(type)
-    if not model:
+    meta_model = META_MODEL_MAP.get(type)
+    if not model or not meta_model:
         raise ValueError(f"Invalid model type: {type}")
 
-    query = model.query
+    metadata_attr = f"{type}_metadata"
 
-   # Apply sorting if specified
+    item = (
+        db.session.query(model)
+        .options(joinedload(getattr(model, metadata_attr)))
+        .filter(model.id == id)
+        .filter(getattr(meta_model, 'is_active') == True)
+        .first()
+    )
+
+    if not item:
+        return None
+
+    metadata = getattr(item, metadata_attr)
+    metadata.last_accessed_at = datetime.now(timezone.utc)
+    metadata.view_count += 1
+
+    return item 
+
+def _get_all(type: str, page: Optional[int] = None, limit: Optional[int] = None, sort: Optional[str] = None, order: str = 'asc') -> List[ModelType]:
+    model = MODEL_MAP.get(type)
+    meta_model = META_MODEL_MAP.get(type)
+    if not model or not meta_model:
+        raise ValueError(f"Invalid model type: {type}")
+
+    metadata_attr = f"{type}_metadata"
+
+    query = (
+        db.session.query(model)
+        .join(getattr(model, metadata_attr))
+        .filter(getattr(meta_model, 'is_active') == True)
+    )
+
+    # Apply sorting if specified
     if sort:
         sort_column = getattr(model, sort, None)
         if sort_column is not None:
             query = query.order_by(desc(sort_column) if order.lower() == 'desc' else sort_column)
 
     # Apply pagination if both page and limit are specified
-    if page is not None and limit is not None:
+    if page and limit:
         page = max(1, page)  # Ensure page is at least 1
         limit = min(max(1, limit), 100)  # Ensure limit is between 1 and 100
         query = query.offset((page - 1) * limit).limit(limit)
 
-    return query.all()
+    # Eager load the metadata to avoid N+1 query problem
+    query = query.options(joinedload(getattr(model, metadata_attr)))
 
+    # Execute the query and get the results
+    results = query.all()
 
-def cleanup(type: str) -> int:
-    local_model = MODEL_MAP.get(f'local_{type}')
-    if not local_model:
-        raise ValueError(f"Invalid model type: {type}")
+    # Update last_accessed_at and view_count for all retrieved items
+    if results:
+        item_ids = [item.id for item in results]
+        db.session.query(meta_model).filter(
+            getattr(model, 'id').in_(item_ids)
+        ).update({
+            meta_model.last_accessed_at: datetime.now(timezone.utc),
+            meta_model.view_count: meta_model.view_count + 1
+        }, synchronize_session=False)
+
+    return results
+
+def _cleanup(type: str) -> int:
     model = MODEL_MAP.get(type)
+    meta_model = META_MODEL_MAP.get(type)
+    if not model or not meta_model:
+        raise ValueError(f"Invalid model type: {type}")
 
-    local_ids = db.session.query(local_model.id)
-    deleted = db.session.query(model).filter(~model.id.in_(local_ids)).delete(synchronize_session=False)
-    safe_commit()
+    metadata_attr = f"{type}_metadata"
+
+    # Subquery to get IDs of items with active metadata
+    active_ids = db.session.query(model.id).join(
+        getattr(model, metadata_attr)
+    ).filter(
+        getattr(meta_model, 'is_active') == True
+    ).subquery()
+
+    # Delete items that are not in the active_ids subquery
+    deleted = db.session.query(model).filter(
+        ~model.id.in_(active_ids)
+    ).delete(synchronize_session=False)
 
     return deleted
 
-def cleanup_all() -> Dict[str, int]:
-    return { type: cleanup(type) for type in ['vn', 'tag', 'producer', 'staff', 'character', 'trait'] }
+def _cleanup_all() -> Dict[str, int]:
+    return { type: cleanup(type) for type in MODEL_MAP.keys() }
+
+@db_transaction
+def create(*args, **kwargs) -> Optional[ModelType]: return _create(*args, **kwargs)
+
+@db_transaction
+def update(*args, **kwargs) -> Optional[ModelType]: return _update(*args, **kwargs)
+
+@db_transaction
+def delete(*args, **kwargs) -> Optional[ModelType]: return _delete(*args, **kwargs)
+
+@db_transaction
+def delete_all(*args, **kwargs) -> int: return _delete_all(*args, **kwargs)
+
+@db_transaction
+def get(*args, **kwargs) -> Optional[ModelType]: return _get(*args, **kwargs)
+
+@db_transaction
+def get_all(*args, **kwargs) -> List[ModelType]: return _get_all(*args, **kwargs)
+
+@db_transaction
+def cleanup(*args, **kwargs) -> int: return _cleanup(*args, **kwargs)
+
+@db_transaction
+def cleanup_all(*args, **kwargs) -> Dict[str, int]: return _cleanup_all(*args, **kwargs)
 
 
 def next_image_id(resource_type: str) -> str:
-    """Get the next available image ID starting with 'u'."""
-    if resource_type not in ['vn', 'character']:
+    """
+    Get the next available image ID starting with 'u' without using a database session.
+
+    Args:
+        resource_type (str): The type of resource ('vn' or 'character').
+
+    Returns:
+        str: The next available image ID.
+
+    Raises:
+        ValueError: If an invalid resource_type is provided.
+    """
+    table_name = IMAGE_MODEL_MAP.get(resource_type)
+    if not table_name:
         raise ValueError(f"Invalid image resource_type: {resource_type}")
 
-    image_model = models.VNImage if resource_type == 'vn' else models.CharacterImage
+    # Use raw SQL query to get the maximum ID
+    query = text(f"""
+        SELECT COALESCE(MAX(CAST(SUBSTRING(id, 2) AS INTEGER)), 0)
+        FROM {table_name}
+        WHERE id LIKE 'u%'
+    """)
 
-    # Query the maximum ID that starts with 'u'
-    try:
-        max_num = db.session.query(
-            func.max(
-                cast(func.substr(image_model.id, 2), Integer)
-            )
-        ).filter(image_model.id.like('u%')).scalar()
+    with db.engine.connect() as connection:
+        result = connection.execute(query)
+        max_num = result.scalar()
 
-        if max_num: return f'u{max_num + 1}'
+    return f'u{max_num + 1}'
 
-    except SQLAlchemyError as exc:
-        ...
-
-    return 'u1'
-
-def get_image(resource_type: str, resource_id: str, image_id: str) -> Optional[Dict[str, str]]:
+@db_transaction
+def create_image(resource_type: str, resource_id: str, data: Dict[str, Any]) -> Optional[ImageModelType]:
     if resource_type not in ['vn', 'character']:
-        raise ValueError(f"Invalid resource_type for image retrieval: {resource_type}")
+        raise ValueError(f"Invalid resource_type for image creation: {resource_type}")
 
-    image_model = models.VNImage if resource_type == 'vn' else models.CharacterImage
-    foreign_key = 'vn_id' if resource_type == 'vn' else 'character_id'
+    resource = _get(resource_type, resource_id)
+    if not resource:
+        return None
     
-    try:
-        image = image_model.query.filter_by(id=image_id, **{foreign_key: resource_id}).one()
-        image_path = os.path.join(current_app.config[f'IMAGE_{resource_type.upper()}_FOLDER'], f"{image.id}.jpg")
-        return {
-            "id": image.id,
-            "type": image.image_type,
-            "path": image_path if os.path.exists(image_path) else None,
-            f"{resource_type}_id": getattr(image, foreign_key)
-        }
-    except NoResultFound:
+    image_id = next_image_id(resource_type)
+    image_type = f'{resource_type}_image'
+    image_data = {
+        'id': image_id,
+        'image_type': data.get('image_type', 'unknown'),
+        f'{resource_type}_id': resource_id
+    }
+
+    image = _create(type=image_type, id=image_id, data=image_data)
+    if image is None:
         return None
 
-def get_images(resource_type: str, resource_id: str) -> List[Dict[str, str]]:
+    resource.images.append(image)
+    return image
+
+@db_transaction
+def get_image(resource_type: str, resource_id: str, image_id: str) -> Optional[ImageModelType]:
     if resource_type not in ['vn', 'character']:
         raise ValueError(f"Invalid resource_type for image retrieval: {resource_type}")
+    
+    if not exists(resource_type, resource_id):
+        return None
 
-    image_model = models.VNImage if resource_type == 'vn' else models.CharacterImage
-    foreign_key = 'vn_id' if resource_type == 'vn' else 'character_id'
+    image = _get(f'{resource_type}_image', image_id)
 
-    images = image_model.query.filter_by(**{foreign_key: resource_id}).all()
-    result = []
-    for image in images:
-        image_path = os.path.join(current_app.config[f'IMAGE_{resource_type.upper()}_FOLDER'], f"{image.id}.jpg")
-        result.append({
-            "id": image.id,
-            "type": image.image_type,
-            "path": image_path if os.path.exists(image_path) else None,
-            f"{resource_type}_id": getattr(image, foreign_key)
-        })
-    return result
+    if not image or getattr(image, f'{resource_type}_id') != resource_id:
+        return None
+    
+    return image
 
-def delete_image(resource_type: str, resource_id: str, image_id: str) -> bool:
+@db_transaction
+def get_images(resource_type: str, resource_id: str, page: Optional[int] = None, limit: Optional[int] = None) -> List[ImageModelType]:
+    if resource_type not in ['vn', 'character']:
+        raise ValueError(f"Invalid resource_type for image retrieval: {resource_type}")
+    
+    resource = _get(resource_type, resource_id)
+    if not resource:
+        return []
+
+    image_type = f'{resource_type}_image'
+    
+    # Use the existing get_all function with additional filtering
+    images = _get_all(
+        type=image_type,
+        page=page,
+        limit=limit,
+        sort='id',  # You can change this if you want a different default sorting
+        order='asc'
+    )
+    
+    # Filter images to only those associated with the specific resource
+    filtered_images = [img for img in images if getattr(img, f'{resource_type}_id') == resource_id]
+    
+    return filtered_images
+
+@db_transaction
+def delete_image(resource_type: str, resource_id: str, image_id: str) -> Optional[ImageModelType]:
     if resource_type not in ['vn', 'character']:
         raise ValueError(f"Invalid resource_type for image deletion: {resource_type}")
+    
+    if not exists(resource_type, resource_id):
+        return None
 
-    image_model = models.VNImage if resource_type == 'vn' else models.CharacterImage
-    foreign_key = 'vn_id' if resource_type == 'vn' else 'character_id'
+    image_type = f'{resource_type}_image'
+    image = _get(image_type, image_id)
     
-    # Query for the image to delete
-    image = image_model.query.filter_by(id=image_id, **{foreign_key: resource_id}).first()
+    if not image or getattr(image, f'{resource_type}_id') != resource_id:
+        return None
     
-    if image:
-        # Delete the image file
-        image_path = os.path.join(current_app.config[f'IMAGE_{resource_type.upper()}_FOLDER'], f"{image.id}.jpg")
-        if os.path.exists(image_path):
-            os.remove(image_path)
-        
-        # Delete the database entry
-        db.session.delete(image)
-        safe_commit()
-        return True
-    
-    return False
+    return _delete(image_type, image_id)
 
+@db_transaction
 def delete_images(resource_type: str, resource_id: str) -> int:
     if resource_type not in ['vn', 'character']:
         raise ValueError(f"Invalid resource_type for image deletion: {resource_type}")
+    
+    if not exists(resource_type, resource_id):
+        return 0
 
-    image_model = models.VNImage if resource_type == 'vn' else models.CharacterImage
-    foreign_key = 'vn_id' if resource_type == 'vn' else 'character_id'
-
-    # Query for images to delete
-    images_to_delete = image_model.query.filter_by(**{foreign_key: resource_id}).all()
-
-    # Delete image files
-    for image in images_to_delete:
-        image_path = os.path.join(current_app.config[f'IMAGE_{resource_type.upper()}_FOLDER'], f"{image.id}.jpg")
-        if os.path.exists(image_path):
-            os.remove(image_path)
-
-    # Delete database entries
-    deleted_count = image_model.query.filter_by(**{foreign_key: resource_id}).delete()
-    safe_commit()
-
+    image_type = f'{resource_type}_image'
+    
+    # Get all images associated with the resource
+    images = _get_all(image_type)
+    images = [img for img in images if getattr(img, f'{resource_type}_id') == resource_id]
+    
+    deleted_count = 0
+    for image in images:
+        deleted_image = _delete(image_type, image.id)
+        deleted_count += 1 if deleted_image else 0
+    
     return deleted_count
 
 def get_image_path(resource_type: str, resource_id: str, image_id: str) -> Optional[str]:
@@ -275,82 +402,115 @@ def get_image_path(resource_type: str, resource_id: str, image_id: str) -> Optio
 
 
 def next_savedata_id() -> str:
-    """Get the next available savedata ID starting with 's'."""
-    try:
-        max_num = db.session.query(
-            func.max(
-                cast(func.substr(models.SaveData.id, 2), Integer)
-            )
-        ).filter(models.SaveData.id.like('s%')).scalar()
+    """
+    Get the next available savedata ID starting with 's' without using a database session.
 
-        if max_num: return f's{max_num + 1}'
+    Returns:
+        str: The next available savedata ID.
+    """
+    # Use raw SQL query to get the maximum ID
+    query = text("""
+        SELECT COALESCE(MAX(CAST(SUBSTRING(id, 2) AS INTEGER)), 0)
+        FROM savedata
+        WHERE id LIKE 's%'
+    """)
 
-    except SQLAlchemyError:
-        pass
+    with db.engine.connect() as connection:
+        result = connection.execute(query)
+        max_num = result.scalar()
 
-    return 's1'
+    return f's{max_num + 1}'
 
-def get_savedata(vnid: str, id: str) -> Optional[Dict[str, str]]:
-    savedata = models.SaveData.query.filter_by(id=id, vnid=vnid).first()
-    if savedata:
-        return {
-            "id": savedata.id,
-            "vnid": savedata.vnid,
-            "time": savedata.time.isoformat(),
-            "filename": savedata.filename
-        }
-    return None
-
-def get_savedatas(vnid: str) -> List[Dict[str, str]]:
-    savedatas = models.SaveData.query.filter_by(vnid=vnid).all()
-    result = []
-    for savedata in savedatas:
-        result.append({
-            "id": savedata.id,
-            "vnid": savedata.vnid,
-            "time": savedata.time.isoformat(),
-            "filename": savedata.filename
-        })
-    return result
-
-def delete_savedata(vnid: str, id: str) -> bool:
-    savedata = models.SaveData.query.filter_by(id=id, vnid=vnid).first()
+@db_transaction
+def create_savedata(vnid: str, data: Dict[str, Any]) -> Optional[models.SaveData]:
+    vn = _get('vn', vnid)
+    if not vn:
+        return None
     
-    if savedata:
-        savedata_path = os.path.join(current_app.config['SAVEDATA_FOLDER'], f"{savedata.id}")
-        if os.path.exists(savedata_path):
-            os.remove(savedata_path)
+    savedata_id = next_savedata_id()
+    savedata_data = {
+        'id': savedata_id,
+        'vnid': vnid,
+        'time': data.get('time', datetime.now(timezone.utc)),
+        'filename': data.get('filename', ''),
+        **data
+    }
 
-        db.session.delete(savedata)
-        safe_commit()
-        return True
+    savedata = _create('savedata', savedata_id, savedata_data)
+    if savedata is None:
+        return None
+
+    # Update the relationship
+    vn.savedatas.append(savedata)
+
+    return savedata
+
+@db_transaction
+def get_savedata(vnid: str, savedata_id: str) -> Optional[models.SaveData]:
+    if not exists('vn', vnid):
+        return None
+
+    savedata = _get('savedata', savedata_id)
     
-    return False
+    if not savedata or savedata.vnid != vnid:
+        return None
+    
+    return savedata
 
+@db_transaction
+def get_savedatas(vnid: str, page: Optional[int] = None, limit: Optional[int] = None) -> List[models.SaveData]:
+    if not exists('vn', vnid):
+        return []
+
+    savedatas = _get_all(
+        type='savedata',
+        page=page,
+        limit=limit,
+        sort='time',
+        order='desc'
+    )
+    
+    filtered_savedatas = [sd for sd in savedatas if sd.vnid == vnid]
+    
+    return filtered_savedatas
+
+@db_transaction
+def delete_savedata(vnid: str, savedata_id: str) -> Optional[models.SaveData]:
+    if not exists('vn', vnid):
+        return None
+
+    savedata = _get('savedata', savedata_id)
+    
+    if not savedata or savedata.vnid != vnid:
+        return None
+    
+    return _delete('savedata', savedata_id)
+
+db_transaction
 def delete_savedatas(vnid: str) -> int:
+    if not exists('vn', vnid):
+        return 0
 
-    savedatas_to_delete = models.SaveData.query.filter_by(vnid=vnid).all()
-
-    for savedata in savedatas_to_delete:
-        savedata_path = os.path.join(current_app.config['SAVEDATA_FOLDER'], f"{savedata.id}")
-        if os.path.exists(savedata_path):
-            os.remove(savedata_path)
-
-    deleted_count = models.SaveData.query.filter_by(vnid=vnid).delete()
-    safe_commit()
-
+    savedatas = _get_all('savedata')
+    savedatas = [sd for sd in savedatas if sd.vnid == vnid]
+    
+    deleted_count = 0
+    for savedata in savedatas:
+        deleted_savedata = _delete('savedata', savedata.id)
+        deleted_count += 1 if deleted_savedata else 0
+    
     return deleted_count
 
-def get_savedata_path(vn_id: str, savedata_id: str) -> Optional[str]:
+def get_savedata_path(vnid: str, savedata_id: str) -> Optional[str]:
     """
     Get the path of a savedata file if it exists and is associated with the given VN.
     
-    :param vn_id: The ID of the visual novel
+    :param vnid: The ID of the visual novel
     :param savedata_id: The ID of the savedata
     :return: The path to the savedata file if it exists and is associated with the VN, None otherwise
     """
     # Check if the savedata exists in the database and is associated with the VN
-    savedata = models.SaveData.query.filter_by(id=savedata_id, vnid=vn_id).first()
+    savedata = models.SaveData.query.filter_by(id=savedata_id, vnid=vnid).first()
     
     if savedata:
         # Construct the path to the savedata file
@@ -363,18 +523,17 @@ def get_savedata_path(vn_id: str, savedata_id: str) -> Optional[str]:
     return None
 
 
+def get_next_backup_id() -> str:
+    return str(uuid.uuid4()) 
+
 def backup_database_pg_dump() -> str:
-    
+    """Create a database backup and return the filename."""
     backup_folder = current_app.config['BACKUP_FOLDER']
     if not os.path.exists(backup_folder):
         os.makedirs(backup_folder)
 
-    # Create a new backup entry
-    new_backup = MODEL_MAP['backup']()
-    db.session.add(new_backup)
-    db.session.flush()  # This will assign an ID to new_backup without committing the transaction
-    
-    backup_filename = f"{new_backup.id}.dump"
+    backup_id = get_next_backup_id()
+    backup_filename = f"{backup_id}.dump"
     backup_path = os.path.join(backup_folder, backup_filename)
     
     # Get database connection information from config
@@ -394,7 +553,7 @@ def backup_database_pg_dump() -> str:
         '-h', db_host,
         '-p', db_port,
         '-U', db_user,
-        '-F', 'c',  # plain text format
+        '-F', 'c',  # custom format
         '-f', backup_path,
         db_name
     ]
@@ -403,25 +562,10 @@ def backup_database_pg_dump() -> str:
         # Execute pg_dump command
         result = subprocess.run(command, env=env, check=True, capture_output=True, text=True)
         print(f"Database backup created: {backup_filename}")
-
-        db.session.commit()
-        return new_backup.id 
+        return backup_id 
     except subprocess.CalledProcessError as e:
-        db.session.rollback()
         print(f"Error during database backup: {e}")
         print(f"Error output: {e.stderr}")
-        if os.path.exists(backup_path):
-            os.remove(backup_path)
-        raise
-    except SQLAlchemyError as e:
-        db.session.rollback()
-        print(f"Error adding backup entry to database: {str(e)}")
-        if os.path.exists(backup_path):
-            os.remove(backup_path)
-        raise
-    except Exception as e:
-        db.session.rollback()
-        print(f"Unexpected error during backup: {str(e)}")
         if os.path.exists(backup_path):
             os.remove(backup_path)
         raise
@@ -476,112 +620,108 @@ def restore_database_pg_dump(filename) -> bool:
         # Clear password from environment variable
         env.pop('PGPASSWORD', None)
 
-def get_backup(backup_id):
+@db_transaction
+def create_backup() -> Optional[str]:
+    try:
+        # Perform the actual backup
+        backup_id = backup_database_pg_dump()
+
+        # Create a new backup entry in the database
+        backup_data = {
+            'time': datetime.now(timezone.utc),
+            'filename': backup_id 
+        }
+        
+        new_backup = _create('backup', backup_id, backup_data)
+        if new_backup is None:
+            raise ValueError("Failed to create backup entry in database")
+
+        return backup_id
+
+    except (subprocess.CalledProcessError, SQLAlchemyError, ValueError) as e:
+        print(f"Error during backup creation: {str(e)}")
+        # If the backup file was created but database entry failed, remove the file
+        backup_folder = current_app.config['BACKUP_FOLDER']
+        backup_path = os.path.join(backup_folder, f'{backup_id}.dump')
+        if os.path.exists(backup_path):
+            os.remove(backup_path)
+        raise
+
+    except Exception as e:
+        print(f"Unexpected error during backup: {str(e)}")
+        raise
+
+@db_transaction
+def get_backup(backup_id: str) -> Optional[Dict[str, Any]]:
     """
     Retrieve a specific backup from the database.
     
     :param backup_id: The ID of the backup to retrieve.
     :return: A dictionary with backup details or None if not found.
     """
-    try:
-        backup = MODEL_MAP['backup'].query.get(backup_id)
-        if backup is None:
-            print(f"No backup found with ID: {backup_id}")
-            return None
-        return {
-            'id': backup.id,
-            'time': backup.time.isoformat()
-        }
-    except SQLAlchemyError as e:
-        print(f"Error retrieving backup: {str(e)}")
+    backup = _get('backup', backup_id)
+    if backup is None:
+        print(f"No backup found with ID: {backup_id}")
         return None
+    
+    return {
+        'id': backup.id,
+        'time': backup.time.isoformat(),
+        'filename': backup.filename
+    }
 
-def get_backups():
+@db_transaction
+def get_backups(page: Optional[int] = None, limit: Optional[int] = None) -> List[Dict[str, Any]]:
     """
     Retrieve all backups from the database.
     
-    :return: A dictionary with backup IDs as keys and creation times as values.
+    :param page: The page number for pagination.
+    :param limit: The number of items per page.
+    :return: A list of dictionaries with backup details.
     """
-    try:
-        backups = MODEL_MAP['backup'].query.order_by(MODEL_MAP['backup'].time.desc()).all()
-        return {backup.id: backup.time.isoformat() for backup in backups}
-    except SQLAlchemyError as e:
-        print(f"Error retrieving backups: {str(e)}")
-        return {}
+    backups = _get_all('backup', page=page, limit=limit, sort='time', order='desc')
+    return [
+        {
+            'id': backup.id,
+            'time': backup.time.isoformat(),
+            'filename': backup.filename
+        }
+        for backup in backups
+    ]
 
+@db_transaction
 def delete_backup(backup_id: str) -> bool:
     """
-    Delete a specific backup entry and its corresponding file.
+    Delete a specific backup entry from the database.
     
     :param backup_id: The ID of the backup to delete.
     :return: True if the backup was successfully deleted, False otherwise.
     """
-    try:
-        backup = MODEL_MAP['backup'].query.get(backup_id)
-        if backup is None:
-            print(f"No backup found with ID: {backup_id}")
-            return False
-
-        # Get the full path of the backup file
-        backup_path = get_backup_path(backup_id)
-
-        # Delete the file if it exists
-        if os.path.exists(backup_path):
-            os.remove(backup_path)
-        else:
-            print(f"Warning: Backup file not found: {backup_path}")
-
-        # Delete the database entry
-        db.session.delete(backup)
-        db.session.commit()
-
-        print(f"Backup with ID {backup_id} successfully deleted")
-        return True
-    except SQLAlchemyError as e:
-        db.session.rollback()
-        print(f"Error deleting backup from database: {str(e)}")
-        return False
-    except OSError as e:
-        print(f"Error deleting backup file: {str(e)}")
+    deleted_backup = _delete('backup', backup_id)
+    if deleted_backup is None:
+        print(f"No backup found with ID: {backup_id}")
         return False
 
+    print(f"Backup with ID {backup_id} successfully deleted")
+    return True
+
+@db_transaction
 def delete_backups() -> Dict[str, List[str]]:
     """
-    Delete all backup entries and their corresponding files.
+    Delete all backup entries from the database.
     
     :return: A dictionary with 'success' and 'failed' lists of backup IDs.
     """
     result = {'success': [], 'failed': []}
     
-    try:
-        backups = MODEL_MAP['backup'].query.all()
-        
-        for backup in backups:
-            try:
-                # Get the full path of the backup file
-                backup_path = get_backup_path(backup.id)
-
-                # Delete the file if it exists
-                if os.path.exists(backup_path):
-                    os.remove(backup_path)
-                else:
-                    print(f"Warning: Backup file not found: {backup_path}")
-
-                # Delete the database entry
-                db.session.delete(backup)
-                result['success'].append(backup.id)
-                
-            except OSError as e:
-                print(f"Error deleting backup file for {backup.id}: {str(e)}")
-                result['failed'].append(backup.id)
-
-        db.session.commit()
-    except SQLAlchemyError as e:
-        db.session.rollback()
-        print(f"Error deleting backups from database: {str(e)}")
-        # Move all successful deletes to failed if commit fails
-        result['failed'].extend(result['success'])
-        result['success'] = []
+    backups = _get_all('backup')
+    
+    for backup in backups:
+        deleted_backup = _delete('backup', backup.id)
+        if deleted_backup is not None:
+            result['success'].append(backup.id)
+        else:
+            result['failed'].append(backup.id)
 
     return result
 

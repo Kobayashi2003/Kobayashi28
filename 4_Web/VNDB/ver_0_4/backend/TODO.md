@@ -1,3 +1,8 @@
+- savedatas delete
+- images update delete
+- backups
+- character
+
 - vns/<string:vnid>/vns - GET POST PUT DELETE
 - vns/<string:vnid>/vns/<string:vnid2> - GET POST PUT DELETE
 
