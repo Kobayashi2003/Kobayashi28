@@ -11,18 +11,17 @@ from .crud import cleanup
 from .crud import cleanup_all
 
 from .crud import create_image
+from .crud import create_upload_image
 from .crud import get_image
 from .crud import get_images
 from .crud import delete_image
 from .crud import delete_images
-from .crud import get_image_path
 
 from .crud import create_savedata
 from .crud import get_savedata
 from .crud import get_savedatas
 from .crud import delete_savedata
 from .crud import delete_savedatas
-from .crud import get_savedata_path
 
 from .crud import backup_database_pg_dump
 from .crud import restore_database_pg_dump
@@ -31,8 +30,8 @@ from .crud import get_backup
 from .crud import get_backups
 from .crud import delete_backup
 from .crud import delete_backups
-from .crud import get_backup_path
 
 from .models import META_MODEL_MAP, MODEL_MAP, IMAGE_MODEL_MAP
 from .models import MetaModelType, ModelType, ImageModelType
 from .models import convert_model_to_dict
+from .models import extract_images

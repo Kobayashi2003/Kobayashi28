@@ -1,4 +1,4 @@
-from typing import List, Dict, Any, Union, Optional
+from typing import List, Dict, Any, Optional
 
 import os
 import subprocess
@@ -8,7 +8,7 @@ from functools import wraps
 
 from flask import current_app
 
-from sqlalchemy import func, cast, desc, text, Integer
+from sqlalchemy import desc, text
 from sqlalchemy.orm import joinedload 
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -46,7 +46,7 @@ def _create(type: str, id: str, data: Dict[str, Any]) -> Optional[ModelType]:
     meta_model = META_MODEL_MAP.get(type)
     if not model or not meta_model: 
         raise ValueError(f"Invalid model type: {type}")
-    data.pop('id')
+    data.pop('id', None)
 
     if exists(type, id):
         return None
@@ -101,8 +101,7 @@ def _delete(type: str, id: str) -> Optional[ModelType]:
     if metadata_item and metadata_item.is_active:
         metadata_item.is_active = False
     else:
-        model.query.filter_by(id=id).delete()
-        return None
+        db.session.delete(item)
 
     return item
 
@@ -216,6 +215,59 @@ def _cleanup(type: str) -> int:
 def _cleanup_all() -> Dict[str, int]:
     return { type: cleanup(type) for type in MODEL_MAP.keys() }
 
+def _get_inactive(type: str, id: str) -> Optional[ModelType]:
+    model = MODEL_MAP.get(type)
+    meta_model = META_MODEL_MAP.get(type)
+    if not model or not meta_model:
+        raise ValueError(f"Invalid model type: {type}")
+
+    metadata_attr = f"{type}_metadata"
+
+    item = (
+        db.session.query(model)
+        .options(joinedload(getattr(model, metadata_attr)))
+        .filter(model.id == id)
+        .filter(getattr(meta_model, 'is_active') == False)
+        .first()
+    )
+
+    return item
+
+def _get_all_inactive(type: str, page: Optional[int] = None, limit: Optional[int] = None, sort: Optional[str] = None, order: str = 'asc') -> List[ModelType]:
+    model = MODEL_MAP.get(type)
+    meta_model = META_MODEL_MAP.get(type)
+    if not model or not meta_model:
+        raise ValueError(f"Invalid model type: {type}")
+
+    metadata_attr = f"{type}_metadata"
+
+    query = (
+        db.session.query(model)
+        .join(getattr(model, metadata_attr))
+        .filter(getattr(meta_model, 'is_active') == False)
+    )
+
+    # Apply sorting if specified
+    if sort:
+        sort_column = getattr(model, sort, None)
+        if sort_column is not None:
+            query = query.order_by(desc(sort_column) if order.lower() == 'desc' else sort_column)
+
+    # Apply pagination if both page and limit are specified
+    if page and limit:
+        page = max(1, page)  # Ensure page is at least 1
+        limit = min(max(1, limit), 100)  # Ensure limit is between 1 and 100
+        query = query.offset((page - 1) * limit).limit(limit)
+
+    # Eager load the metadata to avoid N+1 query problem
+    query = query.options(joinedload(getattr(model, metadata_attr)))
+
+    # Execute the query and get the results
+    results = query.all()
+
+    return results
+
+
 @db_transaction
 def create(*args, **kwargs) -> Optional[ModelType]: return _create(*args, **kwargs)
 
@@ -240,6 +292,12 @@ def cleanup(*args, **kwargs) -> int: return _cleanup(*args, **kwargs)
 @db_transaction
 def cleanup_all(*args, **kwargs) -> Dict[str, int]: return _cleanup_all(*args, **kwargs)
 
+@db_transaction
+def get_inactive(*args, **kwargs) -> Optional[ModelType]: return _get_inactive(*args, **kwargs)
+
+@db_transaction
+def get_all_inactive(*args, **kwargs) -> List[ModelType]: return _get_all_inactive(*args, **kwargs)
+
 
 def next_image_id(resource_type: str) -> str:
     """
@@ -254,7 +312,7 @@ def next_image_id(resource_type: str) -> str:
     Raises:
         ValueError: If an invalid resource_type is provided.
     """
-    table_name = IMAGE_MODEL_MAP.get(resource_type)
+    table_name = IMAGE_MODEL_MAP.get(resource_type).__tablename__
     if not table_name:
         raise ValueError(f"Invalid image resource_type: {resource_type}")
 
@@ -272,7 +330,7 @@ def next_image_id(resource_type: str) -> str:
     return f'u{max_num + 1}'
 
 @db_transaction
-def create_image(resource_type: str, resource_id: str, data: Dict[str, Any]) -> Optional[ImageModelType]:
+def create_image(resource_type: str, resource_id: str, image_id: str, data: Dict[str, Any]) -> Optional[ImageModelType]:
     if resource_type not in ['vn', 'character']:
         raise ValueError(f"Invalid resource_type for image creation: {resource_type}")
 
@@ -280,7 +338,6 @@ def create_image(resource_type: str, resource_id: str, data: Dict[str, Any]) -> 
     if not resource:
         return None
     
-    image_id = next_image_id(resource_type)
     image_type = f'{resource_type}_image'
     image_data = {
         'id': image_id,
@@ -294,6 +351,10 @@ def create_image(resource_type: str, resource_id: str, data: Dict[str, Any]) -> 
 
     resource.images.append(image)
     return image
+
+def create_upload_image(resource_type: str, resource_id: str, data: Dict[str, Any]) -> Optional[ImageModelType]:
+    image_id = next_image_id(resource_type)
+    return create_image(resource_type, resource_id, image_id, data)
 
 @db_transaction
 def get_image(resource_type: str, resource_id: str, image_id: str) -> Optional[ImageModelType]:
@@ -344,7 +405,7 @@ def delete_image(resource_type: str, resource_id: str, image_id: str) -> Optiona
         return None
 
     image_type = f'{resource_type}_image'
-    image = _get(image_type, image_id)
+    image = _get(image_type, image_id) or _get_inactive(image_type, image_id)
     
     if not image or getattr(image, f'{resource_type}_id') != resource_id:
         return None
@@ -362,7 +423,7 @@ def delete_images(resource_type: str, resource_id: str) -> int:
     image_type = f'{resource_type}_image'
     
     # Get all images associated with the resource
-    images = _get_all(image_type)
+    images = _get_all(image_type) + _get_all_inactive(image_type)
     images = [img for img in images if getattr(img, f'{resource_type}_id') == resource_id]
     
     deleted_count = 0
@@ -371,34 +432,6 @@ def delete_images(resource_type: str, resource_id: str) -> int:
         deleted_count += 1 if deleted_image else 0
     
     return deleted_count
-
-def get_image_path(resource_type: str, resource_id: str, image_id: str) -> Optional[str]:
-    """
-    Get the path of an image file if it exists and is associated with the given resource.
-    
-    :param resource_type: The type of resource ('vn' or 'character')
-    :param resource_id: The ID of the resource (VN or character)
-    :param image_id: The ID of the image
-    :return: The path to the image file if it exists and is associated with the resource, None otherwise
-    """
-    if resource_type not in ['vn', 'character']:
-        raise ValueError(f"Invalid resource type: {resource_type}")
-
-    image_model = models.VNImage if resource_type == 'vn' else models.CharacterImage
-    foreign_key = f"{resource_type}_id"
-
-    # Check if the image exists in the database and is associated with the resource
-    image = image_model.query.filter_by(id=image_id, **{foreign_key: resource_id}).first()
-    
-    if image:
-        # Construct the path to the image file
-        image_path = os.path.join(current_app.config[f'IMAGE_{resource_type.upper()}_FOLDER'], f"{image.id}.jpg")
-        
-        # Check if the file exists
-        if os.path.exists(image_path):
-            return image_path
-    
-    return None
 
 
 def next_savedata_id() -> str:
@@ -479,19 +512,19 @@ def delete_savedata(vnid: str, savedata_id: str) -> Optional[models.SaveData]:
     if not exists('vn', vnid):
         return None
 
-    savedata = _get('savedata', savedata_id)
+    savedata = _get('savedata', savedata_id) or _get_inactive('savedata', savedata_id)
     
     if not savedata or savedata.vnid != vnid:
         return None
     
     return _delete('savedata', savedata_id)
 
-db_transaction
+@db_transaction
 def delete_savedatas(vnid: str) -> int:
     if not exists('vn', vnid):
         return 0
 
-    savedatas = _get_all('savedata')
+    savedatas = _get_all('savedata') + _get_all_inactive('savedata')
     savedatas = [sd for sd in savedatas if sd.vnid == vnid]
     
     deleted_count = 0
@@ -500,27 +533,6 @@ def delete_savedatas(vnid: str) -> int:
         deleted_count += 1 if deleted_savedata else 0
     
     return deleted_count
-
-def get_savedata_path(vnid: str, savedata_id: str) -> Optional[str]:
-    """
-    Get the path of a savedata file if it exists and is associated with the given VN.
-    
-    :param vnid: The ID of the visual novel
-    :param savedata_id: The ID of the savedata
-    :return: The path to the savedata file if it exists and is associated with the VN, None otherwise
-    """
-    # Check if the savedata exists in the database and is associated with the VN
-    savedata = models.SaveData.query.filter_by(id=savedata_id, vnid=vnid).first()
-    
-    if savedata:
-        # Construct the path to the savedata file
-        savedata_path = os.path.join(current_app.config['SAVEDATA_FOLDER'], savedata.id)
-        
-        # Check if the file exists
-        if os.path.exists(savedata_path):
-            return savedata_path
-    
-    return None
 
 
 def get_next_backup_id() -> str:
@@ -629,7 +641,6 @@ def create_backup() -> Optional[str]:
         # Create a new backup entry in the database
         backup_data = {
             'time': datetime.now(timezone.utc),
-            'filename': backup_id 
         }
         
         new_backup = _create('backup', backup_id, backup_data)
@@ -638,7 +649,7 @@ def create_backup() -> Optional[str]:
 
         return backup_id
 
-    except (subprocess.CalledProcessError, SQLAlchemyError, ValueError) as e:
+    except Exception as e:
         print(f"Error during backup creation: {str(e)}")
         # If the backup file was created but database entry failed, remove the file
         backup_folder = current_app.config['BACKUP_FOLDER']
@@ -647,18 +658,8 @@ def create_backup() -> Optional[str]:
             os.remove(backup_path)
         raise
 
-    except Exception as e:
-        print(f"Unexpected error during backup: {str(e)}")
-        raise
-
 @db_transaction
 def get_backup(backup_id: str) -> Optional[Dict[str, Any]]:
-    """
-    Retrieve a specific backup from the database.
-    
-    :param backup_id: The ID of the backup to retrieve.
-    :return: A dictionary with backup details or None if not found.
-    """
     backup = _get('backup', backup_id)
     if backup is None:
         print(f"No backup found with ID: {backup_id}")
@@ -667,71 +668,36 @@ def get_backup(backup_id: str) -> Optional[Dict[str, Any]]:
     return {
         'id': backup.id,
         'time': backup.time.isoformat(),
-        'filename': backup.filename
     }
 
 @db_transaction
 def get_backups(page: Optional[int] = None, limit: Optional[int] = None) -> List[Dict[str, Any]]:
-    """
-    Retrieve all backups from the database.
-    
-    :param page: The page number for pagination.
-    :param limit: The number of items per page.
-    :return: A list of dictionaries with backup details.
-    """
     backups = _get_all('backup', page=page, limit=limit, sort='time', order='desc')
     return [
         {
             'id': backup.id,
             'time': backup.time.isoformat(),
-            'filename': backup.filename
         }
         for backup in backups
     ]
 
 @db_transaction
-def delete_backup(backup_id: str) -> bool:
-    """
-    Delete a specific backup entry from the database.
-    
-    :param backup_id: The ID of the backup to delete.
-    :return: True if the backup was successfully deleted, False otherwise.
-    """
+def delete_backup(backup_id: str) -> Optional[ModelType]:
     deleted_backup = _delete('backup', backup_id)
     if deleted_backup is None:
         print(f"No backup found with ID: {backup_id}")
-        return False
+        return None
 
     print(f"Backup with ID {backup_id} successfully deleted")
-    return True
+    return deleted_backup
 
 @db_transaction
-def delete_backups() -> Dict[str, List[str]]:
-    """
-    Delete all backup entries from the database.
+def delete_backups() -> int:
+    backups = _get_all('backup') + _get_all_inactive('backup')
     
-    :return: A dictionary with 'success' and 'failed' lists of backup IDs.
-    """
-    result = {'success': [], 'failed': []}
-    
-    backups = _get_all('backup')
-    
+    deleted_count = 0
     for backup in backups:
         deleted_backup = _delete('backup', backup.id)
-        if deleted_backup is not None:
-            result['success'].append(backup.id)
-        else:
-            result['failed'].append(backup.id)
+        deleted_count += 1 if deleted_backup else 0
 
-    return result
-
-def get_backup_path(backup_id):
-    """
-    Get the full path for a backup file.
-
-    :param back_id: The ID of the backup
-    :return: The full path to the backup file
-    """
-    backup_folder = current_app.config['BACKUP_FOLDER']
-    filename = f"{backup_id}.dump"
-    return os.path.join(backup_folder, filename)
+    return deleted_count

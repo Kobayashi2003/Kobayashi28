@@ -1,21 +1,45 @@
+import os
+
 from flask import current_app
 
-def get_backup_folder() -> str:
+def get_image_path(resource_type: str, image_id: str) -> str:
     """
-    Get the backup folder path from the current app config.
+    Get the path of an image file if it exists and is associated with the given resource.
     
-    Returns:
-        str: The path to the backup folder
-    
-    Raises:
-        ValueError: If the config key for the backup folder is not found
+    :param resource_type: The type of resource ('vn' or 'character')
+    :param image_id: The ID of the image
+    :return: The path to the image file if it exists and is associated with the resource, None otherwise
     """
-    config_key = 'BACKUP_FOLDER'
+    image_folder = get_image_folder(resource_type=resource_type)
+    image_path = os.path.join(image_folder, f"{image_id}.jpg")
+
+    return image_path if os.path.exists(image_path) else ''
+
+def get_savedata_path(savedata_id: str) -> str:
+    """
+    Get the path of a savedata file if it exists and is associated with the given VN.
     
-    if config_key not in current_app.config:
-        raise ValueError(f"Config key not found: {config_key}")
-    
-    return current_app.config[config_key]
+    :param savedata_id: The ID of the savedata
+    :return: The path to the savedata file if it exists and is associated with the VN, None otherwise
+    """
+    savedata_folder = get_savedata_folder()
+    savedata_path = os.path.join(savedata_folder, f"{savedata_id}.json")
+
+    return savedata_path if os.path.exists(savedata_path) else ''
+
+def get_backup_path(backup_id: str) -> str:
+    """
+    Get the full path for a backup file.
+
+    :param back_id: The ID of the backup
+    :return: The full path to the backup file
+    """
+    backup_folder = get_backup_folder()
+    backup_path = os.path.join(backup_folder, f"{backup_id}.dump")
+   
+    return backup_path if os.path.exists(backup_path) else ''
+
+
 
 def get_image_folder(resource_type: str) -> str:
     """
@@ -53,3 +77,21 @@ def get_savedata_folder() -> str:
         raise ValueError(f"Config key not found: {config_key}")
     
     return current_app.config[config_key]
+
+def get_backup_folder() -> str:
+    """
+    Get the backup folder path from the current app config.
+    
+    Returns:
+        str: The path to the backup folder
+    
+    Raises:
+        ValueError: If the config key for the backup folder is not found
+    """
+    config_key = 'BACKUP_FOLDER'
+    
+    if config_key not in current_app.config:
+        raise ValueError(f"Config key not found: {config_key}")
+    
+    return current_app.config[config_key]
+

@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, List, Dict
 
 import os
 from datetime import date, datetime, timezone
@@ -9,6 +9,7 @@ from sqlalchemy.dialects.postgresql import JSON, JSONB, ARRAY
 from sqlalchemy.ext.declarative import declared_attr
 
 from api import db
+from api.utils import get_image_path, get_savedata_path, get_backup_path
 
 # ----------------------------------------
 # Resources Models
@@ -226,22 +227,46 @@ class CharacterImageMetadata(Metadata):
 # ----------------------------------------
 # Event Listeners 
 # ----------------------------------------
+
 @event.listens_for(VNImage, 'after_delete')
 def delete_vn_image_file(mapper, connection, target):
-    ...
+    try:
+        file_path = get_image_path('vn', target.id)
+        if file_path and os.path.exists(file_path):
+            os.remove(file_path)
+    except Exception as e:
+        print(f"Error deleting VN image file: {str(e)}")
 
 @event.listens_for(CharacterImage, 'after_delete')
 def delete_character_image_file(mapper, connection, target):
-    ...
+    try:
+        file_path = get_image_path('character', target.id)
+        if file_path and os.path.exists(file_path):
+            os.remove(file_path)
+    except Exception as e:
+        print(f"Error deleting Character image file: {str(e)}")
 
 @event.listens_for(SaveData, 'after_delete')
 def delete_savedata_file(mapper, connection, target):
-    ...
+    try:
+        file_path = get_savedata_path(target.id)
+        if file_path and os.path.exists(file_path):
+            os.remove(file_path)
+    except Exception as e:
+        print(f"Error deleting savedata file: {str(e)}")
 
 @event.listens_for(Backup, 'after_delete')
 def delete_backup_file(mapper, connection, target):
-    ...
+    try:
+        file_path = get_backup_path(target.id)
+        if file_path and os.path.exists(file_path):
+            os.remove(file_path)
+    except Exception as e:
+        print(f"Error deleting backup file: {str(e)}")
 
+# ----------------------------------------
+# Variables 
+# ----------------------------------------
 
 ModelType = Union[
     VN, Tag, Producer, Staff, Character, Trait, 
@@ -293,6 +318,10 @@ IMAGE_MODEL_MAP = {
     'character': Character
 }
 
+# ----------------------------------------
+# Functions
+# ----------------------------------------
+
 def convert_model_to_dict(model):
     result = {}
     for column in inspect(model).mapper.column_attrs:
@@ -316,3 +345,68 @@ def convert_model_to_dict(model):
             # For any other types, convert to string
             result[column.key] = str(value)
     return result
+
+def extract_images(type: str, data: Union[VN, Character]) -> List[Dict[str, str]]:
+    """
+    Extract image URLs and their types from VN or Character data.
+    
+    Args:
+        type (str): The type of data ('vn' or 'character').
+        data (Union[VN, Character]): The VN or Character object to extract images from.
+    
+    Returns:
+        List[Dict[str, str]]: A list of dictionaries, each containing a URL and its image type.
+    
+    Raises:
+        ValueError: If an invalid type is provided.
+    """
+    if type == 'vn':
+        urls_info = extract_images_vn(data)
+    elif type == 'character':
+        urls_info = extract_images_character(data)
+    else:
+        raise ValueError(f"Invalid type: {type}. Expected 'vn' or 'character'.")
+    
+    return urls_info
+
+def extract_images_vn(vn: VN) -> List[Dict[str, str]]:
+    """
+    Extract image URLs and their types from a VN object.
+    
+    Args:
+        vn (VN): The VN object to extract images from.
+    
+    Returns:
+        List[Dict[str, str]]: A list of dictionaries, each containing a URL and its image type.
+    """
+    urls_info = []
+
+    if vn.image:
+        if 'url' in vn.image:
+            urls_info.append({vn.image['url']: 'cv'})
+        if 'thumbnail' in vn.image:
+            urls_info.append({vn.image['thumbnail']: 'cv.t'})
+
+    if vn.screenshots:
+        for screenshot in vn.screenshots:
+            if 'url' in screenshot:
+                urls_info.append({screenshot['url']: 'sf'})
+            if 'thumbnail' in screenshot:
+                urls_info.append({screenshot['thumbnail']: 'sf.t'})
+    
+    return urls_info
+
+def extract_images_character(character: Character) -> List[Dict[str, str]]:
+    """
+    Extract image URL and its type from a Character object.
+    
+    Args:
+        character (Character): The Character object to extract image from.
+    
+    Returns:
+        List[Dict[str, str]]: A list containing a dictionary with the URL and its image type, or an empty list if no image is found.
+    """
+    if character.image and 'url' in character.image:
+        return [{character.image['url']: 'ch'}]
+    
+    return []

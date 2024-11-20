@@ -178,35 +178,6 @@ def convert_imgurl_to_imgid(url: str) -> str:
     # If the pattern doesn't match, fall back to the original filename
     return re.sub(r'[^\w\-_\.]', '_', os.path.splitext(os.path.basename(path))[0])
 
-def convert_model_to_dict(model):
-    
-    if model is None:
-        return None
-    if isinstance(model, list):
-        return [convert_model_to_dict(item) for item in model]
-    
-    result = {}
-    for column in inspect(model).mapper.column_attrs:
-        value = getattr(model, column.key)
-        if isinstance(value, (datetime, date)):
-            value = value.isoformat()
-        result[column.key] = value
-    
-    # Handle relationships
-    if isinstance(model, models.VN):
-        result['local_vn'] = convert_model_to_dict(model.local_vn)
-    elif isinstance(model, models.Tag):
-        result['local_tag'] = convert_model_to_dict(model.local_tag)
-    elif isinstance(model, models.Producer):
-        result['local_producer'] = convert_model_to_dict(model.local_producer)
-    elif isinstance(model, models.Staff):
-        result['local_staff'] = convert_model_to_dict(model.local_staff)
-    elif isinstance(model, models.Character):
-        result['local_character'] = convert_model_to_dict(model.local_character)
-    elif isinstance(model, models.Trait):
-        result['local_trait'] = convert_model_to_dict(model.local_trait)
-    
-    return result
 
 def convert_remote_to_local(entity_type, remote_data):
     """

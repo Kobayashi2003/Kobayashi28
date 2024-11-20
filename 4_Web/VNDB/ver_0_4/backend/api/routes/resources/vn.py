@@ -3,7 +3,10 @@ from flask import jsonify, request, abort, send_file
 from io import BytesIO
 import zipfile
 from datetime import datetime, timezone
-from api.database import get_image_path, get_savedata_path, get_savedatas, get
+
+from api.database import get_savedatas, get
+from api.utils import get_image_path, get_savedata_path
+
 from api.tasks.image import (
     get_images_task, upload_images_task, update_images_task, delete_images_task
 )
@@ -18,17 +21,23 @@ class VNResourceBlueprint(BaseResourceBlueprint):
 
     def register_additional_routes(self):
         self.bp.add_url_rule('/<string:vnid>/images', 'get_vn_images', self.get_vn_images, methods=['GET'])
-        self.bp.add_url_rule('/<string:vnid>/images', 'upload_vn_images', self.upload_vn_images, methods=['POST'])
-        self.bp.add_url_rule('/<string:vnid>/images', 'update_vn_images', self.update_vn_images, methods=['PUT'])
-
         self.bp.add_url_rule('/<string:vnid>/images/<string:image_id>', 'get_vn_image', self.get_vn_image, methods=['GET'])
+
+        self.bp.add_url_rule('/<string:vnid>/images', 'upload_vn_images', self.upload_vn_images, methods=['POST'])
+
+        self.bp.add_url_rule('/<string:vnid>/images', 'update_vn_images', self.update_vn_images, methods=['PUT'])
         self.bp.add_url_rule('/<string:vnid>/images/<string:image_id>', 'update_vn_image', self.update_vn_image, methods=['PUT'])
 
-        self.bp.add_url_rule('/<string:vnid>/savedatas', 'get_vn_savedatas', self.get_vn_savedatas, methods=['GET'])
-        self.bp.add_url_rule('/<string:vnid>/savedatas', 'upload_vn_savedatas', self.upload_vn_savedatas, methods=['POST'])
-        self.bp.add_url_rule('/<string:vnid>/savedatas', 'delete_vn_savedatas', self.delete_vn_savedatas, methods=['DELETE'])
+        self.bp.add_url_rule('/<string:vnid>/images', 'delete_vn_images', self.delete_vn_images, methods=['DELETE'])
+        self.bp.add_url_rule('/<string:vnid>/images/<string:image_id>', 'delete_vn_image', self.delete_vn_image, methods=['DELETE'])
 
+
+        self.bp.add_url_rule('/<string:vnid>/savedatas', 'get_vn_savedatas', self.get_vn_savedatas, methods=['GET'])
         self.bp.add_url_rule('/<string:vnid>/savedatas/<string:savedata_id>', 'get_vn_savedata', self.get_vn_savedata, methods=['GET'])
+
+        self.bp.add_url_rule('/<string:vnid>/savedatas', 'upload_vn_savedatas', self.upload_vn_savedatas, methods=['POST'])
+
+        self.bp.add_url_rule('/<string:vnid>/savedatas', 'delete_vn_savedatas', self.delete_vn_savedatas, methods=['DELETE'])
         self.bp.add_url_rule('/<string:vnid>/savedatas/<string:savedata_id>', 'delete_vn_savedata', self.delete_vn_savedata, methods=['DELETE'])
 
     # def update_resources(self):
@@ -44,7 +53,7 @@ class VNResourceBlueprint(BaseResourceBlueprint):
     def get_vn_image(self, vnid, image_id):
         format = request.args.get('format', default='file', type=str)
         if format == 'file':
-            image_path = get_image_path('vn', vnid, image_id)
+            image_path = get_image_path('vn', image_id)
             if not image_path:
                 abort(400, 'Invalid image URL')
             return send_file(image_path, mimetype='image/jpeg')
@@ -93,7 +102,7 @@ class VNResourceBlueprint(BaseResourceBlueprint):
                 for savedata in savedatas:
                     savedata_id = savedata.id
                     savedata_filename = savedata.filename
-                    savedata_path = get_savedata_path(vnid, savedata_id)
+                    savedata_path = get_savedata_path(savedata_id)
                     if savedata_path:
                         zf.write(savedata_path, savedata_filename)
             memory_file.seek(0)
@@ -106,7 +115,7 @@ class VNResourceBlueprint(BaseResourceBlueprint):
         format = request.args.get('format', default='file', type=str)
         if format == 'file':
             savedata = get('savedata', savedata_id)
-            savedata_path = get_savedata_path(vnid, savedata_id)
+            savedata_path = get_savedata_path(savedata_id)
             if not savedata or not savedata_path:
                 abort(400, 'Invalid file URL')
             return send_file(savedata_path, as_attachment=True, download_name=savedata.filename)

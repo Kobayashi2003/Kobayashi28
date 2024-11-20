@@ -1,6 +1,6 @@
 from .base import BaseResourceBlueprint
 from flask import jsonify, request, abort, send_file
-from api.database import get_image_path
+from api.utils import get_image_path
 from api.tasks.image import (
     get_images_task, upload_images_task, update_images_task, delete_images_task
 )
