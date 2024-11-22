@@ -36,9 +36,9 @@ class Config:
     BACKUP_FOLDER = os.environ.get('BACKUP_FOLDER', os.path.join(os.path.dirname(__file__), 'DATA/backups'))
 
     # Other configurations
-    SERVER_NAME = os.environ.get('SERVER_NAME', 'localhost:5000')
-    APPLICATION_ROOT = '/'
-    PREFERRED_URL_SCHEME = 'http'
+    # SERVER_NAME = os.environ.get('SERVER_NAME', 'localhost:5000')
+    # APPLICATION_ROOT = '/'
+    # PREFERRED_URL_SCHEME = 'http'
 
     DEBUG = os.environ.get('DEBUG', False)
     USE_RELOADER = os.environ.get('USE_RELOADER', False)

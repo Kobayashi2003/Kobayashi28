@@ -87,7 +87,7 @@ $global:SCOOP_APPLICATION = $(if (-not $SCOOP_INSTALL_APPLICATION) { @() } else 
 })
 
 $global:SCOOP_UPDATE_IGNORE = @(
-    'postgresql'
+    'postgresql', 'mysql'
 )
 
 $global:MODULES = $( if (-not $IMPORT_MODULES) { @{} } else {

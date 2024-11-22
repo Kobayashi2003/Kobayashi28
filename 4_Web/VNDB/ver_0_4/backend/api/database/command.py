@@ -1,6 +1,5 @@
 import random 
 from faker import Faker
-from datetime import datetime, timezone
 
 import click
 from flask.cli import with_appcontext

@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, render_template
 from api.config import Config
 
 def create_app(config_class=Config):
@@ -101,6 +101,10 @@ def create_app(config_class=Config):
     from .routes import api_bp
 
     app.register_blueprint(api_bp)
+    
+    @app.route('/')
+    def test():
+        return render_template('test.html')
 
 
     # ----------------------------------------

@@ -1,9 +1,10 @@
-from .base import BaseResourceBlueprint
 from flask import jsonify, request, abort, send_file
+
 from api.utils import get_image_path
 from api.tasks.image import (
     get_images_task, upload_images_task, update_images_task, delete_images_task
 )
+from .base import BaseResourceBlueprint
 
 class CharacterResourceBlueprint(BaseResourceBlueprint):
     def __init__(self):
@@ -11,61 +12,60 @@ class CharacterResourceBlueprint(BaseResourceBlueprint):
         self.register_additional_routes()
 
     def register_additional_routes(self):
-        self.bp.add_url_rule('/<string:id>/images', 'get_character_images', self.get_character_images, methods=['GET'])
-        self.bp.add_url_rule('/<string:id>/images/<string:image_id>', 'get_character_image', self.get_character_image, methods=['GET'])
-        self.bp.add_url_rule('/<string:id>/images', 'upload_character_images', self.upload_character_images, methods=['POST'])
-        self.bp.add_url_rule('/<string:id>/images', 'update_character_images', self.update_character_images, methods=['PUT'])
-        self.bp.add_url_rule('/<string:id>/images/<string:image_id>', 'update_character_image', self.update_character_image, methods=['PUT'])
-        self.bp.add_url_rule('/<string:id>/images', 'delete_character_images', self.delete_character_images, methods=['DELETE'])
-        self.bp.add_url_rule('/<string:id>/images/<string:image_id>', 'delete_character_image', self.delete_character_image, methods=['DELETE'])
+        self.bp.add_url_rule('/<string:charid>/images', 'get_character_images', self.get_character_images, methods=['GET'])
+        self.bp.add_url_rule('/<string:charid>/images/<string:image_id>', 'get_character_image', self.get_character_image, methods=['GET'])
 
-    # def update_resources(self):
-    #     ...
+        self.bp.add_url_rule('/<string:charid>/images', 'upload_character_images', self.upload_character_images, methods=['POST'])
 
-    # def update_resource(self, id):
-    #     ...
+        self.bp.add_url_rule('/<string:charid>/images', 'update_character_images', self.update_character_images, methods=['PUT'])
+        self.bp.add_url_rule('/<string:charid>/images/<string:image_id>', 'update_character_image', self.update_character_image, methods=['PUT'])
 
-    def get_character_images(self, id):
-        task = get_images_task.delay('character', id)
+        self.bp.add_url_rule('/<string:charid>/images', 'delete_character_images', self.delete_character_images, methods=['DELETE'])
+        self.bp.add_url_rule('/<string:charid>/images/<string:image_id>', 'delete_character_image', self.delete_character_image, methods=['DELETE'])
+
+    def get_character_images(self, charid):
+        task = get_images_task.delay('character', charid)
         return jsonify({"task_id": task.id}), 202
 
-    def get_character_image(self, id, image_id):
+    def get_character_image(self, charid, image_id):
         format = request.args.get('format', default='file', type=str)
         if format == 'file':
-            image_path = get_image_path('character', id, image_id)
+            image_path = get_image_path('character', charid, image_id)
             if not image_path:
                 abort(400, 'Invalid image URL')
             return send_file(image_path, mimetype='image/jpeg')
 
-        task = get_images_task.delay('character', id, image_id)
+        task = get_images_task.delay('character', charid, image_id)
         return jsonify({"task_id": task.id}), 202
 
-    def upload_character_images(self, id):
+    def upload_character_images(self, charid):
         if 'files' not in request.files:
             return jsonify({"error": "No file part"}), 400
         files = request.files.getlist('files')
         file_data = [{'filename': file.filename, 'content': file.read()} for file in files]
-        task = upload_images_task.delay('character', id, file_data)
+
+        task = upload_images_task.delay('character', charid, file_data)
         return jsonify({"task_id": task.id}), 202
 
-    def update_character_images(self, id):
-        task = update_images_task.delay('character', id)
+    def update_character_images(self, charid):
+        task = update_images_task.delay('character', charid)
         return jsonify({"task_id": task.id}), 202
 
-    def update_character_image(self, id, image_id):
+    def update_character_image(self, charid, image_id):
         if 'file' not in request.files:
             return jsonify({"error": "No file part"}), 400
         file = request.files['file']
         file_data = {'filename': file.filename, 'content': file.read()}
-        task = update_images_task.delay('character', id, image_id, file_data)
+
+        task = update_images_task.delay('character', charid, image_id, file_data)
         return jsonify({"task_id": task.id}), 202
 
-    def delete_character_images(self, id):
-        task = delete_images_task.delay('character', id)
+    def delete_character_images(self, charid):
+        task = delete_images_task.delay('character', charid)
         return jsonify({"task_id": task.id}), 202
 
-    def delete_character_image(self, id, image_id):
-        task = delete_images_task.delay('character', id, image_id)
+    def delete_character_image(self, charid, image_id):
+        task = delete_images_task.delay('character', charid, image_id)
         return jsonify({"task_id": task.id}), 202
 
 character_bp = CharacterResourceBlueprint().blueprint

@@ -8,7 +8,6 @@ from api.database import delete_savedata, delete_savedatas, convert_model_to_dic
 @celery.task(bind=True)
 def delete_savedatas_task(
     self: Task,
-    resource_type: str,
     resource_id: str,
     savedata_id: Optional[str] = None
 ) -> Dict[str, Union[str, Union[Dict, int, None]]]:
@@ -21,7 +20,6 @@ def delete_savedatas_task(
 
     Args:
         self (Task): The Celery task instance (automatically injected by Celery).
-        resource_type (str): The type of resource (e.g., 'vn').
         resource_id (str): The ID of the resource.
         savedata_id (Optional[str], optional): The ID of the specific savedata to delete.
             If None, all savedatas for the resource will be deleted. Defaults to None.
@@ -51,12 +49,12 @@ def delete_savedatas_task(
         if savedata_id:
             result = delete_savedata(resource_id, savedata_id)
             if not result:
-                return {"status": "NOT_FOUND", "result": f"Savedata with id {savedata_id} not found for {resource_type} {resource_id}"}
+                return {"status": "NOT_FOUND", "result": f"Savedata with id {savedata_id} not found for vn {resource_id}"}
             return {"status": "SUCCESS", "result": convert_model_to_dict(result)}
         else:
             deleted_count = delete_savedatas(resource_id)
             if not deleted_count:
-                return {"status": "NOT_FOUND", "result": f"No savedatas found for {resource_type} {resource_id}"}
+                return {"status": "NOT_FOUND", "result": f"No savedatas found for vn {resource_id}"}
             return {"status": "SUCCESS", "result": deleted_count}
     except SQLAlchemyError as e:
         self.update_state(state='FAILURE', meta={'status': 'Database error occurred'})

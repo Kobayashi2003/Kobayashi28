@@ -1,18 +1,18 @@
-from .base import BaseResourceBlueprint
-from flask import jsonify, request, abort, send_file
-from io import BytesIO
 import zipfile
+from io import BytesIO
 from datetime import datetime, timezone
+
+from flask import jsonify, request, abort, send_file
 
 from api.database import get_savedatas, get
 from api.utils import get_image_path, get_savedata_path
-
 from api.tasks.image import (
     get_images_task, upload_images_task, update_images_task, delete_images_task
 )
 from api.tasks.savedata import (
     get_savedatas_task, upload_savedatas_task, delete_savedatas_task
 )
+from .base import BaseResourceBlueprint
 
 class VNResourceBlueprint(BaseResourceBlueprint):
     def __init__(self):
@@ -39,12 +39,6 @@ class VNResourceBlueprint(BaseResourceBlueprint):
 
         self.bp.add_url_rule('/<string:vnid>/savedatas', 'delete_vn_savedatas', self.delete_vn_savedatas, methods=['DELETE'])
         self.bp.add_url_rule('/<string:vnid>/savedatas/<string:savedata_id>', 'delete_vn_savedata', self.delete_vn_savedata, methods=['DELETE'])
-
-    # def update_resources(self):
-    #     ...
-
-    # def update_resource(self, id):
-    #     ...
 
     def get_vn_images(self, vnid):
         task = get_images_task.delay('vn', vnid)

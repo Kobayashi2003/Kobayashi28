@@ -23,7 +23,7 @@ def get_savedata_path(savedata_id: str) -> str:
     :return: The path to the savedata file if it exists and is associated with the VN, None otherwise
     """
     savedata_folder = get_savedata_folder()
-    savedata_path = os.path.join(savedata_folder, f"{savedata_id}.json")
+    savedata_path = os.path.join(savedata_folder, savedata_id)
 
     return savedata_path if os.path.exists(savedata_path) else ''
 

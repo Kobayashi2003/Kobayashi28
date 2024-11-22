@@ -152,7 +152,9 @@ Set-PSReadLineKeyHandler -Key Ctrl+g -ScriptBlock {
     if (Get-Command git -ErrorAction SilentlyContinue) {
         [Microsoft.PowerShell.PSConsoleReadLine]::RevertLine()
         [Microsoft.PowerShell.PSConsoleReadLine]::Insert('git pull')
-        [Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
+        [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition(0)
+        [Microsoft.PowerShell.PSConsoleReadLine]::SelectLine()
+        # [Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
     }
 }
 
