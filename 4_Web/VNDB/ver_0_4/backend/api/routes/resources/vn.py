@@ -46,6 +46,7 @@ class VNResourceBlueprint(BaseResourceBlueprint):
 
     def get_vn_image(self, vnid, image_id):
         format = request.args.get('format', default='file', type=str)
+        # TODO
         if format == 'file':
             image_path = get_image_path('vn', image_id)
             if not image_path:
@@ -87,6 +88,7 @@ class VNResourceBlueprint(BaseResourceBlueprint):
 
     def get_vn_savedatas(self, vnid):
         format = request.args.get('format', default='file', type=str)
+        # TODO
         if format == 'file':
             savedatas = get_savedatas(vnid)
             if not savedatas:
@@ -107,6 +109,7 @@ class VNResourceBlueprint(BaseResourceBlueprint):
 
     def get_vn_savedata(self, vnid, savedata_id):
         format = request.args.get('format', default='file', type=str)
+        # TODO
         if format == 'file':
             savedata = get('savedata', savedata_id)
             savedata_path = get_savedata_path(savedata_id)

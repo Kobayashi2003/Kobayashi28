@@ -144,3 +144,8 @@ def delete_images(resource_type: str, resource_id: str) -> int:
     
     return deleted_count
 
+def get_image_file(resource_type, resource_id, image_id):
+    ...
+
+def get_images_file(resouce_type, resrouce_id):
+    ...

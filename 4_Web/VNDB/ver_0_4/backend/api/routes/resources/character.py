@@ -29,6 +29,7 @@ class CharacterResourceBlueprint(BaseResourceBlueprint):
 
     def get_character_image(self, charid, image_id):
         format = request.args.get('format', default='file', type=str)
+        # TODO
         if format == 'file':
             image_path = get_image_path('character', charid, image_id)
             if not image_path:

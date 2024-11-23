@@ -112,10 +112,3 @@ def delete_savedatas(vnid: str) -> int:
         deleted_count += 1 if deleted_savedata else 0
     
     return deleted_count
-
-
-def get_savedata_file(vnid, savedata_id):
-    ...
-
-def get_savedatas_file(vnid):
-    ...
