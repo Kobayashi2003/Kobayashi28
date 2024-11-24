@@ -4,13 +4,17 @@ from datetime import datetime, timezone
 
 from flask import jsonify, request, abort, send_file
 
-from api.database import get_savedatas, get
+from api.database import get_savedatas, get 
 from api.utils import get_image_path, get_savedata_path
+from api.tasks.resource import (
+    get_related_resources_task, search_related_resources_task, 
+    update_related_resources_task, delete_related_resources_task
+)
 from api.tasks.image import (
     get_images_task, upload_images_task, update_images_task, delete_images_task
 )
 from api.tasks.savedata import (
-    get_savedatas_task, upload_savedatas_task, delete_savedatas_task
+    get_savedatas_task, upload_savedatas_task, delete_savedatas_task,
 )
 from .base import BaseResourceBlueprint
 
@@ -39,6 +43,12 @@ class VNResourceBlueprint(BaseResourceBlueprint):
 
         self.bp.add_url_rule('/<string:vnid>/savedatas', 'delete_vn_savedatas', self.delete_vn_savedatas, methods=['DELETE'])
         self.bp.add_url_rule('/<string:vnid>/savedatas/<string:savedata_id>', 'delete_vn_savedata', self.delete_vn_savedata, methods=['DELETE'])
+
+        for endpoint, related_resource_type in {"vns":"vn", "tags":"tag", "characters":"character", "producers":"producer", "staff":"staff"}.items():
+            self.bp.add_url_rule('/<string:vnid>/' + endpoint, 'get_related_' + endpoint, self.get_related_resources, methods=['GET'], defaults={"related_resource_type": related_resource_type})
+            self.bp.add_url_rule('/<string:vnid>/' + endpoint, 'search_related_' + endpoint, self.search_related_resources, methods=['POST'], defaults={"related_resource_type": related_resource_type})
+            self.bp.add_url_rule('/<string:vnid>/' + endpoint, 'update_related_' + endpoint, self.update_related_resources, methods=['PUT'], defaults={"related_resource_type": related_resource_type})
+            self.bp.add_url_rule('/<string:vnid>/' + endpoint, 'delete_related_' + endpoint, self.delete_related_resources, methods=['DELETE'], defaults={"related_resource_type": related_resource_type})
 
     def get_vn_images(self, vnid):
         task = get_images_task.delay('vn', vnid)
@@ -147,34 +157,21 @@ class VNResourceBlueprint(BaseResourceBlueprint):
         task = delete_savedatas_task.delay('vn', vnid, savedata_id)
         return jsonify({"task_id": task.id}), 202
 
+    def get_related_resources(self, vnid, related_resource_type):
+        task = get_related_resources_task.delay("vn", vnid, related_resource_type)
+        return jsonify({"task_id": task.id}), 202
+
+    def search_related_resources(self, vnid, related_resource_type):
+        response_size = request.json.pop('response_size', 'small')
+        task = search_related_resources_task.delay("vn", vnid, related_resource_type, response_size)
+        return jsonify({"task_id": task.id}), 202
+
+    def update_related_resources(self, vnid, related_resource_type):
+        task = update_related_resources_task.delay("vn", vnid, related_resource_type)
+        return jsonify({"task_id": task.id}), 202
+
+    def delete_related_resources(self, vnid, related_resource_type):
+        task = delete_related_resources_task.delay("vn", vnid, related_resource_type)
+        return jsonify({"task_id": task.id}), 202
+
 vn_bp = VNResourceBlueprint().blueprint
-
-@vn_bp.route('/<string:vnid>/characters', methods=[])
-def vc1(vnid: str): ...
-
-@vn_bp.route('/<string:vnid>/characters/<string:charid>', methods=[])
-def vc2(vnid: str, charid: str): ...
-
-@vn_bp.route('/<string:vnid>/tags', methods=[])
-def vt1(vnid: str): ...
-
-@vn_bp.route('/<string:vnid>/tags/<string:tag_id>', methods=[])
-def vt2(vnid: str, tag_id: str): ...
-
-@vn_bp.route('/<string:vnid>/developers', methods=[])
-def vd1(vnid: str): ...
-
-@vn_bp.route('/<string:vnid>/deverlopers/<string:dev_id>', methods=[])
-def vd2(vnid: str, dev_id: str): ...
-
-@vn_bp.route('/<string:vnid>/staff', methods=[])
-def vs1(vnid: str): ...
-
-@vn_bp.route('/<string:vnid>/staff/<string:staff_id>', methods=[])
-def vs2(vnid: str, staff_id): ...
-
-@vn_bp.route('/<string:vnid>/traits', methods=[])
-def vtr1(vnid: str): ...
-
-@vn_bp.route('/<string:vnid>/traits/<string:trait_id>', methods=[])
-def vtr2(vnid: str, trait_id: str): ...

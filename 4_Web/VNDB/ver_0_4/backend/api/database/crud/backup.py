@@ -10,7 +10,7 @@ from flask import current_app
 from .common import db_transaction
 from .base import (
     _get, _get_all, _get_inactive, _get_all_inactive,
-    _create, _delete, _delete_all, exists
+    _create, _update, _delete, _delete_all, exists
 )
 from ..models import Backup
 

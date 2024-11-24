@@ -2,7 +2,48 @@ from typing import Optional, Dict, Any
 from celery import Task
 
 from api import celery
-from api.database import delete, delete_all, convert_model_to_dict 
+from api.database import delete, delete_all, delete_all_related, convert_model_to_dict 
+
+@celery.task(bind=True)
+def delete_related_resources_task(
+    self: Task,
+    resource_type: str,
+    resource_id: str,
+    related_resource_type: str
+) -> Dict[str, Any]:
+    """
+    Celery task to delete related resources for a given resource.
+
+    Args:
+        self (Task): The Celery task instance.
+        resource_type (str): The type of the main resource ('vn' or 'character').
+        resource_id (str): The ID of the main resource.
+        related_resource_type (str): The type of the related resources to delete.
+
+    Returns:
+        Dict[str, Any]: A dictionary containing the status and result of the delete operation.
+    """
+    self.update_state(state='PROGRESS', meta={'status': f'Deleting related {related_resource_type} for {resource_type} with id {resource_id}...'})
+
+    try:
+        # Attempt to delete the related resources
+        deleted_count = delete_all_related(resource_type, resource_id, related_resource_type)
+
+        if deleted_count == 0:
+            return {'status': 'NOT_FOUND', 'result': f"No related {related_resource_type} found for {resource_type} with id {resource_id}"}
+
+        # Return success status with the number of deleted resources
+        return {'status': 'SUCCESS', 'result': f"Deleted {deleted_count} related {related_resource_type} for {resource_type} with id {resource_id}"}
+
+    except ValueError as exc:
+        # Handle invalid resource types or related resource types
+        self.update_state(state='FAILURE', meta={'status': f'Invalid resource type or related resource type: {str(exc)}'})
+        return {'status': 'FAILURE', 'result': str(exc)}
+
+    except Exception as exc:
+        # Update task state and return failure status if an exception occurs
+        self.update_state(state='FAILURE', meta={'status': f'Delete related resources operation failed: {str(exc)}'})
+        return {'status': 'FAILURE', 'result': str(exc)}
 
 @celery.task(bind=True)
 def delete_resources_task(self: Task, resource_type: str, id: Optional[str] = None) -> Dict[str, Any]:

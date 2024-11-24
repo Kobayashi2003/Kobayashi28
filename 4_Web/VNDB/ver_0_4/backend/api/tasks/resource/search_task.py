@@ -1,8 +1,52 @@
-from typing import Optional, Dict, Any, Union
+from typing import Optional, Dict, Any 
 from celery import Task
 
 from api import celery
-from api.search import search_local, search_remote
+from api.search import search_local, search_remote, search_resources_by_vnid, search_resources_by_charid
+
+@celery.task(bind=True)
+def search_related_resources_task(
+    self: Task,
+    resource_type: str,
+    resource_id: str,
+    related_resource_type: str,
+    response_size: str = 'small'
+) -> Dict[str, Any]:
+    """
+    Celery task to search for related resources.
+
+    Args:
+        self (Task): The Celery task instance.
+        resource_type (str): The type of the main resource.
+        resource_id (str): The ID of the main resource.
+        related_resource_type (str): The type of the related resource to search for.
+        related_resource_id (str): The ID of the related resource to search for.
+        response_size (str): Size of the response data ('small' or 'large').
+
+    Returns:
+        Dict[str, Any]: A dictionary containing the search results and status.
+    """
+    self.update_state(state='PROGRESS', meta={'status': f'Searching for related {related_resource_type} for {resource_type} {resource_id}...'})
+
+    try:
+        search_results = None
+
+        if resource_type == 'vn':
+            search_results = search_resources_by_vnid(resource_id, related_resource_type, response_size)
+        elif resource_type == 'character':
+            search_results = search_resources_by_charid(resource_id, related_resource_type, response_size)
+        else:
+            return {'status': 'FAILURE', 'result': f"Invalid resource_type: {resource_type}. Only 'vn' and 'character' are supported."}
+
+        if not search_results or not isinstance(search_results, dict) or not search_results.get('results'):
+            return {'status': 'NOT_FOUND', 'result': None}
+
+        search_results['status'] = 'SUCCESS'
+        return search_results
+
+    except Exception as exc:
+        self.update_state(state='FAILURE', meta={'status': f'Search for related resources failed: {str(exc)}'})
+        return {'status': 'FAILURE', 'result': str(exc)}
 
 @celery.task(bind=True)
 def search_resources_task(

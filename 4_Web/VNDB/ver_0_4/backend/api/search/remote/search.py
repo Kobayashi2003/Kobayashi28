@@ -4,6 +4,7 @@ from enum import Enum
 
 from .filters import VNDBFilters, FilterOperator, FilterType
 from .common import get_remote_fields, get_remote_filters
+from .extend import search_characters_by_vnid
 
 VNDB_API_URL = "https://api.vndb.org/kana"
 
@@ -219,6 +220,14 @@ def search(search_type: str, params: Dict[str, Any], response_size: str = 'small
     fields = get_remote_fields(search_type, response_size)
 
     if page and limit: 
-        return search_functions[search_type](filters, fields, page=page, results=limit, sort=sort, reverse=order == 'desc')
-
-    return unpaginated_search(search_functions[search_type], filters, fields)
+        results = search_functions[search_type](filters, fields, page=page, results=limit, sort=sort, reverse=order == 'desc')
+    else:
+        results = unpaginated_search(search_functions[search_type], filters, fields)
+    
+    if search_type == 'vn' and response_size == 'large':
+        for vn in results["results"]:
+            vnid = vn["id"]
+            characters = search_characters_by_vnid(vnid, "small")
+            vn["characters"] = characters["results"]
+    
+    return results

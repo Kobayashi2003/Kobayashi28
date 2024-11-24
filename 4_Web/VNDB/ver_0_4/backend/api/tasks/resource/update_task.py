@@ -1,10 +1,76 @@
 from typing import Optional, Dict, Any, List
+from sqlalchemy.exc import SQLAlchemyError
 from celery import Task
 
 from api import celery
 from api.database import create, update, exists, get_all
-from api.search import search_remote
+from api.search import search_remote, search_resources_by_vnid, search_resources_by_charid
 from api.utils import convert_remote_to_local
+
+@celery.task(bind=True)
+def update_related_resources_task(
+    self: Task,
+    resource_type: str,
+    resource_id: str,
+    related_resource_type: str
+) -> Dict[str, Any]:
+    """
+    Celery task to update related resources.
+
+    Args:
+        self (Task): The Celery task instance.
+        resource_type (str): The type of the main resource ('vn' or 'character').
+        resource_id (str): The ID of the main resource.
+        related_resource_type (str): The type of the related resources to update.
+
+    Returns:
+        Dict[str, Any]: A dictionary containing the status and result of the update operation.
+    """
+    self.update_state(state='PROGRESS', meta={'status': f'Updating related {related_resource_type} for {resource_type} {resource_id}...'})
+
+    try:
+        # Get related resource data
+        if resource_type == 'vn':
+            related_data = search_resources_by_vnid(resource_id, related_resource_type, 'large')
+        elif resource_type == 'character':
+            related_data = search_resources_by_charid(resource_id, related_resource_type, 'large')
+        else:
+            return {'status': 'FAILURE', 'result': f"Invalid resource_type: {resource_type}. Only 'vn' and 'character' are supported."}
+
+        if not related_data or not isinstance(related_data, dict) or not related_data.get('results'):
+            return {'status': 'NOT_FOUND', 'result': f"No related {related_resource_type} found for {resource_type} {resource_id}"}
+
+        updated_count = 0
+        failed_count = 0
+
+        for item in related_data['results']:
+            try:
+                if 'id' not in item:
+                    raise ValueError(f"Missing 'id' in resource data")
+
+                id = item['id']
+                update_data = convert_remote_to_local(related_resource_type, item)
+
+                if exists(related_resource_type, id):
+                    update(related_resource_type, id, update_data)
+                else:
+                    create(related_resource_type, id, update_data)
+
+                updated_count += 1
+                self.update_state(state='PROGRESS', meta={'status': f'Updated {updated_count} resources, {failed_count} failed'})
+
+            except (ValueError, SQLAlchemyError) as exc:
+                failed_count += 1
+                self.update_state(state='PROGRESS', meta={'status': f'Updated {updated_count} resources, {failed_count} failed. Last error: {str(exc)}'})
+
+        return {
+            'status': 'SUCCESS',
+            'result': f'Updated {updated_count} related {related_resource_type}, {failed_count} failed'
+        }
+
+    except Exception as exc:
+        self.update_state(state='FAILURE', meta={'status': f'Update of related resources failed: {str(exc)}'})
+        return {'status': 'FAILURE', 'result': str(exc)}
 
 @celery.task(bind=True)
 def update_resources_task(self: Task, resource_type: str, id: Optional[str] = None) -> Dict[str, Any]:

@@ -32,16 +32,19 @@ class VN(db.Model):
     length_minutes = db.Column(db.Integer)
     description = db.Column(db.Text)
     screenshots = db.Column(ARRAY(JSONB))
+    extlinks = db.Column(ARRAY(JSONB))
+
+    # Relationships
     relations = db.Column(ARRAY(JSONB))
     tags = db.Column(ARRAY(JSONB))
     developers = db.Column(ARRAY(JSONB))
     staff = db.Column(ARRAY(JSONB))
+    characters = db.Column(ARRAY(JSONB))
     va = db.Column(ARRAY(JSONB))
-    extlinks = db.Column(ARRAY(JSONB))
-    # Relationships
-    vn_metadata = db.relationship("VNMetadata", back_populates="parent", uselist=False, cascade="all, delete-orphan")
+
     images = db.relationship("VNImage", back_populates="vn", cascade="all, delete-orphan")
     savedatas = db.relationship("SaveData", back_populates="vn", cascade="all, delete-orphan")
+    vn_metadata = db.relationship("VNMetadata", back_populates="parent", uselist=False, cascade="all, delete-orphan")
 
 class Tag(db.Model):
     __tablename__ = 'tag'
@@ -103,11 +106,13 @@ class Character(db.Model):
     age = db.Column(db.Integer)
     birthday = db.Column(ARRAY(db.Integer))
     sex = db.Column(ARRAY(db.Enum('m', 'f', 'b', 'n', name='sex_enum')))
+
+    # Relationships
     vns = db.Column(ARRAY(JSONB))
     traits = db.Column(ARRAY(JSONB))
-    # Relationships
-    character_metadata = db.relationship("CharacterMetadata", back_populates="parent", uselist=False, cascade="all, delete-orphan")
+
     images = db.relationship("CharacterImage", back_populates="character", cascade="all, delete-orphan")
+    character_metadata = db.relationship("CharacterMetadata", back_populates="parent", uselist=False, cascade="all, delete-orphan")
 
 class Trait(db.Model):
     __tablename__ = 'trait'

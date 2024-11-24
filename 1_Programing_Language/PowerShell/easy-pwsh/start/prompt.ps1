@@ -1,5 +1,4 @@
-﻿
-function global:prompt {
+﻿function global:prompt {
     $lst_cmd_state = $?
     $esc = $([char]27)
     if ((Get-History).count -ge 1) {
@@ -15,8 +14,6 @@ function global:prompt {
     $isAdmin = $principal.IsInRole($adminRole)
     $curUser = $env:USERNAME
 
-    # ➤ ➥ ➦ ➧ ➨ ➩ ➪ ➫ ➬ ➭ ➮ ➯ ➱ ➲ ➳ ➴ ➵ ➶ ➷ ➸ ➹ ➺ ➻ ➼ ➽ ➾
-    # $promptChar = "❯"
     $promptChar = if ($isAdmin) { "#" } else { "$" }
 
     $promptString = ""
@@ -39,26 +36,57 @@ function global:prompt {
         $promptString += "$esc[1;31m$esc[1;4m$($executionTime)ms$esc[0m "
     }
 
-    # $path = ($PWD.Path).Replace($env:USERPROFILE, "~")
     $path = ($PWD.Path)
-    if ($path -eq $env:USERPROFILE) {
-        $path = ($PWD.Path).Replace($env:USERPROFILE, "🏠")
-    } elseif ($path -eq $env:USERPROFILE + "\Documents") {
-        $path = ($PWD.Path).Replace($env:USERPROFILE + "\Documents", "📄")
-    } elseif ($path -eq $env:USERPROFILE + "\Downloads") {
-        $path = ($PWD.Path).Replace($env:USERPROFILE + "\Downloads", "📥")
-    } elseif ($path -eq $env:USERPROFILE + "\Pictures") {
-        $path = ($PWD.Path).Replace($env:USERPROFILE + "\Pictures", "📸")
-    } elseif ($path -eq $env:USERPROFILE + "\Videos") {
-        $path = ($PWD.Path).Replace($env:USERPROFILE + "\Videos", "📹")
-    } elseif ($path -eq $env:USERPROFILE + "\Music") {
-        $path = ($PWD.Path).Replace($env:USERPROFILE + "\Music", "🎵")
-    } elseif ($path -eq $env:USERPROFILE + "\Desktop") {
-        $path = ($PWD.Path).Replace($env:USERPROFILE + "\Desktop", "🖥 ")
-    } elseif ($path -eq $env:USERPROFILE + "\OneDrive") {
-        $path = ($PWD.Path).Replace($env:USERPROFILE + "\OneDrive", "☁ ")
+    $folderIcons = @{
+        $env:USERPROFILE = "🏠"
+        "$env:USERPROFILE\Documents" = "📄"
+        "$env:USERPROFILE\Downloads" = "📥"
+        "$env:USERPROFILE\Pictures" = "📸"
+        "$env:USERPROFILE\Videos" = "📹"
+        "$env:USERPROFILE\Music" = "🎵"
+        "$env:USERPROFILE\Desktop" = "🖥️"
+        "$env:USERPROFILE\OneDrive" = "☁️"
+        "$env:USERPROFILE\.ssh" = "🔐"
+        "$env:USERPROFILE\.config" = "⚙️"
+        "C:\Program Files" = "📦"
+        "C:\Program Files (x86)" = "📦"
+        "C:\Windows" = "🪟"
+        "C:\Users" = "👥"
+    }
+
+    # Add development-related folders
+    $devFolders = @(
+        "src", "source", "lib", "test", "tests", "docs", "scripts",
+        "node_modules", "venv", ".venv", "build", "dist", "target"
+    )
+
+    foreach ($folder in $devFolders) {
+        if ($path -match "\\$folder$") {
+            $folderIcons[$path] = switch ($folder) {
+                "src" { "🧾" }
+                "source" { "🧾" }
+                "lib" { "📚" }
+                { $_ -in "test","tests" } { "🧪" }
+                "docs" { "📖" }
+                "scripts" { "📜" }
+                "node_modules" { "📦" }
+                { $_ -in "venv",".venv" } { "🐍" }
+                { $_ -in "build","dist","target" } { "🎯" }
+                default { "📁" }
+            }
+            break
+        }
+    }
+
+    if ($folderIcons.ContainsKey($path)) {
+        $path = $folderIcons[$path]
     } else {
-        $path += " 📂"
+        $gitRoot = git rev-parse --show-toplevel 2>$null
+        if ($LASTEXITCODE -eq 0 -and $path.StartsWith($gitRoot)) {
+            $path = "🌿 $($path.Substring($gitRoot.Length))"
+        } else {
+            $path += " 📂"
+        }
     }
 
     while ($path.Length -gt 30) {

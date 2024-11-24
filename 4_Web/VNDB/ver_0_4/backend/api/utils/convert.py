@@ -5,12 +5,8 @@ import io
 import re
 from PIL import Image
 from urllib.parse import urlparse
-from datetime import datetime, date
 
 from flask import current_app
-from sqlalchemy.inspection import inspect
-
-from api.database import models
 
 def convert_id_to_savedata_path(savedata_id: str) -> str | None:
     """
@@ -210,15 +206,36 @@ def convert_vn(remote_data):
     # Convert devstatus
     devstatus_map = {0: 'Finished', 1: 'In development', 2: 'Cancelled'}
     local_data['devstatus'] = devstatus_map.get(remote_data.get('devstatus'), 'Finished')
+    local_data.pop('relation', None)
+    local_data.pop('relation_official', None)
+    local_data.pop('role', None)
+    local_data.pop('spoiler', None)
     
     return local_data
 
-def convert_character(remote_data): return remote_data
+def convert_character(remote_data): 
+    local_data = remote_data.copy()
+    local_data.pop('role', None)
+    local_data.pop('spoiler', None)
+    return local_data 
 
 def convert_producer(remote_data): return remote_data
 
-def convert_staff(remote_data): return remote_data
+def convert_staff(remote_data): 
+    local_data = remote_data.copy()
+    local_data.pop('eid', None)
+    local_data.pop('role', None)
+    return local_data
 
-def convert_tag(remote_data): return remote_data
+def convert_tag(remote_data): 
+    local_data = remote_data.copy()
+    local_data.pop('rating', None)
+    local_data.pop('spoiler', None)
+    local_data.pop('lie', None)
+    return local_data
 
-def convert_trait(remote_data): return remote_data
+def convert_trait(remote_data):
+    local_data = remote_data.copy()
+    local_data.pop('spoiler', None)
+    local_data.pop('lie', None)
+    return local_data

@@ -1,8 +1,43 @@
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any
 from celery import Task
 
 from api import celery
-from api.database import get, get_all, convert_model_to_dict
+from api.database import get, get_all, get_all_related, convert_model_to_dict
+
+@celery.task(bind=True)
+def get_related_resources_task(
+    self: Task,
+    resource_type: str,
+    resource_id: str,
+    related_resource_type: str
+) -> Dict[str, Any]:
+    """
+    Celery task to fetch related resources for a given resource.
+
+    Args:
+        self (Task): The Celery task instance.
+        resource_type (str): The type of the main resource ('vn' or 'character').
+        resource_id (str): The ID of the main resource.
+        related_resource_type (str): The type of the related resources to retrieve.
+
+    Returns:
+        Dict[str, Any]: A dictionary containing the status and result of the fetch operation.
+    """
+    self.update_state(state='PROGRESS', meta={'status': f'Fetching related {related_resource_type}s for {resource_type} with id {resource_id}...'})
+
+    try:
+        result = get_all_related(resource_type, resource_id, related_resource_type)
+
+        return {
+            'status': 'SUCCESS' if result else 'NOT_FOUND',
+            'result': result if result else None
+        }
+    except ValueError as exc:
+        self.update_state(state='FAILURE', meta={'status': f'Invalid resource type or related resource type: {str(exc)}'})
+        return {'status': 'FAILURE', 'result': str(exc)}
+    except Exception as exc:
+        self.update_state(state='FAILURE', meta={'status': f'Get related resources operation failed: {str(exc)}'})
+        return {'status': 'FAILURE', 'result': str(exc)}
 
 @celery.task(bind=True)
 def get_resources_task(

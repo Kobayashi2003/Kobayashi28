@@ -191,6 +191,35 @@ def _cleanup(type: str) -> int:
 def _cleanup_all() -> Dict[str, int]:
     return { type: cleanup(type) for type in MODEL_MAP.keys() }
 
+def _recover(type: str, id: str) -> Optional[ModelType]:
+    item = _get_inactive(type, id)
+    if not item:
+        return None
+
+    metadata_attr = f"{type}_metadata"
+    metadata_model = getattr(item, metadata_attr)
+    metadata_model.is_active = True
+    metadata_model.last_modified_at = datetime.now(timezone.utc)
+
+    return item
+
+def _recover_type() -> int:
+    model = MODEL_MAP.get(type)
+    meta_model = META_MODEL_MAP.get(type)
+    if not model or not meta_model:
+        raise ValueError("Invalid model type")
+
+    count = meta_model.query.filter_by(is_active=False).count()
+    meta_model.query.filter_by(is_active=False).update({
+        meta_model.is_active: True,
+        meta_model.last_modified_at: datetime.now(timezone.utc)
+    }, synchronize_session=False)
+
+    return count
+
+def _recover_all() -> Dict[str, int]:
+    return { type: recover_type(type) for type in MODEL_MAP.keys() }
+
 def _get_inactive(type: str, id: str) -> Optional[ModelType]:
     model = MODEL_MAP.get(type)
     meta_model = META_MODEL_MAP.get(type)
@@ -268,8 +297,16 @@ def cleanup(*args, **kwargs) -> int: return _cleanup(*args, **kwargs)
 def cleanup_all(*args, **kwargs) -> Dict[str, int]: return _cleanup_all(*args, **kwargs)
 
 @db_transaction
+def recover(*args, **kwargs) -> Optional[ModelType]: return _recover(*args, **kwargs)
+
+@db_transaction
+def recover_type(*args, **kwargs) -> int: return _recover_type(*args, **kwargs)
+
+@db_transaction
+def recover_all(*args, **kwargs) -> int: return _recover_all(*args, **kwargs)
+
+@db_transaction
 def get_inactive(*args, **kwargs) -> Optional[ModelType]: return _get_inactive(*args, **kwargs)
 
 @db_transaction
 def get_all_inactive(*args, **kwargs) -> List[ModelType]: return _get_all_inactive(*args, **kwargs)
-

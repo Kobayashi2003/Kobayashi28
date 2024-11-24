@@ -1,6 +1,10 @@
 from flask import jsonify, request, abort, send_file
 
 from api.utils import get_image_path
+from api.tasks.resource import (
+    get_related_resources_task, search_related_resources_task, 
+    update_related_resources_task, delete_related_resources_task
+)
 from api.tasks.image import (
     get_images_task, upload_images_task, update_images_task, delete_images_task
 )
@@ -22,6 +26,12 @@ class CharacterResourceBlueprint(BaseResourceBlueprint):
 
         self.bp.add_url_rule('/<string:charid>/images', 'delete_character_images', self.delete_character_images, methods=['DELETE'])
         self.bp.add_url_rule('/<string:charid>/images/<string:image_id>', 'delete_character_image', self.delete_character_image, methods=['DELETE'])
+
+        for endpoint, related_resource_type in {"vns":"vn", "traits":"trait"}.items():
+            self.bp.add_url_rule('/<string:charid>/' + endpoint, 'get_related_' + endpoint, self.get_related_resources, methods=['GET'], defaults={"related_resource_type": related_resource_type})
+            self.bp.add_url_rule('/<string:charid>/' + endpoint, 'search_related_' + endpoint, self.search_related_resources, methods=['POST'], defaults={"related_resource_type": related_resource_type})
+            self.bp.add_url_rule('/<string:charid>/' + endpoint, 'update_related_' + endpoint, self.update_related_resources, methods=['PUT'], defaults={"related_resource_type": related_resource_type})
+            self.bp.add_url_rule('/<string:charid>/' + endpoint, 'delete_related_' + endpoint, self.delete_related_resources, methods=['DELETE'], defaults={"related_resource_type": related_resource_type})
 
     def get_character_images(self, charid):
         task = get_images_task.delay('character', charid)
@@ -69,16 +79,21 @@ class CharacterResourceBlueprint(BaseResourceBlueprint):
         task = delete_images_task.delay('character', charid, image_id)
         return jsonify({"task_id": task.id}), 202
 
+    def get_related_resources(self, charid, related_resource_type):
+        task = get_related_resources_task.delay("character", charid, related_resource_type)
+        return jsonify({"task_id": task.id}), 202
+
+    def search_related_resources(self, charid, related_resource_type):
+        response_size = request.json.pop('response_size', 'small')
+        task = search_related_resources_task.delay("character", charid, related_resource_type, response_size)
+        return jsonify({"task_id": task.id}), 202
+
+    def update_related_resources(self, charid, related_resource_type):
+        task = update_related_resources_task.delay("character", charid, related_resource_type)
+        return jsonify({"task_id": task.id}), 202
+
+    def delete_related_resources(self, charid, related_resource_type):
+        task = delete_related_resources_task.delay("character", charid, related_resource_type)
+        return jsonify({"task_id": task.id}), 202
+
 character_bp = CharacterResourceBlueprint().blueprint
-
-@character_bp.route('/<string:charid>/vns')
-def cv1(charid: str): ...
-
-@character_bp.route('/<string:charid>/vns/<string:vnid>')
-def cv2(charid: str, vnid: str): ...
-
-@character_bp.route('/<string:charid>/traits')
-def ct1(charid: str): ...
-
-@character_bp.route('/<string:charid>/traits/<string:trait_id>')
-def ct2(charid: str, trait_id: str): ...
