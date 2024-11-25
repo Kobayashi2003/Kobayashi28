@@ -1,11 +1,9 @@
-from datetime import datetime, timezone
-
 from flask import Blueprint, jsonify
 
-from api.tasks.backups import backup_task
-from api.tasks.backups import restore_task
-from api.tasks.backups import get_backups_task
-from api.tasks.backups import delete_backups_task
+from api.tasks.backups import (
+    backup_task, restore_task,
+    get_backups_task, delete_backups_task
+)
 
 backup_bp = Blueprint('backup', __name__, url_prefix='/backups')
 

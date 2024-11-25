@@ -12,20 +12,6 @@ def search_related_resources_task(
     related_resource_type: str,
     response_size: str = 'small'
 ) -> Dict[str, Any]:
-    """
-    Celery task to search for related resources.
-
-    Args:
-        self (Task): The Celery task instance.
-        resource_type (str): The type of the main resource.
-        resource_id (str): The ID of the main resource.
-        related_resource_type (str): The type of the related resource to search for.
-        related_resource_id (str): The ID of the related resource to search for.
-        response_size (str): Size of the response data ('small' or 'large').
-
-    Returns:
-        Dict[str, Any]: A dictionary containing the search results and status.
-    """
     self.update_state(state='PROGRESS', meta={'status': f'Searching for related {related_resource_type} for {resource_type} {resource_id}...'})
 
     try:
@@ -60,27 +46,9 @@ def search_resources_task(
     sort: str = 'id',
     order: str = 'asc'
 ) -> Dict[str, Any]:
-    """
-    Celery task to search for resources either in local or remote database.
-
-    Args:
-        self (Task): The Celery task instance.
-        resource_type (str): The type of resource to search for.
-        search_from (str): Where to search ('local' or 'remote').
-        params (Dict[str, Any]): Search parameters.
-        response_size (str): Size of the response data ('small' or 'large').
-        page (Optional[int]): Page number for pagination.
-        limit (Optional[int]): Number of items per page.
-        sort (str): Field to sort by.
-        order (str): Sort order ('asc' or 'desc').
-
-    Returns:
-        Dict[str, Any]: A dictionary containing the search results and status.
-    """
     self.update_state(state='PROGRESS', meta={'status': f'Searching {search_from} database for {resource_type}...'})
     
     try:
-        # Perform search based on the specified database (local or remote)
         if search_from == 'local':
             search_results = search_local(resource_type, params, response_size, page, limit, sort, order)
         elif search_from == 'remote':
@@ -88,37 +56,21 @@ def search_resources_task(
         else:
             return {'status': 'FAILURE', 'result': f"Invalid search_from value: {search_from}"}
 
-        # Check if search results are valid
         if not search_results or not (isinstance(search_results, dict) or not search_results.get('results')):
             return {'status': 'NOT_FOUND', 'result': None}
 
-        # Add status and source to the search results
         search_results['status'] = 'SUCCESS'
         search_results['source'] = search_from
 
         return search_results
 
     except Exception as exc:
-        # Update task state and return failure status if an exception occurs
         self.update_state(state='FAILURE', meta={'status': f'Search operation failed: {str(exc)}'})
         return {'status': 'FAILURE', 'result': str(exc)}
 
 @celery.task(bind=True)
 def search_resource_task(self: Task, resource_type: str, id: str, data_size: str = 'small') -> Dict[str, Any]:
-    """
-    Celery task to search for a specific resource by ID in both local and remote databases.
-
-    Args:
-        self (Task): The Celery task instance.
-        resource_type (str): The type of resource to search for.
-        id (str): The ID of the resource to search for.
-        data_size (str): Size of the response data ('small' or 'large').
-
-    Returns:
-        Dict[str, Any]: A dictionary containing the search results and status.
-    """
     try:
-        # Search in local database
         self.update_state(state='PROGRESS', meta={'status': 'Searching local database...'})
         search_results = search_local(resource_type, {'id': id}, data_size)
 
@@ -127,7 +79,6 @@ def search_resource_task(self: Task, resource_type: str, id: str, data_size: str
             search_results['source'] = 'local'
             return search_results
 
-        # If not found in local, search in remote database
         self.update_state(state='PROGRESS', meta={'status': 'Searching remote database...'})
         search_results = search_remote(resource_type, {'id': id}, data_size)
 
@@ -136,10 +87,8 @@ def search_resource_task(self: Task, resource_type: str, id: str, data_size: str
             search_results['source'] = 'remote'
             return search_results
 
-        # If not found in either database
         return {'status': 'NOT_FOUND', 'result': None}
 
     except Exception as exc:
-        # Update task state and return failure status if an exception occurs
         self.update_state(state='FAILURE', meta={'status': f'Search by ID operation failed: {str(exc)}'})
         return {'status': 'FAILURE', 'result': str(exc)}

@@ -166,7 +166,13 @@ def _get_all(type: str, page: Optional[int] = None, limit: Optional[int] = None,
 
     return results
 
-def _cleanup(type: str) -> int:
+def _cleanup(type: str, id: str) -> Optional[ModelType]:
+    item = _get_inactive(type, id)
+    if not item:
+        return None
+    return _delete(type, id)
+
+def _cleanup_type(type: str) -> int:
     model = MODEL_MAP.get(type)
     meta_model = META_MODEL_MAP.get(type)
     if not model or not meta_model:
@@ -238,7 +244,7 @@ def _get_inactive(type: str, id: str) -> Optional[ModelType]:
 
     return item
 
-def _get_all_inactive(type: str, page: Optional[int] = None, limit: Optional[int] = None, sort: Optional[str] = None, order: str = 'asc') -> List[ModelType]:
+def _get_inactive_type(type: str, page: Optional[int] = None, limit: Optional[int] = None, sort: Optional[str] = None, order: str = 'asc') -> List[ModelType]:
     model = MODEL_MAP.get(type)
     meta_model = META_MODEL_MAP.get(type)
     if not model or not meta_model:
@@ -272,6 +278,9 @@ def _get_all_inactive(type: str, page: Optional[int] = None, limit: Optional[int
 
     return results
 
+def _get_inactive_all() -> Dict[str, List[ModelType]]:
+    return { type: get_inactive_type(type) for type in MODEL_MAP.keys() }
+
 @db_transaction
 def create(*args, **kwargs) -> Optional[ModelType]: return _create(*args, **kwargs)
 
@@ -294,6 +303,9 @@ def get_all(*args, **kwargs) -> List[ModelType]: return _get_all(*args, **kwargs
 def cleanup(*args, **kwargs) -> int: return _cleanup(*args, **kwargs)
 
 @db_transaction
+def cleanup_type(*args, **kwargs) -> int: return _cleanup_type(*args, **kwargs)
+
+@db_transaction
 def cleanup_all(*args, **kwargs) -> Dict[str, int]: return _cleanup_all(*args, **kwargs)
 
 @db_transaction
@@ -309,4 +321,7 @@ def recover_all(*args, **kwargs) -> int: return _recover_all(*args, **kwargs)
 def get_inactive(*args, **kwargs) -> Optional[ModelType]: return _get_inactive(*args, **kwargs)
 
 @db_transaction
-def get_all_inactive(*args, **kwargs) -> List[ModelType]: return _get_all_inactive(*args, **kwargs)
+def get_inactive_type(*args, **kwargs) -> List[ModelType]: return _get_inactive_type(*args, **kwargs)
+
+@db_transaction
+def get_inactive_all(*args, **kwargs) -> List[ModelType]: return _get_inactive_all(*args, **kwargs)

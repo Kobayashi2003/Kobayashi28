@@ -1,8 +1,11 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify 
 
 from .tasks import task_bp
 from .backups import backup_bp
-from .resources import vn_bp, character_bp, producer_bp, staff_bp, tag_bp, trait_bp 
+from .resources import (
+    vn_bp, character_bp, producer_bp, 
+    staff_bp, tag_bp, trait_bp 
+)
 
 api_bp = Blueprint('api_v4', __name__, url_prefix='/api/v4')
 
