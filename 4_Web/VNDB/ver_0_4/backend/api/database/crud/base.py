@@ -209,7 +209,7 @@ def _recover(type: str, id: str) -> Optional[ModelType]:
 
     return item
 
-def _recover_type() -> int:
+def _recover_type(type: str) -> int:
     model = MODEL_MAP.get(type)
     meta_model = META_MODEL_MAP.get(type)
     if not model or not meta_model:

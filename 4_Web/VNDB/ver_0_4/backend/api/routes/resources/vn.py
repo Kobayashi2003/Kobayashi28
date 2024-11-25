@@ -1,20 +1,27 @@
-import zipfile
-from io import BytesIO
 from datetime import datetime, timezone
 
-from flask import jsonify, request, abort, send_file
+from flask import jsonify, request, abort
 
-from api.database import get_savedatas, get 
-from api.utils import get_image_path, get_savedata_path
-from api.tasks.resource import (
-    get_related_resources_task, search_related_resources_task, 
-    update_related_resources_task, delete_related_resources_task
+from api.tasks.related_resources import (
+    get_related_resources_task,
+    search_related_resources_task,
+    update_related_resources_task,
+    delete_related_resources_task
 )
-from api.tasks.image import (
-    get_images_task, upload_images_task, update_images_task, delete_images_task
+from api.tasks.images import (
+    get_image_task, get_images_task, 
+    upload_image_task, upload_images_task, 
+    update_image_task, update_images_task, 
+    delete_image_task, delete_images_task
 )
-from api.tasks.savedata import (
-    get_savedatas_task, upload_savedatas_task, delete_savedatas_task,
+from api.tasks.savedatas import (
+    get_savedata_task, get_savedatas_task, 
+    upload_savedata_task, upload_savedatas_task, 
+    delete_savedata_task, delete_savedatas_task,
+)
+from .common import (
+    get_savedata_file, get_image_file,
+    create_savedatas_zip, create_images_zip
 )
 from .base import BaseResourceBlueprint
 
@@ -44,6 +51,7 @@ class VNResourceBlueprint(BaseResourceBlueprint):
         self.bp.add_url_rule('/<string:vnid>/savedatas', 'delete_vn_savedatas', self.delete_vn_savedatas, methods=['DELETE'])
         self.bp.add_url_rule('/<string:vnid>/savedatas/<string:savedata_id>', 'delete_vn_savedata', self.delete_vn_savedata, methods=['DELETE'])
 
+
         for endpoint, related_resource_type in {"vns":"vn", "tags":"tag", "characters":"character", "producers":"producer", "staff":"staff"}.items():
             self.bp.add_url_rule('/<string:vnid>/' + endpoint, 'get_related_' + endpoint, self.get_related_resources, methods=['GET'], defaults={"related_resource_type": related_resource_type})
             self.bp.add_url_rule('/<string:vnid>/' + endpoint, 'search_related_' + endpoint, self.search_related_resources, methods=['POST'], defaults={"related_resource_type": related_resource_type})
@@ -51,28 +59,30 @@ class VNResourceBlueprint(BaseResourceBlueprint):
             self.bp.add_url_rule('/<string:vnid>/' + endpoint, 'delete_related_' + endpoint, self.delete_related_resources, methods=['DELETE'], defaults={"related_resource_type": related_resource_type})
 
     def get_vn_images(self, vnid):
+        format = request.args.get('format', default='json', type=str)
+        if format == 'file':
+            return create_images_zip('vn', vnid)
         task = get_images_task.delay('vn', vnid)
         return jsonify({"task_id": task.id}), 202
 
     def get_vn_image(self, vnid, image_id):
         format = request.args.get('format', default='file', type=str)
-        # TODO
         if format == 'file':
-            image_path = get_image_path('vn', image_id)
-            if not image_path:
-                abort(400, 'Invalid image URL')
-            return send_file(image_path, mimetype='image/jpeg')
-
-        task = get_images_task.delay('vn', vnid, image_id)
+            return get_image_file('vn', image_id)
+        task = get_image_task.delay('vn', vnid, image_id)
         return jsonify({"task_id": task.id}), 202
 
     def upload_vn_images(self, vnid):
-        if 'files' not in request.files:
-            return jsonify({"error": "No file part"}), 400
-        files = request.files.getlist('files')
-        file_data = [{'filename': file.filename, 'content': file.read()} for file in files]
-
-        task = upload_images_task.delay('vn', vnid, file_data)
+        if 'files' in request.files:
+            files = request.files.getlist('files')
+            files_data = [{'filename': file.filename, 'content': file.read()} for file in files]
+            task = upload_images_task.delay('vn', vnid, files_data)
+        elif 'file' in request.files:
+            file = request.files['file']
+            file_data = {'filename': file.filename, 'content': file.read()}
+            task = upload_image_task.delay('vn', vnid, file_data)
+        else:
+            abort(400, 'No file part')
         return jsonify({"task_id": task.id}), 202
 
     def update_vn_images(self, vnid):
@@ -80,12 +90,7 @@ class VNResourceBlueprint(BaseResourceBlueprint):
         return jsonify({"task_id": task.id}), 202
 
     def update_vn_image(self, vnid, image_id):
-        if 'file' not in request.files:
-            return jsonify({"error": "No file part"}), 400
-        file = request.files['file']
-        file_data = {'filename': file.filename, 'content': file.read()}
-
-        task = update_images_task.delay('vn', vnid, image_id, file_data)
+        task = update_image_task.delay('vn', vnid, image_id)
         return jsonify({"task_id": task.id}), 202
 
     def delete_vn_images(self, vnid):
@@ -93,68 +98,53 @@ class VNResourceBlueprint(BaseResourceBlueprint):
         return jsonify({"task_id": task.id}), 202
 
     def delete_vn_image(self, vnid, image_id):
-        task = delete_images_task.delay('vn', vnid, image_id)
+        task = delete_image_task.delay('vn', vnid, image_id)
         return jsonify({"task_id": task.id}), 202
 
     def get_vn_savedatas(self, vnid):
-        format = request.args.get('format', default='file', type=str)
-        # TODO
+        format = request.args.get('format', default='json', type=str)
         if format == 'file':
-            savedatas = get_savedatas(vnid)
-            if not savedatas:
-                abort(404, description="No SaveData found for this VN")
-            memory_file = BytesIO()
-            with zipfile.ZipFile(memory_file, 'w') as zf:
-                for savedata in savedatas:
-                    savedata_id = savedata.id
-                    savedata_filename = savedata.filename
-                    savedata_path = get_savedata_path(savedata_id)
-                    if savedata_path:
-                        zf.write(savedata_path, savedata_filename)
-            memory_file.seek(0)
-            return send_file(memory_file, as_attachment=True, download_name=f"{vnid}.zip")
-
+            return create_savedatas_zip(vnid)
         task = get_savedatas_task.delay(vnid)
         return jsonify({"task_id": task.id}), 202
 
     def get_vn_savedata(self, vnid, savedata_id):
         format = request.args.get('format', default='file', type=str)
-        # TODO
         if format == 'file':
-            savedata = get('savedata', savedata_id)
-            savedata_path = get_savedata_path(savedata_id)
-            if not savedata or not savedata_path:
-                abort(400, 'Invalid file URL')
-            return send_file(savedata_path, as_attachment=True, download_name=savedata.filename)
-
-        task = get_savedatas_task.delay(vnid, savedata_id)
+            return get_savedata_file(savedata_id)
+        task = get_savedata_task.delay(vnid, savedata_id)
         return jsonify({"task_id": task.id}), 202
 
     def upload_vn_savedatas(self, vnid):
-        files = request.files.getlist('files')
-
-        if not files or all(file.filename == '' for file in files):
-            abort(400, description="No selected file")
-
         to_datetime = lambda ts: datetime.fromtimestamp(int(ts) / 1000.0, tz=timezone.utc) if ts else datetime.now(timezone.utc)
-
-        serializable_files = [
-            {
+        if 'files' in request.files:
+            files = request.files.getlist('files')
+            files_data = [
+                {
+                    'filename': file.filename,
+                    'content': file.read(),
+                    'last_modified': to_datetime(request.form.get(f'last_modified_{file.filename}'))
+                } for file in files
+            ]
+            task = upload_savedatas_task.delay(vnid, files_data)
+        elif 'file' in request.files:
+            file = request.files['file']
+            file_data = {
                 'filename': file.filename,
                 'content': file.read(),
                 'last_modified': to_datetime(request.form.get(f'last_modified_{file.filename}'))
-            } for file in files
-        ]
-
-        task = upload_savedatas_task.delay(vnid, serializable_files)
+            }
+            task = upload_savedata_task.delay(vnid, file_data)
+        else:
+            abort(400, 'No file part')
         return jsonify({"task_id": task.id}), 202
 
     def delete_vn_savedatas(self, vnid):
-        task = delete_savedatas_task.delay('vn', vnid)
+        task = delete_savedatas_task.delay(vnid)
         return jsonify({"task_id": task.id}), 202
 
     def delete_vn_savedata(self, vnid, savedata_id):
-        task = delete_savedatas_task.delay('vn', vnid, savedata_id)
+        task = delete_savedata_task.delay(vnid, savedata_id)
         return jsonify({"task_id": task.id}), 202
 
     def get_related_resources(self, vnid, related_resource_type):

@@ -3,8 +3,7 @@ from .crud.base import (
     update, delete, delete_all,
     cleanup, cleanup_type, cleanup_all,
     recover, recover_type, recover_all,
-    get_inactive, get_inactive_all,
-    _get_inactive_all
+    get_inactive, get_inactive_type, _get_inactive_all
 )
 
 from .crud.related import (

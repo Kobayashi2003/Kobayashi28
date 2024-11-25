@@ -1,7 +1,7 @@
 from typing import List, Dict, Any
 
 from .common import db_transaction
-from .base import _get, _update, _delete
+from .base import _get, _delete
 from ..models import MODEL_MAP, convert_model_to_dict
 
 @db_transaction

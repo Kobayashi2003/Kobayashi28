@@ -1,12 +1,19 @@
-from flask import jsonify, request, abort, send_file
+from flask import jsonify, request, abort 
 
-from api.utils import get_image_path
-from api.tasks.resource import (
-    get_related_resources_task, search_related_resources_task, 
-    update_related_resources_task, delete_related_resources_task
+from api.tasks.related_resources import (
+    get_related_resources_task,
+    search_related_resources_task,
+    update_related_resources_task,
+    delete_related_resources_task
 )
-from api.tasks.image import (
-    get_images_task, upload_images_task, update_images_task, delete_images_task
+from api.tasks.images import (
+    get_image_task, get_images_task, 
+    upload_image_task, upload_images_task, 
+    update_image_task, update_images_task, 
+    delete_image_task, delete_images_task
+)
+from .common import (
+    get_image_file, create_images_zip
 )
 from .base import BaseResourceBlueprint
 
@@ -34,28 +41,30 @@ class CharacterResourceBlueprint(BaseResourceBlueprint):
             self.bp.add_url_rule('/<string:charid>/' + endpoint, 'delete_related_' + endpoint, self.delete_related_resources, methods=['DELETE'], defaults={"related_resource_type": related_resource_type})
 
     def get_character_images(self, charid):
+        format = request.args.get('format', default='json', type=str)
+        if format =='file':
+            return create_images_zip('character', charid)
         task = get_images_task.delay('character', charid)
         return jsonify({"task_id": task.id}), 202
 
     def get_character_image(self, charid, image_id):
         format = request.args.get('format', default='file', type=str)
-        # TODO
         if format == 'file':
-            image_path = get_image_path('character', charid, image_id)
-            if not image_path:
-                abort(400, 'Invalid image URL')
-            return send_file(image_path, mimetype='image/jpeg')
-
-        task = get_images_task.delay('character', charid, image_id)
+            return get_image_file('character', image_id)
+        task = get_image_task.delay('character', charid, image_id)
         return jsonify({"task_id": task.id}), 202
 
     def upload_character_images(self, charid):
-        if 'files' not in request.files:
-            return jsonify({"error": "No file part"}), 400
-        files = request.files.getlist('files')
-        file_data = [{'filename': file.filename, 'content': file.read()} for file in files]
-
-        task = upload_images_task.delay('character', charid, file_data)
+        if 'files' in request.files:
+            files = request.files.getlist('files')
+            files_data = [{'filename': file.filename, 'content': file.read()} for file in files]
+            task = upload_images_task.delay('character', charid, files_data)
+        elif 'file' in request.files:
+            file = request.files['file']
+            file_data = {'filename': file.filename, 'content': file.read()}
+            task = upload_image_task.delay('character', charid, file_data)
+        else:
+            abort(400, 'No file part')
         return jsonify({"task_id": task.id}), 202
 
     def update_character_images(self, charid):
@@ -63,12 +72,7 @@ class CharacterResourceBlueprint(BaseResourceBlueprint):
         return jsonify({"task_id": task.id}), 202
 
     def update_character_image(self, charid, image_id):
-        if 'file' not in request.files:
-            return jsonify({"error": "No file part"}), 400
-        file = request.files['file']
-        file_data = {'filename': file.filename, 'content': file.read()}
-
-        task = update_images_task.delay('character', charid, image_id, file_data)
+        task = update_image_task.delay('character', charid)
         return jsonify({"task_id": task.id}), 202
 
     def delete_character_images(self, charid):
@@ -76,7 +80,7 @@ class CharacterResourceBlueprint(BaseResourceBlueprint):
         return jsonify({"task_id": task.id}), 202
 
     def delete_character_image(self, charid, image_id):
-        task = delete_images_task.delay('character', charid, image_id)
+        task = delete_image_task.delay('character', charid, image_id)
         return jsonify({"task_id": task.id}), 202
 
     def get_related_resources(self, charid, related_resource_type):

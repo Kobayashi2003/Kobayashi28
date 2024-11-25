@@ -2,7 +2,8 @@ from flask import Blueprint, jsonify
 
 from api.tasks.backups import (
     backup_task, restore_task,
-    get_backups_task, delete_backups_task
+    get_backup_task, get_backups_task, 
+    delete_backup_task, delete_backups_task
 )
 
 backup_bp = Blueprint('backup', __name__, url_prefix='/backups')
@@ -14,7 +15,7 @@ def get_backups():
 
 @backup_bp.route('/<string:id>', methods=['GET'])
 def get_backup(id):
-    task = get_backups_task.delay(backup_id=id)
+    task = get_backup_task.delay(backup_id=id)
     return jsonify({"task_id": task.id}), 202
 
 @backup_bp.route('', methods=['POST'])
@@ -34,5 +35,5 @@ def delete_backups():
 
 @backup_bp.route('/<string:id>', methods=['DELETE'])
 def delete_backup(id):
-    task = delete_backups_task.delay(backup_id=id)
+    task = delete_backup_task.delay(backup_id=id)
     return jsonify({"task_id": task.id}), 202

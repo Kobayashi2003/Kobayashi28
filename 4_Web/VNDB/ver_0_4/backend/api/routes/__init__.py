@@ -1,12 +1,5 @@
 from flask import Blueprint, jsonify 
 
-from .tasks import task_bp
-from .backups import backup_bp
-from .resources import (
-    vn_bp, character_bp, producer_bp, 
-    staff_bp, tag_bp, trait_bp 
-)
-
 api_bp = Blueprint('api_v4', __name__, url_prefix='/api/v4')
 
 @api_bp.errorhandler(400)
@@ -25,11 +18,22 @@ def server_error(e):
 def hello_world():
     return jsonify({"message": "Hello, KOBAYASHI!"})
 
-api_bp.register_blueprint(task_bp)
-api_bp.register_blueprint(backup_bp)
+from .resources import (
+    vn_bp, staff_bp, tag_bp, trait_bp,
+    character_bp, producer_bp
+)
 api_bp.register_blueprint(vn_bp)
 api_bp.register_blueprint(character_bp)
 api_bp.register_blueprint(producer_bp)
 api_bp.register_blueprint(staff_bp)
 api_bp.register_blueprint(tag_bp)
 api_bp.register_blueprint(trait_bp)
+
+from .tasks import task_bp
+api_bp.register_blueprint(task_bp)
+
+from .backups import backup_bp
+api_bp.register_blueprint(backup_bp)
+
+from .trash import trash_bp
+api_bp.register_blueprint(trash_bp)

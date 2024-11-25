@@ -9,8 +9,8 @@ from flask import current_app
 
 from .common import db_transaction
 from .base import (
-    _get, _get_all, _get_inactive, _get_all_inactive,
-    _create, _update, _delete, _delete_all, exists
+    _get, _get_all, _get_inactive_type,
+    _create, _delete
 )
 from ..models import Backup
 
@@ -157,7 +157,7 @@ def delete_backup(backup_id: str) -> Optional[Backup]:
 
 @db_transaction
 def delete_backups() -> int:
-    backups = _get_all('backup') + _get_all_inactive('backup')
+    backups = _get_all('backup') + _get_inactive_type('backup')
     
     deleted_count = 0
     for backup in backups:

@@ -40,31 +40,6 @@ def create_app(config_class=Config):
     cache = Cache(app, config={'CACHE_TYPE': 'simple'})
 
     # ----------------------------------------
-    # Scheduler Initialization
-    # This section sets up the APScheduler for running scheduled tasks
-    # ----------------------------------------
-    from flask_apscheduler import APScheduler
-    scheduler = APScheduler()
-    scheduler.init_app(app)
-    scheduler.start()
-    
-    def scheduled_task(*args, **kwargs):
-        def decorator(func):
-            import functools
-            @functools.wraps(func)
-            @scheduler.task(*args, **kwargs)
-            def wrapper(*a, **kw):
-                with app.app_context():
-                    return func(*a, **kw)
-            return wrapper
-        return decorator
-
-    # Import scheduler tasks
-    from .schedule import simple_task as scheduled_simple_task
-    from .schedule import cleanup_task as scheduled_cleanup_task
-    from .schedule import backup_task as scheduled_backup_task
-
-    # ----------------------------------------
     # Celery Initialization
     # This section sets up Celery for asynchronous task processing
     # ----------------------------------------
@@ -91,21 +66,40 @@ def create_app(config_class=Config):
     celery.Task = ContextTask
     app.celery = celery
 
+
+    # ----------------------------------------
+    # Scheduler Initialization
+    # This section sets up the APScheduler for running scheduled tasks
+    # ----------------------------------------
+    from flask_apscheduler import APScheduler
+    scheduler = APScheduler()
+    scheduler.init_app(app)
+    scheduler.start()
+    
+    def scheduled_task(*args, **kwargs):
+        def decorator(func):
+            import functools
+            @functools.wraps(func)
+            @scheduler.task(*args, **kwargs)
+            def wrapper(*a, **kw):
+                with app.app_context():
+                    return func(*a, **kw)
+            return wrapper
+        return decorator
+
+    # Import scheduler tasks
+    from .tasks.simple import scheduled_simple_task
+    from .tasks.backups import scheduled_backup_task
+
     # ----------------------------------------
     # Blueprint Registration
     # This section registers all the blueprints (modular components) of the application
     # ----------------------------------------
 
-
-    # from .routes_v4 import api_bp
     from .routes import api_bp
 
     app.register_blueprint(api_bp)
-    
-    @app.route('/')
-    def test():
-        return render_template('test.html')
-
+    app.add_url_rule('/', 'index', lambda: render_template('test.html'), methods=['GET'])
 
     # ----------------------------------------
     # CLI Command Registration

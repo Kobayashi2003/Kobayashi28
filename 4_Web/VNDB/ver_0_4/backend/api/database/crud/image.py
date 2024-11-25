@@ -5,8 +5,9 @@ from sqlalchemy import text
 from api import db
 from .common import db_transaction
 from .base import (
-    _get, _get_all, _get_inactive, _get_all_inactive,
-    _create, _update, _delete, _delete_all, exists
+    _get, _get_all, _get_inactive, 
+    _get_inactive_type, 
+    _create, _delete, exists
 )
 from ..models import IMAGE_MODEL_MAP, ImageModelType
 
@@ -134,7 +135,7 @@ def delete_images(resource_type: str, resource_id: str) -> int:
     image_type = f'{resource_type}_image'
     
     # Get all images associated with the resource
-    images = _get_all(image_type) + _get_all_inactive(image_type)
+    images = _get_all(image_type) + _get_inactive_type(image_type)
     images = [img for img in images if getattr(img, f'{resource_type}_id') == resource_id]
     
     deleted_count = 0

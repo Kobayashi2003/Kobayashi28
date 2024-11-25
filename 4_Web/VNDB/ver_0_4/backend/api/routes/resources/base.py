@@ -1,8 +1,11 @@
 from flask import Blueprint, jsonify, request
 from abc import ABC, ABCMeta, abstractmethod
-from api.tasks.resource import (
-    get_resources_task, search_resource_task, search_resources_task,
-    update_resources_task, delete_resources_task, edit_resources_task
+from api.tasks.resources import (
+    get_resource_task, get_resources_task, 
+    search_resource_task, search_resources_task,
+    update_resource_task, update_resources_task, 
+    delete_resource_task, delete_resources_task, 
+    edit_resource_task, edit_resources_task
 )
 
 class SingletonABCMeta(ABCMeta):
@@ -42,7 +45,7 @@ class BaseResourceBlueprint(ABC, metaclass=SingletonABCMeta):
         return jsonify({"task_id": task.id}), 202
 
     def get_resource(self, id):
-        task = get_resources_task.delay(self.resource_type, id)
+        task = get_resource_task.delay(self.resource_type, id)
         return jsonify({"task_id": task.id}), 202
 
     def search_resources(self):
@@ -66,18 +69,18 @@ class BaseResourceBlueprint(ABC, metaclass=SingletonABCMeta):
         return jsonify({"task_id": task.id}), 202
 
     def update_resource(self, id):
-        task = update_resources_task.delay(self.resource_type, id)
+        task = update_resource_task.delay(self.resource_type, id)
         return jsonify({"task_id": task.id}), 202
 
     def edit_resources(self):
-        updates = request.json
-        if not updates:
+        update_datas = request.json
+        if not update_datas:
             return jsonify({"error": "No update data provided"}), 400
         
-        if not isinstance(updates, list):
+        if not isinstance(update_datas, list):
             return jsonify({"error": "Invalid format. Expected a list of updates"}), 400
 
-        task = edit_resources_task.delay(self.resource_type, updates)
+        task = edit_resources_task.delay(self.resource_type, update_datas)
         return jsonify({"task_id": task.id}), 202
 
     def edit_resource(self, id):
@@ -85,8 +88,7 @@ class BaseResourceBlueprint(ABC, metaclass=SingletonABCMeta):
         if not update_data:
             return jsonify({"error": "No update data provided"}), 400
         
-        update_data['id'] = id  # Ensure the id is included in the update data
-        task = edit_resources_task.delay(self.resource_type, update_data)
+        task = edit_resource_task.delay(self.resource_type, id, update_data)
         return jsonify({"task_id": task.id}), 202
 
     def delete_resources(self):
@@ -94,7 +96,7 @@ class BaseResourceBlueprint(ABC, metaclass=SingletonABCMeta):
         return jsonify({"task_id": task.id}), 202
 
     def delete_resource(self, id):
-        task = delete_resources_task.delay(self.resource_type, id)
+        task = delete_resource_task.delay(self.resource_type, id)
         return jsonify({"task_id": task.id}), 202
 
     @property
