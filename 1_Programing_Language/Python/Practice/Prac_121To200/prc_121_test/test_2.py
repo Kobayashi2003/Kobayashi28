@@ -28,4 +28,3 @@ def test_2(setup_module):
 def test_3(setup_function):
     print("Test_3 called.")
     assert 2 == 1 + 1
-

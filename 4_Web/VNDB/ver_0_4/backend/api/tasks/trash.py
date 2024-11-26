@@ -1,6 +1,6 @@
 from typing import Dict, Any 
 
-from api import celery, scheduled_task
+from api import celery 
 from api.database import (
     get_inactive, get_inactive_type, _get_inactive_all,
     cleanup, cleanup_type, cleanup_all,

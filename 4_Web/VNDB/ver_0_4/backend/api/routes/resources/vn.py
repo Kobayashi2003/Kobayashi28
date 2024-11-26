@@ -2,7 +2,11 @@ from datetime import datetime, timezone
 
 from flask import jsonify, request, abort
 
+from api import cache
 from api.tasks.related_resources import (
+    get_related_characters_images_task,
+    update_related_characters_images_task, 
+    delete_related_characters_images_task,
     get_related_resources_task,
     search_related_resources_task,
     update_related_resources_task,
@@ -57,6 +61,10 @@ class VNResourceBlueprint(BaseResourceBlueprint):
             self.bp.add_url_rule('/<string:vnid>/' + endpoint, 'search_related_' + endpoint, self.search_related_resources, methods=['POST'], defaults={"related_resource_type": related_resource_type})
             self.bp.add_url_rule('/<string:vnid>/' + endpoint, 'update_related_' + endpoint, self.update_related_resources, methods=['PUT'], defaults={"related_resource_type": related_resource_type})
             self.bp.add_url_rule('/<string:vnid>/' + endpoint, 'delete_related_' + endpoint, self.delete_related_resources, methods=['DELETE'], defaults={"related_resource_type": related_resource_type})
+
+        self.bp.add_url_rule('/<string:vnid>/characters/images', 'get_related_characters_images', self.get_related_characters_images, methods=['GET'])
+        self.bp.add_url_rule('/<string:vnid>/characters/images', 'update_related_characters_images', self.update_related_characters_images, methods=['PUT'])
+        self.bp.add_url_rule('/<string:vnid>/characters/images', 'delete_related_characters_images', self.delete_related_characters_images, methods=['DELETE'])
 
     def get_vn_images(self, vnid):
         format = request.args.get('format', default='json', type=str)
@@ -147,10 +155,25 @@ class VNResourceBlueprint(BaseResourceBlueprint):
         task = delete_savedata_task.delay(vnid, savedata_id)
         return jsonify({"task_id": task.id}), 202
 
+    @cache.memoize(timeout=60)
+    def get_related_characters_images(self, vnid):
+        task = get_related_characters_images_task.delay(vnid)
+        return jsonify({"task_id": task.id}), 202
+
+    def update_related_characters_images(self, vnid):
+        task = update_related_characters_images_task.delay(vnid)
+        return jsonify({"task_id": task.id}), 202
+
+    def delete_related_characters_images(self, vnid):
+        task = delete_related_characters_images_task.delay(vnid)
+        return jsonify({"task_id": task.id}), 202
+
+    @cache.memoize(timeout=60)
     def get_related_resources(self, vnid, related_resource_type):
         task = get_related_resources_task.delay("vn", vnid, related_resource_type)
         return jsonify({"task_id": task.id}), 202
 
+    @cache.memoize(timeout=60)
     def search_related_resources(self, vnid, related_resource_type):
         response_size = request.json.pop('response_size', 'small')
         task = search_related_resources_task.delay("vn", vnid, related_resource_type, response_size)

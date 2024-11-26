@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
 from abc import ABC, ABCMeta, abstractmethod
+from api import cache
 from api.tasks.resources import (
     get_resource_task, get_resources_task, 
     search_resource_task, search_resources_task,
@@ -35,19 +36,22 @@ class BaseResourceBlueprint(ABC, metaclass=SingletonABCMeta):
         self.bp.add_url_rule('', 'delete_resources', self.delete_resources, methods=['DELETE'])
         self.bp.add_url_rule('/<string:id>', 'delete_resource', self.delete_resource, methods=['DELETE'])
 
+    @cache.memoize(timeout=60)
     def get_resources(self):
         page = request.args.get('page', default=1, type=int)
         limit = request.args.get('limit', default=20, type=int)
         sort = request.args.get('sort', default='id', type=str)
         order = request.args.get('order', default='asc', type=str)
         
-        task = get_resources_task.delay(self.resource_type, None, page, limit, sort, order)
+        task = get_resources_task.delay(self.resource_type, page, limit, sort, order)
         return jsonify({"task_id": task.id}), 202
 
+    @cache.memoize(timeout=60)
     def get_resource(self, id):
         task = get_resource_task.delay(self.resource_type, id)
         return jsonify({"task_id": task.id}), 202
 
+    @cache.memoize(timeout=60)
     def search_resources(self):
         search_params = request.json
         search_from = search_params.pop('search_from', 'local')
@@ -60,6 +64,7 @@ class BaseResourceBlueprint(ABC, metaclass=SingletonABCMeta):
         task = search_resources_task.delay(self.resource_type, search_from, search_params, response_size, page, limit, sort, order)
         return jsonify({"task_id": task.id}), 202
 
+    @cache.memoize(timeout=60)
     def search_resource_by_id(self, id):
         task = search_resource_task.delay(self.resource_type, id)
         return jsonify({"task_id": task.id}), 202

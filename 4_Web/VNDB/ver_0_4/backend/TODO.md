@@ -1,2 +1,0 @@
-- vns/<string:vnid>/characters/images
-- trash 有bug recover 以及 类型不严谨

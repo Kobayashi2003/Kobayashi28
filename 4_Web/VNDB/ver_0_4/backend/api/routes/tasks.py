@@ -3,7 +3,7 @@ from celery.states import PENDING, SUCCESS, FAILURE, STARTED, RETRY
 from celery.backends.base import BaseBackend
 from celery.exceptions import TaskRevokedError
 
-from api import celery
+from api import celery, cache
 
 task_bp = Blueprint('tasks', __name__, url_prefix='/tasks')
 
@@ -80,6 +80,7 @@ def get_task_status(task_id: str):
     return jsonify(response)
 
 @task_bp.route('/<string:task_id>/result', methods=['GET'])
+@cache.memoize(timeout=60)
 def get_task_result(task_id: str):
 
     if not task_exists(task_id):

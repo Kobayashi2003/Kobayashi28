@@ -224,7 +224,7 @@ def _recover_type(type: str) -> int:
     return count
 
 def _recover_all() -> Dict[str, int]:
-    return { type: recover_type(type) for type in MODEL_MAP.keys() }
+    return { type: _recover_type(type) for type in MODEL_MAP.keys() }
 
 def _get_inactive(type: str, id: str) -> Optional[ModelType]:
     model = MODEL_MAP.get(type)

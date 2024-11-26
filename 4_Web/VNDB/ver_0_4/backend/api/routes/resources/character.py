@@ -1,5 +1,6 @@
 from flask import jsonify, request, abort 
 
+from api import cache
 from api.tasks.related_resources import (
     get_related_resources_task,
     search_related_resources_task,
@@ -83,10 +84,12 @@ class CharacterResourceBlueprint(BaseResourceBlueprint):
         task = delete_image_task.delay('character', charid, image_id)
         return jsonify({"task_id": task.id}), 202
 
+    @cache.memoize(timeout=60)
     def get_related_resources(self, charid, related_resource_type):
         task = get_related_resources_task.delay("character", charid, related_resource_type)
         return jsonify({"task_id": task.id}), 202
 
+    @cache.memoize(timeout=60)
     def search_related_resources(self, charid, related_resource_type):
         response_size = request.json.pop('response_size', 'small')
         task = search_related_resources_task.delay("character", charid, related_resource_type, response_size)

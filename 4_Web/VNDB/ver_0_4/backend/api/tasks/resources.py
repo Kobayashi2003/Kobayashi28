@@ -90,7 +90,7 @@ def _update_resources_task(resource_type: str) -> Dict[str, Any]:
         update_results[resource.id] = True if result['status'] == 'SUCCESS' else False
 
     return {
-        'status': 'ALL SUCCESS' if all(update_results.values()) else 'SOME FAILURE',
+        'status': 'SUCCESS' if update_results else 'NOT_FOUND',
         'result': update_results
     }
 
@@ -128,7 +128,7 @@ def _edit_resources_task(resouce_type: str, update_datas: List[Dict[str, Any]]) 
         update_results[resource_id] = True if result['status'] == 'SUCCESS' else False
 
     return {
-        'status': 'ALL SUCCESS' if all(update_results.values()) else 'SOME FAILURE',
+        'status': 'SUCCESS' if update_results else 'NOT_FOUND',
         'result': update_results
     }
 

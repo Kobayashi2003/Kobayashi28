@@ -31,3 +31,4 @@ def setup_logger(name, log_file, level=logging.INFO):
     return logger
 
 test_logger = setup_logger('test_logger', 'logs/test.log')
+logger = setup_logger('logger', 'logs/info.log')

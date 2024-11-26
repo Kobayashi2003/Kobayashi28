@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from flask import current_app
 
-from api import celery, scheduled_task
+from api import celery, scheduler
 
 def _simple_task():
     current_time = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
@@ -12,5 +12,5 @@ def _simple_task():
 @celery.task
 def simple_task(): _simple_task()
 
-@scheduled_task(trigger='interval', id='simple_task', seconds=5)
+@scheduler.task(trigger='interval', id='simple_task', seconds=5)
 def scheduled_simple_task(): _simple_task()

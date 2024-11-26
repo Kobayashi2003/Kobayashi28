@@ -6,11 +6,81 @@ from api.search import (
     search_resources_by_charid
 )
 from api.database import (
-    exists, create, update,
+    exists, create, update, 
+    get_images, create_image, 
+    delete_image, delete_images,
     get_all_related, delete_all_related, 
+    convert_model_to_dict
 )
-from api.utils import convert_remote_to_local
+from api.utils import (
+    convert_remote_to_local,
+    convert_imgurl_to_imgid,
+    get_image_folder,
+    download_images
+)
 from .common import error_handler
+
+@error_handler
+def _get_related_characters_images_task(vnid: str) -> Dict[str, Any]:
+    results = {}
+
+    characters = get_all_related('vn', vnid, 'character')
+    for char in characters:
+        charid = char['id']
+        images = get_images('character', charid)
+        results[charid] = convert_model_to_dict(images[0]) if images else None
+
+    return {
+        'status': 'SUCCESS' if results else 'NOT_FOUND',
+        'result': results
+    }
+
+@error_handler
+def _update_related_characters_images_task(vnid: str) -> Dict[str, Any]:
+    characters = get_all_related('vn', vnid, 'character')
+
+    urls_to_download = {char['image']['url']: char['id'] 
+        for char in characters if char.get('image') and char['image'].get('url')}
+    
+    download_folder = get_image_folder('character')
+    download_results = download_images(urls_to_download.keys(), download_folder)
+
+    successful_downloads = [url for url, success in download_results.items() if success]
+    if not successful_downloads:
+        return {"status": "ALL DOWNLOADS FAILED", "result": download_results}
+
+    for url in successful_downloads:
+        try:
+            charid = urls_to_download[url]
+            image_id = convert_imgurl_to_imgid(url)
+            image_data = {"character_id": charid, "image_type": 'ch'}
+
+            delete_image('character', charid, image_id)
+            image = create_image('character', charid, image_id, image_data)
+            if not image:
+                download_results = False
+        except Exception as exc:
+            download_results[url] = False
+
+    return {
+        "status": "ALL IMAGES UPDATED" if all(download_results.values()) else "SOME IMAGES FAILED",
+        "result": download_results
+    }
+
+@error_handler
+def _delete_related_characters_images_task(vnid: str) -> Dict[str, Any]:
+    results = {}
+
+    characters = get_all_related('vn', vnid, 'character')
+    for char in characters:
+        charid = char['id']
+        deleted_count = delete_images('character', charid)
+        results[charid] = deleted_count
+
+    return {
+        "status": 'SUCCESS' if results else 'NOT_FOUND',
+        "result": results
+    }
 
 @error_handler
 def _get_related_resources_task(resource_type: str, resource_id: str, related_resource_type: str) -> Dict[str, Any]:
@@ -69,7 +139,7 @@ def _update_related_resources_task(resource_type: str, resource_id: str, related
             update_results[id] = False
 
     return {
-        'status': 'ALL SUCCESS' if all(update_results.values()) else 'SOME FAILURE',
+        'status': 'SUCCESS' if update_results else 'NOT_FOUND',
         'result': update_results
     }
 
@@ -80,6 +150,18 @@ def _delete_related_resources_task(resource_type: str, resource_id: str, related
         'status': 'SUCCESS' if deleted_count else 'NOT_FOUND',
         'result': deleted_count
     }
+
+@celery.task
+def get_related_characters_images_task(*args, **kwargs) -> Dict[str, Any]:
+    return _get_related_characters_images_task(*args, **kwargs)
+
+@celery.task
+def update_related_characters_images_task(*args, **kwargs) -> Dict[str, Any]:
+    return _update_related_characters_images_task(*args, **kwargs)
+
+@celery.task
+def delete_related_characters_images_task(*args, **kwargs) -> Dict[str, Any]:
+    return _delete_related_characters_images_task(*args, **kwargs)
 
 @celery.task
 def get_related_resources_task(*args, **kwargs) -> Dict[str, Any]:

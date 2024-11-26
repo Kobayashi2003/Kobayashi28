@@ -54,7 +54,7 @@ def _upload_savedatas_task(resource_id: str, files: List[Dict[str, Any]]) -> Dic
         upload_results[filename] = True if result.get('status') == 'SUCCESS' else False
 
     return {
-        'status': 'ALL SUCCESS' if all(upload_results.values()) else 'SOME FAILURE',
+        'status': 'SUCCESS' if upload_results else 'NOT_FOUND',
         'result': upload_results
     }
 

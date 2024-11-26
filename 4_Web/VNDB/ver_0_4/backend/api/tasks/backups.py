@@ -1,6 +1,6 @@
 from typing import Dict, Any 
 
-from api import celery, scheduled_task
+from api import celery, scheduler
 from api.database import (
     create_backup, delete_backup, delete_backups,
     get_backup, get_backups, restore_database_pg_dump,
@@ -85,5 +85,5 @@ def get_backup_task(*args, **kwargs) -> Dict[str, Any]:
 def get_backups_task(*args, **kwargs) -> Dict[str, Any]:
     return _get_backups_task(*args, **kwargs)
 
-@scheduled_task(trigger='cron', id='weekly_backup_task', day_of_week='sun', hour=0, minute=0)
+@scheduler.task(trigger='cron', id='weekly_backup_task', day_of_week='sun', hour=0, minute=0)
 def scheduled_backup_task() -> Dict[str, Any]: _backup_task()

@@ -86,9 +86,9 @@ def _upload_images_task(resource_type: str, resource_id: str, files: List[Dict])
             raise ValueError("Filename is missing")
         result = _upload_image_task(resource_type, resource_id, filename, file)
         upload_results[filename] = True if result.get('status') == 'SUCESS' else False
-    
+
     return {
-        'status': 'ALL SUCCESS' if all(upload_results.values()) else 'SOME FAILURE',
+        'status': 'SUCCESS' if upload_results else 'NOT_FOUND',
         'result': upload_results
     }
 
@@ -106,13 +106,13 @@ def _update_image_task(resource_type: str, resource_id: str, image_id: str) -> D
             image_type = type
             break
     else:
-        return {"status": "IMAGE NOT FOUND", "result": None}
+        return {"status": "NOT_FOUND", "result": None}
 
     download_folder = get_image_folder(resource_type)
     download_result = download_image(url_to_download, download_folder)
 
     if not download_result:
-        return {"status": "DOWNLOAD FAILED", "result": None}
+        return {"status": "FAILED", "result": None}
 
     delete_image(resource_type, resource_id, image_id)
     image = create_image(resource_type, resource_id, image_id, {"image_type": image_type})
@@ -131,14 +131,14 @@ def _update_images_task(resource_type: str, resource_id: str) -> Dict[str, Any]:
     urls_info = extract_images(resource_type, resource_data)
     urls_to_download = [next(iter(url_info.keys())) for url_info in urls_info]
     if not urls_to_download:
-        return {"status": "NO IMAGES FOUND", "result": None}
+        return {"status": "NOT_FOUND", "result": None}
 
     download_folder = get_image_folder(resource_type)
     download_results = download_images(urls_to_download, download_folder)
 
     successful_downloads = [url for url, success in download_results.items() if success]
     if not successful_downloads:
-        return {"status": "ALL DOWNLOADS FAILED", "result": download_results}
+        return {"status": "ALL IMGAES FAILED", "result": download_results}
 
     for url in successful_downloads:
         get_image_type = lambda url: next(info_dict[url] for info_dict in urls_info if url in info_dict)
