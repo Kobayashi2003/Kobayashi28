@@ -1,6 +1,6 @@
 from .crud.base import (
     exists, create, get, get_all,
-    update, delete, delete_all,
+    update, delete, delete_all, count, 
     cleanup, cleanup_type, cleanup_all,
     recover, recover_type, recover_all,
     get_inactive, get_inactive_type, _get_inactive_all

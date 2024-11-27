@@ -84,29 +84,15 @@ def get_image(resource_type: str, resource_id: str, image_id: str) -> Optional[I
     return image
 
 @db_transaction
-def get_images(resource_type: str, resource_id: str, page: Optional[int] = None, limit: Optional[int] = None) -> List[ImageModelType]:
+def get_images(resource_type: str, resource_id: str) -> List[ImageModelType]:
     if resource_type not in ['vn', 'character']:
         raise ValueError(f"Invalid resource_type for image retrieval: {resource_type}")
-    
-    resource = _get(resource_type, resource_id)
-    if not resource:
+
+    if not exists(resource_type, resource_id):
         return []
 
-    image_type = f'{resource_type}_image'
-    
-    # Use the existing get_all function with additional filtering
-    images = _get_all(
-        type=image_type,
-        page=page,
-        limit=limit,
-        sort='id',  # You can change this if you want a different default sorting
-        order='asc'
-    )
-    
-    # Filter images to only those associated with the specific resource
-    filtered_images = [img for img in images if getattr(img, f'{resource_type}_id') == resource_id]
-    
-    return filtered_images
+    images = _get_all(f'{resource_type}_image')
+    return [img for img in images if getattr(img, f'{resource_type}_id') == resource_id]
 
 @db_transaction
 def delete_image(resource_type: str, resource_id: str, image_id: str) -> Optional[ImageModelType]:
@@ -144,9 +130,3 @@ def delete_images(resource_type: str, resource_id: str) -> int:
         deleted_count += 1 if deleted_image else 0
     
     return deleted_count
-
-def get_image_file(resource_type, resource_id, image_id):
-    ...
-
-def get_images_file(resouce_type, resrouce_id):
-    ...

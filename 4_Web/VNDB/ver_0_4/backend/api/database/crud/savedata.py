@@ -71,21 +71,12 @@ def get_savedata(vnid: str, savedata_id: str) -> Optional[SaveData]:
     return savedata
 
 @db_transaction
-def get_savedatas(vnid: str, page: Optional[int] = None, limit: Optional[int] = None) -> List[SaveData]:
+def get_savedatas(vnid: str) -> List[SaveData]:
     if not exists('vn', vnid):
         return []
 
-    savedatas = _get_all(
-        type='savedata',
-        page=page,
-        limit=limit,
-        sort='time',
-        order='desc'
-    )
-    
-    filtered_savedatas = [sd for sd in savedatas if sd.vnid == vnid]
-    
-    return filtered_savedatas
+    savedatas = _get_all('savedata')
+    return [sd for sd in savedatas if sd.vnid == vnid]
 
 @db_transaction
 def delete_savedata(vnid: str, savedata_id: str) -> Optional[SaveData]:

@@ -142,8 +142,8 @@ def get_backup(backup_id: str) -> Optional[Backup]:
     return _get('backup', backup_id)
 
 @db_transaction
-def get_backups(page: Optional[int] = None, limit: Optional[int] = None) -> List[Backup]:
-    return _get_all('backup', page=page, limit=limit, sort='time', order='desc')
+def get_backups() -> List[Backup]:
+    return _get_all('backup')
 
 @db_transaction
 def delete_backup(backup_id: str) -> Optional[Backup]:

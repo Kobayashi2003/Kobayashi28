@@ -41,13 +41,13 @@ def _update_related_characters_images_task(vnid: str) -> Dict[str, Any]:
 
     urls_to_download = {char['image']['url']: char['id'] 
         for char in characters if char.get('image') and char['image'].get('url')}
+    if not urls_to_download:
+        return {"status": "NOT_FOUND", "result": None}
     
     download_folder = get_image_folder('character')
     download_results = download_images(urls_to_download.keys(), download_folder)
 
     successful_downloads = [url for url, success in download_results.items() if success]
-    if not successful_downloads:
-        return {"status": "ALL DOWNLOADS FAILED", "result": download_results}
 
     for url in successful_downloads:
         try:
@@ -63,7 +63,7 @@ def _update_related_characters_images_task(vnid: str) -> Dict[str, Any]:
             download_results[url] = False
 
     return {
-        "status": "ALL IMAGES UPDATED" if all(download_results.values()) else "SOME IMAGES FAILED",
+        "status": "SUCCESS" if successful_downloads else "FAILED",
         "result": download_results
     }
 

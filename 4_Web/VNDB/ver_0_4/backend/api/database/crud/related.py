@@ -11,6 +11,7 @@ def get_all_related(resource_type: str, resource_id: str, related_resource_type:
         return []
 
     if resource_type == 'vn':
+        related_model = MODEL_MAP[related_resource_type]
         related_field = {
             'vn': 'relations',
             'tag': 'tags',
@@ -18,13 +19,12 @@ def get_all_related(resource_type: str, resource_id: str, related_resource_type:
             'producer': 'developers',
             'staff': 'staff'
         }.get(related_resource_type)
-        related_model = MODEL_MAP[related_resource_type]
     elif resource_type == 'character':
+        related_model = MODEL_MAP[related_resource_type]
         related_field = {
             'vn': 'vns',
             'trait': 'traits'
         }.get(related_resource_type)
-        related_model = MODEL_MAP[related_resource_type]
     else:
         raise ValueError(f"Invalid resource_type: {resource_type}")
 

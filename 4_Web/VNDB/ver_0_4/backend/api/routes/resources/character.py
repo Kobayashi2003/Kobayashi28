@@ -2,13 +2,13 @@ from flask import jsonify, request, abort
 
 from api import cache
 from api.tasks.related_resources import (
-    get_related_resources_task,
-    search_related_resources_task,
+    _get_related_resources_task,
+    _search_related_resources_task,
     update_related_resources_task,
     delete_related_resources_task
 )
 from api.tasks.images import (
-    get_image_task, get_images_task, 
+    _get_image_task, _get_images_task, 
     upload_image_task, upload_images_task, 
     update_image_task, update_images_task, 
     delete_image_task, delete_images_task
@@ -17,6 +17,18 @@ from .common import (
     get_image_file, create_images_zip
 )
 from .base import BaseResourceBlueprint
+
+@cache.memoize(timeout=60)
+def get_related_resources_task(*args, **kwargs): return _get_related_resources_task(*args, **kwargs)
+
+@cache.memoize(timeout=60)
+def search_related_resources_task(*args, **kwargs): return _search_related_resources_task(*args, **kwargs)
+
+@cache.memoize(timeout=60)
+def get_image_task(*args, **kwargs): return _get_image_task(*args, **kwargs)
+
+@cache.memoize(timeout=60)
+def get_images_task(*args, **kwargs): return _get_images_task(*args, **kwargs)
 
 class CharacterResourceBlueprint(BaseResourceBlueprint):
     def __init__(self):
@@ -45,15 +57,13 @@ class CharacterResourceBlueprint(BaseResourceBlueprint):
         format = request.args.get('format', default='json', type=str)
         if format =='file':
             return create_images_zip('character', charid)
-        task = get_images_task.delay('character', charid)
-        return jsonify({"task_id": task.id}), 202
+        return get_images_task('character', charid)
 
     def get_character_image(self, charid, image_id):
         format = request.args.get('format', default='file', type=str)
         if format == 'file':
             return get_image_file('character', image_id)
-        task = get_image_task.delay('character', charid, image_id)
-        return jsonify({"task_id": task.id}), 202
+        return get_image_task('character', charid, image_id)
 
     def upload_character_images(self, charid):
         if 'files' in request.files:
@@ -84,16 +94,12 @@ class CharacterResourceBlueprint(BaseResourceBlueprint):
         task = delete_image_task.delay('character', charid, image_id)
         return jsonify({"task_id": task.id}), 202
 
-    @cache.memoize(timeout=60)
     def get_related_resources(self, charid, related_resource_type):
-        task = get_related_resources_task.delay("character", charid, related_resource_type)
-        return jsonify({"task_id": task.id}), 202
+        return get_related_resources_task('character', charid, related_resource_type)
 
-    @cache.memoize(timeout=60)
     def search_related_resources(self, charid, related_resource_type):
         response_size = request.json.pop('response_size', 'small')
-        task = search_related_resources_task.delay("character", charid, related_resource_type, response_size)
-        return jsonify({"task_id": task.id}), 202
+        return search_related_resources_task("character", charid, related_resource_type, response_size)
 
     def update_related_resources(self, charid, related_resource_type):
         task = update_related_resources_task.delay("character", charid, related_resource_type)

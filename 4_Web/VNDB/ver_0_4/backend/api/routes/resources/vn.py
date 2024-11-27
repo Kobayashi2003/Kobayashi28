@@ -4,22 +4,22 @@ from flask import jsonify, request, abort
 
 from api import cache
 from api.tasks.related_resources import (
-    get_related_characters_images_task,
+    _get_related_characters_images_task,
     update_related_characters_images_task, 
     delete_related_characters_images_task,
-    get_related_resources_task,
-    search_related_resources_task,
+    _get_related_resources_task,
+    _search_related_resources_task,
     update_related_resources_task,
     delete_related_resources_task
 )
 from api.tasks.images import (
-    get_image_task, get_images_task, 
+    _get_image_task, _get_images_task, 
     upload_image_task, upload_images_task, 
     update_image_task, update_images_task, 
     delete_image_task, delete_images_task
 )
 from api.tasks.savedatas import (
-    get_savedata_task, get_savedatas_task, 
+    _get_savedata_task, _get_savedatas_task, 
     upload_savedata_task, upload_savedatas_task, 
     delete_savedata_task, delete_savedatas_task,
 )
@@ -28,6 +28,27 @@ from .common import (
     create_savedatas_zip, create_images_zip
 )
 from .base import BaseResourceBlueprint
+
+@cache.memoize(timeout=60)
+def get_related_characters_images_task(*args, **kwargs): return _get_related_characters_images_task(*args, **kwargs)
+
+@cache.memoize(timeout=60)
+def get_related_resources_task(*args, **kwargs): return _get_related_resources_task(*args, **kwargs)
+
+@cache.memoize(timeout=60)
+def search_related_resources_task(*args, **kwargs): return _search_related_resources_task(*args, **kwargs)
+
+@cache.memoize(timeout=60)
+def get_image_task(*args, **kwargs): return _get_image_task(*args, **kwargs)
+
+@cache.memoize(timeout=60)
+def get_images_task(*args, **kwargs): return _get_images_task(*args, **kwargs)
+
+@cache.memoize(timeout=60)
+def get_savedata_task(*args, **kwargs): return _get_savedata_task(*args, **kwargs)
+
+@cache.memoize(timeout=60)
+def get_savedatas_task(*args, **kwargs): return _get_savedatas_task(*args, **kwargs)
 
 class VNResourceBlueprint(BaseResourceBlueprint):
     def __init__(self):
@@ -70,15 +91,13 @@ class VNResourceBlueprint(BaseResourceBlueprint):
         format = request.args.get('format', default='json', type=str)
         if format == 'file':
             return create_images_zip('vn', vnid)
-        task = get_images_task.delay('vn', vnid)
-        return jsonify({"task_id": task.id}), 202
+        return get_images_task('vn', vnid)
 
     def get_vn_image(self, vnid, image_id):
         format = request.args.get('format', default='file', type=str)
         if format == 'file':
             return get_image_file('vn', image_id)
-        task = get_image_task.delay('vn', vnid, image_id)
-        return jsonify({"task_id": task.id}), 202
+        return get_image_task('vn', vnid, image_id)
 
     def upload_vn_images(self, vnid):
         if 'files' in request.files:
@@ -113,15 +132,13 @@ class VNResourceBlueprint(BaseResourceBlueprint):
         format = request.args.get('format', default='json', type=str)
         if format == 'file':
             return create_savedatas_zip(vnid)
-        task = get_savedatas_task.delay(vnid)
-        return jsonify({"task_id": task.id}), 202
+        return get_savedata_task(vnid)
 
     def get_vn_savedata(self, vnid, savedata_id):
         format = request.args.get('format', default='file', type=str)
         if format == 'file':
             return get_savedata_file(savedata_id)
-        task = get_savedata_task.delay(vnid, savedata_id)
-        return jsonify({"task_id": task.id}), 202
+        return get_savedatas_task(vnid, savedata_id)
 
     def upload_vn_savedatas(self, vnid):
         to_datetime = lambda ts: datetime.fromtimestamp(int(ts) / 1000.0, tz=timezone.utc) if ts else datetime.now(timezone.utc)
@@ -155,10 +172,8 @@ class VNResourceBlueprint(BaseResourceBlueprint):
         task = delete_savedata_task.delay(vnid, savedata_id)
         return jsonify({"task_id": task.id}), 202
 
-    @cache.memoize(timeout=60)
     def get_related_characters_images(self, vnid):
-        task = get_related_characters_images_task.delay(vnid)
-        return jsonify({"task_id": task.id}), 202
+        return get_related_characters_images_task(vnid)
 
     def update_related_characters_images(self, vnid):
         task = update_related_characters_images_task.delay(vnid)
@@ -168,16 +183,12 @@ class VNResourceBlueprint(BaseResourceBlueprint):
         task = delete_related_characters_images_task.delay(vnid)
         return jsonify({"task_id": task.id}), 202
 
-    @cache.memoize(timeout=60)
     def get_related_resources(self, vnid, related_resource_type):
-        task = get_related_resources_task.delay("vn", vnid, related_resource_type)
-        return jsonify({"task_id": task.id}), 202
+        return get_related_resources_task("vn", vnid, related_resource_type)
 
-    @cache.memoize(timeout=60)
     def search_related_resources(self, vnid, related_resource_type):
         response_size = request.json.pop('response_size', 'small')
-        task = search_related_resources_task.delay("vn", vnid, related_resource_type, response_size)
-        return jsonify({"task_id": task.id}), 202
+        return search_related_resources_task("vn", vnid, related_resource_type, response_size)
 
     def update_related_resources(self, vnid, related_resource_type):
         task = update_related_resources_task.delay("vn", vnid, related_resource_type)

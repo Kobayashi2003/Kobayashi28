@@ -12,5 +12,5 @@ def _simple_task():
 @celery.task
 def simple_task(): _simple_task()
 
-@scheduler.task(trigger='interval', id='simple_task', seconds=5)
+@scheduler.task(trigger='cron', id='cleanup_task', minute='*/1')
 def scheduled_simple_task(): _simple_task()

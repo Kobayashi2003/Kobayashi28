@@ -17,6 +17,12 @@ def exists(type: str, id: str) -> bool:
     metadata = meta_model.query.filter_by(id=id).first()
     return metadata is not None and metadata.is_active
 
+def count(type: str) -> bool:
+    meta_model = META_MODEL_MAP.get(type)
+    if not meta_model:
+        raise ValueError(f"Invalid model type: {type}")
+    return meta_model.query.filter_by(is_active=True).count()
+
 def _create(type: str, id: str, data: Dict[str, Any]) -> Optional[ModelType]:
     model = MODEL_MAP.get(type)
     meta_model = META_MODEL_MAP.get(type)
@@ -113,16 +119,9 @@ def _get(type: str, id: str) -> Optional[ModelType]:
         .first()
     )
 
-    if not item:
-        return None
+    return item if item else None
 
-    metadata = getattr(item, metadata_attr)
-    metadata.last_accessed_at = datetime.now(timezone.utc)
-    metadata.view_count += 1
-
-    return item 
-
-def _get_all(type: str, page: Optional[int] = None, limit: Optional[int] = None, sort: Optional[str] = None, order: str = 'asc') -> List[ModelType]:
+def _get_all(type: str, page: Optional[int] = None, limit: Optional[int] = None, sort: Optional[str] = 'id', order: str = 'asc') -> List[ModelType]:
     model = MODEL_MAP.get(type)
     meta_model = META_MODEL_MAP.get(type)
     if not model or not meta_model:
@@ -136,35 +135,16 @@ def _get_all(type: str, page: Optional[int] = None, limit: Optional[int] = None,
         .filter(getattr(meta_model, 'is_active') == True)
     )
 
-    # Apply sorting if specified
-    if sort:
-        sort_column = getattr(model, sort, None)
-        if sort_column is not None:
-            query = query.order_by(desc(sort_column) if order.lower() == 'desc' else sort_column)
+    query = query.order_by(getattr(getattr(model, sort), order)())
 
-    # Apply pagination if both page and limit are specified
     if page and limit:
         page = max(1, page)  # Ensure page is at least 1
         limit = min(max(1, limit), 100)  # Ensure limit is between 1 and 100
         query = query.offset((page - 1) * limit).limit(limit)
 
-    # Eager load the metadata to avoid N+1 query problem
     query = query.options(joinedload(getattr(model, metadata_attr)))
 
-    # Execute the query and get the results
-    results = query.all()
-
-    # Update last_accessed_at and view_count for all retrieved items
-    if results:
-        item_ids = [item.id for item in results]
-        db.session.query(meta_model).filter(
-            getattr(model, 'id').in_(item_ids)
-        ).update({
-            meta_model.last_accessed_at: datetime.now(timezone.utc),
-            meta_model.view_count: meta_model.view_count + 1
-        }, synchronize_session=False)
-
-    return results
+    return query.all()
 
 def _cleanup(type: str, id: str) -> Optional[ModelType]:
     item = _get_inactive(type, id)

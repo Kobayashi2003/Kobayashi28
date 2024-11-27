@@ -7,7 +7,7 @@ from api.search import (
 from api.database import (
     get, get_all, create, update,
     delete, delete_all, exists, 
-    convert_model_to_dict
+    count, convert_model_to_dict
 )
 from api.utils import convert_remote_to_local
 from .common import error_handler
@@ -22,22 +22,29 @@ def _get_resource_task(resource_type: str, resource_id: str) -> Dict[str, Any]:
 
 @error_handler
 def _get_resources_task(resource_type: str, page: int = None, limit: int = None, sort: str = 'id', order: str = 'asc') -> Dict[str, Any]:
-    result = get_all(resource_type, page=page, limit=limit, sort=sort, order=order)
+    results = get_all(resource_type, page=page, limit=limit, sort=sort, order=order)
+    if not results:
+        return {'status': 'NOT_FOUND', 'result': None}
+    total = count(resource_type)
+    more = (page * limit) < total if page and limit else False
     return {
-        'status': 'SUCCESS' if result else None,
-        'result': [convert_model_to_dict(item) for item in result] if result else []
+        'status': 'SUCCESS',
+        'count': len(results),
+        'total': total,
+        'more': more,
+        'result': [convert_model_to_dict(result) for result in results] if results else []
     }
 
 @error_handler
 def _search_resource_task(resource_type: str, resource_id: str, response_size: str = 'small') -> Dict[str, Any]:
     search_results = search_local(resource_type, {'id': resource_id}, response_size)
-    if search_results and isinstance(search_results, dict) and search_results.get('results'):
+    if search_results and isinstance(search_results, dict) and search_results.get('result'):
         search_results['status'] = 'SUCCESS'
         search_results['source'] = 'local'
         return search_results
 
     search_results = search_remote(resource_type, {'id': resource_id}, response_size)
-    if search_results and isinstance(search_results, dict) and search_results.get('results'):
+    if search_results and isinstance(search_results, dict) and search_results.get('result'):
         search_results['status'] = 'SUCCESS'
         search_results['source'] = 'remote'
         return search_results
@@ -54,21 +61,21 @@ def _search_resources_task(resource_type: str, search_from: str, params: Dict[st
     else:
         raise ValueError(f"Invalid search_from value: {search_from}. Only 'local' and 'remote' are supported.")
     
-    if not search_results or not isinstance(search_results, dict) or not search_results.get('results'):
+    if not search_results or not isinstance(search_results, dict) or not search_results.get('result'):
         return {'status': 'NOT_FOUND', 'result': None}
 
     search_results['status'] = 'SUCCESS'
-    search_results['source'] = 'remote'
+    search_results['source'] = search_from
     return search_results
    
 @error_handler
 def _update_resource_task(resource_type: str, resource_id: str) -> Dict[str, Any]:
     remote_result = search_remote(resource_type, {'id':resource_id}, 'large')
 
-    if not remote_result or not remote_result.get('results'):
+    if not remote_result or not remote_result.get('result'):
         return {'status': 'NOT_FOUND', 'result': None}
     
-    update_data = convert_remote_to_local(resource_type, remote_result['results'][0])
+    update_data = convert_remote_to_local(resource_type, remote_result['result'][0])
 
     if exists(resource_type, resource_id):
         data = update(resource_type, resource_id, update_data)

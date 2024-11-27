@@ -1,119 +1,49 @@
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, Optional
 
-from api.database.models import VN, Tag, Producer, Staff, Character, Trait
+from sqlalchemy import asc, desc
+
+from api import db
+from api.database.models import META_MODEL_MAP, MODEL_MAP
 
 from .fields import get_local_fields
 from .filters import get_local_filters
 
-def search_vn(params: Dict[str, Any], response_size: str = 'small') -> List[Dict[str, Any]]:
-    fields = get_local_fields('vn', response_size)
-    filters = get_local_filters('vn', params)
-    query = VN.query.with_entities(*[getattr(VN, field) for field in fields])
-    for filter_condition in filters:
-        query = query.filter(filter_condition)
-    return [dict(zip(fields, result)) for result in query.all()]
-
-def search_character(params: Dict[str, Any], response_size: str = 'small') -> List[Dict[str, Any]]:
-    fields = get_local_fields('character', response_size)
-    filters = get_local_filters('character', params)
-    query = Character.query.with_entities(*[getattr(Character, field) for field in fields])
-    for filter_condition in filters:
-        query = query.filter(filter_condition)
-    return [dict(zip(fields, result)) for result in query.all()]
-
-def search_tag(params: Dict[str, Any], response_size: str = 'small') -> List[Dict[str, Any]]:
-    fields = get_local_fields('tag', response_size)
-    filters = get_local_filters('tag', params)
-    query = Tag.query.with_entities(*[getattr(Tag, field) for field in fields])
-    for filter_condition in filters:
-        query = query.filter(filter_condition)
-    return [dict(zip(fields, result)) for result in query.all()]
-
-def search_producer(params: Dict[str, Any], response_size: str = 'small') -> List[Dict[str, Any]]:
-    fields = get_local_fields('producer', response_size)
-    filters = get_local_filters('producer', params)
-    query = Producer.query.with_entities(*[getattr(Producer, field) for field in fields])
-    for filter_condition in filters:
-        query = query.filter(filter_condition)
-    return [dict(zip(fields, result)) for result in query.all()]
-
-def search_staff(params: Dict[str, Any], response_size: str = 'small') -> List[Dict[str, Any]]:
-    fields = get_local_fields('staff', response_size)
-    filters = get_local_filters('staff', params)
-    query = Staff.query.with_entities(*[getattr(Staff, field) for field in fields])
-    for filter_condition in filters:
-        query = query.filter(filter_condition)
-    return [dict(zip(fields, result)) for result in query.all()]
-
-def search_trait(params: Dict[str, Any], response_size: str = 'small') -> List[Dict[str, Any]]:
-    fields = get_local_fields('trait', response_size)
-    filters = get_local_filters('trait', params)
-    query = Trait.query.with_entities(*[getattr(Trait, field) for field in fields])
-    for filter_condition in filters:
-        query = query.filter(filter_condition)
-    return [dict(zip(fields, result)) for result in query.all()]
-
-def _search(search_type: str, params: Dict[str, Any], response_size: str = 'small') -> List[Dict[str, Any]]:
-    search_functions = {
-        'vn': search_vn,
-        'character': search_character,
-        'tag': search_tag,
-        'producer': search_producer,
-        'staff': search_staff,
-        'trait': search_trait
-    }
-
-    if search_type not in search_functions:
-        raise ValueError(f"Invalid search type: {search_type}")
-    
-    return search_functions[search_type](params, response_size)
-
-def search(search_type: str, params: Dict[str, Any], response_size: str = 'small', 
-           page: Optional[int] = None, limit: Optional[int] = None,
+def search(resource_type: str, params: Dict[str, Any], response_size: str = 'small', 
+           page: int = 1, limit: int = 100,
            sort: str = 'id', order: str = 'asc') -> Dict[str, Any]:
 
-    model_map = {
-        'vn': VN,
-        'character': Character,
-        'tag': Tag,
-        'producer': Producer,
-        'staff': Staff,
-        'trait': Trait
-    }
-    
-    if search_type not in model_map:
-        raise ValueError(f"Invalid search type: {search_type}")
+    model = MODEL_MAP.get(resource_type)
+    meta_model = META_MODEL_MAP.get(resource_type)
+    if not model or not meta_model:
+        raise ValueError(f"Invalid model type: {resource_type}")
 
-    model = model_map[search_type]
-    fields = get_local_fields(search_type, response_size)
-    filters = get_local_filters(search_type, params)
+    active_metadata_query = db.session.query(meta_model.id).filter(meta_model.is_active == True)
+    active_metadata_subquery = active_metadata_query.subquery()
 
-    # Create base query
+    fields = get_local_fields(resource_type, response_size)
+    filters = get_local_filters(resource_type, params)
+
     query = model.query.with_entities(*[getattr(model, field) for field in fields])
+    query = query.filter(model.id.in_(active_metadata_subquery))
 
-    # Apply filters
     for filter_condition in filters:
         query = query.filter(filter_condition)
 
-    # Apply sorting
-    query = query.order_by(getattr(getattr(model, sort), order)())
+    order_func = asc if order.lower() == 'asc' else desc
+    query = query.order_by(order_func(getattr(model, sort)))
 
-    # Get total count
-    total = query.count()
+    page = max(1, page or 1)
+    limit = min(max(1, limit or 20), 100)
+    query = query.offset((page - 1) * limit).limit(limit)
 
-    # Apply pagination if both page and limit are provided
-    if page is not None and limit is not None:
-        query = query.offset((page - 1) * limit).limit(limit)
-        more = (page * limit) < total
-    else:
-        more = None
-
-    # Execute query and format results
     results = [dict(zip(fields, result)) for result in query.all()]
-    
+
+    total = active_metadata_query.count()
+    more = (page * limit) < total
+
     return {
-        "results": results,
         "count": len(results),
         "total": total,
-        "more": more
+        "more": more,
+        "result": results
     }

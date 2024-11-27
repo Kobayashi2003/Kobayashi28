@@ -89,7 +89,8 @@ class VNDBAPIWrapper:
 
         return [key, operator.value, filter_value]
 
-    def query(self, endpoint: VNDBEndpoint, filters: Dict[str, Any], fields: List[str], sort: str = "id", reverse: bool = False, results: int = 10, page: int = 1, user: Optional[str] = None) -> Dict[str, Any]:
+    def query(self, endpoint: VNDBEndpoint, filters: Dict[str, Any], fields: List[str], 
+              sort: str = "id", reverse: bool = False, results: int = 10, page: int = 1, count: bool = True, user: Optional[str] = None) -> Dict[str, Any]:
         url = f"{VNDB_API_URL}/{endpoint.value}"
         
         filter_set = getattr(VNDBFilters, endpoint.name)
@@ -100,7 +101,8 @@ class VNDBAPIWrapper:
             "sort": sort,
             "reverse": reverse,
             "results": results,
-            "page": page
+            "page": page,
+            "count": count
         }
         
         if user:
@@ -201,9 +203,10 @@ def search_staff(filters: Dict[str, Any], fields: List[str], page: int = 1, **kw
 def search_trait(filters: Dict[str, Any], fields: List[str], page: int = 1, **kwargs) -> Dict[str, Any]:
     return api.get_trait(filters, fields, page=page, **kwargs)
 
-def search(search_type: str, params: Dict[str, Any], response_size: str = 'small',
+def search(resource_type: str, params: Dict[str, Any], response_size: str = 'small',
            page: Optional[int] = None, limit: Optional[int] = None, 
-           sort: str = 'id', order: str = 'asc') -> Dict[str, Any]:
+           sort: str = 'id', order: str = 'asc', count: bool = True) -> Dict[str, Any]:
+
     search_functions = {
         'vn': search_vn,
         'character': search_character,
@@ -213,21 +216,24 @@ def search(search_type: str, params: Dict[str, Any], response_size: str = 'small
         'trait': search_trait
     }
 
-    if search_type not in search_functions:
-        raise ValueError(f"Invalid search type: {search_type}")
+    if resource_type not in search_functions:
+        raise ValueError(f"Invalid search type: {resource_type}")
 
-    filters = get_remote_filters(search_type, params)
-    fields = get_remote_fields(search_type, response_size)
+    filters = get_remote_filters(resource_type, params)
+    fields = get_remote_fields(resource_type, response_size)
 
     if page and limit: 
-        results = search_functions[search_type](filters, fields, page=page, results=limit, sort=sort, reverse=order == 'desc')
+        results = search_functions[resource_type](filters, fields, page=page, results=limit, sort=sort, reverse=order == 'desc', count=count)
     else:
-        results = unpaginated_search(search_functions[search_type], filters, fields)
+        results = unpaginated_search(search_functions[resource_type], filters, fields)
     
-    if search_type == 'vn' and response_size == 'large':
+    if resource_type == 'vn' and response_size == 'large':
         for vn in results["results"]:
             vnid = vn["id"]
             characters = search_characters_by_vnid(vnid, "small")
             vn["characters"] = characters["results"]
-    
+
+    results["result"] = results.pop("results")
+    results["total"] = results.pop("count")
+    results["count"] = len(results["result"])
     return results

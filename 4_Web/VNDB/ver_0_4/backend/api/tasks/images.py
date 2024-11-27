@@ -137,8 +137,6 @@ def _update_images_task(resource_type: str, resource_id: str) -> Dict[str, Any]:
     download_results = download_images(urls_to_download, download_folder)
 
     successful_downloads = [url for url, success in download_results.items() if success]
-    if not successful_downloads:
-        return {"status": "ALL IMGAES FAILED", "result": download_results}
 
     for url in successful_downloads:
         get_image_type = lambda url: next(info_dict[url] for info_dict in urls_info if url in info_dict)
@@ -160,7 +158,7 @@ def _update_images_task(resource_type: str, resource_id: str) -> Dict[str, Any]:
             print(f"Error processing image {url}: {str(e)}")
 
     return {
-        "status": "ALL IMAGES UPDATED" if all(download_results.values()) else "SOME IMAGES FAILED",
+        "status": "SUCCESS" if successful_downloads else "FAILED",
         "result": download_results
     }
 
