@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Status{% endblock %}
+{% block status %}class="active"{% endblock %}
+
+{% block content %}
+    {% for status in statuses %}
+        <div class="container">
+        <div class="row">
+            <div class="col-md-2">
+                <img src="{{ BK_STATIC_URL }}/static/image/{{ status.user.pic }}" class="img-responsive img-thumbnail">
+            </div>
+            <div class="col-md-10">
+                <h1 style="font-size:70px">{{ status.user }}</h1>
+                <p style="font-size:50px">{{ status.text }}</p>
+                {% if status.pics %}
+                    <div class="col-md-8">
+                        <img src="{{ BK_STATIC_URL }}/static/image/{{ status.pics }}" class="img-responsive">
+                    </div>
+                {% endif %}
+
+                <div class="col-md-12">
+                    <p style="float:left; color:gray; font-size:30px">{{ status.pub_time|date:"m-d-Y H:i:s"}}</p>
+                    <button style="float:right;background-color:gray" class="btn btn-default"><span class="glyphicon glyphicon-option-horizontal" aria-hidden="true" style="color:white"></span></button>
+                </div>
+                <div class="col-md-12" style="background-color:gray; padding-top:20px">
+                    <p style="font-size:30px"><span class="glyphicon glyphicon-heart-empty" aria-hidden="true"></span> Monkey, Serpent</p>                   
+                    <hr>
+                    <p style="font-size:30px">Monkey: Great!</p>
+                    <p style="font-size:30px">Po@Monkey: Thanks!</p>
+
+                </div>
+
+            </div>
+        </div>        
+        <hr>
+    </div>
+    {% endfor %}
+{% endblock %}

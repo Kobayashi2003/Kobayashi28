@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}User{% endblock %}
+{% block user %}class="active"{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-2">
+                <img src="{{ BK_STATIC_URL }}/static/image/{{ user.pic }}" class="img-responsive img-thumbnail">
+            </div>
+            <div class="col-md-10">
+                <h1 style="font-size:70px">{{ user.user.username }}</h1>
+                <p style="font-size:50px">Email: {{ user.email }}</p>
+            </div>
+        </div>
+        <div class="row" style="margin-top:62px">
+            <div class="col-md-4">
+                <p style="font-size:50px">Region</p>
+            </div>
+            <div class="col-md-8">
+                <p style="font-size:50px;color:gray">{{user.region}}</p>
+            </div>
+        </div>
+        <hr>
+        <div class="row">
+            <div class="col-md-4">
+                <p style="font-size:50px">What's up</p>
+            </div>
+            <div class="col-md-8">
+                <p style="font-size:50px;color:gray">{{user.motto}}</p>
+            </div>
+        </div>
+        <hr>
+    </div>
+
+{% endblock %}

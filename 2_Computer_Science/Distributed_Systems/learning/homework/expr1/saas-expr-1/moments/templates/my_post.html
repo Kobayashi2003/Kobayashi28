@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Status{% endblock %}
+{% block post %}class="active"{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <form method="post">
+                {% csrf_token %}
+                <textarea class="form-control" rows="5" name="text"></textarea>
+                <button style="float:right;margin-top:22px" type="submit" class="btn btn-primary btn-lg">Submit</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}
