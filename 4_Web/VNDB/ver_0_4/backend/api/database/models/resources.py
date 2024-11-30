@@ -236,5 +236,5 @@ MODEL_MAP = {
 
 IMAGE_MODEL_MAP = {
     'vn': VNImage,
-    'character': Character
+    'character': CharacterImage
 }
