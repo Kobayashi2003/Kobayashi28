@@ -1,14 +1,13 @@
 from flask import jsonify, request, abort 
 
-from api import cache
 from api.tasks.related_resources import (
-    _get_related_resources_task,
-    _search_related_resources_task,
+    get_related_resources_task,
+    search_related_resources_task,
     update_related_resources_task,
     delete_related_resources_task
 )
 from api.tasks.images import (
-    _get_image_task, _get_images_task, 
+    get_image_task, get_images_task, 
     upload_image_task, upload_images_task, 
     update_image_task, update_images_task, 
     delete_image_task, delete_images_task
@@ -17,18 +16,6 @@ from .common import (
     get_image_file, create_images_zip
 )
 from .base import BaseResourceBlueprint
-
-@cache.memoize(timeout=60)
-def get_related_resources_task(*args, **kwargs): return _get_related_resources_task(*args, **kwargs)
-
-@cache.memoize(timeout=60)
-def search_related_resources_task(*args, **kwargs): return _search_related_resources_task(*args, **kwargs)
-
-@cache.memoize(timeout=60)
-def get_image_task(*args, **kwargs): return _get_image_task(*args, **kwargs)
-
-@cache.memoize(timeout=60)
-def get_images_task(*args, **kwargs): return _get_images_task(*args, **kwargs)
 
 class CharacterResourceBlueprint(BaseResourceBlueprint):
     def __init__(self):
@@ -95,11 +82,30 @@ class CharacterResourceBlueprint(BaseResourceBlueprint):
         return jsonify({"task_id": task.id}), 202
 
     def get_related_resources(self, charid, related_resource_type):
-        return get_related_resources_task('character', charid, related_resource_type)
+        args = request.args
+        resopnse_size = args.get('response_size', 'small')
+        page = args.get('page', default=1, type=int)
+        limit = args.get('limit', default=20, type=int)
+        sort = args.get('sort', default='id', type=str)
+        reverse = args.get('reverse', default=False, type=bool)
+        count = args.get('count', default=True, type=bool)
+
+        return get_related_resources_task(
+            'character', charid, related_resource_type, 
+            resopnse_size, page, limit, sort, reverse, count)
 
     def search_related_resources(self, charid, related_resource_type):
-        response_size = request.json.pop('response_size', 'small')
-        return search_related_resources_task("character", charid, related_resource_type, response_size)
+        search_params = request.json
+        response_size = search_params.pop('response_size', 'small')
+        page = search_params.pop('page', 1)
+        limit = search_params.pop('limit', 20)
+        sort = search_params.pop('sort', 'id')
+        reverse = search_params.pop('reverse', False)
+        count = search_params.pop('count', True)
+
+        return search_related_resources_task(
+            "character", charid, related_resource_type, 
+            response_size, page, limit, sort, reverse, count)
 
     def update_related_resources(self, charid, related_resource_type):
         task = update_related_resources_task.delay("character", charid, related_resource_type)

@@ -6,10 +6,6 @@ from .crud.base import (
     get_inactive, get_inactive_type, _get_inactive_all
 )
 
-from .crud.related import (
-    get_all_related, delete_all_related
-)
-
 from .crud.image import (
     create_image, create_upload_image,
     get_image, get_images, 

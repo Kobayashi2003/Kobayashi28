@@ -1,16 +1,10 @@
 from flask import Blueprint, jsonify 
 
 from api.tasks.trash import (
-    _get_inactive_item_task, _get_inactive_type_task, _get_inactive_all_task,
+    get_inactive_item_task, get_inactive_type_task, get_inactive_all_task,
     cleanup_item_task, cleanup_type_task, cleanup_all_task,
     recover_item_task, recover_type_task, recover_all_task
 )
-
-def get_inactive_item_task(*args, **kwargs): return _get_inactive_item_task(*args, **kwargs)
-
-def get_inactive_type_task(*args, **kwargs): return _get_inactive_type_task(*args, **kwargs)
-
-def get_inactive_all_task(*args, **kwargs): return _get_inactive_all_task(*args, **kwargs)
 
 trash_bp = Blueprint('trash', __name__, url_prefix='/trash')
 

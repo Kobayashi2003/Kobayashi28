@@ -2,9 +2,12 @@ import requests
 from typing import Dict, List, Any, Optional
 from enum import Enum
 
+from api import cache
 from .filters import VNDBFilters, FilterOperator, FilterType
-from .common import get_remote_fields, get_remote_filters
-from .extend import search_characters_by_vnid
+from .common import (
+    get_remote_fields, get_remote_filters, 
+    unpaginated_search, paginated_results
+)
 
 VNDB_API_URL = "https://api.vndb.org/kana"
 
@@ -170,21 +173,6 @@ class VNDBAPIWrapper:
 
 api = VNDBAPIWrapper()
 
-def unpaginated_search(search_function, filters: Dict[str, Any], fields: List[str]) -> Dict[str, Any]:
-    all_results = []
-    page = 1
-    while True:
-        try:
-            response = search_function(filters, fields, page=page)
-            all_results.extend(response['results'])
-            if not response.get('more', False):
-                break
-            page += 1
-        except Exception as e:
-            break
-
-    return {"results": all_results, "count": len(all_results)}
-
 def search_vn(filters: Dict[str, Any], fields: List[str], page: int = 1, **kwargs) -> Dict[str, Any]:
     return api.get_vn(filters, fields, page=page, **kwargs)
 
@@ -203,9 +191,10 @@ def search_staff(filters: Dict[str, Any], fields: List[str], page: int = 1, **kw
 def search_trait(filters: Dict[str, Any], fields: List[str], page: int = 1, **kwargs) -> Dict[str, Any]:
     return api.get_trait(filters, fields, page=page, **kwargs)
 
+
 def search(resource_type: str, params: Dict[str, Any], response_size: str = 'small',
-           page: Optional[int] = None, limit: Optional[int] = None, 
-           sort: str = 'id', order: str = 'asc', count: bool = True) -> Dict[str, Any]:
+           page: int = 1, limit: int = 100, 
+           sort: str = 'id', reverse: bool = False, count: bool = True) -> Dict[str, Any]:
 
     search_functions = {
         'vn': search_vn,
@@ -223,17 +212,173 @@ def search(resource_type: str, params: Dict[str, Any], response_size: str = 'sma
     fields = get_remote_fields(resource_type, response_size)
 
     if page and limit: 
-        results = search_functions[resource_type](filters, fields, page=page, results=limit, sort=sort, reverse=order == 'desc', count=count)
+        results = search_functions[resource_type](filters, fields, page=page, results=limit, sort=sort, reverse=reverse, count=count)
     else:
-        results = unpaginated_search(search_functions[resource_type], filters, fields)
+        results = unpaginated_search(
+            search_function=search_functions[resource_type], 
+            filters=filters, fields=fields, sort=sort, reverse=reverse, count=count
+        )
     
-    if resource_type == 'vn' and response_size == 'large':
-        for vn in results["results"]:
-            vnid = vn["id"]
-            characters = search_characters_by_vnid(vnid, "small")
-            vn["characters"] = characters["results"]
+    if not (resource_type == 'vn' and response_size == 'large'):
+        return results
 
-    results["result"] = results.pop("results")
-    results["total"] = results.pop("count")
-    results["count"] = len(results["result"])
+    for vn in results['results']:
+        vnid = vn['id']
+        characters = unpaginated_search(
+            search_function=search_characters_by_resource_id,
+            resource_type='vn', resource_id=vnid, response_size='small',
+        )
+        vn['characters'] = characters['results'] 
+
     return results
+
+def search_resources_by_charid(charid: str, related_resource_type: str, response_size: str = "small") -> Dict[str, Any]:
+    url = "https://api.vndb.org/kana/character"
+
+    related_resource_fields = get_remote_fields(related_resource_type, response_size)
+    fields = {
+        'trait': [f'traits.{field}' for field in related_resource_fields].extend['traits.spoiler', 'traits.lie'],
+    }
+
+    payload = {
+        "filters": ["id", "=", charid],
+        "fields": ",".join(fields),
+        "results": 100
+    }
+
+    response = requests.post(url, json=payload)
+    response.raise_for_status()
+    results = response.json()['results'][0]
+    results = results.get(
+        {
+            'trait': 'traits',
+        }.get(related_resource_type)
+    )
+
+    return {'results': results}
+
+def search_resources_by_vnid(vnid: str, related_resource_type: str, response_size: str = "small") -> Dict[str, Any]:
+    url = "https://api.vndb.org/kana/vn"
+
+    related_resource_fields = get_remote_fields(related_resource_type, response_size)
+    fields = {
+        'vn': [f'relations.{field}' for field in related_resource_fields] + ['relations.relation', 'relations.relation_official'],
+        'tag': [f'tags.{field}' for field in related_resource_fields] + ['tags.rating', 'tags.spoiler', 'tags.lie'],
+        'producer': [f'developers.{field}' for field in related_resource_fields],
+        'staff': [f'staff.{field}' for field in related_resource_fields] + ['staff.eid', 'staff.role'],
+    }.get(related_resource_type)
+
+    payload = {
+        "filters": ["id", "=", vnid],
+        "fields": ",".join(fields),
+        "results": 100
+    }
+
+    response = requests.post(url, json=payload)
+    response.raise_for_status()
+    results = response.json()['results'][0]
+    results = results.get(
+        {
+            'vn': 'relations',
+            'tag': 'tags',
+            'producer': 'developers',
+            'staff': 'staff'
+        }.get(related_resource_type)
+    )
+
+    return {'results': results}
+
+def search_characters_by_resource_id(resource_type: str, resource_id: str, response_size: str = 'small', 
+                                      sort: str = 'id', reverse: bool = False, limit: int = 10, page: int = 1, count: bool = True) -> Dict[str, Any]:
+    url = "https://api.vndb.org/kana/character"
+
+    filters = {
+        'trait': ['trait', '=', [resource_id, 0, 0]], 
+        'dtrait': ['dtrait', '=', [resource_id, 0, 0]],
+        'vn': ['vn', '=', ['id', '=', resource_id]]
+    }.get(resource_type)
+
+    character_fields = get_remote_fields("character", response_size)
+
+    payload = {
+        "filters": filters,
+        "fields": ",".join(character_fields),
+        "sort": sort,
+        "reverse": reverse,
+        "results": limit,
+        "page": page,
+        "count": count 
+    }
+
+    response = requests.post(url, json=payload)
+    response.raise_for_status()
+    results = response.json()
+
+    return results
+
+def search_vns_by_resource_id(resource_type: str, resource_id: str, response_size: str = 'small',
+                              sort: str = 'id', reverse: bool = False, limit: int = 10, page: int = 1, count: bool = True) -> Dict[str, Any]:
+    url = "https://api.vndb.org/kana/vn"
+
+    filters = {
+        'tag': ['tag', '=', [resource_id, 0, 0]],
+        'dtag': ['dtag', '=', [resource_id, 0, 0]],
+        'staff': ['staff', '=', ['id', '=', resource_id]],
+        'producer': ['developer', '=', ['id', '=', resource_id]],
+        'character': ['character', '=', ['id', '=', resource_id]],
+        'release': ['release', '=', ['id', '=', resource_id]]
+    }.get(resource_type)
+
+    vn_fields = get_remote_fields("vn", response_size)
+
+    payload = {
+        "filters": filters,
+        "fields": ",".join(vn_fields),
+        "sort": sort,
+        "reverse": reverse,
+        "results": limit,
+        "page": page,
+        "count": count 
+    }
+
+    response = requests.post(url, json=payload)
+    response.raise_for_status()
+    results = response.json()
+
+    if response_size == 'small':
+        return results
+
+    for vn in results['results']:
+        vnid = vn['id']
+        characters = unpaginated_search(
+            search_function=search_characters_by_resource_id,
+            resource_type='vn', resource_id=vnid, response_size='small'
+        )
+        vn['characters'] = characters['results'] 
+    return results
+
+
+@cache.memoize(timeout=3600)
+def search_cache(*args, **kwargs): return search(*args, **kwargs)
+
+@cache.memoize(timeout=3600)
+def search_resources_by_vnid_cache(*args, **kwargs): return search_resources_by_vnid(*args, **kwargs)
+
+@cache.memoize(timeout=3600)
+def search_resources_by_charid_cache(*args, **kwargs): return search_resources_by_charid(*args, **kwargs)
+
+def search_resources_by_vnid_paginated(vnid: str, related_resource_type: str, response_size: str = "small",
+                             sort: str = 'id', reverse: bool = False, limit: int = 10, page: int = 1, count: bool = True) -> Dict[str, Any]:
+    return paginated_results(search_resources_by_vnid_cache(vnid, related_resource_type, response_size),
+                             sort, reverse, limit, page, count)
+
+def search_resources_by_charid_paginated(charid: str, related_resource_type: str, response_size: str = "small",
+                               sort: str = 'id', reverse: bool = False, limit: int = 10, page: int = 1, count: bool = True) -> Dict[str, Any]:
+    return paginated_results(search_resources_by_charid_cache(charid, related_resource_type, response_size), 
+                             sort, reverse, limit, page, count)
+
+@cache.memoize(timeout=3600)
+def search_vns_by_resource_id_cache(*args, **kwargs): return search_vns_by_resource_id(*args, **kwargs)
+
+@cache.memoize(timeout=3600)
+def search_characters_by_resource_id_cache(*args, **kwargs): return search_characters_by_resource_id(*args, **kwargs)

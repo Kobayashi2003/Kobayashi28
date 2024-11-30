@@ -20,10 +20,10 @@ class VN(db.Model):
 
     id = db.Column(db.String(255), primary_key=True)
     title = db.Column(db.String(255))
-    titles = db.Column(JSONB)
+    titles = db.Column(ARRAY(JSONB))
     aliases = db.Column(ARRAY(db.String))
     olang = db.Column(db.String(10))
-    devstatus = db.Column(db.Enum('Finished', 'In development', 'Cancelled', name='devstatus_enum'))
+    devstatus = db.Column(db.Integer)
     released = db.Column(db.Date)
     languages = db.Column(ARRAY(db.String))
     platforms = db.Column(ARRAY(db.String))
@@ -222,17 +222,14 @@ ModelType = Union[
 ImageModelType = Union[VNImage, CharacterImage]
 
 MODEL_MAP = {
-    # resource models
     'vn': VN,
     'tag': Tag,
     'producer': Producer,
     'staff': Staff,
     'character': Character,
     'trait': Trait,
-    # image models
     'vn_image': VNImage,
     'character_image': CharacterImage,
-    # others
     'savedata': SaveData,
     'backup': Backup
 }

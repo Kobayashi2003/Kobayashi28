@@ -28,23 +28,10 @@ def get_tasks_status():
     }), 200
 
 @task_bp.route('/<string:task_id>', methods=['GET'])
-def get_task_status(task_id: str):
-
-    if not task_exists(task_id):
-        return jsonify(error=f'Task {task_id} not found'), 404
-
-    task = celery.AsyncResult(task_id)
-
-    return jsonify({
-        'status': 'SUCCESS',
-        'result': task.state
-    }), 200
-
-@task_bp.route('/<string:task_id>/result', methods=['GET'])
 def get_task_result(task_id: str):
 
-    if not task_exists(task_id):
-        return jsonify(error=f'Task {task_id} not found'), 404
+    # if not task_exists(task_id):
+    #     return jsonify(error=f'Task {task_id} not found'), 404
 
     task = celery.AsyncResult(task_id)
 

@@ -50,8 +50,8 @@ def create_app(config_class=Config):
     # ----------------------------------------
     scheduler = SchedulerProxy(app)
 
-    from .tasks.simple import scheduled_simple_task
-    from .tasks.backups import scheduled_backup_task
+    from .tasks.simple import simple_task
+    # from .tasks.backups import scheduled_backup_task
 
     # ----------------------------------------
     # Blueprint Registration

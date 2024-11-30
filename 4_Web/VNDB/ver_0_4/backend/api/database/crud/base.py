@@ -2,7 +2,7 @@ from typing import List, Dict, Any, Optional
 
 from datetime import datetime, timezone 
 
-from sqlalchemy import desc
+from sqlalchemy import asc, desc
 from sqlalchemy.orm import joinedload 
 
 from api import db
@@ -121,7 +121,7 @@ def _get(type: str, id: str) -> Optional[ModelType]:
 
     return item if item else None
 
-def _get_all(type: str, page: Optional[int] = None, limit: Optional[int] = None, sort: Optional[str] = 'id', order: str = 'asc') -> List[ModelType]:
+def _get_all(type: str, page: Optional[int] = None, limit: Optional[int] = None, sort: str = 'id', reverse: bool = False) -> List[ModelType]:
     model = MODEL_MAP.get(type)
     meta_model = META_MODEL_MAP.get(type)
     if not model or not meta_model:
@@ -135,11 +135,12 @@ def _get_all(type: str, page: Optional[int] = None, limit: Optional[int] = None,
         .filter(getattr(meta_model, 'is_active') == True)
     )
 
-    query = query.order_by(getattr(getattr(model, sort), order)())
+    order_func = desc if reverse else asc
+    query = query.order_by(order_func(getattr(model, sort)))
 
     if page and limit:
-        page = max(1, page)  # Ensure page is at least 1
-        limit = min(max(1, limit), 100)  # Ensure limit is between 1 and 100
+        page = max(1, page) 
+        limit = min(max(1, limit), 100)
         query = query.offset((page - 1) * limit).limit(limit)
 
     query = query.options(joinedload(getattr(model, metadata_attr)))
@@ -224,7 +225,7 @@ def _get_inactive(type: str, id: str) -> Optional[ModelType]:
 
     return item
 
-def _get_inactive_type(type: str, page: Optional[int] = None, limit: Optional[int] = None, sort: Optional[str] = None, order: str = 'asc') -> List[ModelType]:
+def _get_inactive_type(type: str, page: Optional[int] = None, limit: Optional[int] = None, sort: str = 'id', reverse: bool = False) -> List[ModelType]:
     model = MODEL_MAP.get(type)
     meta_model = META_MODEL_MAP.get(type)
     if not model or not meta_model:
@@ -238,25 +239,17 @@ def _get_inactive_type(type: str, page: Optional[int] = None, limit: Optional[in
         .filter(getattr(meta_model, 'is_active') == False)
     )
 
-    # Apply sorting if specified
-    if sort:
-        sort_column = getattr(model, sort, None)
-        if sort_column is not None:
-            query = query.order_by(desc(sort_column) if order.lower() == 'desc' else sort_column)
+    order_func = desc if reverse else asc
+    query = query.order_by(order_func(getattr(model, sort)))
 
-    # Apply pagination if both page and limit are specified
     if page and limit:
-        page = max(1, page)  # Ensure page is at least 1
-        limit = min(max(1, limit), 100)  # Ensure limit is between 1 and 100
+        page = max(1, page)
+        limit = min(max(1, limit), 100)
         query = query.offset((page - 1) * limit).limit(limit)
 
-    # Eager load the metadata to avoid N+1 query problem
     query = query.options(joinedload(getattr(model, metadata_attr)))
 
-    # Execute the query and get the results
-    results = query.all()
-
-    return results
+    return query.all()
 
 def _get_inactive_all() -> Dict[str, List[ModelType]]:
     return { type: get_inactive_type(type) for type in MODEL_MAP.keys() }

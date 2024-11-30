@@ -1,118 +1,66 @@
 from typing import Dict, Any 
 
-from api import celery 
 from api.database import (
-    get_inactive, get_inactive_type, _get_inactive_all,
+    count, get_inactive, 
+    get_inactive_type, _get_inactive_all,
     cleanup, cleanup_type, cleanup_all,
-    recover, recover_type, recover_all,
-    convert_model_to_dict
+    recover, recover_type, recover_all
 )
-from .common import error_handler
+from .common import (
+    task_with_memoize, task_with_cache_clear, 
+    format_results, NOT_FOUND
+)
 
-@error_handler
-def _cleanup_item_task(item_type: str, item_id: str) -> Dict[str, Any]:
-    result = cleanup(item_type, item_id)
-    return {
-        'status': 'SUCCESS' if result else 'NOT_FOUND',
-        'result': convert_model_to_dict(result) if result else None
-    }
-
-@error_handler
-def _cleanup_type_task(item_type: str) -> Dict[str, Any]:
-    result = cleanup_type(item_type)
-    return {
-        'status': 'SUCCESS',
-        'result': result
-    }
-
-@error_handler
-def _cleanup_all_task() -> Dict[str, Any]:
-    result = cleanup_all()
-    return {
-        'status': 'SUCCESS',
-        'result': result
-    }
-
-@error_handler
-def _recover_item_task(item_type: str, item_id: str) -> Dict[str, Any]:
-    result = recover(item_type, item_id)
-    return {
-        'status': 'SUCCESS' if result else 'NOT_FOUND',
-        'result': convert_model_to_dict(result) if result else None
-    }
-
-@error_handler
-def _recover_type_task(item_type: str) -> Dict[str, Any]:
-    result = recover_type(item_type)
-    return {
-        'status': 'SUCCESS',
-        'result': result
-    }
-
-@error_handler
-def _recover_all_task() -> Dict[str, Any]:
-    result = recover_all()
-    return {
-        'status': 'SUCCESS',
-        'result': result
-    }
-
-@error_handler
-def _get_inactive_item_task(item_type: str, item_id: str) -> Dict[str, Any]:
+@task_with_memoize(timeout=600)
+def get_inactive_item_task(item_type: str, item_id: str) -> Dict[str, Any]:
     result = get_inactive(item_type, item_id)
-    return {
-        'status': 'SUCCESS' if result else 'NOT_FOUND',
-        'result': convert_model_to_dict(result) if result else None
-    }
+    return format_results(result)
 
-@error_handler
-def _get_inactive_type_task(item_type: str, page: int = None, limit: int = None, sort: str = 'id', order: str = 'asc') -> Dict[str, Any]:
-    result = get_inactive_type(item_type, page, limit, sort, order)
-    return {
-        'status': 'SUCCESS',
-        'result': [convert_model_to_dict(item) for item in result]
-    }
+@task_with_memoize(timeout=600)
+def get_inactive_type_task(item_type: str, page: int = None, limit: int = None, sort: str = 'id', reverse: bool = False) -> Dict[str, Any]:
+    results = get_inactive_type(item_type, page, limit, sort, reverse)
+    if not results:
+        return NOT_FOUND
+    total = count(item_type)
+    more = (page * limit) < total if page and limit else False
 
-@error_handler
-def _get_inactive_all_task() -> Dict[str, Any]:
-    result = _get_inactive_all()
-    return {
-        'status': 'SUCCESS',
-        'result': {k: [convert_model_to_dict(item) for item in v] for k, v in result.items()}
-    }
+    results = format_results(results)
+    results['count'] = total
+    results['more'] = more
+    return results
 
-@celery.task
-def cleanup_item_task(*args, **kwargs) -> Dict[str, Any]:
-    return _cleanup_item_task(*args, **kwargs)
+@task_with_memoize(timeout=600)
+def get_inactive_all_task() -> Dict[str, Any]:
+    results = _get_inactive_all()
+    # TODO
+    # return format_results(results)
 
-@celery.task
-def cleanup_type_task(*args, **kwargs) -> Dict[str, Any]:
-    return _cleanup_type_task(*args, **kwargs)
+@task_with_cache_clear
+def recover_item_task(item_type: str, item_id: str) -> Dict[str, Any]:
+    result = recover(item_type, item_id)
+    return format_results(result)
 
-@celery.task
-def cleanup_all_task(*args, **kwargs) -> Dict[str, Any]:
-    return _cleanup_all_task(*args, **kwargs)
+@task_with_cache_clear
+def recover_type_task(item_type: str) -> Dict[str, Any]:
+    results = recover_type(item_type)
+    return format_results(results)
 
-@celery.task
-def recover_item_task(*args, **kwargs) -> Dict[str, Any]:
-    return _recover_item_task(*args, **kwargs)
+@task_with_cache_clear
+def recover_all_task() -> Dict[str, Any]:
+    results = recover_all()
+    return format_results(results)
 
-@celery.task
-def recover_type_task(*args, **kwargs) -> Dict[str, Any]:
-    return _recover_type_task(*args, **kwargs)
+@task_with_cache_clear
+def cleanup_item_task(item_type: str, item_id: str) -> Dict[str, Any]:
+    result = cleanup(item_type, item_id)
+    return format_results(result)
 
-@celery.task
-def recover_all_task(*args, **kwargs) -> Dict[str, Any]:
-    return _recover_all_task(*args, **kwargs)
+@task_with_cache_clear
+def cleanup_type_task(item_type: str) -> Dict[str, Any]:
+    results = cleanup_type(item_type)
+    return format_results(results)
 
-@celery.task
-def get_inactive_item_task(*args, **kwargs) -> Dict[str, Any]:
-    return _get_inactive_item_task(*args, **kwargs)
-
-@celery.task
-def get_inactive_type_task(*args, **kwargs) -> Dict[str, Any]:
-    return _get_inactive_type_task(*args, **kwargs)
-
-@celery.task
-def get_inactive_all_task(*args, **kwargs) -> Dict[str, Any]:
-    return _get_inactive_all_task(*args, **kwargs)
+@task_with_cache_clear
+def cleanup_all_task() -> Dict[str, Any]:
+    results = cleanup_all()
+    return format_results(results)

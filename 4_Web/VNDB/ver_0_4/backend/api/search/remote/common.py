@@ -1,4 +1,4 @@
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Callable
 
 from .fields import VNDBFields
 
@@ -372,3 +372,34 @@ def parse_int(value: Optional[str]) -> Optional[int]:
         return int(value)
     except ValueError:
         return None
+
+def unpaginated_search(search_function: Callable, **kwargs) -> Dict[str, Any]:
+    results = []
+    page = 1
+    more = True
+    while more:
+        response = search_function(**kwargs, page=page)
+        results.extend(response.get('results', []))
+        more = response.get('more', False)
+        page += 1
+    
+    return {'results': results, 'total': len(results), 'count': len(results)}
+
+def paginated_results(results: Dict[str, Any], sort: str = 'id', reverse: bool = False, limit: int = 10, page: int = 1, count: bool = True) -> Dict[str, Any]:
+    if not results or 'results' not in results:
+        return {'results': [], 'count': 0} if count else {'results': []}
+    
+    results = results['results']
+    count = len(results)
+    start_index = (page - 1) * limit
+    end_index = start_index + limit
+
+    results.sort(key=lambda x: x.get(sort, 0), reverse=reverse)
+    results = results[start_index:end_index]
+
+    results = {'results': results, 'more': end_index < count}
+    if count:
+        results['count'] = count
+    
+    return results
+

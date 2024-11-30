@@ -1,23 +1,20 @@
 from flask import Blueprint, jsonify
 
-from api import cache
 from api.tasks.backups import (
-    _get_backup_task, _get_backups_task, 
+    get_backup_task, get_backups_task, 
     delete_backup_task, delete_backups_task,
     backup_task, restore_task
 )
 
 backup_bp = Blueprint('backup', __name__, url_prefix='/backups')
 
-@cache.memoize(timeout=60)
 @backup_bp.route('', methods=['GET'])
 def get_backups():
-    return _get_backups_task()
+    return get_backups_task()
 
-@cache.memoize(timeout=60)
 @backup_bp.route('/<string:id>', methods=['GET'])
 def get_backup(id):
-    return _get_backup_task(id)
+    return get_backup_task(id)
 
 @backup_bp.route('', methods=['POST'])
 def backup():

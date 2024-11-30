@@ -42,7 +42,11 @@ class DatabaseProxy(Proxy):
 
 class CacheProxy(Proxy):
     def create(self, app):
-        cache = Cache(app, config={'CACHE_TYPE': 'simple'})
+        cache = Cache(app, config={
+            'CACHE_TYPE': app.config['CACHE_TYPE'],
+            'CACHE_REDIS_URL': app.config['CACHE_REDIS_URL'],
+            'CACHE_DEFAULT_TIMEOUT': app.config['CACHE_DEFAULT_TIMEOUT']
+        })
         return cache
 
 class CeleryProxy(Proxy):

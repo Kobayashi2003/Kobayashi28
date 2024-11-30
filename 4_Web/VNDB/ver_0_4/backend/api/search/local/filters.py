@@ -1,12 +1,80 @@
-import re
-from datetime import date
-from typing import Dict, Any, List, Tuple, Callable
+from typing import Dict, Any, List, Callable
 
-from sqlalchemy import or_, and_, text, cast, Integer 
+import re
+import uuid
+from datetime import date
+
+from sqlalchemy import or_, and_, text, exists, select, func
+from sqlalchemy.sql.expression import BinaryExpression
 
 from api.database.models import VN, Tag, Producer, Staff, Character, Trait
 
-def parse_comparison(value: str, field: Any, value_parser: Callable[[str], Any]):
+def generate_unique_param_name(prefix: str) -> str:
+    return f"{prefix}_{uuid.uuid4().hex[:8]}"
+
+def array_jsonb_exact_match(column: Any, key: str, value: Any) -> BinaryExpression:
+    param_key = generate_unique_param_name("key")
+    param_value = generate_unique_param_name("value")
+    return exists(
+        select(1)
+        .select_from(func.unnest(column).alias('jsonb_item'))
+        .where(text(f"jsonb_item->>:{param_key} = :{param_value}"))
+    ).params({param_key: key, param_value: value})
+
+def array_jsonb_match(column: Any, key: str, value: Any) -> BinaryExpression:
+    param_key = generate_unique_param_name("key")
+    param_value = generate_unique_param_name("value")
+    return exists(
+        select(1)
+        .select_from(func.unnest(column).alias('jsonb_item'))
+        .where(text(f"jsonb_item->>:{param_key} ILIKE :{param_value}"))
+    ).params({param_key: key, param_value: f"%{value}%"})
+
+def array_string_match(column: Any, value: str) -> BinaryExpression:
+    """
+    Create a filter for matching a value in an ARRAY(String) column.
+    
+    :param column: The SQLAlchemy column object (ARRAY(String) type)
+    :param value: The value to match against
+    :return: An SQLAlchemy exists clause for filtering
+    """
+    param_value = generate_unique_param_name("value")
+    return exists(
+        select(1)
+        .select_from(func.unnest(column).alias('array_item'))
+        .where(text(f"array_item ILIKE :{param_value}"))
+    ).params({param_value: f"%{value}%"})
+
+def process_multi_value_expression(expression: str, value_processor: Callable[[str], BinaryExpression]) -> BinaryExpression:
+    """
+    Process a multi-value expression with OR/AND logic.
+    
+    :param expression: The input expression (e.g., "value1,value2+value3")
+    :param value_processor: A function that takes a string value and returns a SQLAlchemy filter condition
+    :return: A single SQLAlchemy filter condition (OR of all processed conditions)
+    """
+    or_expressions = re.split(r'\s*,\s*', expression.strip())
+    or_conditions = []
+    
+    for or_expr in or_expressions:
+        if '+' in or_expr:
+            and_values = re.split(r'\s*\+\s*', or_expr)
+            and_conditions = [value_processor(value.strip()) for value in and_values]
+            or_conditions.append(and_(*and_conditions))
+        else:
+            or_conditions.append(value_processor(or_expr.strip()))
+    
+    return or_(*or_conditions)
+
+def create_comparison_filter(field: Any, value: str, value_parser: Callable[[str], Any]) -> BinaryExpression:
+    pattern = r'^(>=|<=|>|<|=)?(.+)$'
+    match = re.match(pattern, value.strip())
+    if not match:
+        raise ValueError(f"Invalid comparison format: {value}")
+    
+    operator, actual_value = match.groups()
+    operator = operator or '='
+    
     operators = {
         '>=': lambda f, v: f >= v,
         '<=': lambda f, v: f <= v,
@@ -14,23 +82,11 @@ def parse_comparison(value: str, field: Any, value_parser: Callable[[str], Any])
         '<': lambda f, v: f < v,
         '=': lambda f, v: f == v
     }
-    for op, func in operators.items():
-        if value.startswith(op):
-            parsed_value = value[len(op):].strip()
-            return func(field, value_parser(parsed_value))
-    return field == value_parser(value)  # Default to equality if no operator is specified
-
-def parse_numeric_comparison(value: str, field):
-    return parse_comparison(value, cast(field, Integer), int)
-
-def parse_date_comparison(value: str, field):
-    return parse_comparison(value, field, parse_date)
+    
+    parsed_value = value_parser(actual_value)
+    return operators[operator](field, parsed_value)
 
 def parse_date(value: str) -> date:
-    """
-    Parse a date string and return a date object.
-    Accepts YYYY, YYYY-MM, and YYYY-MM-DD formats.
-    """
     patterns = [
         (r'^(\d{4})$', lambda m: date(int(m.group(1)), 1, 1)),
         (r'^(\d{4})-(\d{2})$', lambda m: date(int(m.group(1)), int(m.group(2)), 1)),
@@ -44,240 +100,190 @@ def parse_date(value: str) -> date:
     
     raise ValueError(f"Invalid date format: {value}. Use YYYY, YYYY-MM, or YYYY-MM-DD.")
 
-def parse_cup_size(value: str):
+def parse_cup_size(value: str) -> str:
     cup_sizes = ['AAA', 'AA', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K']
     if value.upper() in cup_sizes:
         return value.upper()
     raise ValueError(f"Invalid cup size: {value}")
 
-def jsonb_array_match(array_field: str, match_conditions: List[Dict[str, str]]) -> str:
-    """
-    Generate SQL for matching conditions in a JSONB array field.
-    
-    :param array_field: Name of the JSONB array field
-    :param match_conditions: List of dictionaries with 'field', 'value', and 'operator' keys
-    :return: SQL string for the EXISTS clause
-    """
-    conditions = []
-    for condition in match_conditions:
-        field = condition['field']
-        value = condition['value']
-        operator = condition.get('operator', '=')
-        
-        if operator.upper() == 'ILIKE':
-            conditions.append(f"(t->>'{field}')::text ILIKE :{value}")
-        else:
-            conditions.append(f"(t->>'{field}')::text {operator} :{value}")
-    
-    return f"""
-        EXISTS (
-            SELECT 1
-            FROM unnest({array_field}) AS t
-            WHERE {' OR '.join(conditions)}
-        )
-    """
-
-def process_multi_value_expression(expression: str, field_name: str, value_processor: callable) -> Tuple[str, Dict[str, Any]]:
-    """
-    Process a multi-value expression with AND/OR logic.
-    
-    :param expression: The input expression (e.g., "tag1,tag2+tag3")
-    :param field_name: The name of the field being processed (e.g., "tag" or "trait")
-    :param value_processor: A function to process individual values
-    :return: A tuple of (SQL condition string, bind parameters dictionary)
-    """
-    groups = re.split(r'\s*,\s*', expression.strip())
-    conditions = []
-    bind_params = {}
-    
-    for i, group in enumerate(groups):
-        if '+' in group:
-            and_conditions = []
-            for j, value in enumerate(re.split(r'\s*\+\s*', group)):
-                condition, params = value_processor(f"{field_name}_{i}_{j}", value)
-                and_conditions.append(condition)
-                bind_params.update(params)
-            conditions.append('(' + ' AND '.join(and_conditions) + ')')
-        else:
-            condition, params = value_processor(f"{field_name}_{i}", group)
-            conditions.append(condition)
-            bind_params.update(params)
-    
-    return ' OR '.join(conditions), bind_params
-
-def get_vn_filters(params: Dict[str, Any]) -> List:
+def get_vn_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     filters = []
-    
-    if search := params.get('search'):
-        filters.append(or_(
-            VN.title.ilike(f"%{search}%"),
-            VN.aliases.any(search)
-        ))
-    
+
     if olang := params.get('olang'):
         filters.append(VN.olang == olang)
     
     if devstatus := params.get('devstatus'):
         filters.append(VN.devstatus == devstatus)
-    
+
     if released := params.get('released'):
-        filters.append(parse_date_comparison(released, VN.released))
+        filters.append(create_comparison_filter(VN.released, released, parse_date))
     
     if language := params.get('language'):
-        filters.append(VN.languages.contains([language]))
+        filters.append(array_string_match(VN.languages, language))
     
     if platform := params.get('platform'):
-        filters.append(VN.platforms.contains([platform]))
+        filters.append(array_string_match(VN.platforms, platform))
     
     if length := params.get('length'):
-        filters.append(parse_numeric_comparison(length, VN.length))
+        filters.append(create_comparison_filter(VN.length, length, int))
     
     if length_minutes := params.get('length_minutes'):
-        filters.append(parse_numeric_comparison(length_minutes, VN.length_minutes))
-    
+        filters.append(create_comparison_filter(VN.length_minutes, length_minutes, int))
+
+    if vns := params.get('search'):
+        def process_vn(vn_value):
+            return or_(
+                VN.id == vn_value,
+                VN.title.ilike(f"%{vn_value}%"),
+                array_string_match(VN.aliases, vn_value),
+                array_jsonb_match(VN.titles, 'title', vn_value)
+            )
+        filters.append(process_multi_value_expression(vns, process_vn))
+
     if tags := params.get('tag'):
-        def process_tag(param_name, tag_value):
-            match_conditions = [
-                {'field': 'id', 'value': param_name},
-                {'field': 'name', 'value': f"{param_name}_like", 'operator': 'ILIKE'}
-            ]
-            return jsonb_array_match('tags', match_conditions), {
-                param_name: tag_value.strip(),
-                f"{param_name}_like": f"%{tag_value.strip()}%"
-            }
-        
-        tag_condition, tag_params = process_multi_value_expression(tags, 'tag', process_tag)
-        filters.append(text(tag_condition).bindparams(**tag_params))
-    
-    if developer := params.get('developer'):
-        match_conditions = [
-            {'field': 'id', 'value': 'developer'},
-            {'field': 'name', 'value': 'developer_like', 'operator': 'ILIKE'},
-            {'field': 'original', 'value': 'developer_like', 'operator': 'ILIKE'}
-        ]
-        developer_filter = text(jsonb_array_match('developers', match_conditions)).bindparams(
-            developer=developer,
-            developer_like=f"%{developer}%"
-        )
-        filters.append(developer_filter)
-    
+        def process_tag(tag_value):
+            return or_(
+                array_jsonb_exact_match(VN.tags, 'id', tag_value),
+                array_jsonb_match(VN.tags, 'name', tag_value)
+            )
+        filters.append(process_multi_value_expression(tags, process_tag))
+
+    if developers := params.get('developer'):
+        def process_developer(dev_value):
+            return or_(
+                array_jsonb_exact_match(VN.developers, 'id', dev_value),
+                array_jsonb_match(VN.developers, 'name', dev_value),
+                array_jsonb_match(VN.developers, 'original', dev_value)
+            )
+        filters.append(process_multi_value_expression(developers, process_developer))
+
     if staff := params.get('staff'):
-        match_conditions = [
-            {'field': 'id', 'value': 'staff'},
-            {'field': 'name', 'value': 'staff_like', 'operator': 'ILIKE'},
-            {'field': 'original', 'value': 'staff_like', 'operator': 'ILIKE'}
-        ]
-        staff_filter = text(jsonb_array_match('staff', match_conditions)).bindparams(
-            staff=staff,
-            staff_like=f"%{staff}%"
-        )
-        filters.append(staff_filter)
+        def process_staff(staff_value):
+            return or_(
+                array_jsonb_exact_match(VN.staff, 'id', staff_value),
+                array_jsonb_match(VN.staff, 'name', staff_value),
+                array_jsonb_match(VN.staff, 'original', staff_value)
+            )
+        filters.append(process_multi_value_expression(staff, process_staff))
+
+    if characters := params.get('character'):
+        def process_character(char_value):
+            return or_(
+                array_jsonb_exact_match(VN.characters, 'id', char_value),
+                array_jsonb_match(VN.characters, 'name', char_value),
+                array_jsonb_match(VN.characters, 'original', char_value)
+            )
+        filters.append(process_multi_value_expression(characters, process_character))
 
     return filters
 
-def get_character_filters(params: Dict[str, Any]) -> List:
+def get_character_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     filters = []
-    
-    if search := params.get('search'):
-        filters.append(or_(
-            Character.name.ilike(f"%{search}%"),
-            Character.original.ilike(f"%{search}%"),
-            Character.aliases.any(search)
-        ))
-    
+
     if blood_type := params.get('blood_type'):
         filters.append(Character.blood_type == blood_type)
     
     if sex := params.get('sex'):
-        filters.append(Character.sex.contains([sex]))
+        filters.append(array_string_match(Character.sex, sex))
     
-    # Numeric fields with comparison
-    numeric_fields = ['height', 'weight', 'bust', 'waist', 'hips', 'age']
-    for field in numeric_fields:
-        if value := params.get(field):
-            filters.append(parse_numeric_comparison(value, getattr(Character, field)))
+    # Expanded numeric fields
+    if height := params.get('height'):
+        filters.append(create_comparison_filter(Character.height, height, int))
+    
+    if weight := params.get('weight'):
+        filters.append(create_comparison_filter(Character.weight, weight, int))
+    
+    if bust := params.get('bust'):
+        filters.append(create_comparison_filter(Character.bust, bust, int))
+    
+    if waist := params.get('waist'):
+        filters.append(create_comparison_filter(Character.waist, waist, int))
+    
+    if hips := params.get('hips'):
+        filters.append(create_comparison_filter(Character.hips, hips, int))
+    
+    if age := params.get('age'):
+        filters.append(create_comparison_filter(Character.age, age, int))
     
     if cup := params.get('cup'):
-        # Convert the cup size to its string representation before comparison
-        filters.append(Character.cup == cup.upper())
-    
+        filters.append(Character.cup == parse_cup_size(cup))
+
     if birthday := params.get('birthday'):
         month, day = map(int, birthday.split('-'))
         filters.append(and_(
-            parse_numeric_comparison(str(month), Character.birthday[0]),
-            parse_numeric_comparison(str(day), Character.birthday[1])
+            create_comparison_filter(Character.birthday[0], str(month), int),
+            create_comparison_filter(Character.birthday[1], str(day), int)
         ))
+
+    if characters := params.get('search'):
+        def process_character(character_value):
+            return or_(
+                Character.id == character_value,
+                Character.name.ilike(f"%{character_value}%"),
+                Character.original.ilike(f"%{character_value}%"),
+                array_string_match(Character.aliases, character_value)
+            )
+        filters.append(process_multi_value_expression(characters, process_character))
 
     if traits := params.get('trait'):
-        def process_trait(param_name, trait_value):
+        def process_trait(trait_value):
             trait_group, trait_name = trait_value.split(':')
-            match_conditions = [
-                {'field': 'group_id', 'value': f"{param_name}_group"},
-                {'field': 'group_name', 'value': f"{param_name}_group_like", 'operator': 'ILIKE'},
-                {'field': 'id', 'value': f"{param_name}_name"},
-                {'field': 'name', 'value': f"{param_name}_name_like", 'operator': 'ILIKE'}
-            ]
-            return jsonb_array_match('traits', match_conditions), {
-                f"{param_name}_group": trait_group.strip(),
-                f"{param_name}_group_like": f"%{trait_group.strip()}%",
-                f"{param_name}_name": trait_name.strip(),
-                f"{param_name}_name_like": f"%{trait_name.strip()}%"
-            }
-        
-        trait_condition, trait_params = process_multi_value_expression(traits, 'trait', process_trait)
-        filters.append(text(trait_condition).bindparams(**trait_params))
-    
-    if vns := params.get('vns'):
-        match_conditions = [
-            {'field': 'id', 'value': 'vn'},
-            {'field': 'title', 'value': 'vn_like', 'operator': 'ILIKE'}
-        ]
-        vn_filter = text(jsonb_array_match('vns', match_conditions)).bindparams(
-            vn=vns,
-            vn_like=f"%{vns}%"
-        )
-        filters.append(vn_filter)
+            return and_(
+                or_(
+                    array_jsonb_exact_match(Character.traits, 'group_id', trait_group),
+                    array_jsonb_match(Character.traits, 'group_name', trait_group)
+                ),
+                or_(
+                    array_jsonb_exact_match(Character.traits, 'id', trait_name),
+                    array_jsonb_match(Character.traits, 'name', trait_name)
+                )
+            )
+        filters.append(process_multi_value_expression(traits, process_trait))
 
+    if vns := params.get('vn'):
+        def process_vn(vn_value):
+            return or_(
+                array_jsonb_exact_match(Character.vns, 'id', vn_value),
+                array_jsonb_match(Character.vns, 'title', vn_value)
+            )
+        filters.append(process_multi_value_expression(vns, process_vn))
+    
     return filters
-
-def get_producer_filters(params: Dict[str, Any]) -> List:
-    filters = []
     
-    if search := params.get('search'):
-        filters.append(or_(
-            Producer.name.ilike(f"%{search}%"),
-            Producer.original.ilike(f"%{search}%"),
-            Producer.aliases.any(search)
-        ))
+def get_producer_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
+    filters = []
+
+    if producers := params.get('search'):
+        def process_producer(producer_value):
+            return or_(
+                Producer.id == producer_value,
+                Producer.name.ilike(f"%{producer_value}%"),
+                Producer.original.ilike(f"%{producer_value}%"),
+                array_string_match(Producer.aliases, producer_value)
+            )
+        filters.append(process_multi_value_expression(producers, process_producer))
     
     if lang := params.get('lang'):
         filters.append(Producer.lang == lang)
     
-    if type_ := params.get('type'):
-        filters.append(Producer.type == type_)
+    if type := params.get('type'):
+        filters.append(Producer.type == type)
     
     return filters
 
-def get_staff_filters(params: Dict[str, Any]) -> List:
+def get_staff_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     filters = []
-    
 
-    if search := params.get('search'):
-        name_original_filter = or_(
-            Staff.name.ilike(f"%{search}%"),
-            Staff.original.ilike(f"%{search}%")
-        )
-        
-        match_conditions = [
-            {'field': 'name', 'value': 'search_like', 'operator': 'ILIKE'},
-            {'field': 'original', 'value': 'search_like', 'operator': 'ILIKE'}
-        ]
-        alias_filter = text(jsonb_array_match('aliases', match_conditions)).bindparams(
-            search_like=f"%{search}%"
-        )
-        
-        filters.append(or_(name_original_filter, alias_filter))
-    
+    if staff := params.get('search'):
+        def process_staff(staff_value):
+            return or_(
+                Staff.id == staff_value,
+                Staff.name.ilike(f"%{staff_value}%"),
+                Staff.original.ilike(f"%{staff_value}%"),
+                array_jsonb_match(Staff.aliases, 'name', staff_value),
+            )
+        filters.append(process_multi_value_expression(staff, process_staff))
+
     if lang := params.get('lang'):
         filters.append(Staff.lang == lang)
     
@@ -289,43 +295,49 @@ def get_staff_filters(params: Dict[str, Any]) -> List:
     
     return filters
 
-def get_tag_filters(params: Dict[str, Any]) -> List:
+def get_tag_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     filters = []
-    
-    if search := params.get('search'):
-        filters.append(or_(
-            Tag.name.ilike(f"%{search}%"),
-            Tag.aliases.any(search)
-        ))
-    
+
+    if tags := params.get('search'):
+        def process_tag(tag_value):
+            return or_(
+                Tag.id == tag_value,
+                Tag.name.ilike(f"%{tag_value}%"),
+                array_string_match(Tag.aliases, tag_value)
+            )
+        filters.append(process_multi_value_expression(tags, process_tag))
+
     if category := params.get('category'):
         filters.append(Tag.category == category)
     
     if vn_count := params.get('vn_count'):
-        filters.append(parse_numeric_comparison(vn_count, Tag.vn_count))
+        filters.append(create_comparison_filter(Tag.vn_count, vn_count, int))
 
-    # Boolean fields
-    boolean_fields = ['searchable', 'applicable']
-    for field in boolean_fields:
-        if value := params.get(field):
-            filters.append(getattr(Tag, field) == (value.lower() == 'true'))
+    if searchable := params.get('searchable'):
+        filters.append(Tag.searchable == (searchable.lower() == 'true'))
     
+    if applicable := params.get('applicable'):
+        filters.append(Tag.applicable == (applicable.lower() == 'true'))
+
     return filters
 
-def get_trait_filters(params: Dict[str, Any]) -> List:
+def get_trait_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     filters = []
     
-    if search := params.get('search'):
-        filters.append(or_(
-            Trait.name.ilike(f"%{search}%"),
-            Trait.aliases.any(search)
-        ))
+    if traits := params.get('search'):
+        def process_trait(trait_value):
+            return or_(
+                Trait.id == trait_value,
+                Trait.name.ilike(f"%{trait_value}%"),
+                array_string_match(Trait.aliases, trait_value)
+            )
+        filters.append(process_multi_value_expression(traits, process_trait))
     
-    # Boolean fields
-    boolean_fields = ['searchable', 'applicable']
-    for field in boolean_fields:
-        if value := params.get(field):
-            filters.append(getattr(Trait, field) == (value.lower() == 'true'))
+    if searchable := params.get('searchable'):
+        filters.append(Trait.searchable == (searchable.lower() == 'true'))
+    
+    if applicable := params.get('applicable'):
+        filters.append(Trait.applicable == (applicable.lower() == 'true'))
     
     if group_id := params.get('group_id'):
         filters.append(Trait.group_id == group_id)
@@ -334,25 +346,11 @@ def get_trait_filters(params: Dict[str, Any]) -> List:
         filters.append(Trait.group_name.ilike(f"%{group_name}%"))
     
     if char_count := params.get('char_count'):
-        filters.append(parse_numeric_comparison(char_count, Trait.char_count))
+        filters.append(create_comparison_filter(Trait.char_count, char_count, int))
     
     return filters
 
-def get_local_filters(search_type: str, params: Dict[str, Any]) -> List:
-    """
-    Generate filters for local database searches based on the search type and provided parameters.
-    
-    Args:
-        search_type (str): The type of search (e.g., 'vn', 'character', 'producer', etc.).
-        params (Dict[str, Any]): The search parameters.
-    
-    Returns:
-        List: A list of SQLAlchemy filter conditions for the specified search type.
-    
-    Raises:
-        ValueError: If an invalid search_type is provided.
-    """
-
+def get_local_filters(search_type: str, params: Dict[str, Any]) -> List[BinaryExpression]:
     if id := params.get('id'):
         model = {
             'vn': VN,
@@ -368,17 +366,16 @@ def get_local_filters(search_type: str, params: Dict[str, Any]) -> List:
         else:
             raise ValueError(f"Invalid search_type: {search_type}")
 
-    if search_type == 'vn':
-        return get_vn_filters(params)
-    elif search_type == 'character':
-        return get_character_filters(params)
-    elif search_type == 'producer':
-        return get_producer_filters(params)
-    elif search_type == 'staff':
-        return get_staff_filters(params)
-    elif search_type == 'tag':
-        return get_tag_filters(params)
-    elif search_type == 'trait':
-        return get_trait_filters(params)
+    filter_functions = {
+        'vn': get_vn_filters,
+        'character': get_character_filters,
+        'producer': get_producer_filters,
+        'staff': get_staff_filters,
+        'tag': get_tag_filters,
+        'trait': get_trait_filters
+    }
+
+    if filter_function := filter_functions.get(search_type):
+        return filter_function(params)
     else:
         raise ValueError(f"Invalid search_type: {search_type}")

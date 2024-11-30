@@ -1,89 +1,46 @@
 from typing import Dict, Any 
 
-from api import celery, scheduler
 from api.database import (
-    create_backup, delete_backup, delete_backups,
-    get_backup, get_backups, restore_database_pg_dump,
-    convert_model_to_dict
+    restore_database_pg_dump,
+    create_backup, get_backup, get_backups,
+    delete_backup, delete_backups,
 )
-from api.utils import get_backup_path
-from .common import error_handler
+from api.utils import (
+    get_backup_path
+)
+from .common import (
+    task_with_memoize, task_with_cache_clear,
+    format_results, daily_task
+)
 
-@error_handler
-def _backup_task() -> Dict[str, Any]:
+@daily_task(hour=0, minute=0)
+@task_with_memoize(timeout=600)
+def backup_task() -> Dict[str, Any]:
     backup_id = create_backup()
-    return {
-        "status": "SUCCESS" if backup_id else "ERROR",
-        "result": backup_id
-    }
+    return format_results(backup_id)
 
-@error_handler
-def _restore_task(backup_id: str) -> Dict[str, Any]:
+@task_with_cache_clear
+def restore_task(backup_id: str) -> Dict[str, Any]:
     backup_path = get_backup_path(backup_id)
-    return {
-        "status": "SUCCESS" if backup_path else "NOT_FOUND",
-        "result": restore_database_pg_dump(backup_path) if backup_path else False 
-    }
+    result = restore_database_pg_dump(backup_path)
+    return format_results(result)
 
-@error_handler
-def _delete_backup_task(backup_id: str) -> Dict[str, Any]:
-    result = delete_backup(backup_id)
-    return {
-        "status": "SUCCESS" if result else "NOT_FOUND",
-        "result": convert_model_to_dict(result) if result else None
-    }
-
-@error_handler
-def _delete_backups_task() -> Dict[str, Any]:
-    deleted_count = delete_backups()
-    return {
-        "status": "SUCCESS" if deleted_count else "NOT_FOUND",
-        "result": deleted_count
-    }
-
-@error_handler
-def _get_backup_task(backup_id: str) -> Dict[str, Any]:
+@task_with_cache_clear
+def get_backup_task(backup_id: str) -> Dict[str, Any]:
     backup = get_backup(backup_id)
-    return {
-        "status": "SUCCESS" if backup else "NOT_FOUND",
-        "result": convert_model_to_dict(backup) if backup else None
-    }
+    return format_results(backup)
 
-@error_handler
-def _get_backups_task() -> Dict[str, Any]:
+@task_with_cache_clear
+def get_backups_task() -> Dict[str, Any]:
     backups = get_backups()
-    return {
-        "status": "SUCCESS" if backups else "NOT_FOUND",
-        "result": [convert_model_to_dict(backup) for backup in backups] if backups else []
-    }
+    return format_results(backups)
 
-# ----------------------------------------
-# Register celery tasks and schedule tasks
-# ----------------------------------------
+@task_with_cache_clear
+def delete_backup_task(backup_id: str) -> Dict[str, Any]:
+    result = delete_backup(backup_id)
+    return format_results(result)
 
-@celery.task
-def backup_task(*args, **kwargs) -> Dict[str, Any]:
-    return _backup_task(*args, **kwargs)
-
-@celery.task
-def restore_task(*args, **kwargs) -> Dict[str, Any]:
-    return _restore_task(*args, **kwargs)
-
-@celery.task
-def delete_backup_task(*args, **kwargs) -> Dict[str, Any]:
-    return _delete_backup_task(*args, **kwargs)
-
-@celery.task
-def delete_backups_task(*args, **kwargs) -> Dict[str, Any]:
-    return _delete_backups_task(*args, **kwargs)
-
-@celery.task
-def get_backup_task(*args, **kwargs) -> Dict[str, Any]:
-    return _get_backup_task(*args, **kwargs)
-
-@celery.task
-def get_backups_task(*args, **kwargs) -> Dict[str, Any]:
-    return _get_backups_task(*args, **kwargs)
-
-@scheduler.task(trigger='cron', id='weekly_backup_task', day_of_week='sun', hour=0, minute=0)
-def scheduled_backup_task() -> Dict[str, Any]: _backup_task()
+@task_with_cache_clear
+def delete_backups_task() -> Dict[str, Any]:
+    deleted_count = delete_backups()
+    return format_results(deleted_count)

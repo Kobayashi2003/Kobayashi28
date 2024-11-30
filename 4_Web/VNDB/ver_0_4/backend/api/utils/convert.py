@@ -174,7 +174,6 @@ def convert_imgurl_to_imgid(url: str) -> str:
     # If the pattern doesn't match, fall back to the original filename
     return re.sub(r'[^\w\-_\.]', '_', os.path.splitext(os.path.basename(path))[0])
 
-
 def convert_remote_to_local(entity_type, remote_data):
     """
     Convert remote data to local database format.
@@ -205,7 +204,7 @@ def convert_vn(remote_data):
     
     # Convert devstatus
     devstatus_map = {0: 'Finished', 1: 'In development', 2: 'Cancelled'}
-    local_data['devstatus'] = devstatus_map.get(remote_data.get('devstatus'), 'Finished')
+    # local_data['devstatus'] = devstatus_map.get(remote_data.get('devstatus'), 'Finished')
     local_data.pop('relation', None)
     local_data.pop('relation_official', None)
     local_data.pop('role', None)

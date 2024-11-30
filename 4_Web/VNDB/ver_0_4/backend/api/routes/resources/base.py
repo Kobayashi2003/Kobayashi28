@@ -1,25 +1,13 @@
 from flask import Blueprint, jsonify, request
 from abc import ABC, ABCMeta, abstractmethod
-from api import cache
+
 from api.tasks.resources import (
-    _get_resource_task, _get_resources_task, 
-    _search_resource_task, _search_resources_task,
+    get_resource_task, get_resources_task, 
+    search_resource_task, search_resources_task,
     update_resource_task, update_resources_task, 
     delete_resource_task, delete_resources_task, 
     edit_resource_task, edit_resources_task
 )
-
-@cache.memoize(timeout=60)
-def get_resource_task(*args, **kwargs): return _get_resource_task(*args, **kwargs)
-
-@cache.memoize(timeout=60)
-def get_resources_task(*args, **kwargs): return _get_resources_task(*args, **kwargs)
-
-@cache.memoize(timeout=60)
-def search_resource_task(*args, **kwargs): return _search_resource_task(*args, **kwargs)
-
-@cache.memoize(timeout=60)
-def search_resources_task(*args, **kwargs): return _search_resources_task(*args, **kwargs)
 
 class SingletonABCMeta(ABCMeta):
     _instances = {}
@@ -49,12 +37,14 @@ class BaseResourceBlueprint(ABC, metaclass=SingletonABCMeta):
         self.bp.add_url_rule('/<string:id>', 'delete_resource', self.delete_resource, methods=['DELETE'])
 
     def get_resources(self):
-        page = request.args.get('page', default=None, type=int)
-        limit = request.args.get('limit', default=None, type=int)
-        sort = request.args.get('sort', default='id', type=str)
-        order = request.args.get('order', default='asc', type=str)
+        args = request.args
+        page = args.get('page', default=None, type=int)
+        limit = args.get('limit', default=None, type=int)
+        sort = args.get('sort', default='id', type=str)
+        reverse = args.get('reverse', default=False, type=bool)
+        count = args.get('count', default=True, type=bool)
 
-        return get_resources_task(self.resource_type, page, limit, sort, order)
+        return get_resources_task(self.resource_type, page, limit, sort, reverse)
 
     def get_resource(self, id):
         return get_resource_task(self.resource_type, id)
@@ -63,13 +53,13 @@ class BaseResourceBlueprint(ABC, metaclass=SingletonABCMeta):
         search_params = request.json
         search_from = search_params.pop('search_from', 'local')
         response_size = search_params.pop('response_size', 'small')
-
         page = search_params.pop('page', 1)
         limit = search_params.pop('limit', 20)
         sort = search_params.pop('sort', 'id')
-        order = search_params.pop('order', 'asc')
+        reverse = search_params.pop('reverse', False)
+        count = search_params.pop('count', True)
 
-        return search_resources_task(self.resource_type, search_from, search_params, response_size, page, limit, sort, order)
+        return search_resources_task(self.resource_type, search_from, search_params, response_size, page, limit, sort, reverse, count)
 
     def search_resource_by_id(self, id):
         return search_resource_task(self.resource_type, id)
