@@ -3,12 +3,12 @@ from typing import Union
 import os
 from datetime import datetime, timezone
 
-from api import db
 from sqlalchemy import event 
 from sqlalchemy import func
 from sqlalchemy.dialects.postgresql import JSON, JSONB, ARRAY
 from sqlalchemy.ext.declarative import declared_attr
 
+from api import db
 from api.utils import get_image_path, get_savedata_path,get_backup_path 
 
 # ----------------------------------------
