@@ -69,13 +69,16 @@ def receive_before_insert(mapper, connection, target):
     Trigger function to be executed before an image is inserted.
     Attempts to download the image. If download fails, raises an exception to prevent insertion.
     """
+    image_path = get_image_path(target.type, target.id)
+    if os.path.exists(image_path):
+        return
+
+    os.makedirs(os.path.dirname(image_path), exist_ok=True)
+
     image_data = download_image(target.type, target.id)
     if image_data is None:
         raise ValueError(f"Failed to download image of type {target.type} with id {target.id}")
-    
-    image_path = get_image_path(target.type, target.id)
-    os.makedirs(os.path.dirname(image_path), exist_ok=True)
-    
+   
     with open(image_path, 'wb') as f:
         f.write(image_data.getvalue())
 

@@ -87,11 +87,11 @@ def create_comparison_filter(field: Any, value: str, value_parser: Callable[[str
     parsed_value = value_parser(actual_value)
     return operators[operator](field, parsed_value)
 
-def parse_date(value: str) -> date:
+def parse_date(value: str) -> List[int]:
     patterns = [
-        (r'^(\d{4})$', lambda m: date(int(m.group(1)), 1, 1)),
-        (r'^(\d{4})-(\d{2})$', lambda m: date(int(m.group(1)), int(m.group(2)), 1)),
-        (r'^(\d{4})-(\d{2})-(\d{2})$', lambda m: date(int(m.group(1)), int(m.group(2)), int(m.group(3))))
+        (r'^(\d{4})$', lambda m: [int(m.group(1))]),
+        (r'^(\d{4})-(\d{2})$', lambda m: [int(m.group(1)), int(m.group(2))]),
+        (r'^(\d{4})-(\d{2})-(\d{2})$', lambda m: [int(m.group(1)), int(m.group(2)), int(m.group(3))])
     ]
     
     for pattern, date_func in patterns:
@@ -99,7 +99,30 @@ def parse_date(value: str) -> date:
         if match:
             return date_func(match)
     
-    raise ValueError(f"Invalid date format: {value}. Use YYYY, YYYY-MM, or YYYY-MM-DD.")
+    if value.lower() == 'tba':
+        return [-1]
+    
+    raise ValueError(f"Invalid date format: {value}. Use YYYY, YYYY-MM, YYYY-MM-DD, or TBA.")
+
+def parse_resolution(value: str) -> List[int]:
+    pattern = r'^(\d+)x(\d+)$'
+    match = re.match(pattern, value)
+    if match:
+        return [int(match.group(1)), int(match.group(2))]
+
+    if value.lower() == 'non-standard':
+        return [-1]
+    
+    raise ValueError(f"Invalid resolution format: {value}. Use WIDTHxHEIGHT (e.g., 1920x1080).")
+
+def parse_birthday(value: str) -> List[int]:
+    pattern = r'^(\d{1,2})-(\d{1,2})$'
+    match = re.match(pattern, value)
+    if match:
+        month, day = map(int, match.groups())
+        if 1 <= month <= 12 and 1 <= day <= 31:
+            return [month, day]
+    raise ValueError(f"Invalid birthday format: {value}. Use MM-DD (e.g., 12-25).")
 
 def parse_cup_size(value: str) -> str:
     cup_sizes = ['AAA', 'AA', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K']
@@ -207,9 +230,8 @@ def get_release_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     if minage := params.get('minage'):
         filters.append(create_comparison_filter(Release.minage, minage, int))
 
-    # TODO
     if resolution := params.get('resolution'):
-        filters.append(create_comparison_filter(Release.resolution, resolution, str))
+        filters.append(create_comparison_filter(Release.resolution, resolution, parse_resolution))
 
     if engine := params.get('engine'):
         filters.append(Release.engine == engine)
@@ -278,11 +300,7 @@ def get_character_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
         filters.append(Character.cup == parse_cup_size(cup))
 
     if birthday := params.get('birthday'):
-        month, day = map(int, birthday.split('-'))
-        filters.append(and_(
-            create_comparison_filter(Character.birthday[0], str(month), int),
-            create_comparison_filter(Character.birthday[1], str(day), int)
-        ))
+        filters.append(create_comparison_filter(Character.birthday, birthday, parse_birthday))
 
     if characters := params.get('search'):
         def process_character(character_value):

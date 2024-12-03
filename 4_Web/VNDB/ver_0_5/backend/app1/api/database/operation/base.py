@@ -13,10 +13,11 @@ def exists(type: str, id: str) -> bool:
     meta_model = META_MODEL_MAP.get(type)
     if not model or not meta_model:
         raise ValueError(f"Invalid model type: {type}")
-    metadata = meta_model.query.filter_by(id=id).first()
-    return metadata is not None and metadata.is_active
+    data = model.query.get(id)
+    metadata = meta_model.query.get(id)
+    return all((data, metadata)) and metadata.is_active
 
-def count(type: str) -> bool:
+def count_type(type: str) -> bool:
     meta_model = META_MODEL_MAP.get(type)
     if not meta_model:
         raise ValueError(f"Invalid model type: {type}")

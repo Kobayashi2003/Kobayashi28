@@ -44,7 +44,7 @@ def search(resource_type: str, params: Dict[str, Any], response_size: str = 'sma
     return {'results': results, 'more': more, 'count': total} if count else {'results': results, 'more': more}
 
 def search_resources_by_vnid(vnid: str, related_resource_type: str, response_size: str = 'small',
-                              page: int = 1, limit: int = 100, sort: str = 'id', reverse: bool = False, count: bool = True) -> Dict[str, Any]:
+                             page: int = 1, limit: int = 100, sort: str = 'id', reverse: bool = False, count: bool = True) -> Dict[str, Any]:
     
     VN = MODEL_MAP['vn']
     VNMetadata = META_MODEL_MAP['vn']
@@ -104,7 +104,7 @@ def search_resources_by_vnid(vnid: str, related_resource_type: str, response_siz
     return {'results': results, 'more': more, 'count': total} if count else {'results': results, 'more': more}
 
 def search_resources_by_charid(charid: str, related_resource_type: str, response_size: str = 'small',
-                                 page: int = 1, limit: int = 100, sort: str = 'id', reverse: bool = False, count: bool = True) -> Dict[str, Any]:
+                               page: int = 1, limit: int = 100, sort: str = 'id', reverse: bool = False, count: bool = True) -> Dict[str, Any]:
     Character = MODEL_MAP['character']
     CharacterMetadata = META_MODEL_MAP['character']
 
@@ -154,7 +154,56 @@ def search_resources_by_charid(charid: str, related_resource_type: str, response
 
     return {'results': results, 'more': more, 'count': total} if count else {'results': results, 'more': more}
 
-def search_resources_by_release_id(): ...
+def search_resources_by_release_id(release_id: str, related_resource_type: str, response_size: str = 'small',
+                                   page: int = 1, limit: int = 100, sort: str = 'id', reverse: bool = False, count: bool = True) -> Dict[str, Any]:
+    Release = MODEL_MAP['release']
+    ReleaseMetadata = META_MODEL_MAP['release']
+
+    release_meta = ReleaseMetadata.query.filter(ReleaseMetadata.id == release_id, ReleaseMetadata.is_active == True).first()
+    if not release_meta:
+        raise ValueError(f"Active Release with id {release_id} not found")
+
+    release = Release.query.get(release_id)
+    if not release:
+        raise ValueError(f"Release with id {release_id} not found")
+
+    related_resource_ids = []
+    if related_resource_type == 'vn':
+        related_resource_ids = [vn['id'] for vn in release.vns]
+    elif related_resource_type == 'producer':
+        related_resource_ids = [producer['id'] for producer in release.producers]
+    else:
+        raise ValueError(f"Invalid related_resource_type: {related_resource_type}")
+    
+    if not related_resource_ids:
+        return {'results': [], 'more': False, 'count': 0} if count else {'results': [], 'more': False}
+
+    model = MODEL_MAP.get(related_resource_type)
+    meta_model = META_MODEL_MAP.get(related_resource_type)
+    if not model or not meta_model:
+        raise ValueError(f"Invalid model type: {related_resource_type}")
+
+    fields = get_local_fields(related_resource_type, response_size)
+    query = model.query.with_entities(*[getattr(model, field) for field in fields])
+
+    active_metadata_query = db.session.query(meta_model.id).filter(meta_model.is_active == True)
+    active_metadata_subquery = active_metadata_query.subquery()
+    query = query.filter(model.id.in_(active_metadata_subquery))
+    query = query.filter(model.id.in_(related_resource_ids))
+
+    order_func = desc if reverse else asc
+    query = query.order_by(order_func(getattr(model, sort)))
+
+    page = max(1, page)
+    limit = min(max(1, limit), 100)
+    query = query.offset((page - 1) * limit).limit(limit)
+
+    results = [dict(zip(fields, result)) for result in query.all()]
+
+    total = query.count()
+    more = (page * limit) < total
+
+    return {'results': results, 'more': more, 'count': total} if count else {'results': results, 'more': more}
 
 def search_vns_by_resource_id(resource_type: str, resource_id: str, response_size: str = 'small',
                               page: int = 1, limit: int = 100, sort: str = 'id', reverse: bool = False, count: bool = True) -> Dict[str, Any]:
@@ -183,4 +232,17 @@ def search_characters_by_resource_id(resource_type: str, resource_id: str, respo
 
     return results
 
-def search_releases_by_resource_id(): ...
+def search_releases_by_resource_id(resource_type: str, resource_id: str, response_size: str = 'small',
+                                   page: int = 1, limit: int = 100, sort: str = 'id', reverse: bool = False, count: bool = True) -> Dict[str, Any]:
+    params = {
+        'vn': 'vn',
+        'producer': 'producer'
+    }.get(resource_type)
+
+    if params is None:
+        raise ValueError(f"Invalid resource_type: {resource_type}")
+
+    results = search(resource_type='release', params={params: resource_id}, response_size=response_size, 
+                     page=page, limit=limit, sort=sort, reverse=reverse, count=count)
+
+    return results

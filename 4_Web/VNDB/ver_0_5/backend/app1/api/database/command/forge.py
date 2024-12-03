@@ -19,6 +19,7 @@ def forge_db(count):
     generate_fake_staff(count)
     generate_fake_characters(count)
     generate_fake_traits(count)
+    generate_fake_releases(count)  # New function added
     click.echo(f'Generated {count} fake entries for each model.')
 
 def generate_fake_vns(count):
@@ -29,13 +30,14 @@ def generate_fake_vns(count):
             'titles': {'en': fake.sentence(nb_words=4), 'jp': fake.sentence(nb_words=4)},
             'aliases': [fake.word() for _ in range(3)],
             'olang': 'ja',
-            'devstatus': random.choice(['Finished', 'In development', 'Cancelled']),
-            'released': fake.date_this_decade(),
+            'devstatus': random.randint(0, 2),  # 0: Finished, 1: In development, 2: Cancelled
+            'released': [int(x) for x in fake.date_this_decade().split('-')],
             'languages': ['en', 'ja'],
             'platforms': ['win', 'lin', 'mac'],
             'image': {'url': fake.image_url(), 'thumbnail': fake.image_url()},
-            'length': random.randint(1, 50),
+            'length': random.randint(1, 5),
             'length_minutes': random.randint(60, 3000),
+            'length_votes': random.randint(1, 1000),
             'description': fake.text(),
             'screenshots': [{'url': fake.image_url(), 'thumbnail': fake.image_url()} for _ in range(3)],
             'relations': [],
@@ -51,6 +53,7 @@ def generate_fake_tags(count):
     for _ in range(count):
         tag_data = {
             'id': fake.uuid4(),
+            'aid': fake.uuid4(),
             'name': fake.word(),
             'aliases': [fake.word() for _ in range(2)],
             'description': fake.text(),
@@ -78,12 +81,14 @@ def generate_fake_staff(count):
     for _ in range(count):
         staff_data = {
             'id': fake.uuid4(),
+            'aid': fake.uuid4(),
             'ismain': fake.boolean(),
             'name': fake.name(),
             'original': fake.name(),
             'lang': 'ja',
             'gender': random.choice(['m', 'f']),
             'description': fake.text(),
+            'extlinks': [{'url': fake.url(), 'label': fake.word()} for _ in range(2)],
             'aliases': [{'name': fake.name(), 'original': fake.name()} for _ in range(2)]
         }
         create('staff', staff_data['id'], staff_data)
@@ -126,3 +131,32 @@ def generate_fake_traits(count):
             'char_count': random.randint(0, 100)
         }
         create('trait', trait_data['id'], trait_data)
+
+def generate_fake_releases(count):
+    for _ in range(count):
+        release_data = {
+            'id': fake.uuid4(),
+            'title': fake.sentence(nb_words=4),
+            'alttitle': fake.sentence(nb_words=4),
+            'languages': [{'lang': lang, 'title': fake.sentence(nb_words=3), 'latin': fake.sentence(nb_words=3), 'mtl': fake.boolean(), 'main': fake.boolean()} for lang in ['en', 'ja']],
+            'platforms': ['win', 'lin', 'mac'],
+            'media': [{'medium': 'dvd', 'qty': random.randint(1, 5)}],
+            'vns': [{'id': fake.uuid4(), 'rtype': random.choice(['trial', 'partial', 'complete'])}],
+            'producers': [{'id': fake.uuid4(), 'developer': fake.boolean(), 'publisher': fake.boolean()}],
+            'images': [{'url': fake.image_url(), 'thumbnail': fake.image_url(), 'type': random.choice(['pkgfront', 'pkgback', 'pkgcontent', 'pkgside', 'pkgmed', 'dig'])}],
+            'released': [int(x) for x in fake.date_this_decade().split('-')],
+            'minage': random.randint(0, 18),
+            'patch': fake.boolean(),
+            'freeware': fake.boolean(),
+            'uncensored': fake.boolean(),
+            'official': fake.boolean(),
+            'has_ero': fake.boolean(),
+            'resolution': [random.randint(640, 1920), random.randint(480, 1080)],
+            'engine': fake.word(),
+            'voiced': random.randint(1, 4),  # 1: not voiced, 2: only ero scenes voiced, 3: partially voiced, 4: fully voiced
+            'notes': fake.text(),
+            'gtin': fake.ean13(),
+            'catalog': fake.isbn13(),
+            'extlinks': [{'url': fake.url(), 'label': fake.word(), 'name': fake.word(), 'id': fake.uuid4()} for _ in range(2)]
+        }
+        create('release', release_data['id'], release_data)

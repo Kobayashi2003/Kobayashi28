@@ -1,51 +1,50 @@
-from flask import Blueprint, jsonify 
+from flask import Blueprint, jsonify, request
 
 from api.tasks.trash import (
-    get_inactive_item_task, get_inactive_type_task, get_inactive_all_task,
-    cleanup_item_task, cleanup_type_task, cleanup_all_task,
-    recover_item_task, recover_type_task, recover_all_task
+    get_inactive_item_task, get_inactive_type_task,
+    cleanup_item_task, cleanup_type_task,
+    recover_item_task, recover_type_task 
 )
+from .common import execute_task
 
 trash_bp = Blueprint('trash', __name__, url_prefix='/trash')
 
+def get_sync_param():
+    return request.args.get('sync', 'true').lower() == 'true'
+
 @trash_bp.route('/<string:type>/<string:id>', methods=['GET'])
 def get_item(type, id):
-    return get_inactive_item_task(type, id)
+    sync = get_sync_param()
+    return execute_task(get_inactive_item_task, sync, type, id)
 
 @trash_bp.route('/<string:type>', methods=['GET'])
 def get_type(type):
-    return get_inactive_type_task(type)
+    args = request.args
+    page = args.get('page', default=None, type=int)
+    limit = args.get('limit', default=None, type=int)
+    sort = args.get('sort', default='id', type=str)
+    reverse = args.get('reverse', default=False, type=bool)
+    count = args.get('count', default=True, type=bool)
+    sync = get_sync_param()
 
-@trash_bp.route('', methods=['GET'])
-def get_all():
-    return get_inactive_all_task()
+    return execute_task(get_inactive_type_task, sync, type, page, limit, sort, reverse, count)
 
 @trash_bp.route('/<string:type>/<string:id>', methods=['DELETE'])
 def cleanup_item(type, id):
-    task = cleanup_item_task.delay(type, id)
-    return jsonify({"task_id": task.id}), 202
+    sync = get_sync_param()
+    return execute_task(cleanup_item_task, sync, type, id)
 
 @trash_bp.route('/<string:type>', methods=['DELETE'])
 def cleanup_type(type):
-    task = cleanup_type_task.delay(type)
-    return jsonify({"task_id": task.id}), 202
-
-@trash_bp.route('', methods=['DELETE'])
-def cleanup_all():
-    task = cleanup_all_task.delay()
-    return jsonify({"task_id": task.id}), 202
+    sync = get_sync_param()
+    return execute_task(cleanup_type_task, sync, type)
 
 @trash_bp.route('/<string:type>/<string:id>', methods=['POST'])
 def recover_item(type, id):
-    task = recover_item_task.delay(type, id)
-    return jsonify({"task_id": task.id}), 202
+    sync = get_sync_param()
+    return execute_task(recover_item_task, sync, type, id)
 
 @trash_bp.route('/<string:type>', methods=['POST'])
 def recover_type(type):
-    task = recover_type_task.delay(type)
-    return jsonify({"task_id": task.id}), 202
-
-@trash_bp.route('', methods=['POST'])
-def recover_all():
-    task = recover_all_task.delay()
-    return jsonify({"task_id": task.id}), 202
+    sync = get_sync_param()
+    return execute_task(recover_type_task, sync, type)

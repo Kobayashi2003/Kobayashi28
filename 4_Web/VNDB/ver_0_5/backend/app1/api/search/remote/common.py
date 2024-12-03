@@ -15,6 +15,9 @@ SMALL_FIELDS_VN: List[str] = [
 SMALL_FIELDS_CHARACTER: List[str] = [
     VNDBFields.Character.ID,
     VNDBFields.Character.NAME,
+    VNDBFields.Character.IMAGE.URL,
+    VNDBFields.Character.IMAGE.SEXUAL,
+    VNDBFields.Character.IMAGE.VIOLENCE
 ]
 
 SMALL_FIELDS_TAG: List[str] = [

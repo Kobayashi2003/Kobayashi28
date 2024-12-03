@@ -43,13 +43,18 @@ class TraitMetadata(Metadata):
     id = db.Column(db.String(255), db.ForeignKey('trait.id', ondelete="CASCADE"), primary_key=True)
     parent = db.relationship("Trait", back_populates="trait_metadata")
 
+class ReleaseMetadata(Metadata):
+    id = db.Column(db.String(255), db.ForeignKey('release.id', ondelete="CASCADE"), primary_key=True)
+    parent = db.relationship("Release", back_populates="release_metadata")
+
 # ----------------------------------------
 # Variables 
 # ----------------------------------------
 
 MetaModelType = Union[
     VNMetadata, TagMetadata, ProducerMetadata, 
-    StaffMetadata, CharacterMetadata, TraitMetadata
+    StaffMetadata, CharacterMetadata, TraitMetadata,
+    ReleaseMetadata
 ]
 
 META_MODEL_MAP = {
@@ -58,5 +63,6 @@ META_MODEL_MAP = {
     'producer': ProducerMetadata,
     'staff': StaffMetadata,
     'character': CharacterMetadata,
-    'trait': TraitMetadata
+    'trait': TraitMetadata,
+    'release': ReleaseMetadata
 }

@@ -1,4 +1,4 @@
-import requests
+import httpx
 from typing import Dict, List, Any, Optional
 from enum import Enum
 
@@ -22,10 +22,10 @@ class VNDBEndpoint(Enum):
 
 class VNDBAPIWrapper:
     def __init__(self, api_token: Optional[str] = None):
-        self.session = requests.Session()
-        self.session.headers.update({"Content-Type": "application/json"})
+        self.client = httpx.Client()
+        self.client.headers.update({"Content-Type": "application/json"})
         if api_token:
-            self.session.headers.update({"Authorization": f"Token {api_token}"})
+            self.client.headers.update({"Authorization": f"Token {api_token}"})
 
     def _build_filters(self, filters: Dict[str, Any], filter_set: Dict[str, Any]) -> List[Any]:
         """
@@ -112,7 +112,7 @@ class VNDBAPIWrapper:
         if user:
             payload["user"] = user
         
-        response = self.session.post(url, json=payload)
+        response = self.client.post(url, json=payload)
         response.raise_for_status()
         return response.json()
 
@@ -145,33 +145,33 @@ class VNDBAPIWrapper:
         if fields:
             params['fields'] = ','.join(fields)
         
-        response = self.session.get(url, params=params)
+        response = self.client.get(url, params=params)
         response.raise_for_status()
         return response.json()
 
     def update_user_list(self, vn_id: str, data: Dict[str, Any]) -> None:
         url = f"{VNDB_API_URL}/ulist/{vn_id}"
-        response = self.session.patch(url, json=data)
+        response = self.client.patch(url, json=data)
         response.raise_for_status()
 
     def update_release_list(self, release_id: str, status: int) -> None:
         url = f"{VNDB_API_URL}/rlist/{release_id}"
-        response = self.session.patch(url, json={"status": status})
+        response = self.client.patch(url, json={"status": status})
         response.raise_for_status()
 
     def remove_from_user_list(self, vn_id: str) -> None:
         url = f"{VNDB_API_URL}/ulist/{vn_id}"
-        response = self.session.delete(url)
+        response = self.client.delete(url)
         response.raise_for_status()
 
     def remove_from_release_list(self, release_id: str) -> None:
         url = f"{VNDB_API_URL}/rlist/{release_id}"
-        response = self.session.delete(url)
+        response = self.client.delete(url)
         response.raise_for_status()
 
     def get_auth_info(self) -> Dict[str, Any]:
         url = f"{VNDB_API_URL}/authinfo"
-        response = self.session.get(url)
+        response = self.client.get(url)
         response.raise_for_status()
         return response.json()
 
@@ -262,15 +262,16 @@ def search_resources_by_release_id(release_id: str, related_resource_type: str, 
         "results": 100
     }
 
-    response = requests.post(url, json=payload)
-    response.raise_for_status()
-    results = response.json()['results'][0]
-    results = results.get(
-        {
-            'vn': 'vns',
-            'producer': 'producers'
-        }.get(related_resource_type)
-    )
+    with httpx.Client() as client:
+        response = client.post(url, json=payload)
+        response.raise_for_status()
+        results = response.json()['results'][0]
+        results = results.get(
+            {
+                'vn': 'vns',
+                'producer': 'producers'
+            }.get(related_resource_type)
+        )
 
     return {'results': results}
 
@@ -289,14 +290,15 @@ def search_resources_by_charid(charid: str, related_resource_type: str, response
         "results": 100
     }
 
-    response = requests.post(url, json=payload)
-    response.raise_for_status()
-    results = response.json()['results'][0]
-    results = results.get(
-        {
-            'trait': 'traits',
-        }.get(related_resource_type)
-    )
+    with httpx.Client() as client: 
+        response = client.post(url, json=payload)
+        response.raise_for_status()
+        results = response.json()['results'][0]
+        results = results.get(
+            {
+                'trait': 'traits',
+            }.get(related_resource_type)
+        )
 
     return {'results': results}
 
@@ -317,17 +319,18 @@ def search_resources_by_vnid(vnid: str, related_resource_type: str, response_siz
         "results": 100
     }
 
-    response = requests.post(url, json=payload)
-    response.raise_for_status()
-    results = response.json()['results'][0]
-    results = results.get(
-        {
-            'vn': 'relations',
-            'tag': 'tags',
-            'producer': 'developers',
-            'staff': 'staff'
-        }.get(related_resource_type)
-    )
+    with httpx.Client() as client:
+        response = client.post(url, json=payload)
+        response.raise_for_status()
+        results = response.json()['results'][0]
+        results = results.get(
+            {
+                'vn': 'relations',
+                'tag': 'tags',
+                'producer': 'developers',
+                'staff': 'staff'
+            }.get(related_resource_type)
+        )
 
     return {'results': results}
 
@@ -352,9 +355,10 @@ def search_releases_by_resource_id(resource_type: str, resource_id: str, respons
         "count": count 
     }
 
-    response = requests.post(url, json=payload)
-    response.raise_for_status()
-    results = response.json()
+    with httpx.Client() as client:
+        response = client.post(url, json=payload)
+        response.raise_for_status()
+        results = response.json()
 
     return results
 
@@ -380,9 +384,10 @@ def search_characters_by_resource_id(resource_type: str, resource_id: str, respo
         "count": count 
     }
 
-    response = requests.post(url, json=payload)
-    response.raise_for_status()
-    results = response.json()
+    with httpx.Client() as client:
+        response = client.post(url, json=payload)
+        response.raise_for_status()
+        results = response.json()
 
     return results
 
@@ -411,9 +416,10 @@ def search_vns_by_resource_id(resource_type: str, resource_id: str, response_siz
         "count": count 
     }
 
-    response = requests.post(url, json=payload)
-    response.raise_for_status()
-    results = response.json()
+    with httpx.Client() as client:
+        response = client.post(url, json=payload)
+        response.raise_for_status()
+        results = response.json()
 
     if response_size == 'small':
         return results
@@ -451,9 +457,9 @@ def search_resources_by_charid_paginated(charid: str, related_resource_type: str
     return paginated_results(search_resources_by_charid_cache(charid, related_resource_type, response_size), 
                              sort, reverse, limit, page, count)
 
-def search_releases_by_resource_id_paginated(resource_type: str, resource_id: str, response_size: str = "small",
+def search_resources_by_release_id_paginated(release_id: str, related_resource_type: str, response_size: str = "small",
                                              sort: str = 'id', reverse: bool = False, limit: int = 10, page: int = 1, count: bool = True) -> Dict[str, Any]:
-    return paginated_results(search_resources_by_release_id_cache(resource_type, resource_id, response_size),
+    return paginated_results(search_resources_by_release_id_cache(release_id, related_resource_type, response_size),
                              sort, reverse, limit, page, count)
 
 

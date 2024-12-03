@@ -1,12 +1,24 @@
 import os
-from flask import Blueprint, jsonify, send_file, abort 
+from flask import Blueprint, jsonify, send_file, abort, request
 from imgserve.database import exists, create
 from imgserve.tasks import (
-    create_image_task, update_image_task, delete_image_task
+    create_image_task, update_image_task, delete_image_task, download_images_task
 )
 from imgserve.utils import get_image_path
+from .common import execute_task
 
 image_bp = Blueprint('images', __name__, url_prefix='/')
+
+def get_sync_param():
+    return request.args.get('sync', 'true').lower() == 'true'
+
+@image_bp.route('', methods=['POST'])
+def download_images():
+    urls = request.json.get('urls', [])
+    if not urls:
+        abort(400)
+    sync = get_sync_param()
+    return execute_task(download_images_task, sync, urls)
 
 @image_bp.route('/<string:type>/<int:id>', methods=['GET'])
 def get_image(type, id):
@@ -19,15 +31,15 @@ def get_image(type, id):
 
 @image_bp.route('/<string:type>/<int:id>', methods=['POST'])
 def create_image(type, id):
-    task = create_image_task.delay(type, id)
-    return jsonify({"task_id": task.id}), 202
+    sync = get_sync_param()
+    return execute_task(create_image_task, sync, type, id)
 
 @image_bp.route('/<string:type>/<int:id>', methods=['PUT'])
 def update_image(type, id):
-    task = update_image_task.delay(type, id)
-    return jsonify({"task_id": task.id}), 202
+    sync = get_sync_param()
+    return execute_task(update_image_task, sync, type, id)
 
 @image_bp.route('/<string:type>/<int:id>', methods=['DELETE'])
 def delete_image(type, id):
-    task = delete_image_task.delay(type, id)
-    return jsonify({"task_id": task.id}), 202
+    sync = get_sync_param()
+    return execute_task(delete_image_task, sync, type, id)

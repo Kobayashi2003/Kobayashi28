@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify 
 
-api_bp = Blueprint('api_v4', __name__, url_prefix='/api/v4')
+# api_bp = Blueprint('api_v5', __name__, url_prefix='/api/v5')
+api_bp = Blueprint('api_v5', __name__, url_prefix='/')
 
 @api_bp.errorhandler(400)
 def bad_request(e):
@@ -20,7 +21,7 @@ def hello_world():
 
 from .resources import (
     vn_bp, staff_bp, tag_bp, trait_bp,
-    character_bp, producer_bp
+    character_bp, producer_bp, release_bp,
 )
 api_bp.register_blueprint(vn_bp)
 api_bp.register_blueprint(character_bp)
@@ -28,6 +29,7 @@ api_bp.register_blueprint(producer_bp)
 api_bp.register_blueprint(staff_bp)
 api_bp.register_blueprint(tag_bp)
 api_bp.register_blueprint(trait_bp)
+api_bp.register_blueprint(release_bp)
 
 from .tasks import task_bp
 api_bp.register_blueprint(task_bp)

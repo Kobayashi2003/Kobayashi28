@@ -1,6 +1,6 @@
 from .base import (
     exists,
-    count,
+    count_type,
     create_save as create,
     update_save as update,
     delete_save as delete,

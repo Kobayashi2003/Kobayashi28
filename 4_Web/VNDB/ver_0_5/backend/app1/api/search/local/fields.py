@@ -12,7 +12,7 @@ class LocalFields:
     RELEASE = [column.key for column in Release.__table__.columns]
 
     SMALL_VN = ['id', 'title', 'released', 'image']
-    SMALL_CHARACTER = ['id', 'name']
+    SMALL_CHARACTER = ['id', 'name', 'image']
     SMALL_TAG = ['id', 'name']
     SMALL_PRODUCER = ['id', 'name']
     SMALL_STAFF = ['id', 'name']
@@ -28,7 +28,7 @@ def get_local_fields(search_type: str, response_size: str = 'small') -> List[str
     Get the appropriate fields for a local database search based on the search type and response size.
 
     Args:
-        search_type (str): The type of entity to search for ('vn', 'character', 'tag', 'producer', 'staff', or 'trait').
+        search_type (str): The type of entity to search for ('vn', 'character', 'tag', 'producer', 'staff', 'trait' or 'release').
         response_size (str): The desired size of the response ('small' or 'large'). Defaults to 'small'.
 
     Returns:

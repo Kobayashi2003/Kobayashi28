@@ -200,10 +200,10 @@ class VNDBFields:
         class TRAITS(FieldGroup):
             _prefix = "traits."
             ID = "id"
-            GROUP_ID = "group_id"
             SPOILER = "spoiler"
             LIE = "lie"
 
+            GROUP_ID = "group_id"
             NAME = "name"
             GROUP_NAME = "group_name"
 
@@ -238,7 +238,6 @@ class VNDBFields:
         LANG = "lang"
         GENDER = "gender"
         DESCRIPTION = "description"
-        EXTLINKS = "extlinks"
 
         class ALIASES(FieldGroup):
             _prefix = "aliases."
@@ -246,6 +245,13 @@ class VNDBFields:
             NAME = "name"
             LATIN = "latin"
             ISMAIN = "ismain"
+
+        class EXTLINKS(FieldGroup):
+            _prefix = "extlinks."
+            URL = "url"
+            LABEL = "label"
+            NAME = "name"
+            ID = "id"
 
     class Trait(FieldGroup):
         _prefix = ""
@@ -263,7 +269,7 @@ class VNDBFields:
         _prefix = ""
         ID = "id"
         TITLE = "title"
-        ALTITLE = "altitle"
+        ALTTITLE = "alttitle"
         PLATFORMS = "platforms"
         RELEASED = "released"
         MINAGE = "minage"
@@ -306,12 +312,18 @@ class VNDBFields:
             PUBLISHER = "publisher"
 
         class IMAGES(FieldGroup):
-            _prefix = "images"
+            _prefix = "images."
             ID = "id"
             TYPE = "type"
             VN = "vn"
             LANGUAGES = "languages"
             PHOTO = "photo"
+            URL = "url"
+            DIMS = "dims"
+            SEXUAL = "sexual"
+            VIOLENCE = "violence"
+            THUMBNAIL = "thumbnail"
+            THUMBNAIL_DIMS = "thumbnail_dims"
 
         class EXTLINKS(FieldGroup):
             _prefix = "extlinks."
