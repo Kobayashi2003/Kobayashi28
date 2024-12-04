@@ -230,8 +230,7 @@ class VNProcessor:
                     elif stage == 'updateReleases':
                         result = await self.update_releases(vnid)
                     elif stage == 'downloadImages':
-                        # result = await self.download_images(vnid)
-                        result = True
+                        result = await self.download_images(vnid)
                     
                     if result:
                         logger.info(f"Successfully completed {stage} for {vnid}")
@@ -250,7 +249,7 @@ class VNProcessor:
                 if attempt == MAX_RETRIES - 1 and stage == 'updateVN':
                     return False
                 
-                await asyncio.sleep(0.5)
+                await asyncio.sleep(1)
 
         return True
 
@@ -281,7 +280,7 @@ class VNProcessor:
         logger.info("VN processing completed")
 
 async def main():
-    start_vn = 2271
+    start_vn = 1 
     end_vn = 30000
     logger.info(f"Initializing VN processor for VNs {start_vn} to {end_vn}")
     processor = VNProcessor(start_vn, end_vn)

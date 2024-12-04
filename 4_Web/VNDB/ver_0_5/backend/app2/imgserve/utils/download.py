@@ -3,25 +3,43 @@ from typing import Optional, List, Dict
 import httpx
 import re
 import os
+import time
 from io import BytesIO
+from functools import wraps
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-def download_image(type: str, id: int) -> Optional[BytesIO]:
+def retry_on_exception(max_retries=3, delay=1):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            retries = 0
+            while retries < max_retries:
+                try:
+                    return func(*args, **kwargs)
+                except (httpx.RequestError, httpx.HTTPStatusError) as e:
+                    retries += 1
+                    if retries == max_retries:
+                        print(f"Max retries reached. Last error: {e}")
+                        return None
+                    print(f"Attempt {retries} failed. Retrying in {delay} seconds...")
+                    time.sleep(delay)
+            return None
+        return wrapper
+    return decorator
 
+@retry_on_exception(max_retries=3, delay=2)
+def download_image(type: str, id: int) -> Optional[BytesIO]:
     if id < 1:
         raise ValueError("Invalid ID")
 
     dir = str(id).zfill(2)[-2:]
     url = f"https://t.vndb.org/{type}/{dir}/{id}.jpg"
 
-    try:
-        response = httpx.get(url, timeout=10.0, follow_redirects=True)
-        response.raise_for_status()
-        image_data = BytesIO(response.content)
-        image_data.seek(0)
-        return image_data
-    except (httpx.RequestError, httpx.HTTPStatusError):
-        return None
+    response = httpx.get(url, timeout=10.0, follow_redirects=True)
+    response.raise_for_status()
+    image_data = BytesIO(response.content)
+    image_data.seek(0)
+    return image_data
 
 def download_and_save_image(url: str, folder: str) -> bool:
     url_pattern = r"https://t\.vndb\.org/(?P<type>(?:sf|sf\.t|ch|cv|cv\.t))/(?P<dir>\d{2})/(?P<id>\d*?(?P=dir)|\d)\.jpg"
