@@ -1,0 +1,6 @@
+-r requirements.txt
+
+# 代码规范
+pre-commit==2.9.2
+ruamel.yaml.clib==0.2.7
+flake8==5.0.4
