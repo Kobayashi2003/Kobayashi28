@@ -14,9 +14,9 @@ REQUEST_WINDOW = 120  # seconds
 MAX_RETRIES = 3
 
 # Set up logging
-logger = logging.getLogger('vn_processor')
+logger = logging.getLogger('init')
 logger.setLevel(logging.DEBUG)
-file_handler = RotatingFileHandler('vn_processor.log', maxBytes=10*1024*1024, backupCount=5)
+file_handler = RotatingFileHandler('logs/init.log', maxBytes=10*1024*1024, backupCount=5)
 file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
 logger.addHandler(file_handler)
 
@@ -93,9 +93,15 @@ class VNProcessor:
         for key, value in results.items():
             if not value:
                 logger.error(f'Error in key {key}, value {value}')
-                return False
 
-        logger.info(f"ALL SUCCESS")
+        if all(results.values()):
+            logger.info(f"ALL SUCCESS")
+        elif any(results.values()):
+            logger.warning(f"Some ERRORs")
+        else:
+            logger.error(f"ALL FAILED")
+            return False
+
         return True
 
     async def update_vn(self, vnid: str) -> bool:
@@ -165,10 +171,8 @@ class VNProcessor:
             vn_image.get('url'),
             vn_image.get('thumbnail'),
             *[screenshot.get('url') for screenshot in vn_screenshots],
-            *[screenshot.get('thumbnail') for screenshot in vn_screenshots]
         ]
         urls = [url for url in urls if url]
-        urls = list(set(urls))
         if not urls:
             logger.warning(f'No valid URLs found for VN: {vnid}')
             return True
@@ -187,11 +191,17 @@ class VNProcessor:
             return False
 
         for key, value in results.items():
-            if not value:
+            if not key:
                 logger.error(f'Error in key {key}, value {value}')
-                return False
 
-        logger.info(f"ALL SUCCESS")
+        if all(results.values()):
+            logger.info(f"ALL SUCCESS")
+        elif any(results.values()):
+            logger.warning(f"Some SUCCESS")
+        else:
+            logger.error(f"ALL FAILED")
+            return False
+
         return True
 
     async def process_vn(self, vn_number: int):
@@ -201,10 +211,14 @@ class VNProcessor:
 
         for stage in STAGES:
             self.current_stage = stage
+            stage_not_found_count = 0
             for attempt in range(MAX_RETRIES):
                 try:
                     if stage == 'updateVN':
                         result = await self.update_vn(vnid)
+                        if not result and self.consecutive_not_found >= 3:
+                            logger.warning(f"Skipping VN {vnid} due to 3 consecutive NOT_FOUND responses in updateVN")
+                            return False
                     elif stage == 'updateProducers':
                         result = await self.update_producers(vnid)
                     elif stage == 'updateTags':
@@ -216,27 +230,28 @@ class VNProcessor:
                     elif stage == 'updateReleases':
                         result = await self.update_releases(vnid)
                     elif stage == 'downloadImages':
-                        result = await self.download_images(vnid)
+                        # result = await self.download_images(vnid)
+                        result = True
                     
                     if result:
                         logger.info(f"Successfully completed {stage} for {vnid}")
                         break
                     else:
                         logger.error(f"Error in {stage} for {vnid} (Attempt {attempt + 1}/{MAX_RETRIES})")
-
-                    if self.consecutive_not_found >= 3:
-                        logger.warning(f"Skipping VN {vnid} due to 3 consecutive NOT_FOUND responses")
-                        return False
+                        if stage != 'updateVN' and self.consecutive_not_found >= 3:
+                            stage_not_found_count += 1
+                            if stage_not_found_count >= 3:
+                                logger.warning(f"Skipping stage {stage} for VN {vnid} due to 3 consecutive NOT_FOUND responses")
+                                break
 
                 except Exception as e:
                     logger.exception(f"Error in {stage} for {vnid}: {str(e)} (Attempt {attempt + 1}/{MAX_RETRIES})")
                 
-                if attempt == MAX_RETRIES - 1:
+                if attempt == MAX_RETRIES - 1 and stage == 'updateVN':
                     return False
                 
-                # Wait before retrying
-                await asyncio.sleep(1)
-        
+                await asyncio.sleep(0.5)
+
         return True
 
     async def run(self):
@@ -266,8 +281,8 @@ class VNProcessor:
         logger.info("VN processing completed")
 
 async def main():
-    start_vn = 71
-    end_vn = 687
+    start_vn = 2271
+    end_vn = 30000
     logger.info(f"Initializing VN processor for VNs {start_vn} to {end_vn}")
     processor = VNProcessor(start_vn, end_vn)
     await processor.run()
