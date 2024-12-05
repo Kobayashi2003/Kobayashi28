@@ -234,13 +234,13 @@ def search(resource_type: str, params: Dict[str, Any], response_size: str = 'sma
 
         characters = unpaginated_search(
             search_function=search_characters_by_resource_id,
-            resource_type='vn', resource_id=vnid, response_size='small'
+            resource_type='vn', resource_id=vnid, response_size='small', limit=100
         )
         vn['characters'] = characters['results'] 
 
         releases = unpaginated_search(
             search_function=search_releases_by_resource_id,
-            resource_type='vn', resource_id=vnid, response_size='small'
+            resource_type='vn', resource_id=vnid, response_size='small', limit=100
         )
         vn['releases'] = releases['results']
 

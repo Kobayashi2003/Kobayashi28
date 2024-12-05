@@ -8,10 +8,8 @@ from colorama import init, Fore, Style
 # Initialize colorama
 init(autoreset=True)
 
-STAGES = ['updateVN', 'updateProducers', 'updateTags', 'updateStaff', 'updateCharacters', 'updateReleases', 'downloadImages']
 MAX_REQUESTS = 150
 REQUEST_WINDOW = 120  # seconds
-MAX_RETRIES = 3
 
 # Set up logging
 logger = logging.getLogger('init')
@@ -57,9 +55,10 @@ class VNProcessor:
         self.start_vn = start_vn
         self.end_vn = end_vn
         self.rate_limiter = RateLimiter(MAX_REQUESTS, REQUEST_WINDOW)
+        self.max_retries = 10
+
         self.session = None
         self.current_vn = start_vn
-        self.current_stage = STAGES[0]
         self.consecutive_not_found = 0
 
     async def _make_request(self, method: str, url: str, **kwargs):
@@ -68,220 +67,137 @@ class VNProcessor:
         async with self.session.request(method, url, **kwargs) as response:
             return await response.json()
 
-    async def _process_update(self, vnid: str, update_type: str) -> bool:
-        logger.info(f"Starting to update {update_type} for VN: {vnid}")
-
-        response = await self._make_request('PUT', f"http://localhost:5000/vns/{vnid}/{update_type}")
+    async def download_vn_images(self, vnid, urls) -> bool:
+        response = await self._make_request('GET', f'http://localhost:5000/vns/{vnid}')
         status = response.get('status')
-        results = response.get('results')
-        if not status:
-            logger.error('Invalid response from server')
-            return False
-        if status == 'ERROR':
-            logger.error(results)
-            return False
-        if status == 'NOT_FOUND':
-            logger.warning(f'{update_type.capitalize()} for VN {vnid} NOT FOUND')
-            self.consecutive_not_found += 1
-            return False
+        vn = response.get('results')
+
         if status != 'SUCCESS':
-            logger.error(f'Unknown status: {status}')
+            logger.error(f'Failed to get vn {vnid} from API')
             return False
 
-        self.consecutive_not_found = 0  # Reset counter on success
-
-        for key, value in results.items():
-            if not value:
-                logger.error(f'Error in key {key}, value {value}')
-
-        if all(results.values()):
-            logger.info(f"ALL SUCCESS")
-        elif any(results.values()):
-            logger.warning(f"Some ERRORs")
-        else:
-            logger.error(f"ALL FAILED")
-            return False
-
-        return True
-
-    async def update_vn(self, vnid: str) -> bool:
-        logger.info(f"Starting to update VN: {vnid}")
-
-        response = await self._make_request('PUT', f"http://localhost:5000/vns/{vnid}")
-        status = response.get('status')
-        results = response.get('results')
-        if not status:
-            logger.error('Invalid response from server')
-            return False
-        if status == 'ERROR':
-            logger.error(results)
-            return False
-        if status == 'NOT_FOUND':
-            logger.warning(f'VN {vnid} NOT FOUND')
-            self.consecutive_not_found += 1
-            return False
-        if status != 'SUCCESS':
-            logger.error(f'Unknown status: {status}')
-            return False
-
-        self.consecutive_not_found = 0  # Reset counter on success
-        logger.info(f"Successfully updated VN: {vnid}")
-        return True
-
-    async def update_producers(self, vnid: str) -> bool:
-        return await self._process_update(vnid, 'producers')
-
-    async def update_tags(self, vnid: str) -> bool:
-        return await self._process_update(vnid, 'tags')
-
-    async def update_staff(self, vnid: str) -> bool:
-        return await self._process_update(vnid, 'staff')
-
-    async def update_characters(self, vnid: str) -> bool:
-        return await self._process_update(vnid, 'characters')
-
-    async def update_releases(self, vnid: str) -> bool:
-        return await self._process_update(vnid, 'releases')
-
-    async def download_images(self, vnid: str) -> bool:
-        logger.info(f"Starting to download images for VN: {vnid}")
-
-        response = await self._make_request('GET', f"http://localhost:5000/vns/{vnid}")
-        status = response.get('status')
-        results = response.get('results')
-        if not status:
-            logger.error('Invalid response from server')
-            return False
-        if status == 'ERROR':
-            logger.error(results)
-            return False
-        if status == 'NOT_FOUND':
-            logger.error(f'VN {vnid} NOT FOUND')
-            self.consecutive_not_found += 1
-            return False
-        if status != 'SUCCESS':
-            logger.error(f'Unknown status: {status}')
-            return False
-
-        self.consecutive_not_found = 0  # Reset counter on success
-
-        vn_image = results.get('image', {})
-        vn_screenshots = results.get('screenshots', [])
+        image = vn.get('image', {})
+        screenshots = vn.get('screenshots', [])
         urls = [
-            vn_image.get('url'),
-            vn_image.get('thumbnail'),
-            *[screenshot.get('url') for screenshot in vn_screenshots],
+            image.get('url'),
+            image.get('thumbnail'),
+            *[screenshot.get('url') for screenshot in screenshots]
+            *[screenshot.get('thumbnail') for screenshot in screenshots]
         ]
         urls = [url for url in urls if url]
+        urls = list(set(urls))
         if not urls:
-            logger.warning(f'No valid URLs found for VN: {vnid}')
+            logger.warning(f'No image URLs found for VN {vnid}')
             return True
 
-        response = await self._make_request('POST', 'http://localhost:5001', json={'urls': urls})
-        status = response.get('status')
-        results = response.get('results')
-        if not status:
-            logger.error('Invalid response from server')
-            return False
-        if status == 'ERROR':
-            logger.error(results)
-            return False
-        if status != 'SUCCESS':
-            logger.error(f'Unknown status: {status}')
+        retry = 1
+        status = None
+        while retry < self.max_retries and status != 'SUCCESS':
+            response = await self._make_request('POST', 'http://localhost:5001', json={'urls': urls})
+            status = response['status']
+            if status == 'SUCCESS':
+                results = response['results']
+                status = 'SUCCESS' if all(results.values()) else 'ERROR'
+        if status == 'SUCCESS':
+            logger.info(f'Successfully downloaded images for VN {vnid}')
+            return True
+        elif status == 'ERROR':
+            logger.error(f'Failed to download images for VN {vnid}')
+            print(Fore.RED + f"Error occurred while downloading images for VN {vnid}. Press Enter to retry this step, or type 'skip' to move to the next step." + Style.RESET_ALL)
+            user_input = input().strip().lower()
+            if user_input == 'skip':
+                return  True
             return False
 
-        for key, value in results.items():
-            if not key:
-                logger.error(f'Error in key {key}, value {value}')
+    async def update_vn(self, vnid: str) -> bool:
+        retry = 1
+        status = None
+        while retry < self.max_retries and status not in ['SUCCESS', 'NOT_FOUND']:
+            logger.debug(f"Processing VN {vnid}, attempt {retry}")
+            response = await self._make_request('PUT', f"http://localhost:5000/vns/{vnid}")
+            status = response['status']
+            retry += 1
 
-        if all(results.values()):
-            logger.info(f"ALL SUCCESS")
-        elif any(results.values()):
-            logger.warning(f"Some SUCCESS")
+        if status == 'SUCCESS':
+            logger.info(f'Successfully updated VN: {vnid}')
+            self.current_vn += 1
+            return True
+        elif status == 'NOT_FOUND':
+            logger.warning(f'VN {vnid} NOT FOUND')
+            self.current_vn += 1
+            return False
+        elif status == 'ERROR':
+            logger.error(f'Error occurred while processing VN {vnid}. Skipping to next VN.')
+            print(Fore.RED + f"Error occurred while processing VN {self.current_vn}. Press Enter to retry this VN, or type 'skip' to move to the next VN." + Style.RESET_ALL)
+            user_input = input().strip().lower()
+            if user_input == 'skip':
+                self.current_vn += 1
+            return False
         else:
-            logger.error(f"ALL FAILED")
+            logger.error(f'Unknown status: {status}')
+            print(Fore.RED + f"Error occurred while processing VN {self.current_vn}. Press Enter to retry this VN, or type 'skip' to move to the next VN." + Style.RESET_ALL)
+            user_input = input().strip().lower()
+            if user_input == 'skip':
+                self.current_vn += 1
             return False
 
-        return True
+    async def update_vn_related_resources(self, vnid: str, resource_type: str) -> bool:
+        retry = 1
+        status = None
+        while retry < self.max_retries and status not in ['SUCCESS', 'NOT_FOUND']:
+            logger.debug(f"Processing {resource_type} for VN {vnid}, attempt {retry}")
+            response = await self._make_request('PUT', f"http://localhost:5000/vns/{vnid}/{resource_type}")
+            status = response['status']
+            if status == 'SUCCESS':
+                results = response['results']
+                status = 'SUCCESS' if all(results.values()) else 'ERROR'
 
-    async def process_vn(self, vn_number: int):
-        vnid = f"v{vn_number}"
-        logger.info(f"Starting to process VN: {vnid}")
-        self.consecutive_not_found = 0  # Reset counter at the start of each VN
-
-        for stage in STAGES:
-            self.current_stage = stage
-            stage_not_found_count = 0
-            for attempt in range(MAX_RETRIES):
-                try:
-                    if stage == 'updateVN':
-                        result = await self.update_vn(vnid)
-                        if not result and self.consecutive_not_found >= 3:
-                            logger.warning(f"Skipping VN {vnid} due to 3 consecutive NOT_FOUND responses in updateVN")
-                            return False
-                    elif stage == 'updateProducers':
-                        result = await self.update_producers(vnid)
-                    elif stage == 'updateTags':
-                        result = await self.update_tags(vnid)
-                    elif stage == 'updateStaff':
-                        result = await self.update_staff(vnid)
-                    elif stage == 'updateCharacters':
-                        result = await self.update_characters(vnid)
-                    elif stage == 'updateReleases':
-                        result = await self.update_releases(vnid)
-                    elif stage == 'downloadImages':
-                        result = await self.download_images(vnid)
-                    
-                    if result:
-                        logger.info(f"Successfully completed {stage} for {vnid}")
-                        break
-                    else:
-                        logger.error(f"Error in {stage} for {vnid} (Attempt {attempt + 1}/{MAX_RETRIES})")
-                        if stage != 'updateVN' and self.consecutive_not_found >= 3:
-                            stage_not_found_count += 1
-                            if stage_not_found_count >= 3:
-                                logger.warning(f"Skipping stage {stage} for VN {vnid} due to 3 consecutive NOT_FOUND responses")
-                                break
-
-                except Exception as e:
-                    logger.exception(f"Error in {stage} for {vnid}: {str(e)} (Attempt {attempt + 1}/{MAX_RETRIES})")
-                
-                if attempt == MAX_RETRIES - 1 and stage == 'updateVN':
-                    return False
-                
-                await asyncio.sleep(1)
-
-        return True
+        if status == 'SUCCESS':
+            logger.info(f'Successfully updated {resource_type} for VN: {vnid}')
+            return True
+        elif status == 'NOT_FOUND':
+            logger.warning(f'{resource_type.capitalize()} for VN {vnid} NOT FOUND')
+            return True
+        elif status == 'ERROR':
+            logger.error(f'Error occurred while processing {resource_type} for VN {vnid}. Skipping to next VN.')
+            print(Fore.RED + f"Error occurred while processing {resource_type} for VN {vnid}. Press Enter to retry this step, or type 'skip' to move to the next step." + Style.RESET_ALL)
+            user_input = input().strip().lower()
+            if user_input == 'skip':
+                return  True
+            return False
+        else:
+            logger.error(f'Unknown status: {status}')
+            print(Fore.RED + f"Error occurred while processing {resource_type} for VN {vnid}. Press Enter to retry this step, or type 'skip' to move to the next step." + Style.RESET_ALL)
+            user_input = input().strip().lower()
+            if user_input == 'skip':
+                return  True
+            return False
 
     async def run(self):
         logger.info(f"Starting VN processing from {self.start_vn} to {self.end_vn}")
         async with aiohttp.ClientSession() as self.session:
             self.current_vn = self.start_vn
             while self.current_vn <= self.end_vn:
-                success = await self.process_vn(self.current_vn)
-                if not success:
-                    if self.consecutive_not_found >= 3:
-                        logger.warning(f"Skipping VN {self.current_vn} due to 3 consecutive NOT_FOUND responses")
-                        self.current_vn += 1
-                        self.current_stage = STAGES[0]
-                        self.consecutive_not_found = 0
-                        continue
 
-                    logger.error(f"Error occurred while processing VN {self.current_vn}. Pausing execution.")
-                    print(Fore.RED + f"Error occurred while processing VN {self.current_vn}. Press Enter to retry this VN, or type 'skip' to move to the next VN." + Style.RESET_ALL)
-                    user_input = input().strip().lower()
-                    if user_input == 'skip':
-                        self.current_vn += 1
-                        self.current_stage = STAGES[0]
-                    # If not 'skip', we'll retry the current VN
-                else:
-                    self.current_vn += 1
-                    self.current_stage = STAGES[0]
+                vnid = f'v{self.current_vn}'
+
+                if not await self.update_vn(vnid):
+                    continue
+
+                for update_type in ['producers', 'tags', 'staff', 'characters', 'releases']:
+                    while not await self.update_vn_related_resources(vnid, update_type):
+                        ... # NO ACTION
+
+                # while not await self.download_vn_images(vnid):
+                #     ... # NO ACTION
+
+                # await asyncio.sleep(1)
+
         logger.info("VN processing completed")
 
 async def main():
-    start_vn = 1 
-    end_vn = 30000
+    start_vn = 5702
+    end_vn = 60000
     logger.info(f"Initializing VN processor for VNs {start_vn} to {end_vn}")
     processor = VNProcessor(start_vn, end_vn)
     await processor.run()
@@ -291,4 +207,3 @@ if __name__ == "__main__":
         asyncio.run(main())
     except Exception as e:
         logger.exception("An unexpected error occurred in the main program")
-
