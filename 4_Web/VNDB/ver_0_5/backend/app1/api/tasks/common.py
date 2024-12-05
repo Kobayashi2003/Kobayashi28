@@ -46,11 +46,15 @@ def task_with_cache_clear(func):
         return func(*args, **kwargs)
     return wrapper
 
+def dont_cache(response):
+    # Don't cache if the response is not a dict or if status is 'ERROR'
+    return not isinstance(response, dict) or response.get('status') == 'ERROR'
+
 def task_with_memoize(timeout=600):
     def decorator(func):
         @celery.task
         @wraps(func)
-        @cache.memoize(timeout=timeout)
+        @cache.memoize(timeout=timeout, unless=dont_cache)
         @error_handler
         def wrapper(*args, **kwargs):
             return func(*args, **kwargs)

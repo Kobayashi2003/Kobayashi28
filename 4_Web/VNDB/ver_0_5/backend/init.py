@@ -2,6 +2,7 @@ import asyncio
 import aiohttp
 import time
 import logging
+import argparse
 from logging.handlers import RotatingFileHandler
 from colorama import init, Fore, Style
 
@@ -51,11 +52,14 @@ class RateLimiter:
         self.requests.append(time.time())
 
 class VNProcessor:
-    def __init__(self, start_vn: int, end_vn: int):
+    def __init__(self, start_vn: int, end_vn: int, max_retries: int = 10, error_action: str = 'stop', retry_delay: int = 0):
         self.start_vn = start_vn
         self.end_vn = end_vn
+        self.max_retries = max_retries
+        self.error_action = error_action
+        self.retry_delay = retry_delay
+
         self.rate_limiter = RateLimiter(MAX_REQUESTS, REQUEST_WINDOW)
-        self.max_retries = 10
 
         self.session = None
         self.current_vn = start_vn
@@ -93,21 +97,31 @@ class VNProcessor:
         retry = 1
         status = None
         while retry < self.max_retries and status != 'SUCCESS':
+            logger.debug(f"Downloading images for VN {vnid}, attempt {retry}")
             response = await self._make_request('POST', 'http://localhost:5001', json={'urls': urls})
             status = response['status']
             if status == 'SUCCESS':
                 results = response['results']
                 status = 'SUCCESS' if all(results.values()) else 'ERROR'
+
         if status == 'SUCCESS':
             logger.info(f'Successfully downloaded images for VN {vnid}')
             return True
-        elif status == 'ERROR':
+        else: # ERROR
             logger.error(f'Failed to download images for VN {vnid}')
-            print(Fore.RED + f"Error occurred while downloading images for VN {vnid}. Press Enter to retry this step, or type 'skip' to move to the next step." + Style.RESET_ALL)
-            user_input = input().strip().lower()
-            if user_input == 'skip':
-                return  True
-            return False
+            if self.error_action == 'stop':
+                print(Fore.RED + f"Error occurred while downloading images for VN {vnid}. Press Enter to retry this step, or type 'skip' to move to the next step." + Style.RESET_ALL)
+                user_input = input().strip().lower()
+                if user_input == 'skip':
+                    return  True
+                return False
+            elif self.error_action == 'skip':
+                print(Fore.RED + f"Error occurred while downloading images for VN {vnid}. Skipping to next VN." + Style.RESET_ALL)
+                return True
+            else: # retry
+                print(Fore.RED + f"Error occurred while downloading images for VN {vnid}. Retrying in {self.retry_delay} seconds." + Style.RESET_ALL)
+                await asyncio.sleep(self.retry_delay)
+                return False
 
     async def update_vn(self, vnid: str) -> bool:
         retry = 1
@@ -126,19 +140,19 @@ class VNProcessor:
             logger.warning(f'VN {vnid} NOT FOUND')
             self.current_vn += 1
             return False
-        elif status == 'ERROR':
-            logger.error(f'Error occurred while processing VN {vnid}. Skipping to next VN.')
-            print(Fore.RED + f"Error occurred while processing VN {self.current_vn}. Press Enter to retry this VN, or type 'skip' to move to the next VN." + Style.RESET_ALL)
-            user_input = input().strip().lower()
-            if user_input == 'skip':
-                self.current_vn += 1
-            return False
         else:
-            logger.error(f'Unknown status: {status}')
-            print(Fore.RED + f"Error occurred while processing VN {self.current_vn}. Press Enter to retry this VN, or type 'skip' to move to the next VN." + Style.RESET_ALL)
-            user_input = input().strip().lower()
-            if user_input == 'skip':
+            logger.error(f'Error occurred while processing VN {vnid}.')
+            if self.error_action == 'stop':
+                print(Fore.RED + f"Error occurred while processing VN {self.current_vn}. Press Enter to retry this VN, or type 'skip' to move to the next VN." + Style.RESET_ALL)
+                user_input = input().strip().lower()
+                if user_input == 'skip':
+                    self.current_vn += 1
+            elif self.error_action == 'skip':
+                print(Fore.RED + f"Error occurred while processing VN {self.current_vn}. Skipping to next VN." + Style.RESET_ALL)
                 self.current_vn += 1
+            else: # retry
+                print(Fore.RED + f"Error occurred while processing VN {self.current_vn}. Retrying in {self.retry_delay} seconds." + Style.RESET_ALL)
+                await asyncio.sleep(self.retry_delay)
             return False
 
     async def update_vn_related_resources(self, vnid: str, resource_type: str) -> bool:
@@ -158,20 +172,21 @@ class VNProcessor:
         elif status == 'NOT_FOUND':
             logger.warning(f'{resource_type.capitalize()} for VN {vnid} NOT FOUND')
             return True
-        elif status == 'ERROR':
+        else: # ERROR
             logger.error(f'Error occurred while processing {resource_type} for VN {vnid}. Skipping to next VN.')
-            print(Fore.RED + f"Error occurred while processing {resource_type} for VN {vnid}. Press Enter to retry this step, or type 'skip' to move to the next step." + Style.RESET_ALL)
-            user_input = input().strip().lower()
-            if user_input == 'skip':
-                return  True
-            return False
-        else:
-            logger.error(f'Unknown status: {status}')
-            print(Fore.RED + f"Error occurred while processing {resource_type} for VN {vnid}. Press Enter to retry this step, or type 'skip' to move to the next step." + Style.RESET_ALL)
-            user_input = input().strip().lower()
-            if user_input == 'skip':
-                return  True
-            return False
+            if self.error_action == 'stop':
+                print(Fore.RED + f"Error occurred while processing {resource_type} for VN {vnid}. Press Enter to retry this step, or type 'skip' to move to the next step." + Style.RESET_ALL)
+                user_input = input().strip().lower()
+                if user_input == 'skip':
+                    return  True
+                return False
+            elif self.error_action == 'skip':
+                print(f'Error occurred while processing {resource_type} for VN {vnid}. Skipping to next VN.')
+                return True
+            else: # retry
+                print(Fore.RED + f"Error occurred while processing {resource_type} for VN {vnid}. Retrying in {self.retry_delay} seconds." + Style.RESET_ALL)
+                await asyncio.sleep(self.retry_delay)
+                return False
 
     async def run(self):
         logger.info(f"Starting VN processing from {self.start_vn} to {self.end_vn}")
@@ -196,10 +211,28 @@ class VNProcessor:
         logger.info("VN processing completed")
 
 async def main():
-    start_vn = 5702
-    end_vn = 60000
+    # Set up argument parser
+    parser = argparse.ArgumentParser(description="Process VNs within a specified range.")
+    parser.add_argument("-s", "--start_vn", type=int, default=1, help="Starting VN number (default: 1)")
+    parser.add_argument("-e", "--end_vn", type=int, default=60000, help="Ending VN number (default: 60000)")
+    parser.add_argument("-r", "--max_retries", type=int, default=10, help="Max Retries (default: 10)")
+    parser.add_argument("--error_action", choices=['stop', 'skip', 'retry'], default='retry', 
+                        help="Action to take on error: stop, skip, or retry (default: retry)")
+    parser.add_argument("--retry_delay", type=int, default=0, 
+                        help="Delay in seconds before retrying after an error (default: 0)")
+    
+    # Parse arguments
+    args = parser.parse_args()
+    
+    start_vn = args.start_vn
+    end_vn = args.end_vn
+    max_retries = args.max_retries
+    error_action = args.error_action
+    retry_delay = args.retry_delay
+
+    
     logger.info(f"Initializing VN processor for VNs {start_vn} to {end_vn}")
-    processor = VNProcessor(start_vn, end_vn)
+    processor = VNProcessor(start_vn, end_vn, max_retries, error_action, retry_delay)
     await processor.run()
 
 if __name__ == "__main__":
