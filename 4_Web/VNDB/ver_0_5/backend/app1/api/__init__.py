@@ -58,7 +58,7 @@ def create_app(config_class=Config):
     # ----------------------------------------
     from .routes import api_bp
     app.register_blueprint(api_bp)
-    app.add_url_rule('/', 'index', lambda: render_template('test.html'), methods=['GET'])
+    app.add_url_rule('/test', 'test', lambda: render_template('test.html'), methods=['GET'])
 
     # ----------------------------------------
     # CLI Command Registration

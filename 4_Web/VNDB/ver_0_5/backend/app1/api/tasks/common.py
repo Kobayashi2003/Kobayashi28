@@ -40,8 +40,8 @@ def clear_caches(func):
 def task_with_cache_clear(func):
     @celery.task
     @wraps(func)
-    @clear_caches
     @error_handler
+    @clear_caches
     def wrapper(*args, **kwargs):
         return func(*args, **kwargs)
     return wrapper
@@ -54,8 +54,8 @@ def task_with_memoize(timeout=600):
     def decorator(func):
         @celery.task
         @wraps(func)
-        @cache.memoize(timeout=timeout)
         @error_handler
+        @cache.memoize(timeout=timeout)
         def wrapper(*args, **kwargs):
             return func(*args, **kwargs)
         return wrapper
