@@ -55,9 +55,14 @@ def task_with_memoize(timeout=600):
         @celery.task
         @wraps(func)
         @error_handler
-        @cache.memoize(timeout=timeout)
         def wrapper(*args, **kwargs):
-            return func(*args, **kwargs)
+            cache_key = f"{func.__name__}:{args}:{kwargs}"
+            result = cache.get(cache_key)
+            if result is None:
+                result = func(*args, **kwargs)
+                if result['status'] == 'SUCCESS':
+                    cache.set(cache_key, result, timeout=timeout)
+            return result 
         return wrapper
     return decorator
 

@@ -6,7 +6,7 @@ from api.search import (
 )
 from api.database import (
     get, get_all, create, update,
-    delete, delete_all, exists, count_type
+    delete, delete_all, exists, count_all 
 )
 from .common import (
     task_with_memoize, task_with_cache_clear,
@@ -23,7 +23,7 @@ def get_resources_task(resource_type: str, page: int = None, limit: int = None, 
     results = get_all(resource_type, page, limit, sort, reverse)
     if not results:
         return NOT_FOUND
-    total = count_type(resource_type)
+    total = count_all(resource_type)
     more = (page * limit) < total if page and limit else False
 
     results = format_results(results)

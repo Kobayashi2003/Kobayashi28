@@ -38,7 +38,7 @@ class VN(db.Model):
     characters = Column(ARRAY(JSONB), nullable=True)
     releases = Column(ARRAY(JSONB), nullable=True)
 
-    vn_metadata = db.relationship("VNMetadata", back_populates="parent", uselist=False, cascade="all, delete-orphan")
+    meta = db.relationship("VNMetadata", back_populates="parent", uselist=False, cascade="all, delete-orphan")
 
 class Release(db.Model):
     __tablename__ ='release'
@@ -67,7 +67,7 @@ class Release(db.Model):
     catalog = Column(String(255), nullable=True)
     extlinks = Column(ARRAY(JSONB), nullable=True)
 
-    release_metadata = db.relationship("ReleaseMetadata", back_populates="parent", uselist=False, cascade="all, delete-orphan")
+    meta = db.relationship("ReleaseMetadata", back_populates="parent", uselist=False, cascade="all, delete-orphan")
 
 class Tag(db.Model):
     __tablename__ = 'tag'
@@ -82,7 +82,7 @@ class Tag(db.Model):
     applicable = Column(Boolean, nullable=True)
     vn_count = Column(Integer, nullable=True)
 
-    tag_metadata = db.relationship("TagMetadata", back_populates="parent", uselist=False, cascade="all, delete-orphan")
+    meta = db.relationship("TagMetadata", back_populates="parent", uselist=False, cascade="all, delete-orphan")
 
 class Producer(db.Model):
     __tablename__ = 'producer'
@@ -95,7 +95,7 @@ class Producer(db.Model):
     type = Column(String(255), nullable=True)
     description = Column(Text, nullable=True)
 
-    producer_metadata = db.relationship("ProducerMetadata", back_populates="parent", uselist=False, cascade="all, delete-orphan")
+    meta = db.relationship("ProducerMetadata", back_populates="parent", uselist=False, cascade="all, delete-orphan")
 
 class Staff(db.Model):
     __tablename__ = 'staff'
@@ -111,7 +111,7 @@ class Staff(db.Model):
     extlinks = Column(ARRAY(JSONB), nullable=True)
     aliases = Column(ARRAY(JSONB), nullable=True)
 
-    staff_metadata = db.relationship("StaffMetadata", back_populates="parent", uselist=False, cascade="all, delete-orphan")
+    meta = db.relationship("StaffMetadata", back_populates="parent", uselist=False, cascade="all, delete-orphan")
 
 class Character(db.Model):
     __tablename__ = 'character'
@@ -135,7 +135,7 @@ class Character(db.Model):
     vns = Column(ARRAY(JSONB), nullable=True)
     traits = Column(ARRAY(JSONB), nullable=True)
 
-    character_metadata = db.relationship("CharacterMetadata", back_populates="parent", uselist=False, cascade="all, delete-orphan")
+    meta = db.relationship("CharacterMetadata", back_populates="parent", uselist=False, cascade="all, delete-orphan")
 
 class Trait(db.Model):
     __tablename__ = 'trait'
@@ -150,7 +150,7 @@ class Trait(db.Model):
     group_name = Column(String(255), nullable=True)
     char_count = Column(Integer, nullable=True)
 
-    trait_metadata = db.relationship("TraitMetadata", back_populates="parent", uselist=False, cascade="all, delete-orphan")
+    meta = db.relationship("TraitMetadata", back_populates="parent", uselist=False, cascade="all, delete-orphan")
 
 # ----------------------------------------
 # Variables 

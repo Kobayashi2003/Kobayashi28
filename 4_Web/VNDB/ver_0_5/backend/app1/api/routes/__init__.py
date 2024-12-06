@@ -33,6 +33,3 @@ api_bp.register_blueprint(release_bp)
 
 from .tasks import task_bp
 api_bp.register_blueprint(task_bp)
-
-from .trash import trash_bp
-api_bp.register_blueprint(trash_bp)

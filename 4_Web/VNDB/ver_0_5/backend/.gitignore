@@ -1,3 +1,5 @@
 DATA/
 logs/
+
 *.log
+*.env

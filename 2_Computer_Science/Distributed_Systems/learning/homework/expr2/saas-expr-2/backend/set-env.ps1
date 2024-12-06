@@ -14,7 +14,7 @@ $env:BKPAAS_LOGIN_URL = "https://ce.bktencent.com/login/"
 
 # Set CORS allowed origin
 # Note: For production, change this to https://apps.ce.bktencent.com
-$env:CORS_ALLOWED_ORIGINS = "http://dev.ce.bktencent.com:5000"
+$env:CORS_ALLOWED_ORIGIN = "http://dev.ce.bktencent.com:5000"
 
 # Output the set environment variables (optional, for verification)
 Get-ChildItem Env: | Where-Object { $_.Name -like "BK*" -or $_.Name -like "CORS*" } | Format-Table -AutoSize

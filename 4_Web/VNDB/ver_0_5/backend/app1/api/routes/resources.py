@@ -1,6 +1,6 @@
-from flask import Blueprint, jsonify, request
+import re
 from abc import ABC, ABCMeta, abstractmethod
-
+from flask import Blueprint, jsonify, abort, request
 from api.tasks.resources import (
     get_resource_task, get_resources_task, 
     search_resource_task, search_resources_task,
@@ -11,6 +11,11 @@ from api.tasks.resources import (
 from api.tasks.related_resources import (
     get_related_resources_task, search_related_resources_task,
     update_related_resources_task, delete_related_resources_task
+)
+from api.tasks.trash import (
+    get_inactive_resource_task, get_inactive_resources_task,
+    recover_resource_task, recover_resources_task,
+    cleanup_resource_task, cleanup_resources_task
 )
 from .common import execute_task
 
@@ -27,34 +32,64 @@ class BaseResourceBlueprint(ABC, metaclass=SingletonABCMeta):
         self.resource_type = resource_type
         self.plural_form = plural_form or f'{resource_type}s'
         self.related_resources = related_resources or {}
-        self.bp = Blueprint(self.plural_form, __name__, url_prefix=f'/{self.plural_form}')
+        self.bp = Blueprint(self.plural_form, __name__)
+        self.resource_bp = Blueprint(f'resource_{self.plural_form}', __name__, url_prefix=f'/{self.plural_form}')
+        self.trash_bp = Blueprint(f'trash_{self.plural_form}', __name__, url_prefix=f'/trash/{self.plural_form}')
+
         self.register_routes()
+        self.bp.register_blueprint(self.resource_bp)
+        self.bp.register_blueprint(self.trash_bp)
 
     def register_routes(self):
-        self.bp.add_url_rule('', 'get_resources', self.get_resources, methods=['GET'])
-        self.bp.add_url_rule('/<string:id>', 'get_resource', self.get_resource, methods=['GET'])
-        self.bp.add_url_rule('', 'search_resources', self.search_resources, methods=['POST'])
-        self.bp.add_url_rule('/<string:id>', 'search_resource_by_id', self.search_resource_by_id, methods=['POST'])
-        self.bp.add_url_rule('', 'update_resources', self.update_resources, methods=['PUT'])
-        self.bp.add_url_rule('/<string:id>', 'update_resource', self.update_resource, methods=['PUT'])
-        self.bp.add_url_rule('', 'edit_resources', self.edit_resources, methods=['PATCH'])
-        self.bp.add_url_rule('/<string:id>', 'edit_resource', self.edit_resource, methods=['PATCH'])
-        self.bp.add_url_rule('', 'delete_resources', self.delete_resources, methods=['DELETE'])
-        self.bp.add_url_rule('/<string:id>', 'delete_resource', self.delete_resource, methods=['DELETE'])
+        self.resource_bp.add_url_rule('', 'get_resources', self.get_resources, methods=['GET'])
+        self.resource_bp.add_url_rule('/<string:id>', 'get_resource', self.get_resource, methods=['GET'])
+        self.resource_bp.add_url_rule('', 'search_resources', self.search_resources, methods=['POST'])
+        self.resource_bp.add_url_rule('/<string:id>', 'search_resource_by_id', self.search_resource_by_id, methods=['POST'])
+        self.resource_bp.add_url_rule('', 'update_resources', self.update_resources, methods=['PUT'])
+        self.resource_bp.add_url_rule('/<string:id>', 'update_resource', self.update_resource, methods=['PUT'])
+        self.resource_bp.add_url_rule('', 'edit_resources', self.edit_resources, methods=['PATCH'])
+        self.resource_bp.add_url_rule('/<string:id>', 'edit_resource', self.edit_resource, methods=['PATCH'])
+        self.resource_bp.add_url_rule('', 'delete_resources', self.delete_resources, methods=['DELETE'])
+        self.resource_bp.add_url_rule('/<string:id>', 'delete_resource', self.delete_resource, methods=['DELETE'])
+
+        self.trash_bp.add_url_rule('', 'get_inactive_resources', self.get_inactive_resources, methods=['GET'])
+        self.trash_bp.add_url_rule('/<string:id>', 'get_inactive_resource', self.get_inactive_resource, methods=['GET'])
+        self.trash_bp.add_url_rule('', 'cleanup_resources', self.cleanup_resources, methods=['DELETE'])
+        self.trash_bp.add_url_rule('/<string:id>', 'cleanup_resource', self.cleanup_resource, methods=['DELETE'])
+        self.trash_bp.add_url_rule('', 'recover_resources', self.recover_resources, methods=['POST'])
+        self.trash_bp.add_url_rule('/<string:id>', 'recover_resource', self.recover_resource, methods=['POST'])
 
         for endpoint, related_resource_type in self.related_resources.items():
-            self.bp.add_url_rule(f'/<string:id>/{endpoint}', f'get_related_{endpoint}', 
+            self.resource_bp.add_url_rule(f'/<string:id>/{endpoint}', f'get_related_{endpoint}', 
                                  lambda id, rt=related_resource_type: self.get_related_resources(id, rt), 
                                  methods=['GET'])
-            self.bp.add_url_rule(f'/<string:id>/{endpoint}', f'search_related_{endpoint}', 
+            self.resource_bp.add_url_rule(f'/<string:id>/{endpoint}', f'search_related_{endpoint}', 
                                  lambda id, rt=related_resource_type: self.search_related_resources(id, rt), 
                                  methods=['POST'])
-            self.bp.add_url_rule(f'/<string:id>/{endpoint}', f'update_related_{endpoint}', 
+            self.resource_bp.add_url_rule(f'/<string:id>/{endpoint}', f'update_related_{endpoint}', 
                                  lambda id, rt=related_resource_type: self.update_related_resources(id, rt), 
                                  methods=['PUT'])
-            self.bp.add_url_rule(f'/<string:id>/{endpoint}', f'delete_related_{endpoint}', 
+            self.resource_bp.add_url_rule(f'/<string:id>/{endpoint}', f'delete_related_{endpoint}', 
                                  lambda id, rt=related_resource_type: self.delete_related_resources(id, rt), 
                                  methods=['DELETE'])
+
+    def register_id_preprocessor(self):
+        @self.resource_bp.url_value_preprocessor
+        @self.trash_bp.url_value_preprocessor
+        def check_id(endpoint, values):
+            if 'id' in values:
+                id_value = values['id']
+                id_prefixes = {
+                    'vn': 'v', 'character': 'c', 'staff': 's',
+                    'tag': 't', 'producer': 'p', 'release': 'r', 'trait': 'i'
+                }
+                
+                prefix = id_prefixes.get(self.resource_type)
+                if prefix is None:
+                    raise ValueError(f"Unknown resource type: {self.resource_type}")
+                
+                if not re.match(f'^{prefix}\d+$', id_value):
+                    abort(400, description=f"Invalid id format for {self.resource_type}: {id_value}")
 
     def get_sync_param(self):
         return request.args.get('sync', 'true').lower() == 'true'
@@ -155,6 +190,37 @@ class BaseResourceBlueprint(ABC, metaclass=SingletonABCMeta):
     def delete_related_resources(self, id, related_resource_type):
         sync = self.get_sync_param()
         return execute_task(delete_related_resources_task, sync, self.resource_type, id, related_resource_type)
+
+    def get_inactive_resources(self):
+        args = request.args
+        page = args.get('page', default=None, type=int)
+        limit = args.get('limit', default=None, type=int)
+        sort = args.get('sort', default='id', type=str)
+        reverse = args.get('reverse', default=False, type=bool)
+        count = args.get('count', default=True, type=bool)
+        sync = self.get_sync_param()
+
+        return execute_task(get_inactive_resources_task, sync, self.resource_type, page, limit, sort, reverse, count)
+
+    def get_inactive_resource(self, id):
+        sync = self.get_sync_param()
+        return execute_task(get_inactive_resource_task, sync, self.resource_type, id)
+
+    def cleanup_resources(self):
+        sync = self.get_sync_param()
+        return execute_task(cleanup_resources_task, sync, self.resource_type)
+
+    def cleanup_resource(self, id):
+        sync = self.get_sync_param()
+        return execute_task(cleanup_resource_task, sync, self.resource_type, id)
+
+    def recover_resources(self):
+        sync = self.get_sync_param()
+        return execute_task(recover_resources_task, sync, self.resource_type)
+
+    def recover_resource(self, id):
+        sync = self.get_sync_param()
+        return execute_task(recover_resource_task, sync, self.resource_type, id)
 
     @property
     def blueprint(self):

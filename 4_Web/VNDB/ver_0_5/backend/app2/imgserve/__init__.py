@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, render_template
 from flask_cors import CORS
+from flask_migrate import Migrate
 
 from .config import Config
 from .proxy import (
@@ -31,6 +32,7 @@ def create_app(config_class=Config):
     # This section sets up the SQLAlchemy database connection and creates all tables
     # ----------------------------------------
     db = DatabaseProxy(app)
+    migrate = Migrate(app, db.instance)
 
     # ----------------------------------------
     # Cache Initialization
@@ -61,9 +63,8 @@ def create_app(config_class=Config):
     # CLI Command Registration
     # This section adds custom CLI commands for database operations
     # ----------------------------------------
-    from .database.command import init_db, clean_db
+    from .database.command import register_commands
 
-    app.cli.add_command(init_db)
-    app.cli.add_command(clean_db)
+    register_commands(app)
 
     return app
