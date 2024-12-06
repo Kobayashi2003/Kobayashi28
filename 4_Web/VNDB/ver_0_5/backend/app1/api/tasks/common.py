@@ -54,7 +54,7 @@ def task_with_memoize(timeout=600):
     def decorator(func):
         @celery.task
         @wraps(func)
-        @cache.memoize(timeout=timeout, unless=dont_cache)
+        @cache.memoize(timeout=timeout)
         @error_handler
         def wrapper(*args, **kwargs):
             return func(*args, **kwargs)
@@ -64,7 +64,7 @@ def task_with_memoize(timeout=600):
 def daily_task(hour=0, minute=0):
     """
     Decorator for tasks that should run daily at a specific time.
-    
+
     :param hour: Hour of the day (0-23)
     :param minute: Minute of the hour (0-59)
     """
@@ -79,7 +79,7 @@ def daily_task(hour=0, minute=0):
 def weekly_task(day_of_week=0, hour=0, minute=0):
     """
     Decorator for tasks that should run weekly on a specific day and time.
-    
+
     :param day_of_week: Day of the week (0-6, where 0 is Monday)
     :param hour: Hour of the day (0-23)
     :param minute: Minute of the hour (0-59)
@@ -95,7 +95,7 @@ def weekly_task(day_of_week=0, hour=0, minute=0):
 def monthly_task(day=1, hour=0, minute=0):
     """
     Decorator for tasks that should run monthly on a specific day and time.
-    
+
     :param day: Day of the month (1-31)
     :param hour: Hour of the day (0-23)
     :param minute: Minute of the hour (0-59)
@@ -111,7 +111,7 @@ def monthly_task(day=1, hour=0, minute=0):
 def hourly_task(minute=0):
     """
     Decorator for tasks that should run every hour at a specific minute.
-    
+
     :param minute: Minute of the hour (0-59)
     """
     def decorator(func):
@@ -125,7 +125,7 @@ def hourly_task(minute=0):
 def custom_interval_task(minutes=0, hours=0, days=0):
     """
     Decorator for tasks that should run at custom intervals.
-    
+
     :param minutes: Number of minutes between runs
     :param hours: Number of hours between runs
     :param days: Number of days between runs
@@ -141,7 +141,7 @@ def custom_interval_task(minutes=0, hours=0, days=0):
 def workday_task(hour=9, minute=0):
     """
     Decorator for tasks that should run every workday (Monday to Friday) at a specific time.
-    
+
     :param hour: Hour of the day (0-23)
     :param minute: Minute of the hour (0-59)
     """
