@@ -1,5 +1,5 @@
 # Database configuration
-$env:DB_NAME = "test4"
+$env:DB_NAME = "test2"
 $env:DB_USER = "postgres"
 $env:DB_PASSWORD = "postgres"
 $env:DB_HOST = "localhost"

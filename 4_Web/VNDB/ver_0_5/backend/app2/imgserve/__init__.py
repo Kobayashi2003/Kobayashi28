@@ -32,6 +32,11 @@ def create_app(config_class=Config):
     # This section sets up the SQLAlchemy database connection and creates all tables
     # ----------------------------------------
     db = DatabaseProxy(app)
+
+    # ----------------------------------------
+    # Migrate Initialization
+    # This section sets up the Flask-Migrate extension for database migration management
+    # ----------------------------------------
     migrate = Migrate(app, db.instance)
 
     # ----------------------------------------
