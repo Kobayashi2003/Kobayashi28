@@ -1,199 +1,140 @@
-from flask import request
-from flask_restx import Namespace, Resource
-from app.services.user_service import (
-    create_user, get_user, update_user, delete_user, get_user_stats,
-    get_user_followers, get_user_following, get_all_users, authenticate_user
+from flask import request, abort
+from flask_restx import Resource, Namespace 
+from flask_jwt_extended import create_access_token 
+from app.services.user_services import (
+    get_user_by_id, get_user_by_username, get_all_users, 
+    create_user, update_user, change_user_password, delete_user,
+    verify_user_password
 )
-from app.services.follow_service import follow_user, unfollow_user
-from app.schemas import (
-    user_model, user_detail_model, pagination_users_model,
-    response_message_model, error_model
+from app.schemas.user_schemas import (
+    user_model, user_create_model, user_update_model, 
+    user_delete_model, user_change_password_model, 
+    user_login_model, user_register_model, paginated_users
 )
+from app.utils.auth_utils import login_required
+from .pagination import pagination_parser
 
 ns = Namespace('users', description='User operations')
 
-@ns.route('')
+@ns.errorhandler(Exception)
+def handle_exception(error):
+    return {'message': str(error)}, 500
+
+@ns.route('/')
 class UserList(Resource):
     @ns.doc('list_users')
-    @ns.marshal_with(pagination_users_model)
-    @ns.param('page', 'Page number', type=int, default=1)
-    @ns.param('per_page', 'Items per page', type=int, default=20)
-    @ns.response(200, 'Success')
-    @ns.response(400, 'Bad Request', error_model)
+    @ns.expect(pagination_parser)
+    @ns.marshal_with(paginated_users)
     def get(self):
-        """List all users"""
-        try:
-            page = request.args.get('page', 1, type=int)
-            per_page = request.args.get('per_page', 20, type=int)
-            users = get_all_users(page, per_page)
-            return users, 200
-        except ValueError as e:
-            ns.abort(400, error=str(e))
+        """List all users with pagination"""
+        args = pagination_parser.parse_args()
+        page = args['page']
+        limit = args['limit']
+        sort = args['sort']
+        reverse = args['reverse']
+        users, count, more = get_all_users(page, limit, sort, reverse)
+        return {
+            'results': users,
+            'count': count,
+            'more': more
+        }
 
     @ns.doc('create_user')
-    @ns.expect(user_model)
-    @ns.marshal_with(user_detail_model, code=201)
-    @ns.response(201, 'User created')
-    @ns.response(400, 'Validation Error', error_model)
+    @ns.expect(user_create_model)
+    @ns.marshal_with(user_model, code=201)
     def post(self):
         """Create a new user"""
-        try:
-            new_user = create_user(
-                request.json['username'],
-                request.json['email'],
-                request.json['password'],
-                request.json.get('bio')
-            )
-            return new_user, 201
-        except ValueError as e:
-            ns.abort(400, error=str(e))
+        data = request.json
+        new_user = create_user(
+            username=data['username'],
+            email=data['email'],
+            password=data['password'],
+            bio=data['bio']
+        )
+        return new_user, 201
 
-@ns.route('/<int:id>')
-@ns.param('id', 'The user identifier')
-@ns.response(404, 'User not found', error_model)
+@ns.route('/<int:uid>')
+@ns.param('uid', 'The user identifier')
 class UserResource(Resource):
     @ns.doc('get_user')
-    @ns.marshal_with(user_detail_model)
-    @ns.response(200, 'Success')
-    def get(self, id):
+    @ns.marshal_with(user_model)
+    @login_required
+    def get(self, uid):
         """Fetch a user given its identifier"""
-        user = get_user(id)
-        if not user:
-            ns.abort(404, error="User not found")
-        stats = get_user_stats(id)
-        user_data = user.__dict__
-        user_data.update(stats)
-        return user_data, 200
+        user = get_user_by_id(uid)
+        return user
 
     @ns.doc('update_user')
-    @ns.expect(user_model)
-    @ns.marshal_with(user_detail_model)
-    @ns.response(200, 'Success')
-    @ns.response(400, 'Validation Error', error_model)
-    def put(self, id):
+    @ns.expect(user_update_model)
+    @ns.marshal_with(user_model)
+    @login_required
+    def put(self, uid):
         """Update a user given its identifier"""
-        try:
-            user = update_user(
-                id,
-                request.json.get('username'),
-                request.json.get('email'),
-                request.json.get('bio'),
-                request.json.get('password')
-            )
-            stats = get_user_stats(id)
-            user_data = user.__dict__
-            user_data.update(stats)
-            return user_data, 200
-        except ValueError as e:
-            ns.abort(400, error=str(e))
+        data = request.json
+        user = update_user(
+            uid=uid,
+            username=data.get('username'),
+            email=data.get('email'),
+            bio=data.get('bio')
+        )
+        return user
 
     @ns.doc('delete_user')
+    @ns.expect(user_delete_model)
     @ns.response(204, 'User deleted')
-    @ns.response(404, 'User not found', error_model)
-    def delete(self, id):
+    @login_required
+    def delete(self, uid):
         """Delete a user given its identifier"""
-        try:
-            delete_user(id)
-            return '', 204
-        except ValueError as e:
-            ns.abort(404, error=str(e))
+        delete_user(uid)
+        return '', 204
+
+    @ns.route('/<int:uid>/change-password')
+    @ns.param('uid', 'The user identifier')
+    class UserChangePassword(Resource):
+        @ns.doc('change_password')
+        @ns.expect(user_change_password_model)
+        @ns.response(200, 'Password changed successfully')
+        @ns.response(400, 'Invalid input')
+        @ns.response(401, 'Unauthorized')
+        @login_required
+        def post(self, uid):
+            """Change user password"""
+            data = request.json
+            change_user_password(
+                uid=uid,
+                old_password=data['old_password'],
+                new_password=data['new_password']
+            )
+            return '', 200
 
 @ns.route('/login')
 class UserLogin(Resource):
-    @ns.doc('login_user')
-    @ns.expect(user_model)
-    @ns.marshal_with(user_detail_model)
-    @ns.response(200, 'Success')
-    @ns.response(401, 'Unauthorized', error_model)
+    @ns.doc('user_login')
+    @ns.expect(user_login_model)
+    @ns.response(200, 'Login successful')
+    @ns.response(401, 'Invalid username or password')
     def post(self):
-        """Login a user"""
-        user = authenticate_user(request.json['username'], request.json['password'])
-        if user:
-            return user, 200
-        else:
-            ns.abort(401, error="Invalid username or password")
+        """User login"""
+        data = request.json
+        user = get_user_by_username(data['username'])
+        if user and verify_user_password(user, data['password']):
+            access_token = create_access_token(identity=str(user.id))
+            return {'uid': user.id, 'access_token': access_token}, 200
+        abort(401, 'Invalid username or password')
 
-@ns.route('/<int:id>/follow')
-@ns.param('id', 'The user identifier to follow')
-class UserFollow(Resource):
-    @ns.doc('follow_user')
-    @ns.param('follower_id', 'ID of the user following', type=int, required=True)
-    @ns.marshal_with(user_detail_model)
-    @ns.response(200, 'Success')
-    @ns.response(400, 'Validation Error', error_model)
-    def post(self, id):
-        """Follow a user"""
-        follower_id = request.args.get('follower_id', type=int)
-        if not follower_id:
-            ns.abort(400, error='Follower ID is required')
-        try:
-            follow_user(follower_id, id)
-            return get_user(id), 200
-        except ValueError as e:
-            ns.abort(400, error=str(e))
-
-    @ns.doc('unfollow_user')
-    @ns.param('follower_id', 'ID of the user unfollowing', type=int, required=True)
-    @ns.marshal_with(user_detail_model)
-    @ns.response(200, 'Success')
-    @ns.response(400, 'Validation Error', error_model)
-    def delete(self, id):
-        """Unfollow a user"""
-        follower_id = request.args.get('follower_id', type=int)
-        if not follower_id:
-            ns.abort(400, error='Follower ID is required')
-        try:
-            unfollow_user(follower_id, id)
-            return get_user(id), 200
-        except ValueError as e:
-            ns.abort(400, error=str(e))
-
-@ns.route('/<int:id>/followers')
-@ns.param('id', 'The user identifier')
-class UserFollowers(Resource):
-    @ns.doc('get_user_followers')
-    @ns.marshal_with(pagination_users_model)
-    @ns.param('page', 'Page number', type=int, default=1)
-    @ns.param('per_page', 'Items per page', type=int, default=20)
-    @ns.response(200, 'Success')
-    @ns.response(404, 'User not found', error_model)
-    def get(self, id):
-        """Get followers of a user"""
-        try:
-            page = request.args.get('page', 1, type=int)
-            per_page = request.args.get('per_page', 20, type=int)
-            followers = get_user_followers(id, page, per_page)
-            return {
-                'items': [follower.follower for follower in followers.items],
-                'total': followers.total,
-                'page': page,
-                'per_page': per_page,
-                'total_pages': followers.pages
-            }, 200
-        except ValueError as e:
-            ns.abort(404, error=str(e))
-
-@ns.route('/<int:id>/following')
-@ns.param('id', 'The user identifier')
-class UserFollowing(Resource):
-    @ns.doc('get_user_following')
-    @ns.marshal_with(pagination_users_model)
-    @ns.param('page', 'Page number', type=int, default=1)
-    @ns.param('per_page', 'Items per page', type=int, default=20)
-    @ns.response(200, 'Success')
-    @ns.response(404, 'User not found', error_model)
-    def get(self, id):
-        """Get users that a user is following"""
-        try:
-            page = request.args.get('page', 1, type=int)
-            per_page = request.args.get('per_page', 20, type=int)
-            following = get_user_following(id, page, per_page)
-            return {
-                'items': [follow.followed for follow in following.items],
-                'total': following.total,
-                'page': page,
-                'per_page': per_page,
-                'total_pages': following.pages
-            }, 200
-        except ValueError as e:
-            ns.abort(404, error=str(e))
+@ns.route('/register')
+class UserRegister(Resource):
+    @ns.doc('user_register')
+    @ns.expect(user_register_model)
+    @ns.marshal_with(user_model, code=201)
+    @ns.response(400, 'Invalid input')
+    def post(self):
+        """Register a new user"""
+        data = request.json
+        new_user = create_user(
+            username=data['username'],
+            email=data['email'],
+            password=data['password'],
+            bio=data.get('bio', '')
+        )
+        return new_user, 201
