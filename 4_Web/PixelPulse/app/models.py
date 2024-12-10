@@ -149,6 +149,7 @@ class Image(db.Model, SoftDeleteMixin):
 
     id = Column(Integer, primary_key=True)
     title = Column(String(128), nullable=False, index=True)
+    url = Column(String(256), nullable=False)
     description = Column(Text, nullable=True)
 
     uid = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
@@ -256,3 +257,8 @@ class Collection(db.Model, SoftDeleteMixin):
     @property
     def image_count(self):
         return self.images.count()
+
+MODEL_MAP = {
+    'user': User, 'image': Image, 'tag': Tag,
+    'comment': Comment, 'Collection': Collection
+}

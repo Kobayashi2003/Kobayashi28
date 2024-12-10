@@ -20,20 +20,31 @@ def get_all_users(page=1, limit=10, sort='id', reverse=False):
     """
     Get a list of all users with pagination.
     """
-    # Validate sort field
     if not hasattr(User, sort):
         raise ValueError(f"Invalid sort field: {sort}")
     
-    # Create query
     query = User.query.filter_by(is_active=True)
-    
-    # Apply sorting
     order = desc(getattr(User, sort)) if reverse else getattr(User, sort)
     query = query.order_by(order)
     
-    # Apply pagination
     pagination = query.paginate(page=page, per_page=limit, error_out=False)
+    return pagination.items, pagination.total, pagination.pages > page
+
+def search_users(query, page=1, limit=10, sort='id', reverse=False):
+    """
+    Search for users based on username with pagination.
+    """
+    if not hasattr(User, sort):
+        raise ValueError(f'Invalid sort field: {sort}')
     
+    query = User.query.filter(
+        User.username.ilike(f'%{query}%'),
+        User.is_active == True
+    )
+    order = desc(getattr(User, sort)) if reverse else getattr(User, sort)
+    query.order_by(order)
+
+    pagination = query.paginate(page=page, per_page=limit, error_out=False)
     return pagination.items, pagination.total, pagination.pages > page
 
 def create_user(username, email, password, bio=None):
@@ -62,7 +73,7 @@ def update_user(uid, username=None, email=None, bio=None):
         user.username = username
     if email:
         user.email = email
-    if bio:
+    if bio is not None:
         user.bio = bio
     
     safe_commit("Username or email already exists")

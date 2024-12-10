@@ -2,6 +2,7 @@ from typing import List, Dict, Any, Optional, Callable
 
 from .fields import VNDBFields
 
+# TODO: Add more fields for smaller responses
 SMALL_FIELDS_VN: List[str] = [
     VNDBFields.VN.ID,
     VNDBFields.VN.TITLE,

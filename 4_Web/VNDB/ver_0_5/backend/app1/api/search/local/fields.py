@@ -11,6 +11,7 @@ class LocalFields:
     TRAIT = [column.key for column in Trait.__table__.columns]
     RELEASE = [column.key for column in Release.__table__.columns]
 
+    # TODO: Add more fields for smaller responses
     SMALL_VN = ['id', 'title', 'released', 'image']
     SMALL_CHARACTER = ['id', 'name', 'image']
     SMALL_TAG = ['id', 'name']

@@ -1,7 +1,5 @@
 from sqlalchemy_schemadisplay import create_schema_graph
-from sqlalchemy.orm import class_mapper
 from app import create_app, db
-from app.models import User, Image, Tag, Collection, Comment
 
 # Create the Flask app
 app = create_app()

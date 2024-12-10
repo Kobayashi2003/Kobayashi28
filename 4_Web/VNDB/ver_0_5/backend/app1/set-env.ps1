@@ -16,7 +16,7 @@ $env:REDIS_CELERY_BACKEND_DB = "2"
 $env:DEBUG = "False"
 $env:USE_RELOADER = "False"
 $env:SECRET_KEY = "dev"
-$env:APP_PORT = "5000"
+$env:APP_PORT = "10721"
 
 # Data folder configuration
 $env:DATA_FOLDER = Join-Path $PSScriptRoot "..\..\DATA"

@@ -8,7 +8,7 @@ def register_commands(app):
     app.cli.add_command(init_db)
     app.cli.add_command(clean_db)
     app.cli.add_command(drop_db)
-    app.cli.add_command(makemigration)
+    app.cli.add_command(makemigrations)
     app.cli.add_command(migrate_db)
 
 @click.command('init-db')
@@ -53,10 +53,10 @@ def clean_db(force):
     
     click.echo('Database cleaned successfully.')
 
-@click.command('makemigration')
+@click.command('makemigrations')
 @click.option('--message', '-m', default=None, help='Migration message')
 @with_appcontext
-def makemigration(message):
+def makemigrations(message):
     """Create a new migration."""
     migrate(message=message)
     click.echo('Created a new migration.')
