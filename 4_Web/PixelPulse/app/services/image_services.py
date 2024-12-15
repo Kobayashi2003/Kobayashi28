@@ -1,8 +1,7 @@
 from app import db
-from app.models import Image, Tag
+from app.models import Image 
 from app.utils.db_utils import safe_commit
-from sqlalchemy import desc, or_
-from sqlalchemy.orm import joinedload
+from sqlalchemy import desc
 
 def get_image_by_id(id):
     """
@@ -17,7 +16,7 @@ def get_images_by_user(uid, page=1, limit=10, sort='id', reverse=False):
     if not hasattr(Image, sort):
         raise ValueError(f"Invalid sort field: {sort}")
     
-    query = Image.query.filter_by(uid=uid, deleted_at=None)
+    query = Image.query.filter_by(uid=uid, is_active=True)
     order = desc(getattr(Image, sort)) if reverse else getattr(Image, sort)
     query = query.order_by(order)
     
@@ -46,11 +45,8 @@ def search_images(query, page=1, limit=10, sort='id', reverse=False):
         raise ValueError(f"Invalid sort field: {sort}")
 
     query = Image.query.filter(
-        or_(
-            Image.title.ilike(f'%{query}%'),
-            Image.description.ilike(f'%{query}%'),
-            Image.tags.any(Tag.name.ilike(f'%{query}%'))
-        ),
+        Image.title.ilike(f'%{query}%') |
+        Image.description.ilike(f'%{query}%'),
         Image.is_active == True
     )
     order = desc(getattr(Image, sort)) if reverse else getattr(Image, sort)

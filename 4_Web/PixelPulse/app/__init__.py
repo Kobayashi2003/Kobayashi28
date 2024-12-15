@@ -36,9 +36,8 @@ def create_app():
 
     # ---------------------------
     # Register routes
-    from .routes import user_routes, image_routes
-    api.add_namespace(user_routes.ns)
-    api.add_namespace(image_routes.ns)
+    from .routes import register_namespaces
+    register_namespaces(api)
 
     # ---------------------------
     # Register CLI commands

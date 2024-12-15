@@ -12,6 +12,9 @@ image_ref_model = api.model('ImageReference', {
 })
 
 tag_ref_model = api.model('TagReference', {
-    'id': fields.Integer(readonly=True, description='The tag unique identifier'),
-    'name': fields.String(description='The tag name')
+    'id': fields.Integer(readonly=True, description='The tag unique identifier')
+})
+
+comment_ref_model = api.model('CommentReference', {
+    'id': fields.Integer(readonly=True, description='The comment unique identifier')
 })

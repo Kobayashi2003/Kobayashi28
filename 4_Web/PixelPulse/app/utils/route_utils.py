@@ -2,6 +2,8 @@ from functools import wraps
 from flask import abort, current_app
 from app.services.user_services import get_user_by_id
 from app.services.image_services import get_image_by_id
+from app.services.tag_services import get_tag_by_id
+from app.services.comment_service import get_comment_by_id
 from app.logger import logger
 
 def error_handler(status_code, message):
@@ -36,3 +38,5 @@ def entity_exists(entity_type, id_param, getter_function):
 
 user_exists = entity_exists('user', 'uid', get_user_by_id)
 image_exists = entity_exists('image', 'id', get_image_by_id)
+tag_exists = entity_exists('tag', 'id', get_tag_by_id)
+comment_exists = entity_exists('comment', 'id', get_comment_by_id)

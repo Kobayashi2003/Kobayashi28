@@ -1,7 +1,7 @@
 from flask_restx import fields 
 from app import api
 from .pagination import create_pagination_model
-from .refs import user_ref_model, tag_ref_model
+from .refs import user_ref_model, tag_ref_model, comment_ref_model
 
 image_model = api.model('Image', {
     'id': fields.Integer(readonly=True, description='The image unique identifier'),
@@ -16,6 +16,7 @@ image_model = api.model('Image', {
     'favorited_by_count': fields.Integer(description='Number of users who favorited this image'),
     'user': fields.Nested(user_ref_model, description='The user who uploaded the image'),
     'tags': fields.List(fields.Nested(tag_ref_model), description='Tags associated with this image'),
+    'comments': fields.List(fields.Nested(comment_ref_model), description='Comments on this image'),
     'created_at': fields.DateTime(readonly=True, description='Creation date'),
     'updated_at': fields.DateTime(readonly=True, description='Last update date'),
     'deleted_at': fields.DateTime(description='Deletion date')

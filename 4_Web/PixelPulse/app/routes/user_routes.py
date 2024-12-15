@@ -1,6 +1,6 @@
 from flask import request, abort
 from flask_restx import Resource, Namespace 
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from app.services.user_services import (
     get_user_by_id, get_user_by_username, get_all_users, 
     search_users, create_user, update_user, delete_user,
@@ -11,9 +11,6 @@ from app.schemas.user_schemas import (
     user_delete_model, user_change_password_model, 
     user_login_model, user_register_model, paginated_users
 )
-from app.services.image_services import get_images_by_user
-from app.schemas.image_schemas import paginated_images
-from app.utils.auth_utils import login_required
 from app.utils.route_utils import user_exists, error_handler
 from .pagination import pagination_parser, search_pagination_parser
 
@@ -44,30 +41,36 @@ class UserList(Resource):
 class UserResource(Resource):
     @ns.doc('get_user')
     @ns.marshal_with(user_model)
-    @login_required
+    @jwt_required
     @user_exists
     @error_handler(400, "ERROR IN UserResource.get")
     def get(self, uid):
         """Fetch a user given its identifier"""
+        if uid != get_jwt_identity():
+            abort(403, description="You don't have permission to perform this action.")
         return get_user_by_id(uid)
 
     @ns.doc('update_user')
     @ns.expect(user_update_model)
     @ns.marshal_with(user_model)
-    @login_required
+    @jwt_required
     @user_exists
     @error_handler(400, "ERROR IN UserResource.put")
     def put(self, uid):
         """Update a user given its identifier"""
+        if uid != get_jwt_identity():
+            abort(403, description="You don't have permission to perform this action.")
         return update_user(uid=uid, **request.json)
 
     @ns.doc('delete_user')
     @ns.expect(user_delete_model)
-    @login_required
+    @jwt_required
     @user_exists
     @error_handler(400, "ERROR IN UserResource.delete")
     def delete(self, uid):
         """Delete a user given its identifier"""
+        if uid != get_jwt_identity():
+            abort(403, description="You don't have permission to perform this action.")
         delete_user(uid)
         return '', 204
 
@@ -76,31 +79,15 @@ class UserResource(Resource):
 class UserChangePassword(Resource):
     @ns.doc('change_password')
     @ns.expect(user_change_password_model)
-    @login_required
+    @jwt_required
     @user_exists
     @error_handler(400, "ERROR IN UserChangePassword.post")
     def post(self, uid):
         """Change user password"""
+        if uid != get_jwt_identity():
+            abort(403, description="You don't have permission to perform this action.")
         change_user_password(uid=uid, **request.json)
         return {'message': 'Password changed successfully'}, 200
-
-@ns.route('/<int:uid>/images')
-@ns.param('uid', 'The user identifier')
-class UserImages(Resource):
-    @ns.doc('get_user_images')
-    @ns.expect(pagination_parser)
-    @ns.marshal_with(paginated_images)
-    @user_exists
-    @error_handler(400, "ERROR IN UserImages.get")
-    def get(self, uid):
-        """Get all images uploaded by a specific user"""
-        args = pagination_parser.parse_args()
-        images, total_count, has_more = get_images_by_user(uid, **args)
-        return {
-            'results': images,
-            'count': total_count,
-            'more': has_more
-        }
 
 @ns.route('/login')
 class UserLogin(Resource):
