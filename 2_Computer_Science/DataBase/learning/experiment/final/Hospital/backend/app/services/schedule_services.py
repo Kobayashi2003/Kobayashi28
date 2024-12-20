@@ -39,7 +39,10 @@ def create_schedule(doctor_id, department_id, date, start_time, end_time, max_ap
         max_appointments=max_appointments
     )
     db.session.add(new_schedule)
-    return safe_commit()
+    success, message = safe_commit()
+    if success:
+        return True, new_schedule
+    return False, message
 
 def update_schedule(schedule_id, doctor_id=None, department_id=None, date=None, start_time=None, end_time=None, max_appointments=None):
     schedule = Schedule.query.get(schedule_id)
@@ -59,7 +62,10 @@ def update_schedule(schedule_id, doctor_id=None, department_id=None, date=None, 
     if max_appointments:
         schedule.max_appointments = max_appointments
     
-    return safe_commit()
+    success, message = safe_commit()
+    if success:
+        return True, schedule
+    return False, message
 
 def delete_schedule(schedule_id):
     schedule = Schedule.query.get(schedule_id)
@@ -68,7 +74,10 @@ def delete_schedule(schedule_id):
     
     db.session.delete(schedule)
     db.session.flush()
-    return safe_commit()
+    success, message = safe_commit()
+    if success:
+        return True, ''
+    return False, message
 
 def search_schedules(query, page=1, per_page=10, sort='date', reverse=False):
     if not hasattr(Schedule, sort):

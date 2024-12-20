@@ -14,6 +14,7 @@ patient_model = api.model('Patient', {
 })
 
 patient_create_model = api.model('PatientCreate', {
+    'user_id': fields.Integer(description='The user ID associated with this patient'),
     'name': fields.String(required=True, description='The patient name'),
     'gender': fields.String(required=True, description='The patient gender'),
     'birthday': fields.Date(required=True, description='The patient birthday'),

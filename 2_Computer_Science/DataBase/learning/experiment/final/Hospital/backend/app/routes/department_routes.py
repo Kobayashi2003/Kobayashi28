@@ -39,10 +39,10 @@ class DepartmentList(Resource):
     @error_handler(500, "ERROR IN DepartmentList.post")
     def post(self):
         """Create a new department (Admin only)"""
-        success, message = create_department(**ns.payload)
+        success, result = create_department(**ns.payload)
         if success:
-            return message, 201
-        ns.abort(400, message)
+            return result, 201
+        ns.abort(400, result)
 
 @ns.route('/<int:id>')
 @ns.param('id', 'The department identifier')
@@ -64,18 +64,19 @@ class DepartmentResource(Resource):
 
     @ns.doc('update_department')
     @ns.expect(department_update_model)
+    @ns.marshal_with(department_model)
     @jwt_required()
     @admin_required
     @error_handler(500, "ERROR IN DepartmentResource.put")
     def put(self, id):
         """Update a department given its identifier (Admin only)"""
-        success, message = update_department(id, **ns.payload)
+        success, result = update_department(id, **ns.payload)
         if not success:
-            if message == "Department not found":
-                ns.abort(404, message)
+            if result == "Department not found":
+                ns.abort(404, result)
             else:
-                ns.abort(400, message)
-        return message
+                ns.abort(400, result)
+        return result
 
     @ns.doc('delete_department')
     @ns.response(204, 'Department deleted')
@@ -84,13 +85,13 @@ class DepartmentResource(Resource):
     @error_handler(500, "ERROR IN DepartmentResource.delete")
     def delete(self, id):
         """Delete a department given its identifier (Admin only)"""
-        success, message = delete_department(id)
+        success, result = delete_department(id)
         if not success:
-            if message == "Department not found":
-                ns.abort(404, message)
+            if result == "Department not found":
+                ns.abort(404, result)
             else:
-                ns.abort(400, message)
-        return message, 204
+                ns.abort(400, result)
+        return '', 204
 
 @ns.route('/search')
 @ns.response(400, 'Bad Request')

@@ -42,10 +42,10 @@ class ScheduleList(Resource):
     @error_handler(500, "ERROR IN ScheduleList.post")
     def post(self):
         """Create a new schedule (Admin only)"""
-        success, message = create_schedule(**ns.payload)
+        success, result = create_schedule(**ns.payload)
         if success:
-            return message, 201
-        ns.abort(400, message)
+            return result, 201
+        ns.abort(400, result)
 
 @ns.route('/<int:id>')
 @ns.param('id', 'The schedule identifier')
@@ -67,18 +67,19 @@ class ScheduleResource(Resource):
 
     @ns.doc('update_schedule')
     @ns.expect(schedule_update_model)
+    @ns.marshal_with(schedule_model)
     @jwt_required()
     @admin_required
     @error_handler(500, "ERROR IN ScheduleResource.put")
     def put(self, id):
         """Update a schedule given its identifier (Admin only)"""
-        success, message = update_schedule(id, **ns.payload)
+        success, result = update_schedule(id, **ns.payload)
         if not success:
-            if message == "Schedule not found":
-                ns.abort(404, message)
+            if result == "Schedule not found":
+                ns.abort(404, result)
             else:
-                ns.abort(400, message)
-        return message
+                ns.abort(400, result)
+        return result
 
     @ns.doc('delete_schedule')
     @ns.response(204, 'Schedule deleted')
@@ -87,13 +88,13 @@ class ScheduleResource(Resource):
     @error_handler(500, "ERROR IN ScheduleResource.delete")
     def delete(self, id):
         """Delete a schedule given its identifier (Admin only)"""
-        success, message = delete_schedule(id)
+        success, result = delete_schedule(id)
         if not success:
-            if message == "Schedule not found":
-                ns.abort(404, message)
+            if result == "Schedule not found":
+                ns.abort(404, result)
             else:
-                ns.abort(400, message)
-        return message, 204
+                ns.abort(400, result)
+        return '', 204
 
 @ns.route('/search')
 @ns.response(400, 'Bad Request')

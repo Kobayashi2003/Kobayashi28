@@ -61,7 +61,7 @@ class AffiliationResource(Resource):
         success, message = remove_doctor_from_department(doctor_id, department_id)
         if not success:
             ns.abort(404, message)
-        return message, 204
+        return '', 204
 
 @doctor_ns.route('/<int:id>/departments')
 @doctor_ns.param('id', 'The doctor identifier')

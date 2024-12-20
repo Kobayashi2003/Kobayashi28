@@ -20,7 +20,10 @@ def get_all_doctors(page=1, per_page=10, sort='id', reverse=False):
 def create_doctor(name, gender, email, phone_number, description=None):
     new_doctor = Doctor(name=name, gender=gender, email=email, phone_number=phone_number, description=description)
     db.session.add(new_doctor)
-    return safe_commit()
+    success, message = safe_commit()
+    if success:
+        return True, new_doctor
+    return False, message
 
 def update_doctor(doctor_id, name=None, gender=None, email=None, phone_number=None, description=None):
     doctor = Doctor.query.get(doctor_id)
@@ -38,7 +41,10 @@ def update_doctor(doctor_id, name=None, gender=None, email=None, phone_number=No
     if description is not None:
         doctor.description = description
     
-    return safe_commit()
+    success, message = safe_commit()
+    if success:
+        return True, doctor
+    return False, message
 
 def delete_doctor(doctor_id):
     doctor = Doctor.query.get(doctor_id)
@@ -47,7 +53,10 @@ def delete_doctor(doctor_id):
     
     db.session.delete(doctor)
     db.session.flush()
-    return safe_commit()
+    success, message = safe_commit()
+    if success:
+        return True, ''
+    return False, message
 
 def search_doctors(query, page=1, per_page=10, sort='name', reverse=False):
     if not hasattr(Doctor, sort):

@@ -39,10 +39,10 @@ class DoctorList(Resource):
     @error_handler(500, "ERROR IN DoctorList.post")
     def post(self):
         """Create a new doctor (Admin only)"""
-        success, message = create_doctor(**ns.payload)
+        success, result = create_doctor(**ns.payload)
         if success:
-            return message, 201
-        ns.abort(400, message)
+            return result, 201
+        ns.abort(400, result)
 
 @ns.route('/<int:id>')
 @ns.param('id', 'The doctor identifier')
@@ -64,18 +64,19 @@ class DoctorResource(Resource):
 
     @ns.doc('update_doctor')
     @ns.expect(doctor_update_model)
+    @ns.marshal_with(doctor_model)
     @jwt_required()
     @admin_required
     @error_handler(500, "ERROR IN DoctorResource.put")
     def put(self, id):
         """Update a doctor given its identifier (Admin only)"""
-        success, message = update_doctor(id, **ns.payload)
+        success, result = update_doctor(id, **ns.payload)
         if not success:
-            if message == "Doctor not found":
-                ns.abort(404, message)
+            if result == "Doctor not found":
+                ns.abort(404, result)
             else:
-                ns.abort(400, message)
-        return message
+                ns.abort(400, result)
+        return result
 
     @ns.doc('delete_doctor')
     @ns.response(204, 'Doctor deleted')
@@ -84,13 +85,13 @@ class DoctorResource(Resource):
     @error_handler(500, "ERROR IN DoctorResource.delete")
     def delete(self, id):
         """Delete a doctor given its identifier (Admin only)"""
-        success, message = delete_doctor(id)
+        success, result = delete_doctor(id)
         if not success:
-            if message == "Doctor not found":
-                ns.abort(404, message)
+            if result == "Doctor not found":
+                ns.abort(404, result)
             else:
-                ns.abort(400, message)
-        return message, 204
+                ns.abort(400, result)
+        return '', 204
 
 @ns.route('/search')
 @ns.response(400, 'Bad Request')

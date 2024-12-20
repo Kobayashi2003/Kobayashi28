@@ -4,6 +4,7 @@ def create_app():
     
     # ---------------------------
     # Load configuration
+    app.url_map.strict_slashes = False
     app.config.from_object('app.config.active_config')
 
     # ---------------------------
@@ -23,7 +24,9 @@ def create_app():
     CORS(app, resources={r"/*": {
         "origins": "*",
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization"]
+        "allow_headers": ["Content-Type", "Authorization"],
+        "expose_headers": ["Content-Type", "X-CSRFToken"],
+        "max_age": 600
     }})
 
     db = ExtSQLAchemy(app)

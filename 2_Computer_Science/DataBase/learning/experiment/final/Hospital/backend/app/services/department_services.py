@@ -20,7 +20,10 @@ def get_all_departments(page=1, per_page=10, sort='id', reverse=False):
 def create_department(name, description=None):
     new_department = Department(name=name, description=description)
     db.session.add(new_department)
-    return safe_commit()
+    success, message = safe_commit()
+    if success:
+        return True, new_department
+    return False, message
 
 def update_department(department_id, name=None, description=None):
     department = Department.query.get(department_id)
@@ -32,7 +35,10 @@ def update_department(department_id, name=None, description=None):
     if description is not None:
         department.description = description
     
-    return safe_commit()
+    success, message = safe_commit()
+    if success:
+        return True, department
+    return False, message
 
 def delete_department(department_id):
     department = Department.query.get(department_id)
@@ -41,7 +47,10 @@ def delete_department(department_id):
     
     db.session.delete(department)
     db.session.flush()
-    return safe_commit()
+    success, message = safe_commit()
+    if success:
+        return True, ''
+    return False, message
 
 def search_departments(query, page=1, per_page=10, sort='name', reverse=False):
     if not hasattr(Department, sort):
