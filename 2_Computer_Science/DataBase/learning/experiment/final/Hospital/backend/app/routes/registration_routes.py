@@ -1,5 +1,5 @@
 from flask_restx import Namespace, Resource
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required, get_jwt_identity as _get_jwt_identity
 from app.services.registration_services import (
     get_registration_by_id, get_all_registrations,
     create_registration, update_registration, delete_registration,
@@ -22,6 +22,8 @@ from .user_routes import ns as user_ns
 from .patient_routes import ns as patient_ns
 from .schedule_routes import ns as schedule_ns
 ns = Namespace('registrations', description='Registration operations')
+
+get_jwt_identity = lambda : int(_get_jwt_identity())
 
 @ns.route('/')
 @ns.response(400, 'Bad Request')
@@ -127,6 +129,7 @@ class RegistrationResource(Resource):
 @ns.response(500, 'Internal Server Error')
 class CancelRegistration(Resource):
     @ns.doc('cancel_registration')
+    @ns.marshal_with(registration_model)
     @jwt_required()
     @error_handler(500, "ERROR IN CancelRegistration.put")
     def put(self, id):
@@ -149,6 +152,7 @@ class CancelRegistration(Resource):
 @ns.response(500, 'Internal Server Error')
 class CompleteRegistration(Resource):
     @ns.doc('complete_registration')
+    @ns.marshal_with(registration_model)
     @jwt_required()
     @error_handler(500, "ERROR IN CompleteRegistration.put")
     def put(self, id):

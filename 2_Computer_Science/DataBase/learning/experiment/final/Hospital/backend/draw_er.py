@@ -1,8 +1,9 @@
 from sqlalchemy_schemadisplay import create_schema_graph
-from app import create_app, db
+from app import create_app
 
 # Create the Flask app
 app = create_app()
+db = app.extensions['sqlalchemy']
 
 # Use the application context
 with app.app_context():

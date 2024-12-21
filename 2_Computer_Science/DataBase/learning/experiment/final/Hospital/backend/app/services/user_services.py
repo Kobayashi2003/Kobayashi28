@@ -21,7 +21,7 @@ def get_all_users(page=1, per_page=10, sort='id', reverse=False):
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     return pagination.items, pagination.total, pagination.pages > page
 
-def create_user(username, phone_number, password, bio=None):
+def create_user(username, phone_number, password, bio=None, **kwargs):
     new_user = User(username=username, phone_number=phone_number, bio=bio)
     new_user.set_password(password)
     db.session.add(new_user)
@@ -30,7 +30,7 @@ def create_user(username, phone_number, password, bio=None):
         return True, new_user
     return False, message
 
-def create_admin(username, phone_number, password, bio=None):
+def create_admin(username, phone_number, password, bio=None, **kwargs):
     new_admin = User(username=username, phone_number=phone_number, bio=bio, is_admin=True)
     new_admin.set_password(password)
     db.session.add(new_admin)
@@ -39,7 +39,7 @@ def create_admin(username, phone_number, password, bio=None):
         return True, new_admin
     return False, message
 
-def update_user(user_id, username=None, phone_number=None, bio=None):
+def update_user(user_id, username=None, phone_number=None, bio=None, **kwargs):
     user = User.query.get(user_id)
     if not user:
         return False, "User not found"

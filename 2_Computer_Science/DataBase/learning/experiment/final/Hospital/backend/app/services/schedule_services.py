@@ -17,7 +17,7 @@ def get_all_schedules(page=1, per_page=10, sort='id', reverse=False):
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     return pagination.items, pagination.total, pagination.pages > page
 
-def create_schedule(doctor_id, department_id, date, start_time, end_time, max_appointments):
+def create_schedule(doctor_id, department_id, date, start_time, end_time, max_appointments, **kwargs):
 
     conflicting_schedule = Schedule.query.filter(
         Schedule.doctor_id == doctor_id,
@@ -44,7 +44,7 @@ def create_schedule(doctor_id, department_id, date, start_time, end_time, max_ap
         return True, new_schedule
     return False, message
 
-def update_schedule(schedule_id, doctor_id=None, department_id=None, date=None, start_time=None, end_time=None, max_appointments=None):
+def update_schedule(schedule_id, doctor_id=None, department_id=None, date=None, start_time=None, end_time=None, max_appointments=None, **kwargs):
     schedule = Schedule.query.get(schedule_id)
     if not schedule:
         return False, "Schedule not found"

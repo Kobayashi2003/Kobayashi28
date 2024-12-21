@@ -1,5 +1,5 @@
 from flask_restx import Namespace, Resource
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required, get_jwt_identity as _get_jwt_identity
 from app.services.patient_services import (
     get_patient_by_id, get_all_patients, create_patient, 
     update_patient, delete_patient, search_patients,
@@ -17,6 +17,8 @@ from app.utils.route_utils import error_handler
 
 from .user_routes import ns as user_ns
 ns = Namespace('patients', description='Patient operations')
+
+get_jwt_identity = lambda : int(_get_jwt_identity())
 
 @ns.route('/')
 @ns.response(400, 'Bad Request')

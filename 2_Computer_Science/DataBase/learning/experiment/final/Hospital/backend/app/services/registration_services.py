@@ -17,7 +17,7 @@ def get_all_registrations(page=1, per_page=10, sort='created_at', reverse=False)
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     return pagination.items, pagination.total, pagination.pages > page
 
-def create_registration(patient_id, schedule_id, notes=None):
+def create_registration(patient_id, schedule_id, notes=None, **kwargs):
     # Check if the patient exists
     patient = Patient.query.get(patient_id)
     if not patient:
@@ -52,7 +52,7 @@ def create_registration(patient_id, schedule_id, notes=None):
         return True, new_registration
     return False, message
 
-def update_registration(registration_id, status=None, notes=None):
+def update_registration(registration_id, status=None, notes=None, **kwargs):
     registration = Registration.query.get(registration_id)
     if not registration:
         return False, "Registration not found"
@@ -99,7 +99,6 @@ def search_registrations(query, page=1, per_page=10, sort='created_at', reverse=
     
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     return pagination.items, pagination.total, pagination.pages > page
-
 
 def get_registrations_by_patient(patient_id, page=1, per_page=10, sort='created_at', reverse=False):
     if not hasattr(Registration, sort):

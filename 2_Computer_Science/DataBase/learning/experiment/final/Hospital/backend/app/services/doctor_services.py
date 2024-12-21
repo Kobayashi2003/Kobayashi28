@@ -17,7 +17,7 @@ def get_all_doctors(page=1, per_page=10, sort='id', reverse=False):
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     return pagination.items, pagination.total, pagination.pages > page
 
-def create_doctor(name, gender, email, phone_number, description=None):
+def create_doctor(name, gender, email, phone_number, description=None, **kwargs):
     new_doctor = Doctor(name=name, gender=gender, email=email, phone_number=phone_number, description=description)
     db.session.add(new_doctor)
     success, message = safe_commit()
@@ -25,7 +25,7 @@ def create_doctor(name, gender, email, phone_number, description=None):
         return True, new_doctor
     return False, message
 
-def update_doctor(doctor_id, name=None, gender=None, email=None, phone_number=None, description=None):
+def update_doctor(doctor_id, name=None, gender=None, email=None, phone_number=None, description=None, **kwargs):
     doctor = Doctor.query.get(doctor_id)
     if not doctor:
         return False, "Doctor not found"

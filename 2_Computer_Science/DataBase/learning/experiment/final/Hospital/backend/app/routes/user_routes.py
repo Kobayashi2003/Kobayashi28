@@ -1,5 +1,5 @@
 from flask_restx import Namespace, Resource 
-from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity as _get_jwt_identity
 from app.services.user_services import (
     get_user_by_id, get_user_by_username, get_all_users,
     create_user, update_user, delete_user, change_user_password, search_users,
@@ -16,6 +16,8 @@ from app.utils.auth_utils import admin_required
 from app.utils.route_utils import error_handler
 
 ns = Namespace('users', description='User operations')
+
+get_jwt_identity = lambda : int(_get_jwt_identity())
 
 @ns.route('/')
 @ns.response(400, 'Bad Request')

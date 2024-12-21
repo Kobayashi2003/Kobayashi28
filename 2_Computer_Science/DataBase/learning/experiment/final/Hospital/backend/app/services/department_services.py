@@ -17,7 +17,7 @@ def get_all_departments(page=1, per_page=10, sort='id', reverse=False):
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     return pagination.items, pagination.total, pagination.pages > page
 
-def create_department(name, description=None):
+def create_department(name, description=None, **kwargs):
     new_department = Department(name=name, description=description)
     db.session.add(new_department)
     success, message = safe_commit()
@@ -25,7 +25,7 @@ def create_department(name, description=None):
         return True, new_department
     return False, message
 
-def update_department(department_id, name=None, description=None):
+def update_department(department_id, name=None, description=None, **kwargs):
     department = Department.query.get(department_id)
     if not department:
         return False, "Department not found"

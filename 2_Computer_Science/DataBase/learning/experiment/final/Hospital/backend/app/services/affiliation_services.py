@@ -1,5 +1,5 @@
 from app import db
-from app.models import Doctor, Department
+from app.models import Doctor, Department 
 from app.utils.db_utils import safe_commit
 from sqlalchemy import desc
 
@@ -33,7 +33,7 @@ def get_doctors_by_department(department_id, page=1, per_page=10, sort='id', rev
     if not hasattr(Doctor, sort):
         raise ValueError(f"Invalid sort field: {sort}")
 
-    query = department.doctors
+    query = Doctor.query.join(Doctor.departments).filter(Department.id == department_id)
     order = desc(getattr(Doctor, sort)) if reverse else getattr(Doctor, sort)
     query = query.order_by(order)
     
@@ -48,7 +48,7 @@ def get_departments_by_doctor(doctor_id, page=1, per_page=10, sort='id', reverse
     if not hasattr(Department, sort):
         raise ValueError(f"Invalid sort field: {sort}")
 
-    query = doctor.departments
+    query = Department.query.join(Department.doctors).filter(Doctor.id == doctor_id)
     order = desc(getattr(Department, sort)) if reverse else getattr(Department, sort)
     query = query.order_by(order)
     

@@ -52,8 +52,12 @@ export interface Registration {
 export interface Schedule {
   id: number;
   doctor_id: number;
+  department_id: number;
+  date: string;
   start_time: string;
   end_time: string;
+  max_appointments: number;
+  available_slots: number;
   created_at: string;
   updated_at: string;
 }

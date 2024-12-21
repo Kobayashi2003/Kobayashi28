@@ -36,8 +36,7 @@ class Patient(db.Model):
     name = Column(String(255), nullable=False)
     gender = Column(Enum('male', 'female', name='gender_type'), nullable=False)
     birthday = Column(Date, nullable=False)
-    email = Column(String(255), nullable=False)
-    phone_number = Column(String(255), nullable=False)
+    phone_number = Column(String(255), unique=True, nullable=False)
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
 
@@ -49,7 +48,7 @@ class Doctor(db.Model):
     name = Column(String(255), nullable=False)
     gender = Column(Enum('male', 'female', name='gender_type'), nullable=False)
     email = Column(String(255), nullable=False)
-    phone_number = Column(String(255), nullable=False)
+    phone_number = Column(String(255), unique=True, nullable=False)
     description = Column(Text)
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
@@ -84,7 +83,7 @@ class Schedule(db.Model):
 
     @property
     def available_slots(self):
-        taken_slots = self.registrations.count()
+        taken_slots = self.registrations.filter(Registration.status != 'cancelled').count()
         return max(0, self.max_appointments - taken_slots)
 
 class Registration(db.Model):

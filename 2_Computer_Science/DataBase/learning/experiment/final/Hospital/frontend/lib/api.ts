@@ -205,7 +205,7 @@ export const api = {
   },
 
   getPatients: async (page: number = 1, perPage: number = 10, sort: string = 'id', reverse: boolean = false, token: string): Promise<PaginatedResponse<Patient>> => {
-    return fetchWithErrorHandling(`${BASE_URL}/patients/all?page=${page}&per_page=${perPage}&sort=${sort}&reverse=${reverse}`, {
+    return fetchWithErrorHandling(`${BASE_URL}/patients?page=${page}&per_page=${perPage}&sort=${sort}&reverse=${reverse}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
   },

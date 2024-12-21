@@ -2,12 +2,12 @@ from flask_restx import Namespace, Resource
 from flask_jwt_extended import jwt_required
 from app.services.affiliation_services import (
     add_doctor_to_department, remove_doctor_from_department, get_all_affiliations,
-    get_departments_by_doctor, get_doctors_by_department
+    get_departments_by_doctor, get_doctors_by_department 
 )
-from app.schemas.affiliation_schemas import affiliation_model, affiliation_create_model, paginated_affiliations
+from app.schemas.affiliation_schemas import affiliation_create_model, paginated_affiliations
 from app.schemas.doctor_schemas import paginated_doctors
 from app.schemas.department_schemas import paginated_departments
-from .pagination import pagination_parser
+from .pagination import pagination_parser 
 from app.utils.auth_utils import admin_required
 from app.utils.route_utils import error_handler
 
@@ -78,11 +78,8 @@ class DoctorDepartments(Resource):
         """Get departments affiliated with a specific doctor"""
         args = pagination_parser.parse_args()
         departments, count, more = get_departments_by_doctor(id, **args)
-        if not departments and count == 0:
-            doctor_ns.abort(404, "Doctor not found or has no affiliated departments")
         return {'results': departments, 'count': count, 'more': more}
 
-# Register routes with department namespace
 @department_ns.route('/<int:id>/doctors')
 @department_ns.param('id', 'The department identifier')
 @department_ns.response(400, 'Bad Request')
@@ -98,6 +95,4 @@ class DepartmentDoctors(Resource):
         """Get doctors affiliated with a specific department"""
         args = pagination_parser.parse_args()
         doctors, count, more = get_doctors_by_department(id, **args)
-        if not doctors and count == 0:
-            department_ns.abort(404, "Department not found or has no affiliated doctors")
         return {'results': doctors, 'count': count, 'more': more}

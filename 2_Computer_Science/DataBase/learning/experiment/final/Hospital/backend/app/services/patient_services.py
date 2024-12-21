@@ -17,7 +17,7 @@ def get_all_patients(page=1, per_page=10, sort='id', reverse=False):
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     return pagination.items, pagination.total, pagination.pages > page
 
-def create_patient(user_id, name, gender, birthday, phone_number):
+def create_patient(user_id, name, gender, birthday, phone_number, **kwargs):
     new_patient = Patient(user_id=user_id, name=name, gender=gender, birthday=birthday, phone_number=phone_number)
     db.session.add(new_patient)
     success, message = safe_commit()
@@ -25,7 +25,7 @@ def create_patient(user_id, name, gender, birthday, phone_number):
         return True, new_patient
     return False, message
 
-def update_patient(patient_id, name=None, gender=None, birthday=None, phone_number=None):
+def update_patient(patient_id, name=None, gender=None, birthday=None, phone_number=None, **kwargs):
     patient = Patient.query.get(patient_id)
     if not patient:
         return False, "Patient not found"
