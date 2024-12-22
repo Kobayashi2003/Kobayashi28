@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: b5ec107c0053
+Revision ID: 747480f5f59b
 Revises: 
-Create Date: 2024-12-16 22:17:56.604994
+Create Date: 2024-12-23 00:40:16.690236
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'b5ec107c0053'
+revision = '747480f5f59b'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -31,27 +31,31 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=255), nullable=False),
     sa.Column('gender', sa.Enum('male', 'female', name='gender_type'), nullable=False),
-    sa.Column('email', sa.String(length=255), nullable=True),
-    sa.Column('phone_number', sa.String(length=255), nullable=True),
+    sa.Column('email', sa.String(length=255), nullable=False),
+    sa.Column('phone_number', sa.String(length=255), nullable=False),
     sa.Column('description', sa.Text(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('phone_number')
     )
     op.create_table('users',
     sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('is_admin', sa.Boolean(), nullable=False),
     sa.Column('username', sa.String(length=255), nullable=False),
     sa.Column('phone_number', sa.String(length=255), nullable=False),
     sa.Column('password_hash', sa.String(length=255), nullable=True),
+    sa.Column('bio', sa.Text(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('phone_number'),
     sa.UniqueConstraint('username')
     )
-    op.create_table('doctor_department',
+    op.create_table('affiliations',
     sa.Column('doctor_id', sa.Integer(), nullable=False),
     sa.Column('department_id', sa.Integer(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['department_id'], ['departments.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['doctor_id'], ['doctors.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('doctor_id', 'department_id')
@@ -61,12 +65,13 @@ def upgrade():
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=255), nullable=False),
     sa.Column('gender', sa.Enum('male', 'female', name='gender_type'), nullable=False),
-    sa.Column('email', sa.String(length=255), nullable=True),
-    sa.Column('phone_number', sa.String(length=255), nullable=True),
+    sa.Column('birthday', sa.Date(), nullable=False),
+    sa.Column('phone_number', sa.String(length=255), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('phone_number')
     )
     op.create_table('schedules',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -102,7 +107,7 @@ def downgrade():
     op.drop_table('registrations')
     op.drop_table('schedules')
     op.drop_table('patients')
-    op.drop_table('doctor_department')
+    op.drop_table('affiliations')
     op.drop_table('users')
     op.drop_table('doctors')
     op.drop_table('departments')

@@ -1,0 +1,10 @@
+graph TD
+    A[Client] -->|HTTP Requests| B[Routes]
+    B -->|Uses| C[Schemas]
+    B -->|Calls| D[Services]
+    D -->|Uses| E[Models]
+    E -->|Defines| G[Database Tables]
+    C -->|Serializes/Deserializes| E
+    H[Extensions] -->|Initializes| I[Flask App]
+    I -->|Registers| B
+    I -->|Configures| H
