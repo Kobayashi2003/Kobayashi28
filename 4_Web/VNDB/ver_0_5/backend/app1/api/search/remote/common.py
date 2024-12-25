@@ -2,7 +2,6 @@ from typing import List, Dict, Any, Optional, Callable
 
 from .fields import VNDBFields
 
-# TODO: Add more fields for smaller responses
 SMALL_FIELDS_VN: List[str] = [
     VNDBFields.VN.ID,
     VNDBFields.VN.TITLE,
@@ -16,9 +15,10 @@ SMALL_FIELDS_VN: List[str] = [
 SMALL_FIELDS_CHARACTER: List[str] = [
     VNDBFields.Character.ID,
     VNDBFields.Character.NAME,
+    VNDBFields.Character.ORIGINAL,
     VNDBFields.Character.IMAGE.URL,
     VNDBFields.Character.IMAGE.SEXUAL,
-    VNDBFields.Character.IMAGE.VIOLENCE
+    VNDBFields.Character.IMAGE.VIOLENCE,
 ]
 
 SMALL_FIELDS_TAG: List[str] = [
@@ -29,11 +29,13 @@ SMALL_FIELDS_TAG: List[str] = [
 SMALL_FIELDS_PRODUCER: List[str] = [
     VNDBFields.Producer.ID,
     VNDBFields.Producer.NAME,
+    VNDBFields.Producer.ORIGINAL
 ]
 
 SMALL_FIELDS_STAFF: List[str] = [
     VNDBFields.Staff.ID,
     VNDBFields.Staff.NAME,
+    VNDBFields.Staff.ORIGINAL
 ]
 
 SMALL_FIELDS_TRAIT: List[str] = [

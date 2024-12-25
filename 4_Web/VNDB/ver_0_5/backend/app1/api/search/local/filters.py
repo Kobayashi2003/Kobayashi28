@@ -206,15 +206,6 @@ def get_vn_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
 def get_release_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     filters = []
 
-    if releases := params.get('search'):
-        def process_release(release_value):
-            return or_(
-                Release.id == release_value,
-                Release.title.ilike(f"%{release_value}%"),
-                Release.alttitle.ilike(f"%{release_value}%")
-            )
-        filters.append(process_multi_value_expression(releases, process_release))
-
     if lang := params.get('lang'):
         filters.append(array_jsonb_match(Release.languages, 'lang', lang))
 
@@ -239,10 +230,25 @@ def get_release_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     if voiced := params.get('voiced'):
         filters.append(create_comparison_filter(Release.voiced, voiced, int))
 
+    if gtin := params.get('gtin'):
+        filters.append(Release.gtin == gtin)
+
+    if catalog := params.get('catalog'):
+        filters.append(Release.catalog.ilike(f"%{catalog}%"))
+
     boolean_fields = ['patch', 'freeware', 'uncensored', 'official', 'has_ero']
     for field in boolean_fields:
         if value := params.get(field):
             filters.append(getattr(Release, field) == (value.lower() == 'true'))
+
+    if releases := params.get('search'):
+        def process_release(release_value):
+            return or_(
+                Release.id == release_value,
+                Release.title.ilike(f"%{release_value}%"),
+                Release.alttitle.ilike(f"%{release_value}%")
+            )
+        filters.append(process_multi_value_expression(releases, process_release))
 
     if vns := params.get('vn'):
         def process_vn(vn_value):
@@ -256,15 +262,10 @@ def get_release_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
         def process_producer(producer_value):
             return or_(
                 array_jsonb_exact_match(Release.producers, 'id', producer_value),
-                array_jsonb_match(Release.producers, 'name', producer_value)
+                array_jsonb_match(Release.producers, 'name', producer_value),
+                array_jsonb_match(Release.producers, 'original', producer_value)
             )
         filters.append(process_multi_value_expression(producers, process_producer))
-
-    if gtin := params.get('gtin'):
-        filters.append(Release.gtin == gtin)
-
-    if catalog := params.get('catalog'):
-        filters.append(Release.catalog.ilike(f"%{catalog}%"))
 
     return filters
 
