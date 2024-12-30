@@ -1,4 +1,7 @@
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class Config:
     DB_NAME = os.environ['DB_NAME']
@@ -13,10 +16,10 @@ class Config:
     REDIS_CELERY_BACKEND_DB = os.environ['REDIS_CELERY_BACKEND_DB']
 
     # Flask configurations
-    DEBUG = False
-    USE_RELOADER = False
-    SECRET_KEY = 'dev'
-    APP_PORT = '5000'
+    DEBUG = os.environ['DEBUG'].lower() == 'true'
+    USE_RELOADER = os.environ['USE_RELOADER'].lower() == 'true'
+    SECRET_KEY = os.environ['SECRET_KEY']
+    APP_PORT = int(os.environ['APP_PORT'])
 
     # Database configuration
     SQLALCHEMY_DATABASE_URI = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"

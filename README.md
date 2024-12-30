@@ -1,6 +1,6 @@
 # KOBAYASHI
 
-> a student from China
+> kobayashi dayo~
 
 ```
       K                 

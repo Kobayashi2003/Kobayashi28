@@ -53,7 +53,6 @@ if __name__ == '__main__':
 
     import argparse
     import sys, os
-    from tqdm import tqdm
 
     parser = argparse.ArgumentParser(description='Split large file')
     parser.add_argument('path', type=str, nargs='+', default=None, help='the path of the file')
@@ -86,7 +85,7 @@ if __name__ == '__main__':
 
         input("THE FILES BELOW WILL BE SPLITTED, PRESS ENTER TO CONTINUE:\n{}\n".format('\n'.join(files)))
 
-        for file in tqdm(files):
+        for file in files:
             if args.split_size is None:
                 split_large_file(file, os.path.getsize(file) // args.split_number, args.output, args.delete)
             else:

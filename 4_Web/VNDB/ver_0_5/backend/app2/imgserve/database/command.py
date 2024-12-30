@@ -1,6 +1,6 @@
 import click
 from flask.cli import with_appcontext
-from flask_migrate import migrate, upgrade
+from flask_migrate import migrate, upgrade, downgrade
 from imgserve import db
 from .model import IMAGE_MODEL
 
@@ -10,6 +10,7 @@ def register_commands(app):
     app.cli.add_command(drop_db)
     app.cli.add_command(makemigrations)
     app.cli.add_command(migrate_db)
+    app.cli.add_command(downgrade_db)
 
 @click.command('init-db')
 @click.option('--drop', is_flag=True, help='Create after drop.')
@@ -67,3 +68,11 @@ def migrate_db():
     """Apply all pending migrations."""
     upgrade()
     click.echo('Applied all pending migrations.')
+
+@click.command('downgrade')
+@click.option('--revision', '-r', default='-1', help='Revision to downgrade to (default: -1, which means downgrade one step)')
+@with_appcontext
+def downgrade_db(revision):
+    """Revert to a previous database migration."""
+    downgrade(revision)
+    click.echo(f'Downgraded database to revision: {revision}')

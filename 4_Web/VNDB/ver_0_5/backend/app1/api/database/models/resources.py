@@ -1,6 +1,6 @@
 from typing import Union
 
-from sqlalchemy import Column, String, Integer, Boolean, Date, Text, Enum, ForeignKey
+from sqlalchemy import Column, String, Integer, Boolean, Text 
 from sqlalchemy.dialects.postgresql import JSONB, ARRAY
 
 from api import db
@@ -10,7 +10,7 @@ from api import db
 # ----------------------------------------
 
 class VN(db.Model):
-    __tablename__ = 'vn'
+    __tablename__ = 'vns'
 
     id = Column(String(255), primary_key=True)
     title = Column(String(255), nullable=True)
@@ -41,7 +41,7 @@ class VN(db.Model):
     meta = db.relationship("VNMetadata", back_populates="parent", uselist=False, cascade="all, delete-orphan")
 
 class Release(db.Model):
-    __tablename__ ='release'
+    __tablename__ ='releases'
 
     id = Column(String(255), primary_key=True)
     title = Column(String(255), nullable=True)
@@ -70,7 +70,7 @@ class Release(db.Model):
     meta = db.relationship("ReleaseMetadata", back_populates="parent", uselist=False, cascade="all, delete-orphan")
 
 class Tag(db.Model):
-    __tablename__ = 'tag'
+    __tablename__ = 'tags'
 
     id = Column(String(255), primary_key=True)
     aid = Column(String(255), nullable=True)
@@ -85,7 +85,7 @@ class Tag(db.Model):
     meta = db.relationship("TagMetadata", back_populates="parent", uselist=False, cascade="all, delete-orphan")
 
 class Producer(db.Model):
-    __tablename__ = 'producer'
+    __tablename__ = 'producers'
 
     id = Column(String(255), primary_key=True)
     name = Column(String(255), nullable=True)
@@ -114,7 +114,7 @@ class Staff(db.Model):
     meta = db.relationship("StaffMetadata", back_populates="parent", uselist=False, cascade="all, delete-orphan")
 
 class Character(db.Model):
-    __tablename__ = 'character'
+    __tablename__ = 'characters'
 
     id = Column(String(255), primary_key=True)
     name = Column(String(255), nullable=True)
@@ -138,7 +138,7 @@ class Character(db.Model):
     meta = db.relationship("CharacterMetadata", back_populates="parent", uselist=False, cascade="all, delete-orphan")
 
 class Trait(db.Model):
-    __tablename__ = 'trait'
+    __tablename__ = 'traits'
 
     id = Column(String(255), primary_key=True)
     name = Column(String(255), nullable=True)

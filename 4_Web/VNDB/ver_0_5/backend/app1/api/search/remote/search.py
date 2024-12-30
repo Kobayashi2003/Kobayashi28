@@ -1,13 +1,10 @@
 import httpx
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Callable
 from enum import Enum
 
 from api import cache
-from .filters import VNDBFilters, FilterOperator, FilterType
-from .common import (
-    get_remote_fields, get_remote_filters, 
-    unpaginated_search, paginated_results
-)
+from .filters import VNDBFilters, FilterOperator, FilterType, get_remote_filters
+from .fields import get_remote_fields
 
 VNDB_API_URL = "https://api.vndb.org/kana"
 
@@ -94,7 +91,7 @@ class VNDBAPIWrapper:
         return [key, operator.value, filter_value]
 
     def query(self, endpoint: VNDBEndpoint, filters: Dict[str, Any], fields: List[str], 
-              sort: str = "id", reverse: bool = False, results: int = 10, page: int = 1, count: bool = True, user: Optional[str] = None) -> Dict[str, Any]:
+              sort: str = "id", reverse: bool = False, results: int = 10, page: int = 1, count: bool = True) -> Dict[str, Any]:
         url = f"{VNDB_API_URL}/{endpoint.value}"
         
         filter_set = getattr(VNDBFilters, endpoint.name)
@@ -108,9 +105,6 @@ class VNDBAPIWrapper:
             "page": page,
             "count": count
         }
-        
-        if user:
-            payload["user"] = user
         
         response = self.client.post(url, json=payload)
         response.raise_for_status()
@@ -136,18 +130,6 @@ class VNDBAPIWrapper:
 
     def get_release(self, filters: Dict[str, Any], fields: List[str], **kwargs) -> Dict[str, Any]:
         return self.query(VNDBEndpoint.RELEASE, filters, fields, **kwargs)
-
-    def get_user_list_labels(self, user: Optional[str] = None, fields: Optional[List[str]] = None) -> Dict[str, Any]:
-        url = f"{VNDB_API_URL}/ulist_labels"
-        params = {}
-        if user:
-            params['user'] = user
-        if fields:
-            params['fields'] = ','.join(fields)
-        
-        response = self.client.get(url, params=params)
-        response.raise_for_status()
-        return response.json()
 
     def update_user_list(self, vn_id: str, data: Dict[str, Any]) -> None:
         url = f"{VNDB_API_URL}/ulist/{vn_id}"
@@ -176,6 +158,38 @@ class VNDBAPIWrapper:
         return response.json()
 
 api = VNDBAPIWrapper()
+
+
+def unpaginated_search(search_function: Callable, **kwargs) -> Dict[str, Any]:
+    results = []
+    page = 1
+    more = True
+    while more:
+        response = search_function(**kwargs, page=page)
+        results.extend(response.get('results', []))
+        more = response.get('more', False)
+        page += 1
+    
+    return {'results': results, 'total': len(results), 'count': len(results)}
+
+def paginated_results(results: Dict[str, Any], sort: str = 'id', reverse: bool = False, limit: int = 10, page: int = 1, count: bool = True) -> Dict[str, Any]:
+    if not results or 'results' not in results:
+        return {'results': [], 'count': 0} if count else {'results': []}
+    
+    results = results['results']
+    count = len(results)
+    start_index = (page - 1) * limit
+    end_index = start_index + limit
+
+    results.sort(key=lambda x: x.get(sort, 0), reverse=reverse)
+    results = results[start_index:end_index]
+
+    results = {'results': results, 'more': end_index < count}
+    if count:
+        results['count'] = count
+    
+    return results
+
 
 def search_vn(filters: Dict[str, Any], fields: List[str], page: int = 1, **kwargs) -> Dict[str, Any]:
     return api.get_vn(filters, fields, page=page, **kwargs)

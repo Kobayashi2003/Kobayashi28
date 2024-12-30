@@ -163,7 +163,7 @@ def test_task(func):
     Decorator for test tasks that should run every 10 seconds.
     """
     @wraps(func)
-    @scheduler.task(trigger='interval', id=f'test_{func.__name__}', seconds=10)
+    @scheduler.task(trigger='interval', id=f'test_{func.__name__}', seconds=30)
     def wrapper(*args, **kwargs):
         return func(*args, **kwargs)
     return wrapper
