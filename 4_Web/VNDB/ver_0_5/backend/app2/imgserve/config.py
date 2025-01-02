@@ -43,7 +43,8 @@ class Config:
     SCHEDULER_API_ENABLED = True
     SCHEDULER_TIMEZONE = "UTC"
 
-    # Download configuration
+    # Data folder configuration
     DATA_FOLDER = os.environ['DATA_FOLDER']
     TEMP_FOLDER = os.path.join(DATA_FOLDER, 'tmp')
     IMAGE_FOLDER = os.path.join(DATA_FOLDER, 'images')
+    BACKUP_FOLDER = os.path.join(DATA_FOLDER, 'backups')

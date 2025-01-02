@@ -42,3 +42,8 @@ class Config:
     # Scheduler configuration
     SCHEDULER_API_ENABLED = True
     SCHEDULER_TIMEZONE = "UTC"
+
+    # Data folder configuration
+    DATA_FOLDER = os.environ['DATA_FOLDER']
+    TEMP_FOLDER = os.path.join(DATA_FOLDER, 'tmp')
+    BACKUP_FOLDER = os.path.join(DATA_FOLDER, 'backups')

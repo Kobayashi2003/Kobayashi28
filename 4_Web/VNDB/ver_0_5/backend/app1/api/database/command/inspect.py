@@ -7,6 +7,7 @@ from ..models import MODEL_MAP
 @click.command('inspect-db')
 @with_appcontext
 def inspect_db():
+    """Inspect the database schema."""
     inspector = inspect(db.engine)
     for model_name, model_class in MODEL_MAP.items():
         columns = inspector.get_columns(model_class.__tablename__)

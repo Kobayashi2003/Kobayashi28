@@ -6,6 +6,8 @@ from .inspect import inspect_db
 from .makemigration import makemigrations
 from .migrate import migrate_db
 from .downgrade import downgrade_db
+from .backup import backup_db
+from .restore import restore_db
 
 def register_commands(app):
     app.cli.add_command(init_db)
@@ -16,3 +18,5 @@ def register_commands(app):
     app.cli.add_command(makemigrations)
     app.cli.add_command(migrate_db)
     app.cli.add_command(downgrade_db)
+    app.cli.add_command(backup_db)
+    app.cli.add_command(restore_db)
