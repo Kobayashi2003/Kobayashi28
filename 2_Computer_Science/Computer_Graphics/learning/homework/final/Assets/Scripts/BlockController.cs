@@ -2,15 +2,16 @@ using UnityEngine;
 
 public class BlockController : MonoBehaviour
 {
-    [SerializeField] private float fallTime = 0.8f;
+    [SerializeField] private float fallTime = 1f;
     [SerializeField] private Vector3 rotationPoint = Vector3.zero;
     
     private float lastFallTime;
     public bool IsActive { get; private set; } = true;
+    public bool IsPaused = false;
 
     private void Update()
     {
-        if (!IsActive) return;
+        if (!IsActive || IsPaused) return;
 
         if (Time.time - lastFallTime > fallTime)
         {

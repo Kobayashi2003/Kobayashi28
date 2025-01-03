@@ -31,7 +31,7 @@ try {
              -f markdown-implicit_figures `
              -V CJKmainfont="KaiTi" `
              -V geometry:"top=2cm, bottom=1.5cm, left=2cm, right=2cm" `
-             --highlight-style=zenburn `
+             --highlight-style=tango `
              --toc `
              -t pdf `
              -o $pdfPath `

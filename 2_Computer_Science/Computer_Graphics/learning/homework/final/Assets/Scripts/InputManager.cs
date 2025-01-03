@@ -51,6 +51,12 @@ public class InputManager : MonoBehaviour
             activeBlock.Rotate(Vector3.forward);
         }
 
+        // Handle pause
+        else if (Input.GetKeyDown(KeyCode.P))
+        {
+            activeBlock.IsPaused = !activeBlock.IsPaused;
+        }
+
         // Handle quick drop
         else if (Input.GetKeyDown(KeyCode.Space))
         {
