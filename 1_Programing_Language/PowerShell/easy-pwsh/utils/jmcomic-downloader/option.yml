@@ -10,8 +10,8 @@ client:
     type: cffi
   retry_times: 5
 dir_rule:
-  base_dir: ../../downloads/jmcomic-download
-  rule: Bd_Pname
+  base_dir: D:\KoBaYaShiTemp\
+  rule: Bd/Aauthors/Pname
 download:
   cache: true
   image:
