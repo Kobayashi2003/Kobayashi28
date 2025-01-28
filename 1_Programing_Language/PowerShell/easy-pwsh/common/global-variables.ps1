@@ -31,14 +31,13 @@ $global:IMPORT_MODULES  = $true
 $global:CHECK_MODULES   = $false
 $global:SHOW_MODULES    = $false
 
-$global:SCOOP_INSTALL_APPLICATION = $false
 $global:SCOOP_MAIN_FLAG    = $true
 $global:SCOOP_EXTRAS_FLAG  = $true
 $global:SCOOP_VERSION_FLAG = $true
 
-$global:SCOOP_CHECK_APPLICATION = $false
-$global:SCOOP_CHECK_FAILED = $false
 $global:SCOOP_CHECK_UPDATE = $false
+$global:SCOOP_CHECK_INSTALL = $false
+$global:SCOOP_CHECK_FAILED = $false
 
 $global:APPS_ALIAS = $( if (-not $SET_APPS_ALIAS) { @{} } else {
 @{
@@ -56,21 +55,18 @@ $global:SCOOP_APPLICATION_MAIN = $( if (-not $SCOOP_MAIN_FLAG) { @() } else {
     'lf',       'prince',   'ripgrep',
     'scrcpy',   'sudo',     'vim',
     'zoxide',   'miniconda3',
-    'pandoc',   'latex',
-    'postgresql'
+    'pandoc',   'latex',    'postgresql'
 )})
 
 $global:SCOOP_APPLICATION_EXTRAS = $( if (-not $SCOOP_EXTRAS_FLAG) { @() } else {
 @(
     'altsnap',          'bandizip',
-    'everything',       'filelight',
-    'hwmonitor',        'imageglass',
+    'everything',       'imageglass',
     'moonlight',        'mpv',
-    'networkmanager',   'posh-git',
+    'cheat-engine',     'posh-git',
     'putty',            'quicklook',
     'recuva',           'sunshine',
-    'v2rayn',           'vscode',
-    'winmerge',         'wireshark'
+    'vscode',           'winmerge'
 )})
 
 $global:SCOOP_APPLICATION_VERSION = $( if (-not $SCOOP_VERSION_FLAG) { @() } else {
@@ -78,7 +74,7 @@ $global:SCOOP_APPLICATION_VERSION = $( if (-not $SCOOP_VERSION_FLAG) { @() } els
     'tdm-gcc'
 )})
 
-$global:SCOOP_APPLICATION = $(if (-not $SCOOP_INSTALL_APPLICATION) { @() } else {
+$global:SCOOP_APPLICATION = $(if (-not $SCOOP_CHECK_INSTALL) { @() } else {
     $scoop_buckets = (& scoop bucket list).Name
     @() + `
     $(if ($scoop_buckets -contains "main") { $global:SCOOP_APPLICATION_MAIN } else { @() }) + `

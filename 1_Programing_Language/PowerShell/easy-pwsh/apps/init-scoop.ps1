@@ -116,7 +116,23 @@ if (!(Get-Command "scoop" -ErrorAction SilentlyContinue)) {
     }
 }
 
-function global:scoop-install {
+function global:scoop-check-update {
+    & scoop update
+
+    ($scoop_apps_update = @(& scoop status | Where-Object { $_.'Latest Version' }).Name) *>$null
+
+    foreach ($app in $scoop_apps_update) {
+        if ($global:SCOOP_UPDATE_IGNORE -contains $app) {
+            Write-Host "Ignored $app update." -ForegroundColor DarkYellow
+            continue
+        }
+        Write-Host "Updating $app..." -ForegroundColor Yellow
+        & scoop update $app
+        Write-Host "Updated $app." -ForegroundColor Green
+    }
+}
+
+function global:scoop-check-install {
     ($scoop_apps_installed = @(& scoop list).Name) *>$null
 
     foreach ($app in ($global:SCOOP_APPLICATION)) {
@@ -145,29 +161,36 @@ function global:scoop-check-failed {
     }
 }
 
-function global:scoop-check-update {
-    & scoop update
-
-    ($scoop_apps_update = @(& scoop status | Where-Object { $_.'Latest Version' }).Name) *>$null
-
-    foreach ($app in $scoop_apps_update) {
-        if ($global:SCOOP_UPDATE_IGNORE -contains $app) {
-            Write-Host "Ignored $app update." -ForegroundColor DarkYellow
-            continue
+function global:scoop-check {
+    if ($global:SCOOP_CHECK_UPDATE) {
+        try {
+            Write-Host "⏳ (1/3) Checking scoop update..." -ForegroundColor Yellow
+            scoop-check-update
+            Write-Host "✅ Update check completed successfully." -ForegroundColor Green
+        } catch {
+            Write-Host "❌ Update check failed: $($_.Exception.Message)" -ForegroundColor Red
         }
-        Write-Host "Updating $app..." -ForegroundColor Yellow
-        & scoop update $app
-        Write-Host "Updated $app." -ForegroundColor Green
+    }
+
+    if ($global:SCOOP_CHECK_INSTALL) {
+        try {
+            Write-Host "⏳ (2/3) Checking scoop installation..." -ForegroundColor Yellow
+            scoop-check-install
+            Write-Host "✅ Installation check completed successfully." -ForegroundColor Green
+        } catch {
+            Write-Host "❌ Installation check failed: $($_.Exception.Message)" -ForegroundColor Red
+        }
+    }
+
+    if ($global:SCOOP_CHECK_FAILED) {
+        try {
+            Write-Host "⏳ (3/3) Checking scoop failed..." -ForegroundColor Yellow
+            scoop-check-failed
+            Write-Host "✅ Failed apps check completed successfully." -ForegroundColor Green
+        } catch {
+            Write-Host "❌ Failed apps check failed: $($_.Exception.Message)" -ForegroundColor Red
+        }
     }
 }
 
-function global:scoop-check {
-
-    if ($global:SCOOP_CHECK_UPDATE) { scoop-check-update }
-    if ($global:SCOOP_CHECK_FAILED) { scoop-check-failed }
-
-    Write-Host "Scoop check completed." -ForegroundColor Green
-}
-
-if ($global:SCOOP_INSTALL_APPLICATION) { scoop-install }
-if ($global:SCOOP_CHECK_APPLICATION) { scoop-check }
+scoop-check
