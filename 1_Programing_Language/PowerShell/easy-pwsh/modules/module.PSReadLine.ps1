@@ -4,6 +4,7 @@ using namespace System.Management.Automation.Language
 
 Set-PSReadLineOption -BellStyle None
 # Set-PSReadLineOption -EditMode Emacs
+Set-PSReadLineOption -EditMode Windows
 
 # The color option
 Set-PSReadLineOption -Colors @{
@@ -28,6 +29,8 @@ $history_save_path = (Split-Path $profile.CurrentUserAllHosts) + "\.ps_history"
 
 Set-PSReadLineOption -HistorySavePath $history_save_path
 Set-PSReadLineOption -HistorySaveStyle SaveIncrementally
+Set-PSReadLineOption -PredictionSource HistoryAndPlugin
+Set-PSReadLineOption -MaximumHistoryCount 100000
 
 # $history_save_path = (Get-PSReadLineOption).HistorySavePath
 
@@ -178,6 +181,12 @@ Set-PSReadLineKeyHandler -Key Ctrl+Q -Function TabCompletePrevious
 # Clipboard interaction is bound by default in Windows mode, but not Emacs mode.
 # Set-PSReadLineKeyHandler -Key Ctrl+C -Function Copy
 Set-PSReadLineKeyHandler -Key Ctrl+v -Function Paste
+
+Set-PSReadLineKeyHandler -Chord 'Ctrl+z' -Function Undo
+Set-PSReadLineKeyHandler -Chord 'Ctrl+y' -Function Redo
+
+Set-PSReadLineKeyHandler -Chord 'Ctrl+d' -Function DeleteChar
+Set-PSReadLineKeyHandler -Chord 'Ctrl+w' -Function BackwardDeleteWord
 
 # CaptureScreen is good for blog posts or email showing a transaction
 # of what you did when asking for help or demonstrating a technique.
@@ -697,6 +706,10 @@ Set-PSReadLineOption -CommandValidationHandler {
 
     $cmdMap = @{
         'git' = @{
+            's'     = 'status'
+            'a'     = 'add .'
+            'p'     = 'push'
+            'cl'    = 'clone'
             'cmt'   = 'commit'
             'mpush' = "@whole:git add . ; git commit -m $(Get-Date -Format 'yyMMdd') ; git push"
             'mcheckout' = "@whole:git checkout master --"
@@ -739,6 +752,41 @@ Set-PSReadLineOption -CommandValidationHandler {
 }
 # This checks the validation script when you hit enter
 Set-PSReadLineKeyHandler -Chord Enter -Function ValidateAndAcceptLine
+
+# Custom completion for common commands
+$scriptblock = {
+    param($wordToComplete, $commandAst, $cursorPosition)
+    $customCompletions = @{
+        'git' = @('status', 'add', 'commit', 'push', 'pull', 'clone', 'checkout', 'branch', 'merge', 'rebase', 'log', 'fetch', 'remote')
+        'deno' = @('run', 'compile', 'bundle', 'test', 'lint', 'fmt', 'cache', 'info', 'doc', 'upgrade', 'repl', 'eval', 'task')
+        'conda' = @('create', 'activate', 'deactivate', 'install', 'update', 'remove', 'list', 'search', 'info', 'config', 'clean', 'env')
+        'docker' = @('run', 'build', 'pull', 'push', 'images', 'ps', 'stop', 'start', 'restart', 'exec', 'logs', 'volume', 'network')
+        'yarn' = @('add', 'remove', 'install', 'upgrade', 'init', 'run', 'info', 'licenses', 'list', 'why', 'create', 'set', 'config')
+        'powershell' = @('-Command', '-File', '-ExecutionPolicy', '-NoProfile', '-NonInteractive', '-WindowStyle', '-Version')
+        'pip' = @('install', 'uninstall', 'freeze', 'list', 'show', 'check', 'download', 'config', 'search', 'wheel', 'hash', 'completion')
+        'npm' = @('install', 'start', 'run', 'test', 'build', 'update', 'init', 'publish', 'list', 'search', 'audit', 'outdated')
+        'winget' = @('install', 'show', 'list', 'search', 'upgrade', 'uninstall', 'source', 'hash', 'validate', 'settings', 'features', 'export', 'import')
+        'choco' = @('install', 'upgrade', 'uninstall', 'list', 'search', 'info', 'outdated', 'pin', 'source', 'config', 'feature', 'apikey')
+        'scoop' = @('install', 'uninstall', 'update', 'list', 'search', 'info', 'status', 'bucket', 'cleanup', 'config', 'cache', 'help', 'home', 'hold', 'prefix', 'reset', 'virustotal', 'which')
+    }
+
+    $command = $commandAst.CommandElements[0].Value
+    if ($customCompletions.ContainsKey($command)) {
+        $customCompletions[$command] | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object {
+            [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
+        }
+    }
+}
+Register-ArgumentCompleter -Native -CommandName git, npm, deno, conda, docker, pip, yarn, powershell, winget, choco -ScriptBlock $scriptblock
+
+$scriptblock = {
+    param($wordToComplete, $commandAst, $cursorPosition)
+    dotnet complete --position $cursorPosition $commandAst.ToString() |
+        ForEach-Object {
+            [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
+        }
+}
+Register-ArgumentCompleter -Native -CommandName dotnet -ScriptBlock $scriptblock
 
 # `ForwardChar` accepts the entrie suggestio text when the cursor is at the end of the line
 # This custom binding makes `RightArrow` behave similarly - accepting the next word instead of the entire suggestion text.

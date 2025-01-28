@@ -1,7 +1,4 @@
 ﻿$alias_map = @{
-    'll'   = 'Get-ChildItemList'
-    'la'   = 'Get-ChildItemAll'
-    'mkcd' = 'mkdir-cd'
     'open' = 'explorer'
     'reload' = 'Reload-Script'
 }

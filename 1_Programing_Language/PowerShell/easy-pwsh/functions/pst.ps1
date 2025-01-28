@@ -1,0 +1,1 @@
+function pst { Get-Clipboard }

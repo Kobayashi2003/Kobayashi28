@@ -1,0 +1,1 @@
+﻿function cpy { Set-Clipboard $args[0] }

@@ -34,6 +34,12 @@ try {
     $latestVersion = $latestRelease.tag_name -replace '^v', ''
     "Latest PowerShell version: $latestVersion"
 
+    # if (Compare-Versions $currentVersion $latestVersion) {
+    #     Write-Host "Updating PowerShell..." -ForegroundColor Yellow
+    #     Start-Process powershell.exe -ArgumentList "-NoProfile -Command winget upgrade Microsoft.PowerShell --accept-source-agreements --accept-package-agreements" -Wait -NoNewWindow
+    #     Write-Host "PowerShell has been updated. Please restart your shell to reflect changes" -ForegroundColor Magenta
+    # }
+
     if (Compare-Versions $currentVersion $latestVersion) {
         "A new version is available. Downloading..."
 

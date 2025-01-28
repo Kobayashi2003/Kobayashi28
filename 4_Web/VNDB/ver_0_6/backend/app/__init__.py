@@ -1,7 +1,7 @@
 def create_app():
-    from flask import Flask 
+    from flask import Flask
     app = Flask(__name__)
-    
+
     # ---------------------------
     # Load configuration
     app.url_map.strict_slashes = False
@@ -34,7 +34,7 @@ def create_app():
     api = ExtRestx(app)
     jwt = ExtJWT(app)
     scheduler = ExtAPScheduler(app)
-    
+
     # ---------------------------
     # Generate random admin password
     import secrets
