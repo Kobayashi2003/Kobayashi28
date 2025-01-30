@@ -61,13 +61,7 @@ class VisualNovel(db.Model):
     image = relationship('Cover', back_populates='vn', uselist=False)
 
     # Self-referential many-to-many relationship
-    relations = relationship(
-        'VisualNovel',
-        secondary=vn_vn,
-        primaryjoin=(id == vn_vn.c.vn_id),
-        secondaryjoin=(id == vn_vn.c.related_vn_id),
-        backref='related_to'
-    ) # TODO
+    # TODO
 
     # One-to-many relationship with Screenshot
     screenshots = relationship('Screenshot', back_populates='vn')
