@@ -5,8 +5,8 @@ from sqlalchemy.orm import relationship
 from app import db
 
 vn_vn = Table('vn_vn', db.Model.metadata,
-    Column('vn_id', String, ForeignKey('visual_novels.id'), primary_key=True),
-    Column('related_vn_id', String, ForeignKey('visual_novels.id'), primary_key=True),
+    Column('vn1_id', String, ForeignKey('visual_novels.id'), primary_key=True),
+    Column('vn2_id', String, ForeignKey('visual_novels.id'), primary_key=True),
     Column('relation', String),
     Column('relation_official', Boolean)
 )
@@ -22,6 +22,19 @@ vn_tag = Table('vn_tag', db.Model.metadata,
 vn_producer = Table('vn_producer', db.Model.metadata,
     Column('vn_id', String, ForeignKey('visual_novels.id')),
     Column('producer_id', String, ForeignKey('producers.id'))
+)
+
+vn_staff = Table('vn_staff', db.Model.metadata,
+    Column('vn_id', String, ForeignKey('visual_novels.id')),
+    Column('staff_id', String, ForeignKey('staff.id')),
+    Column('eid', Integer),
+    Column('role', String),
+    Column('note', Text)
+)
+
+vn_extlink = Table('vn_extlink', db.Model.metadata,
+    Column('vn_id', String, ForeignKey('visual_novels.id'), primary_key=True),
+    Column('extlink_id', String, ForeignKey('extlinks.id'), primary_key=True)
 )
 
 class VisualNovel(db.Model):
@@ -64,6 +77,12 @@ class VisualNovel(db.Model):
 
     # Many-to-many relationship with Producer
     developers = relationship('Producer', secondary=vn_producer, back_populates='vns')
+
+    # Many-to-many relationship with Staff
+    staff = relationship('Staff')
+
+    # Many-to-many relationship with Extlink
+    extlinks = relationship('Extlink', secondary=vn_extlink, back_populates='extlinks')
 
 class Release(db.Model):
     __tablename__ = 'releases'
@@ -186,3 +205,6 @@ class Extlink(db.Model):
     url = Column(String)
     label = Column(String)
     name = Column(String)
+
+    vn_id = Column(String, ForeignKey('visual_novels.id'))
+    vn = relationship('VisualNovel', back_populates='extlinks')
