@@ -52,6 +52,8 @@
         "C:\Program Files (x86)" = "📦"
         "C:\Windows" = "🪟"
         "C:\Users" = "👥"
+        "C:\Temp" = "🗑️"
+        "C:\ProgramData" = "🗄️"
     }
 
     # Add development-related folders
@@ -66,10 +68,23 @@
                 "src" { "🧾" }
                 "source" { "🧾" }
                 "lib" { "📚" }
-                { $_ -in "test","tests" } { "🧪" }
                 "docs" { "📖" }
                 "scripts" { "📜" }
                 "node_modules" { "📦" }
+                ".git" { "🌿" }
+                "config" { "⚙️" }
+                "bin" { "🗃️" }
+                "include" { "📎" }
+                "data" { "💾" }
+                "assets" { "🖼️" }
+                "public" { "🌐" }
+                "private" { "🔒" }
+                "tools" { "🔧" }
+                "utils" { "🛠️" }
+                "vendor" { "🏪" }
+                "packages" { "📦" }
+                "resources" { "📦" }
+                { $_ -in "test","tests" } { "🧪" }
                 { $_ -in "venv",".venv" } { "🐍" }
                 { $_ -in "build","dist","target" } { "🎯" }
                 default { "📁" }
@@ -90,7 +105,8 @@
     }
 
     while ($path.Length -gt 30) {
-        $path = $path.Substring($path.LastIndexOf("\") + 1)
+        # $path = "..\" + $path.Substring($path.LastIndexOf("\") + 1)
+        $path = "..\" + $path.Substring($path.IndexOf("\", $path.IndexOf("\") + 1) + 1)
     }
     $promptString += "$esc[1;33m$path$esc[0m "
 

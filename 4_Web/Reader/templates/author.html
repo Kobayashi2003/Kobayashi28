@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Works by {{ author }}{% endblock %}
+
+{% block content %}
+<div class="control-panel">
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">← Back to Home</a>
+    
+    <select class="select-custom" 
+            onchange="window.location.href='{{ url_for('author_works', author_name=author) }}' + '?sort_by=' + this.value + '&order={{ order }}'">
+        <option value="modified_time" {% if sort_by == 'modified_time' %}selected{% endif %}>Sort by Modified Time</option>
+        <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Sort by Name</option>
+    </select>
+
+    <button onclick="toggleOrder()" class="btn btn-secondary">
+        {% if order == 'asc' %}
+        ↑ Ascending
+        {% else %}
+        ↓ Descending
+        {% endif %}
+    </button>
+</div>
+
+<h1 class="text-2xl font-bold mb-4">{{ author }}</h1>
+
+<div class="grid">
+    {% for work in works %}
+    <div class="item">
+        <a href="{{ url_for('work_images', author_name=author, work_name=work.name) }}">
+            {% if work.cover %}
+            <img class="lazy-image" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="{{ url_for('serve_image', image_path=author + '/' + work.name + '/' + work.cover) }}" 
+                 alt="{{ work.name }}" class="w-full aspect-square object-cover">
+            {% endif %}
+            <div class="item-title">{{ work.name }}</div>
+        </a>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+function toggleOrder() {
+    const currentOrder = '{{ order }}';
+    const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
+    window.location.href = '{{ url_for('author_works', author_name=author, sort_by=sort_by) }}' + '?order=' + newOrder;
+}
+</script>
+{% endblock %}

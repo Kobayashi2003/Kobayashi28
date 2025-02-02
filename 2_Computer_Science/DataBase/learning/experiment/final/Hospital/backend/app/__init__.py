@@ -11,7 +11,7 @@ def create_app():
     # Initialize extensions
     from flask_migrate import Migrate
     from flask_cors import CORS
-    from app.extentions import (
+    from app.extensions import (
         ExtSQLAchemy, ExtRestx, ExtJWT, ExtAPScheduler
     )
 

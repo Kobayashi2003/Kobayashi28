@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Book Reader{% endblock %}</title>
+    <style>
+    :root {
+        --glass-bg: rgba(17, 25, 40, 0.75);
+        --glass-border: rgba(255, 255, 255, 0.125);
+        --primary: #60a5fa;
+        --primary-hover: #3b82f6;
+    }
+    
+    body { 
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        line-height: 1.6;
+        margin: 0;
+        min-height: 100vh;
+        background-color: #0f172a;
+        color: #e2e8f0;
+    }
+
+    .glass {
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid var(--glass-border);
+        border-radius: 0.5rem;
+    }
+
+    .toolbar { 
+        position: fixed; 
+        top: 0; 
+        left: 0; 
+        right: 0; 
+        padding: 0.75rem 1.25rem;
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center;
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--glass-border);
+        z-index: 50;
+    }
+
+    .toolbar-brand {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #e2e8f0;
+        text-decoration: none;
+        margin-right: 2rem;
+    }
+
+    .toolbar-nav {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .toolbar-link {
+        color: var(--primary);
+        text-decoration: none;
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.375rem;
+        transition: all 0.2s;
+    }
+
+    .toolbar-link:hover {
+        color: white;
+        background: var(--primary-hover);
+    }
+
+    .search-form {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .search-input {
+        padding: 0.5rem 1rem;
+        border-radius: 0.375rem;
+        border: 1px solid var(--glass-border);
+        background: rgba(255, 255, 255, 0.05);
+        color: #e2e8f0;
+        min-width: 250px;
+    }
+
+    .search-input::placeholder {
+        color: #64748b;
+    }
+
+    .btn {
+        padding: 0.5rem 1rem;
+        border-radius: 0.375rem;
+        border: none;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        min-width: 100px;
+        text-align: center;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 38px;
+    }
+
+    .btn-primary {
+        background: #3b82f6;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #2563eb;
+    }
+
+    .btn-secondary {
+        background: rgba(148, 163, 184, 0.1);
+        color: #e2e8f0;
+    }
+
+    .btn-secondary:hover {
+        background: rgba(148, 163, 184, 0.2);
+    }
+
+    .content { 
+        margin-top: 5rem;
+        padding: 1.25rem;
+    }
+
+    .grid { 
+        display: grid; 
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); 
+        gap: 1.25rem; 
+    }
+
+    .item { 
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid var(--glass-border);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        transition: all 0.2s;
+    }
+
+    .item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .item a {
+        color: #e2e8f0;
+        text-decoration: none;
+    }
+
+    .item:hover a {
+        color: var(--primary);
+    }
+
+    .item img {
+        width: 100%;
+        height: auto;
+        border-radius: 0.375rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .item-title {
+        color: var(--primary);
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-top: 0.5rem;
+    }
+
+    .item-subtitle {
+        color: #94a3b8;
+        font-size: 0.875rem;
+    }
+
+    .read-container {
+        display: grid;
+        gap: 0.5rem;
+        padding: 0.25rem;
+    }
+
+    .read-container .item {
+        margin: 0;
+        padding: 0;
+    }
+
+    .read-container img {
+        margin: 0;
+        display: block;
+    }
+
+    select {
+        padding: 0.5rem;
+        border-radius: 0.375rem;
+        border: 1px solid var(--glass-border);
+        background: rgba(255, 255, 255, 0.05);
+        color: #e2e8f0;
+    }
+
+    .link-primary {
+        color: var(--primary);
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+
+    .link-primary:hover {
+        color: var(--primary-hover);
+    }
+
+    .control-panel {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid var(--glass-border);
+        border-radius: 0.5rem;
+        margin-bottom: 1.5rem;
+        white-space: nowrap;
+        overflow-x: auto;
+        flex-wrap: wrap;
+    }
+
+    .btn-group {
+        display: flex;
+        gap: 0.25rem;
+    }
+
+    .btn-group .btn {
+        border-radius: 0;
+    }
+
+    .btn-group .btn:first-child {
+        border-top-left-radius: 0.375rem;
+        border-bottom-left-radius: 0.375rem;
+    }
+
+    .btn-group .btn:last-child {
+        border-top-right-radius: 0.375rem;
+        border-bottom-right-radius: 0.375rem;
+    }
+
+    .select-custom {
+        padding: 0.5rem 2.5rem 0.5rem 1rem;
+        border-radius: 0.375rem;
+        border: 1px solid var(--glass-border);
+        background: rgba(255, 255, 255, 0.05);
+        color: #e2e8f0;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23e2e8f0'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 0.75rem center;
+        background-size: 1.5em 1.5em;
+    }
+
+    /* Style for select dropdown options */
+    select option {
+        background-color: var(--glass-bg);
+        color: #e2e8f0;
+        padding: 8px;
+    }
+
+    /* Style for select when opened */
+    select:focus {
+        outline: none;
+        border-color: var(--primary);
+    }
+
+    .btn-toggle {
+        background: rgba(255, 255, 255, 0.05);
+        color: #e2e8f0;
+        border: 1px solid var(--glass-border);
+    }
+
+    .btn-toggle.active {
+        background: var(--primary);
+        color: white;
+    }
+    
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background-color: rgba(0,0,0,0.9);
+        cursor: pointer;
+    }
+    
+    .modal-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        max-width: 90%;
+        max-height: 90vh;
+        object-fit: contain;
+        cursor: default;
+    }
+    
+    .close {
+        position: fixed;
+        top: 15px;
+        right: 35px;
+        color: #f1f1f1;
+        font-size: 40px;
+        font-weight: bold;
+        cursor: pointer;
+        z-index: 1001;
+    }
+    
+    .close:hover,
+    .close:focus {
+        color: #bbb;
+        text-decoration: none;
+    }
+    
+    .nav-arrow {
+        position: fixed;
+        top: 50%;
+        transform: translateY(-50%);
+        padding: 16px;
+        color: white;
+        font-weight: bold;
+        font-size: 24px;
+        background-color: rgba(0,0,0,0.5);
+        cursor: pointer;
+        z-index: 1001;
+        user-select: none;
+        -webkit-user-select: none;
+    }
+    
+    .nav-arrow:hover {
+        background-color: rgba(0,0,0,0.8);
+    }
+    
+    .nav-arrow.prev {
+        left: 20px;
+    }
+    
+    .nav-arrow.next {
+        right: 20px;
+    }
+
+    /* Responsive styles */
+    @media (max-width: 768px) {
+        .toolbar {
+            flex-direction: column;
+            align-items: stretch;
+            padding: 0.5rem;
+        }
+
+        .toolbar-brand {
+            margin-right: 0;
+            margin-bottom: 0.5rem;
+        }
+
+        .search-form {
+            width: 100%;
+        }
+
+        .search-input {
+            flex-grow: 1;
+            min-width: 0;
+        }
+
+        .content {
+            margin-top: 7rem;
+        }
+
+        .control-panel {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .btn-group-responsive {
+            width: 100%;
+        }
+
+        .btn-group-responsive .btn {
+            flex: 1;
+            text-align: center;
+            justify-content: center;
+        }
+
+        .btn-group {
+            flex-wrap: wrap;
+        }
+
+        .btn, .select-custom {
+            font-size: 0.875rem;
+            padding: 0.375rem 0.75rem;
+        }
+    }
+
+    /* Work page specific styles */
+    .work-header {
+        display: grid;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    @media (min-width: 1024px) {
+        .work-header {
+            grid-template-columns: 300px 1fr;
+            align-items: start;
+        }
+    }
+
+    .work-cover {
+        max-width: 300px;
+        width: 100%;
+    }
+
+    .work-cover img {
+        width: 100%;
+        height: auto;
+        border-radius: 0.5rem;
+    }
+
+    .work-thumbnails {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 0.5rem;
+        min-width: min-content;
+    }
+
+    .work-thumbnails .item {
+        padding: 0;
+        aspect-ratio: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    .work-thumbnails .item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        margin: 0;
+    }
+
+    .pull-to-refresh {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 0;
+        transition: height 0.3s;
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 40;
+        overflow: hidden;
+    }
+
+    .pull-to-refresh.pulling {
+        height: 60px;
+    }
+
+    .pull-to-refresh.refreshing {
+        height: 60px;
+    }
+
+    .pull-indicator {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #e2e8f0;
+        font-size: 0.875rem;
+    }
+
+    .pull-spinner {
+        width: 20px;
+        height: 20px;
+        border: 2px solid transparent;
+        border-top-color: currentColor;
+        border-radius: 50%;
+        animation: spin 0.6s linear infinite;
+        display: none;
+    }
+
+    .refreshing .pull-spinner {
+        display: inline-block;
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .header-wrapper {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 50;
+        transition: transform 0.2s;
+    }
+
+    .toolbar {
+        position: relative;
+        z-index: 50;
+    }
+
+    .pull-to-refresh {
+        position: relative;
+        z-index: 40;
+    }
+
+    .lazy-image {
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .lazy-image.loaded {
+        opacity: 1;
+    }
+
+    .btn-group-responsive {
+        display: flex;
+        gap: 0.25rem;
+    }
+    </style>
+</head>
+<body>
+    <div class="header-wrapper">
+        <div class="pull-to-refresh">
+            <div class="pull-indicator">
+                <div class="pull-spinner"></div>
+                <span class="pull-text">Pull to refresh</span>
+            </div>
+        </div>
+        <nav class="toolbar">
+            <div class="flex items-center">
+                <a href="{{ url_for('index') }}" class="toolbar-brand">Book Reader</a>
+            </div>
+            <div class="search-form">
+                <form action="{{ url_for('search') }}" method="get" class="flex">
+                    <input type="text" name="query" placeholder="Search for works or authors" class="search-input">
+                    <button type="submit" class="btn btn-primary">Search</button>
+                </form>
+            </div>
+        </nav>
+    </div>
+
+    <main class="content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <div id="imageModal" class="modal">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <img class="modal-content" id="modalImage">
+        <a href="#" class="nav-arrow prev">&lt;</a>
+        <a href="#" class="nav-arrow next">&gt;</a>
+    </div>
+
+    <script>
+        function openModal(imageSrc, index) {
+            var modal = document.getElementById("imageModal");
+            var modalImg = document.getElementById("modalImage");
+            modal.style.display = "block";
+            modalImg.src = imageSrc;
+            updateNavigation(index);
+        }
+        
+        function closeModal() {
+            var modal = document.getElementById("imageModal");
+            modal.style.display = "none";
+        }
+        
+        function updateNavigation(index) {
+            var prevArrow = document.querySelector('.nav-arrow.prev');
+            var nextArrow = document.querySelector('.nav-arrow.next');
+            var images = document.querySelectorAll('.grid .item img');
+            
+            prevArrow.style.display = index > 0 ? 'block' : 'none';
+            nextArrow.style.display = index < images.length - 1 ? 'block' : 'none';
+            
+            prevArrow.onclick = function() { navigateImage(index - 1); };
+            nextArrow.onclick = function() { navigateImage(index + 1); };
+        }
+        
+        function navigateImage(newIndex) {
+            var images = document.querySelectorAll('.grid .item img');
+            if (newIndex >= 0 && newIndex < images.length) {
+                openModal(images[newIndex].src, newIndex);
+            }
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            let touchStartY = 0;
+            let touchCurrentY = 0;
+            const pullThreshold = 100;
+            const pullToRefresh = document.querySelector('.pull-to-refresh');
+            const pullText = document.querySelector('.pull-text');
+            let isPulling = false;
+            let isRefreshing = false;
+            let scrollTop = 0;
+
+            document.addEventListener('touchstart', function(e) {
+                touchStartY = e.touches[0].clientY;
+                scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+            });
+
+            document.addEventListener('touchmove', function(e) {
+                if (isRefreshing) return;
+                
+                touchCurrentY = e.touches[0].clientY;
+                const touchDiff = touchCurrentY - touchStartY;
+                
+                // Only allow pull-to-refresh when at the top of the page
+                if (scrollTop <= 0 && touchDiff > 0) {
+                    isPulling = true;
+                    const pullDistance = Math.min(touchDiff * 0.5, pullThreshold);
+                    pullToRefresh.style.height = pullDistance + 'px';
+                    document.querySelector('.header-wrapper').style.transform = `translateY(${pullDistance}px)`;
+                    
+                    if (pullDistance >= pullThreshold) {
+                        pullText.textContent = 'Release to refresh';
+                    } else {
+                        pullText.textContent = 'Pull to refresh';
+                    }
+                    
+                    e.preventDefault();
+                }
+            });
+
+            document.addEventListener('touchend', function() {
+                if (!isPulling || isRefreshing) return;
+                
+                const pullDistance = parseInt(pullToRefresh.style.height);
+                if (pullDistance >= pullThreshold) {
+                    // Start refresh
+                    isRefreshing = true;
+                    pullToRefresh.classList.add('refreshing');
+                    pullText.textContent = 'Refreshing...';
+                    
+                    // Reset header position with animation
+                    document.querySelector('.header-wrapper').style.transform = 'translateY(0)';
+                    
+                    // Reload the page
+                    window.location.reload();
+                } else {
+                    // Reset pull-to-refresh and header position
+                    pullToRefresh.style.height = '0px';
+                    document.querySelector('.header-wrapper').style.transform = 'translateY(0)';
+                }
+                
+                isPulling = false;
+            });
+
+            // Reset pull-to-refresh when page is reloaded
+            window.addEventListener('load', function() {
+                pullToRefresh.style.height = '0px';
+                pullToRefresh.classList.remove('refreshing');
+                document.querySelector('.header-wrapper').style.transform = 'translateY(0)';
+                isRefreshing = false;
+                isPulling = false;
+            });
+
+            // Lazy loading implementation
+            const lazyImages = document.querySelectorAll('img[data-src]');
+            const imageObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        img.src = img.dataset.src;
+                        img.classList.add('loaded');
+                        observer.unobserve(img);
+                    }
+                });
+            }, {
+                rootMargin: '50px 0px',
+                threshold: 0.01
+            });
+
+            lazyImages.forEach(img => {
+                imageObserver.observe(img);
+            });
+        });
+    </script>
+</body>
+</html>

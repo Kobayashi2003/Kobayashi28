@@ -20,7 +20,6 @@
 function Compare-Versions($current, $latest) {
     $currentVersion = [Version]$current
     $latestVersion = [Version]$latest
-    return $true
     return $currentVersion -lt $latestVersion
 }
 

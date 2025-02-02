@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Book Reader{% endblock %}
+
+{% block content %}
+<div class="control-panel">
+    <div class="btn-group btn-group-responsive">
+        <a href="{{ url_for('index', view='works', sort_by=sort_by, order=order) }}" 
+           class="btn btn-toggle {% if view_type == 'works' %}active{% endif %}">
+            All Works
+        </a>
+        <a href="{{ url_for('index', view='authors', sort_by=sort_by, order=order) }}" 
+           class="btn btn-toggle {% if view_type == 'authors' %}active{% endif %}">
+            All Authors
+        </a>
+    </div>
+
+    <select class="select-custom" 
+            onchange="window.location.href='{{ url_for('index', view=view_type) }}' + '&sort_by=' + this.value + '&order={{ order }}'">
+        <option value="modified_time" {% if sort_by == 'modified_time' %}selected{% endif %}>Sort by Modified Time</option>
+        <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Sort by Name</option>
+    </select>
+
+    <button onclick="toggleOrder()" class="btn btn-secondary">
+        {% if order == 'asc' %}
+        ↑ Ascending
+        {% else %}
+        ↓ Descending
+        {% endif %}
+    </button>
+</div>
+
+<script>
+function toggleOrder() {
+    const currentOrder = '{{ order }}';
+    const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
+    window.location.href = '{{ url_for('index', view=view_type, sort_by=sort_by) }}' + '&order=' + newOrder;
+}
+</script>
+
+<div class="grid">
+    {% if view_type == 'authors' %}
+        {% for item in items %}
+        <div class="item">
+            <a href="{{ url_for('author_works', author_name=item.name) }}">
+                {% if item.cover %}
+                <img class="lazy-image" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="{{ url_for('serve_image', image_path=item.name + '/' + item.first_work + '/' + item.cover) }}" 
+                     alt="{{ item.name }}" class="w-full aspect-square object-cover">
+                {% endif %}
+                <div class="item-title">{{ item.name }}</div>
+                <div class="item-subtitle">{{ item.works_count }} works</div>
+            </a>
+        </div>
+        {% endfor %}
+    {% else %}
+        {% for item in items %}
+        <div class="item">
+            <a href="{{ url_for('work_images', author_name=item.author, work_name=item.name) }}">
+                {% if item.cover %}
+                <img class="lazy-image" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="{{ url_for('serve_image', image_path=item.author + '/' + item.name + '/' + item.cover) }}" 
+                     alt="{{ item.name }}" class="w-full aspect-square object-cover">
+                {% endif %}
+                <div class="item-title">{{ item.name }}</div>
+                <div class="item-subtitle">by {{ item.author }}</div>
+            </a>
+        </div>
+        {% endfor %}
+    {% endif %}
+</div>
+{% endblock %}

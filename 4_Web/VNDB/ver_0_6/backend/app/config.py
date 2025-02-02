@@ -9,6 +9,10 @@ class Config(object):
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'your-secret-key'
     JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY') or 'your-jwt-secret-key'
+    CACHE_TYPE = 'redis'
+    CACHE_DEFAULT_TIMEOUT = 300
+    CACHE_REDIS_URL = os.environ.get('CACHE_REDIS_URL') or \
+        'redis://localhost:6379/0'
 
 class DevelopmentConfig(Config):
     DEBUG = True

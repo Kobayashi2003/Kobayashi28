@@ -11,14 +11,15 @@ def create_app():
     # Initialize extensions
     from flask_migrate import Migrate
     from flask_cors import CORS
-    from app.extentions import (
-        ExtSQLAchemy, ExtRestx, ExtJWT, ExtAPScheduler
+    from app.extensions import (
+        ExtSQLAchemy, ExtRestx, ExtJWT, ExtAPScheduler, ExtCache
     )
 
     global db
     global migrate
     global api
     global jwt
+    global cache
     global scheduler
 
     CORS(app, resources={r"/*": {
@@ -33,6 +34,7 @@ def create_app():
     migrate = Migrate(app, db)
     api = ExtRestx(app)
     jwt = ExtJWT(app)
+    cache = ExtCache(app)
     scheduler = ExtAPScheduler(app)
 
     # ---------------------------

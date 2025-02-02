@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Reading {{ work }} by {{ author }}{% endblock %}
+
+{% block content %}
+<div class="control-panel">
+    <a href="{{ url_for('work_images', author_name=author, work_name=work) }}" class="btn btn-secondary">← Back to Work</a>
+</div>
+
+<h1 class="text-2xl font-bold mb-4">Reading {{ work }} by {{ author }}</h1>
+
+<div class="read-options mb-4">
+    <form action="{{ url_for('read_work', author_name=author, work_name=work) }}" method="get" class="flex items-center gap-4">
+        <label for="images_per_row">Images per row:</label>
+        <select name="images_per_row" id="images_per_row" onchange="this.form.submit()" class="select-custom" style="min-width: 70px">
+            <option value="1" {% if images_per_row == 1 %}selected{% endif %}>1</option>
+            <option value="2" {% if images_per_row == 2 %}selected{% endif %}>2</option>
+            <option value="3" {% if images_per_row == 3 %}selected{% endif %}>3</option>
+            <option value="4" {% if images_per_row == 4 %}selected{% endif %}>4</option>
+        </select>
+    </form>
+</div>
+
+<div class="read-container" style="grid-template-columns: repeat({{ images_per_row }}, 1fr);">
+    {% for image in images %}
+    <div class="item">
+        <img src="{{ url_for('serve_image', image_path=author + '/' + work + '/' + image) }}" 
+             alt="{{ image }}" class="w-full">
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

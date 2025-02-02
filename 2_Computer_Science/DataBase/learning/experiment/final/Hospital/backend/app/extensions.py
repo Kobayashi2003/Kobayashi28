@@ -19,7 +19,7 @@ def error_handler(func):
             return None
     return wrapper
 
-class Extention(ABC):
+class Extension(ABC):
     def __init__(self, app):
         self.app = app
         self.instance = self.create(app)
@@ -32,24 +32,24 @@ class Extention(ABC):
     def create(self, app):
         pass
 
-class ExtSQLAchemy(Extention):
+class ExtSQLAchemy(Extension):
     def create(self, app):
         db = SQLAlchemy(app)
         with app.app_context():
             db.create_all()
         return db
 
-class ExtRestx(Extention):
+class ExtRestx(Extension):
     def create(self, app):
         api = Api(app)
         return api
 
-class ExtJWT(Extention):
+class ExtJWT(Extension):
     def create(self, app):
         jwt = JWTManager(app)
         return jwt
 
-class ExtAPScheduler(Extention):
+class ExtAPScheduler(Extension):
     def __getattr__(self, name):
         if name == 'task':
             return self.scheduled_task

@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}{{ work }} by {{ author }}{% endblock %}
+
+{% block content %}
+<div class="control-panel">
+    <a href="{{ url_for('author_works', author_name=author) }}" class="btn btn-secondary">← Back</a>
+    <a href="{{ url_for('read_work', author_name=author, work_name=work) }}" class="btn btn-primary">Read</a>
+</div>
+
+<div class="work-header">
+    <div class="work-cover">
+        <img class="lazy-image" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="{{ url_for('serve_image', image_path=author + '/' + work + '/' + images[0]) }}" 
+             alt="{{ work }} cover" class="w-full h-auto object-cover">
+    </div>
+    
+    <div class="work-info">
+        <h1 class="text-2xl font-bold">{{ work }}</h1>
+        <p class="text-lg">by <a href="{{ url_for('author_works', author_name=author) }}" class="link-primary">{{ author }}</a></p>
+        <p class="text-muted-foreground">Last modified: {{ last_modified }}</p>
+        <p class="text-muted-foreground">Pages: {{ page_count }}</p>
+    </div>
+</div>
+
+<div class="work-thumbnails">
+    {% for image in images %}
+    <div class="item">
+        <img class="lazy-image" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="{{ url_for('serve_thumbnail', image_path=author + '/' + work + '/' + image) }}" 
+             data-full-image="{{ url_for('serve_image', image_path=author + '/' + work + '/' + image) }}"
+             alt="{{ image }}" 
+             class="w-full h-full object-contain cursor-pointer"
+             onclick="openModal(this.getAttribute('data-full-image'), {{ loop.index0 }})">
+    </div>
+    {% endfor %}
+</div>
+
+<div id="imageModal" class="modal" onclick="if(event.target===this)closeModal()">
+    <span class="close" onclick="closeModal()">&times;</span>
+    <img class="modal-content" id="modalImage">
+    <a class="nav-arrow prev" onclick="event.stopPropagation()">&lt;</a>
+    <a class="nav-arrow next" onclick="event.stopPropagation()">&gt;</a>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('imageModal');
+    const modalImg = document.getElementById('modalImage');
+    const prevArrow = document.querySelector('.nav-arrow.prev');
+    const nextArrow = document.querySelector('.nav-arrow.next');
+    let currentIndex = 0;
+    
+    // Keyboard event listener
+    document.addEventListener('keydown', function(e) {
+        if (modal.style.display === 'block') {
+            if (e.key === 'Escape') {
+                closeModal();
+            } else if (e.key === 'ArrowLeft') {
+                navigateImage(currentIndex - 1);
+            } else if (e.key === 'ArrowRight') {
+                navigateImage(currentIndex + 1);
+            }
+        }
+    });
+
+    window.openModal = function(imageSrc, index) {
+        modal.style.display = 'block';
+        modalImg.src = imageSrc;
+        currentIndex = index;
+        updateNavigation(index);
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+    }
+
+    window.closeModal = function() {
+        modal.style.display = 'none';
+        document.body.style.overflow = ''; // Restore background scrolling
+    }
+
+    window.updateNavigation = function(index) {
+        const images = document.querySelectorAll('.work-thumbnails .item img');
+        currentIndex = index;
+        
+        prevArrow.style.display = index > 0 ? 'block' : 'none';
+        nextArrow.style.display = index < images.length - 1 ? 'block' : 'none';
+        
+        prevArrow.onclick = function(e) {
+            e.stopPropagation();
+            navigateImage(index - 1);
+        };
+        nextArrow.onclick = function(e) {
+            e.stopPropagation();
+            navigateImage(index + 1);
+        };
+    }
+
+    window.navigateImage = function(newIndex) {
+        const images = document.querySelectorAll('.work-thumbnails .item img');
+        if (newIndex >= 0 && newIndex < images.length) {
+            const newImage = images[newIndex];
+            openModal(newImage.getAttribute('data-full-image'), newIndex);
+        }
+    }
+});
+</script>
+{% endblock %}
