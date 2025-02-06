@@ -248,7 +248,7 @@ def get_vn_filters(params: Dict[str, Any]) -> Dict[str, Any]:
     boolean_fields = ['has_description', 'has_anime', 'has_screenshot', 'has_review']
     for field in boolean_fields:
         if value := params.get(field):
-            filters.append({field: value.lower() == 'true'})
+            filters.append({field: str(value).lower() == 'true'})
     
     # Wrap in 'and' if there are multiple filters
     return {"and": filters} if len(filters) > 1 else filters[0] if filters else {}
@@ -446,7 +446,7 @@ def get_release_filters(params: Dict[str, Any]) -> Dict[str, Any]:
     boolean_fields = ['patch', 'freeware', 'uncensored', 'official', 'has_ero']
     for field in boolean_fields:
         if value := params.get(field):
-            filters.append({field: value.lower() == 'true'})
+            filters.append({field: str(value).lower() == 'true'})
 
     # Handle nested fields
     nested_fields = ['vn', 'producer']
@@ -845,13 +845,18 @@ class VNDBAPIWrapper:
         if isinstance(value, tuple):
             operator, filter_value = value
         else:
-            operator, filter_value = FilterOperator.EQUAL, value
+            operator, filter_value = '=', value
 
         # Special handling for array type filters
         if filter_def.filter_type == FilterType.ARRAY and not isinstance(filter_value, list):
             filter_value = [filter_value, 0, 0]
 
-        return [key, operator.value, filter_value]
+        # Special handling for boolean type filters
+        if filter_def.filter_type == FilterType.BOOLEAN:
+            operator = '=' if filter_value else '!='
+            filter_value = 1
+
+        return [key, operator, filter_value]
 
     def query(self, endpoint: VNDBEndpoint, filters: Dict[str, Any], fields: List[str], 
               sort: str = "id", reverse: bool = False, results: int = 10, page: int = 1, count: bool = True) -> Dict[str, Any]:

@@ -2,7 +2,7 @@ import httpx
 from typing import Dict, List, Any, Callable
 from enum import Enum
 
-from .filters import VNDBFilters, FilterOperator, FilterType, get_remote_filters
+from .filters import VNDBFilters, FilterType, get_remote_filters
 from .fields import get_remote_fields
 
 
@@ -82,13 +82,18 @@ class VNDBAPIWrapper:
         if isinstance(value, tuple):
             operator, filter_value = value
         else:
-            operator, filter_value = FilterOperator.EQUAL, value
+            operator, filter_value = '=', value
 
         # Special handling for array type filters
         if filter_def.filter_type == FilterType.ARRAY and not isinstance(filter_value, list):
             filter_value = [filter_value, 0, 0]
 
-        return [key, operator.value, filter_value]
+        # Special handling for boolean type filters
+        if filter_def.filter_type == FilterType.BOOLEAN:
+            operator = '=' if filter_value else '!='
+            filter_value = 1
+
+        return [key, operator, filter_value]
 
     def query(self, endpoint: VNDBEndpoint, filters: Dict[str, Any], fields: List[str], 
               sort: str = "id", reverse: bool = False, results: int = 10, page: int = 1, count: bool = True) -> Dict[str, Any]:

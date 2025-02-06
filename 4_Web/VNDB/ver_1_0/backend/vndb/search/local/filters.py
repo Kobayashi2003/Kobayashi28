@@ -129,9 +129,24 @@ def parse_cup_size(value: str) -> str:
         return value.upper()
     raise ValueError(f"Invalid cup size: {value}")
 
+def create_released_comparison_filter():
+    ...
+
+def create_resolution_comparison_filter():
+    ...
+
+def create_birthday_comparison_filter():
+    ...
+
+def create_cup_comparison_filter():
+    ...
+
 
 def get_vn_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     filters = []
+
+    if id := params.get('id'):
+        return [VN.id == id]
 
     if search := params.get('search'):
         def process_vn(vn_value):
@@ -165,19 +180,29 @@ def get_vn_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     if votecount := params.get('votecount'):
         filters.append(create_comparison_filter(VN.votecount, votecount, int))
 
-    if has_description := params.get('has_description'):
-        # TODO
-        ...
+    if 'has_description' in params:
+        has_description = params['has_description']
+        if str(has_description).lower() == 'true':
+            filters.append(VN.description.isnot(None))
+        elif str(has_description).lower() == 'false':
+            filters.append(VN.description.is_(None))
+        else:
+            raise ValueError(f"Invalid value for has_description: {has_description}. Use 'true' or 'false'.")
 
-    if has_anime := params.get('has_anime'):
-        ...
+    if 'has_anime' in params:
+        raise ValueError("The 'has_anime' search field is not available for local searches.")
 
-    if has_screenshot := params.get('has_screenshot'):
-        # TODO
-        ...
+    if 'has_screenshot' in params:
+        has_screenshot = params['has_screenshot']
+        if str(has_screenshot).lower() == 'true':
+            filters.append(func.array_length(VN.screenshots, 1) > 0)
+        elif str(has_screenshot).lower() == 'false':
+            filters.append(or_(VN.screenshots.is_(None), func.array_length(VN.screenshots, 1) == 0))
+        else:
+            raise ValueError(f"Invalid value for has_screenshot: {has_screenshot}. Use 'true' or 'false'.")
 
-    if has_review := params.get('has_review'):
-        ...
+    if 'has_review' in params:
+        raise ValueError("The 'has_review' search field is not available for local searches.")
     
     if devstatus := params.get('devstatus'):
         filters.append(VN.devstatus == devstatus)
@@ -190,18 +215,22 @@ def get_vn_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
             )
         filters.append(process_multi_value_expression(tags, process_tag))
 
-    if dtag := params.get('dtag'):
-        ...
+    if dtags := params.get('dtag'):
+        raise ValueError("The 'dtags' search field is not available for local searches.")
 
     if anime_id := params.get('anime_id'):
-        ...
+        raise ValueError("The 'anime_id' search field is not available for local searches.")
 
     if label := params.get('label'):
-        ...
+        raise ValueError("The 'label' search field is not available for local searches.")
 
     if releases := params.get('release'):
-        # TODO
-        ...
+        def process_release(release_value):
+            return or_(
+                array_jsonb_exact_match(VN.releases, 'id', release_value),
+                array_jsonb_match(VN.releases, 'title', release_value)
+            )
+        filters.append(process_multi_value_expression(releases, process_release))
 
     if characters := params.get('character'):
         def process_character(char_value):
@@ -234,6 +263,9 @@ def get_vn_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
 
 def get_release_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     filters = []
+
+    if id := params.get('id'):
+        return [Release.id == id]
 
     if search := params.get('search'):
         def process_release(release_value):
@@ -274,16 +306,32 @@ def get_release_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
         filters.append(Release.engine == engine)
 
     if rtype := params.get('rtype'):
+        # TODO
         ...
 
     if extlink := params.get('extlink'):
         # TODO
         ...
 
-    boolean_fields = ['patch', 'freeware', 'uncensored', 'official', 'has_ero']
-    for field in boolean_fields:
-        if value := params.get(field):
-            filters.append(getattr(Release, field) == (value.lower() == 'true'))
+    if patch := params.get('patch'):
+        # TODO
+        ...
+
+    if freeware := params.get('freeware'):
+        # TODO
+        ...
+
+    if uncensored := params.get('uncensored'):
+        # TODO
+        ...
+
+    if official := params.get('official'):
+        # TODO
+        ...
+
+    if has_ero := params.get('has_ero'):
+        # TODO
+        ...
 
     if vns := params.get('vn'):
         def process_vn(vn_value):
@@ -307,13 +355,29 @@ def get_release_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
 def get_character_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     filters = []
 
+    if id := params.get('id'):
+        return [Character.id == id]
+
+    if search := params.get('search'):
+        def process_character(character_value):
+            return or_(
+                Character.id == character_value,
+                Character.name.ilike(f"%{character_value}%"),
+                Character.original.ilike(f"%{character_value}%"),
+                array_string_match(Character.aliases, character_value)
+            )
+        filters.append(process_multi_value_expression(search, process_character))
+
+    if role := params.get('role'):
+        # TODO
+        ...
+
     if blood_type := params.get('blood_type'):
         filters.append(Character.blood_type == blood_type)
     
     if sex := params.get('sex'):
         filters.append(array_string_match(Character.sex, sex))
     
-    # Expanded numeric fields
     if height := params.get('height'):
         filters.append(create_comparison_filter(Character.height, height, int))
     
@@ -329,24 +393,12 @@ def get_character_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     if hips := params.get('hips'):
         filters.append(create_comparison_filter(Character.hips, hips, int))
     
+    if cup := params.get('cup'):
+        # TODO
+        ...
+
     if age := params.get('age'):
         filters.append(create_comparison_filter(Character.age, age, int))
-    
-    if cup := params.get('cup'):
-        filters.append(Character.cup == parse_cup_size(cup))
-
-    if birthday := params.get('birthday'):
-        filters.append(create_comparison_filter(Character.birthday, birthday, parse_birthday))
-
-    if characters := params.get('search'):
-        def process_character(character_value):
-            return or_(
-                Character.id == character_value,
-                Character.name.ilike(f"%{character_value}%"),
-                Character.original.ilike(f"%{character_value}%"),
-                array_string_match(Character.aliases, character_value)
-            )
-        filters.append(process_multi_value_expression(characters, process_character))
 
     if traits := params.get('trait'):
         def process_trait(trait_value):
@@ -363,6 +415,16 @@ def get_character_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
             )
         filters.append(process_multi_value_expression(traits, process_trait))
 
+    if dtraits := params.get('dtrait'):
+        ...
+
+    if birthday := params.get('birthday'):
+        # TODO
+        ...
+
+    if seiyuu := params.get('seiyuu'):
+        ...
+
     if vns := params.get('vn'):
         def process_vn(vn_value):
             return or_(
@@ -376,7 +438,10 @@ def get_character_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
 def get_producer_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     filters = []
 
-    if producers := params.get('search'):
+    if id := params.get('id'):
+        return [Producer.id == id]
+
+    if search := params.get('search'):
         def process_producer(producer_value):
             return or_(
                 Producer.id == producer_value,
@@ -384,7 +449,7 @@ def get_producer_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
                 Producer.original.ilike(f"%{producer_value}%"),
                 array_string_match(Producer.aliases, producer_value)
             )
-        filters.append(process_multi_value_expression(producers, process_producer))
+        filters.append(process_multi_value_expression(search, process_producer))
     
     if lang := params.get('lang'):
         filters.append(Producer.lang == lang)
@@ -397,7 +462,14 @@ def get_producer_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
 def get_staff_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     filters = []
 
-    if staff := params.get('search'):
+    if id := params.get('id'):
+        return [Staff.id == id]
+
+    if aid := params.get('aid'):
+        # TODO
+        ...
+
+    if search := params.get('search'):
         def process_staff(staff_value):
             return or_(
                 Staff.id == staff_value,
@@ -405,13 +477,21 @@ def get_staff_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
                 Staff.original.ilike(f"%{staff_value}%"),
                 array_jsonb_match(Staff.aliases, 'name', staff_value),
             )
-        filters.append(process_multi_value_expression(staff, process_staff))
+        filters.append(process_multi_value_expression(search, process_staff))
 
     if lang := params.get('lang'):
         filters.append(Staff.lang == lang)
     
     if gender := params.get('gender'):
         filters.append(Staff.gender == gender)
+
+    if role := params.get('role'):
+        # TODO
+        ...
+
+    if extlink := params.get('extlink'):
+        # TODO
+        ...
     
     if ismain := params.get('ismain'):
         filters.append(Staff.ismain == (ismain.lower() == 'true'))
@@ -421,32 +501,29 @@ def get_staff_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
 def get_tag_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     filters = []
 
-    if tags := params.get('search'):
+    if id := params.get('id'):
+        return [Tag.id == id]
+
+    if search := params.get('search'):
         def process_tag(tag_value):
             return or_(
                 Tag.id == tag_value,
                 Tag.name.ilike(f"%{tag_value}%"),
                 array_string_match(Tag.aliases, tag_value)
             )
-        filters.append(process_multi_value_expression(tags, process_tag))
+        filters.append(process_multi_value_expression(search, process_tag))
 
     if category := params.get('category'):
         filters.append(Tag.category == category)
     
-    if vn_count := params.get('vn_count'):
-        filters.append(create_comparison_filter(Tag.vn_count, vn_count, int))
-
-    if searchable := params.get('searchable'):
-        filters.append(Tag.searchable == (searchable.lower() == 'true'))
-    
-    if applicable := params.get('applicable'):
-        filters.append(Tag.applicable == (applicable.lower() == 'true'))
-
     return filters
 
 def get_trait_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     filters = []
     
+    if id := params.get('id'):
+        return [Trait.id == id]
+
     if traits := params.get('search'):
         def process_trait(trait_value):
             return or_(
@@ -456,39 +533,9 @@ def get_trait_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
             )
         filters.append(process_multi_value_expression(traits, process_trait))
     
-    if searchable := params.get('searchable'):
-        filters.append(Trait.searchable == (searchable.lower() == 'true'))
-    
-    if applicable := params.get('applicable'):
-        filters.append(Trait.applicable == (applicable.lower() == 'true'))
-    
-    if group_id := params.get('group_id'):
-        filters.append(Trait.group_id == group_id)
-    
-    if group_name := params.get('group_name'):
-        filters.append(Trait.group_name.ilike(f"%{group_name}%"))
-    
-    if char_count := params.get('char_count'):
-        filters.append(create_comparison_filter(Trait.char_count, char_count, int))
-    
     return filters
 
 def get_local_filters(search_type: str, params: Dict[str, Any]) -> List[BinaryExpression]:
-    if id := params.get('id'):
-        model = {
-            'vn': VN,
-            'character': Character,
-            'producer': Producer,
-            'staff': Staff,
-            'tag': Tag,
-            'trait': Trait,
-            'release': Release
-        }.get(search_type)
-
-        if model:
-            return [model.id == id]
-        else:
-            raise ValueError(f"Invalid search_type: {search_type}")
 
     filter_functions = {
         'vn': get_vn_filters,

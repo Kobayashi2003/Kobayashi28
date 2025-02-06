@@ -2,14 +2,6 @@ from typing import Dict, Any
 from enum import Enum, auto
 
 
-class FilterOperator(Enum):
-    EQUAL = "="
-    NOT_EQUAL = "!="
-    GREATER_THAN = ">"
-    GREATER_THAN_EQUAL = ">="
-    LESS_THAN = "<"
-    LESS_THAN_EQUAL = "<="
-
 class FilterType(Enum):
     STRING = auto()
     INTEGER = auto()
@@ -248,7 +240,7 @@ def get_vn_filters(params: Dict[str, Any]) -> Dict[str, Any]:
     boolean_fields = ['has_description', 'has_anime', 'has_screenshot', 'has_review']
     for field in boolean_fields:
         if value := params.get(field):
-            filters.append({field: value.lower() == 'true'})
+            filters.append({field: str(value).lower() == 'true'})
     
     # Wrap in 'and' if there are multiple filters
     return {"and": filters} if len(filters) > 1 else filters[0] if filters else {}
@@ -446,7 +438,7 @@ def get_release_filters(params: Dict[str, Any]) -> Dict[str, Any]:
     boolean_fields = ['patch', 'freeware', 'uncensored', 'official', 'has_ero']
     for field in boolean_fields:
         if value := params.get(field):
-            filters.append({field: value.lower() == 'true'})
+            filters.append({field: str(value).lower() == 'true'})
 
     # Handle nested fields
     nested_fields = ['vn', 'producer']
