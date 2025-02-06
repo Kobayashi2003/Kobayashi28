@@ -1,4 +1,4 @@
-﻿if (Get-Command 'sudo' -ErrorAction SilentlyContinue) {
+﻿if ((Get-Command 'sudo' -ErrorAction SilentlyContinue) -and ((Get-Command 'sudo').Source -ne 'C:\WINDOWS\system32\sudo.exe')) {
 <# .Notes
     https://github.com/sudo-pwsh/sudo-pwsh
 #>

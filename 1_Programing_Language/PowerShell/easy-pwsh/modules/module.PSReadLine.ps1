@@ -711,12 +711,13 @@ Set-PSReadLineOption -CommandValidationHandler {
             'p'     = 'push'
             'cl'    = 'clone'
             'cmt'   = 'commit'
-            'mpush' = "@whole:git add . ; git commit -m $(Get-Date -Format 'yyMMdd') ; git push"
-            'mcheckout' = "@whole:git checkout master --"
-            # 'mlog'  = '@whole:git log --graph --pretty=format:"%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset" --abbrev-commit'
-            'mlog'  = '@whole:git log --no-merges --color --stat --graph --date=format:"%Y-%m-%d %H:%M:%S" --pretty=format:"%Cred%h%Creset -%C(yellow)%d%Cblue %s %Cgreen(%cd) %C(bold blue)<%an>%Creset" --abbrev-commit'
-            'mclone'= '@whole:git clone --depth 1 --filter=blob:none --no-checkout'
-            'mreset'= '@whole:git reset --mixed HEAD~1'
+            'undo'= '@whole:git reset --mixed HEAD~1'
+            'master' = "@whole:git checkout master --"
+            'quickpush' = "@whole:git add . ; git commit -m $(Get-Date -Format 'yyMMdd') ; git push"
+            'prettylog'  = '@whole:git log --no-merges --color --stat --graph --date=format:"%Y-%m-%d %H:%M:%S" --pretty=format:"%Cred%h%Creset -%C(yellow)%d%Cblue %s %Cgreen(%cd) %C(bold blue)<%an>%Creset" --abbrev-commit'
+            'shallowclone'= '@whole:git clone --depth 1 --filter=blob:none --no-checkout'
+            'proxyon'  = '@whole:git config --global http.proxy http://127.0.0.1:7890 ; git config --global https.proxy http://127.0.0.1:7890'
+            'proxyoff' = '@whole:git config --global --unset http.proxy ; git config --global --unset https.proxy'
         }
         'conda' = @{
             'a' = 'activate'

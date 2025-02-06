@@ -1,0 +1,185 @@
+import os
+import subprocess
+from datetime import datetime, timezone
+
+import click
+from flask import current_app
+from flask.cli import with_appcontext
+from flask_migrate import migrate, upgrade, downgrade
+from sqlalchemy import inspect
+
+from vndb import db
+from .models import MODEL_MAP
+
+@click.command('init-db')
+@click.option('--drop', is_flag=True, help='Create after drop.')
+@with_appcontext
+def init_db(drop):
+    """Clear the existing data and create new tables."""
+    if drop:
+        click.confirm('This operation will delete the database, do you want to continue?', abort=True)
+        db.drop_all()
+        click.echo('Drop tables.')
+    db.create_all()
+    click.echo('Initialized the database.')
+
+@click.command('drop-db')
+@click.option('--force', is_flag=True, help='Drop without confirmation.')
+@with_appcontext
+def drop_db(force):
+    """Drop all tables in the database."""
+    if not force:
+        click.confirm('This operation will drop all tables in the database, do you want to continue?', abort=True)
+    
+    db.drop_all()
+    click.echo('All tables have been dropped.')
+
+@click.command('clean-db')
+@click.option('--tables', '-t', multiple=True, help='Specify tables to clean. If none specified, all tables will be cleaned.')
+@click.confirmation_option(prompt='Are you sure you want to clean the database?')
+@with_appcontext
+def clean_db(tables):
+    """Clean specified tables or all tables in the database."""
+    table_map = MODEL_MAP
+
+    if not tables:
+        tables = table_map.keys()
+
+    for table in tables:
+        if table in table_map:
+            model = table_map[table]
+            try:
+                num_deleted = db.session.query(model).delete()
+                db.session.commit()
+                click.echo(f"Cleaned {num_deleted} entries from {table}")
+            except Exception as e:
+                db.session.rollback()
+                click.echo(f"Error cleaning {table}: {str(e)}", err=True)
+        else:
+            click.echo(f"Unknown table: {table}", err=True)
+
+    click.echo("Database cleaning completed.")
+
+@click.command('inspect-db')
+@with_appcontext
+def inspect_db():
+    """Inspect the database schema."""
+    inspector = inspect(db.engine)
+    for model_name, model_class in MODEL_MAP.items():
+        columns = inspector.get_columns(model_class.__tablename__)
+        foreign_keys = inspector.get_foreign_keys(model_class.__tablename__)
+
+        print(f"Table: {model_class.__tablename__}")
+        print("Columns:")
+        for column in columns:
+            print(f"  - {column['name']} ({column['type']})")
+        print("Foreign Keys:")
+        for fk in foreign_keys:
+            print(f"  - {fk['constrained_columns']} -> {fk['referred_table']}.{fk['referred_columns']}")
+        print("\n")
+
+@click.command('makemigrations')
+@click.option('--message', '-m', default=None, help='Migration message')
+@with_appcontext
+def makemigrations(message):
+    """Create a new migration."""
+    migrate(message=message)
+    click.echo('Created a new migration.')
+
+@click.command('migrate')
+@with_appcontext
+def migrate_db():
+    """Apply all pending migrations."""
+    upgrade()
+    click.echo('Applied all pending migrations.')
+
+@click.command('downgrade')
+@click.option('--revision', '-r', default='-1', help='Revision to downgrade to (default: -1, which means downgrade one step)')
+@with_appcontext
+def downgrade_db(revision):
+    """Revert to a previous database migration."""
+    downgrade(revision)
+    click.echo(f'Downgraded database to revision: {revision}')
+
+@click.command('backup-db')
+@click.option('-f', '--filename', default=None, help='Specify a filename for the backup file.')
+@with_appcontext
+def backup_db(filename):
+    """Backup the database using pg_dump."""
+
+    if not filename:
+        filename = datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S') + '.dump'
+
+    db_name = current_app.config['DB_NAME']
+    db_user = current_app.config['DB_USER']
+    db_password = current_app.config['DB_PASSWORD']
+    db_host = current_app.config['DB_HOST']
+    db_port = current_app.config['DB_PORT']
+
+    backup_folder = current_app.config['BACKUP_FOLDER']
+    backup_path = os.path.join(backup_folder, filename)
+    os.makedirs(backup_folder, exist_ok=True)
+
+    env = os.environ.copy()
+    env['PGPASSWORD'] = db_password
+
+    command = [
+        'pg_dump',
+        '-h', db_host,
+        '-p', db_port,
+        '-U', db_user,
+        '-F', 'c',  # plain text format
+        '-f', backup_path,
+        db_name
+    ]
+
+    try:
+        subprocess.run(command, env=env, check=True, capture_output=True, text=True)
+        click.echo(f"Database backup created successfully")
+    except Exception as e:
+        click.echo(f"Error creating database backup: {str(e)}", err=True)
+
+@click.command('restore-db')
+@click.argument('filename', type=click.Path(exists=True))
+@with_appcontext
+def restore_db(filename):
+    """Restore the database from a backup file."""
+
+    db_name = current_app.config['DB_NAME']
+    db_user = current_app.config['DB_USER']
+    db_password = current_app.config['DB_PASSWORD']
+    db_host = current_app.config['DB_HOST']
+    db_port = current_app.config['DB_PORT']
+
+    env = os.environ.copy()
+    env['PGPASSWORD'] = db_password
+
+    command = [
+        'pg_restore',
+        '-h', db_host,
+        '-p', db_port,
+        '-U', db_user,
+        '-d', db_name,
+        '--clean',  # drop existing objects before restoring
+        '--if-exists',  # skip objects that don't exist
+        '--no-owner', # skip restoration of object ownership
+        '--no-privileges',  # skip restoration of access privileges
+        filename
+    ]
+
+    try:
+        subprocess.run(command, env=env, check=True, capture_output=True, text=True)
+        click.echo(f"Database restored successfully from: {filename}")
+    except Exception as e:
+        click.echo(f"Error restoring database: {str(e)}", err=True)
+
+def register_commands(app):
+    app.cli.add_command(init_db)
+    app.cli.add_command(clean_db)
+    app.cli.add_command(drop_db)
+    app.cli.add_command(inspect_db)
+    app.cli.add_command(makemigrations)
+    app.cli.add_command(migrate_db)
+    app.cli.add_command(downgrade_db)
+    app.cli.add_command(backup_db)
+    app.cli.add_command(restore_db)
