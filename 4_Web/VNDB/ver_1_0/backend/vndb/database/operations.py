@@ -1,5 +1,5 @@
 from typing import List, Dict, Any 
-from datetime import datetime, timezone 
+from datetime import datetime, timezone, timedelta
 from functools import wraps
 
 from sqlalchemy import asc, desc
@@ -34,6 +34,16 @@ def exists(type: str, id: str) -> bool:
 def count_all(type: str) -> int:
     model = MODEL_MAP[type]
     return db.session.query(model).filter(model.deleted_at == None)
+
+def updatable(type: str, id: str, update_interval: timedelta = timedelta(minutes=1)) -> bool:
+    item = get(type, id)
+    if not item:
+        return True  # Allow update if item doesn't exist (it will be created)
+    if item.deleted_at is not None:
+        return True  # Allow update if item is deleted
+    if item.updated_at is None:
+        return True  # Allow update if item has never been updated
+    return datetime.now(timezone.utc) - item.updated_at > update_interval
 
 
 def get(type: str, id: str) -> ModelType | None:

@@ -83,7 +83,7 @@ def create_app(config_class=Config):
     # CLI Command Registration
     # This section adds custom CLI commands for database operations
     # ----------------------------------------
-    from .database.command import register_commands
+    from .database.commands import register_commands
 
     register_commands(app)
 

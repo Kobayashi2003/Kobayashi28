@@ -1,7 +1,7 @@
 # Database configuration
 $env:DB_NAME = "vndb_test"
 $env:DB_USER = "postgres"
-$env:DB_PASSWORD = "Lin20030907"
+$env:DB_PASSWORD = "postgres"
 $env:DB_HOST = "localhost"
 $env:DB_PORT = "5432"
 

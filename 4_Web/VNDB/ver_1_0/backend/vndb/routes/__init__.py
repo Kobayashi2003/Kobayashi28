@@ -1,7 +1,8 @@
 from flask import Blueprint, jsonify 
+from .query import handle_query
 
-# api_bp = Blueprint('api_v5', __name__, url_prefix='/api/v5')
-api_bp = Blueprint('api_v5', __name__, url_prefix='/')
+api_bp = Blueprint('api', __name__, url_prefix='/')
+api_bp.add_url_rule('/<string:query>', 'handle_query', handle_query, methods=['GET'])
 
 @api_bp.errorhandler(400)
 def bad_request(e):
@@ -17,7 +18,7 @@ def server_error(e):
 
 @api_bp.route('', methods=['GET', 'TRACE'])
 def hello_world():
-    return jsonify({"message": "Hello, KOBAYASHI!"})
+    return jsonify({"message": "VNDB"})
 
 from .resources import (
     vn_bp, staff_bp, tag_bp, trait_bp,

@@ -337,7 +337,7 @@ def get_staff_filters(params: Dict[str, Any]) -> Dict[str, Any]:
         filters.append({"gender": gender})
     
     if ismain := params.get('ismain'):
-        filters.append({"ismain": ismain.lower() == 'true'})
+        filters.append({"ismain": str(ismain).lower() == 'true'})
 
     if extlink := params.get('extlink'):
         filters.append({"extlink": extlink})
@@ -483,5 +483,7 @@ def get_remote_filters(search_type: str, params: Dict[str, Any]) -> Dict[str, An
         return get_tag_filters(params)
     elif search_type == 'trait':
         return get_trait_filters(params)
+    elif search_type == 'release':
+        return get_release_filters(params)
     else:
         raise ValueError(f"Invalid search_type: {search_type}")

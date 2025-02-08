@@ -5,11 +5,18 @@ from datetime import datetime, timezone
 import click
 from flask import current_app
 from flask.cli import with_appcontext
-from flask_migrate import migrate, upgrade, downgrade
 from sqlalchemy import inspect
 
 from vndb import db
 from .models import MODEL_MAP
+
+def register_commands(app):
+    app.cli.add_command(init_db)
+    app.cli.add_command(clean_db)
+    app.cli.add_command(drop_db)
+    app.cli.add_command(inspect_db)
+    app.cli.add_command(backup_db)
+    app.cli.add_command(restore_db)
 
 @click.command('init-db')
 @click.option('--drop', is_flag=True, help='Create after drop.')
@@ -77,29 +84,6 @@ def inspect_db():
         for fk in foreign_keys:
             print(f"  - {fk['constrained_columns']} -> {fk['referred_table']}.{fk['referred_columns']}")
         print("\n")
-
-@click.command('makemigrations')
-@click.option('--message', '-m', default=None, help='Migration message')
-@with_appcontext
-def makemigrations(message):
-    """Create a new migration."""
-    migrate(message=message)
-    click.echo('Created a new migration.')
-
-@click.command('migrate')
-@with_appcontext
-def migrate_db():
-    """Apply all pending migrations."""
-    upgrade()
-    click.echo('Applied all pending migrations.')
-
-@click.command('downgrade')
-@click.option('--revision', '-r', default='-1', help='Revision to downgrade to (default: -1, which means downgrade one step)')
-@with_appcontext
-def downgrade_db(revision):
-    """Revert to a previous database migration."""
-    downgrade(revision)
-    click.echo(f'Downgraded database to revision: {revision}')
 
 @click.command('backup-db')
 @click.option('-f', '--filename', default=None, help='Specify a filename for the backup file.')
@@ -172,14 +156,3 @@ def restore_db(filename):
         click.echo(f"Database restored successfully from: {filename}")
     except Exception as e:
         click.echo(f"Error restoring database: {str(e)}", err=True)
-
-def register_commands(app):
-    app.cli.add_command(init_db)
-    app.cli.add_command(clean_db)
-    app.cli.add_command(drop_db)
-    app.cli.add_command(inspect_db)
-    app.cli.add_command(makemigrations)
-    app.cli.add_command(migrate_db)
-    app.cli.add_command(downgrade_db)
-    app.cli.add_command(backup_db)
-    app.cli.add_command(restore_db)

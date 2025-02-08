@@ -1,10 +1,10 @@
 from typing import Dict, List, Any
 
-from api.search import (
+from vndb.search import (
     search_remote, search_local,
     convert_remote_to_local 
 )
-from api.database import (
+from vndb.database import (
     get, get_all, create, update,
     delete, delete_all, exists, count_all 
 )

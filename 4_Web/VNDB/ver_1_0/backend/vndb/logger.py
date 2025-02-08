@@ -29,4 +29,4 @@ def setup_logger(name, log_file, level=logging.INFO):
 
     return logger
 
-logger = setup_logger('logger', 'logs/info.log')
+logger = setup_logger('logger', 'vndb/logs/info.log')

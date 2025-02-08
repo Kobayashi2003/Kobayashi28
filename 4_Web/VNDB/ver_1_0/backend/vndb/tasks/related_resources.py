@@ -1,6 +1,6 @@
 from typing import Dict, Any, Callable
 
-from api.search import (
+from vndb.search import (
     search_resources_by_vnid_local,
     search_resources_by_charid_local,
     search_resources_by_release_id_local,
@@ -15,7 +15,7 @@ from api.search import (
     search_releases_by_resource_id_remote,
     convert_remote_to_local
 )
-from api.database import (
+from vndb.database import (
     exists, create, update, delete,
 )
 from .common import (

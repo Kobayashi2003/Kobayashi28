@@ -1,6 +1,6 @@
 from typing import Dict, Any 
 
-from api.database import (
+from vndb.database import (
     get_inactive, get_inactive_all,
     cleanup, cleanup_all,
     recover, recover_all,

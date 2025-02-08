@@ -1,62 +1,4 @@
 {
-    "files.autoSave": "afterDelay",
-
-    "workbench.colorTheme": "One Dark Pro",
-    "workbench.iconTheme": "material-icon-theme",
-    "workbench.preferredDarkColorTheme": "One Dark Pro Darker",
-    "workbench.list.smoothScrolling": true,
-
-    "editor.lineNumbers": "relative",
-    "editor.minimap.enabled": true, // whether to show the minimap
-    "editor.minimap.scale": 3,
-    "editor.cursorBlinking": "expand",
-    "editor.cursorSmoothCaretAnimation": "on",
-    "editor.suggest.preview": true,
-    "editor.inlineSuggest.enabled": true,
-    "editor.linkedEditing": true,
-    "editor.rulers": [],
-    "editor.accessibilitySupport": "off",
-
-    "terminal.integrated.cursorStyle": "line",
-    "terminal.integrated.cursorBlinking": true,
-    "terminal.integrated.smoothScrolling": true,
-    "terminal.integrated.defaultProfile.windows": "Windows PowerShell",
-    "terminal.integrated.profiles.windows": {
-        "PowerShell": {
-            "source": "PowerShell",
-            "icon": "terminal-powershell"
-        },
-        "Command Prompt": {
-            "path": [
-                "${env:windir}\\Sysnative\\cmd.exe",
-                "${env:windir}\\System32\\cmd.exe"
-            ],
-            "args": [],
-            "icon": "terminal-cmd"
-        },
-        "Git Bash": {
-            "source": "Git Bash"
-        },
-        "Windows PowerShell": {
-            "path": "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
-        }
-    },
-
-    "terminal.integrated.stickyScroll.enabled": true,
-    "editor.stickyScroll.enabled": true,
-    "notebook.stickyScroll.enabled": true,
-    "workbench.tree.enableStickyScroll": true,
-
-    "debug.onTaskErrors": "showErrors",
-
-    "extensions.autoUpdate": "onlySelectedExtensions",
-
-    "window.zoomLevel": 1,
-    "window.commandCenter": true,
-
-    // always trust the workspace
-    "security.workspace.trust.untrustedFiles": "open",
-
     // ***** vim config ***** //
     "vim.easymotion": true,
     "vim.incsearch": true,
@@ -193,18 +135,6 @@
         "before": ["j", "k"],
         "after": ["<Escape>"]
       },
-      { 
-        "before": ["k", "j"],
-        "after": ["<Escape>"]
-      },
-      { 
-        "BEFORE": ["J", "K"],
-        "AFTER": ["<ESCAPE>"]
-      },
-      { 
-        "before": ["K", "J"],
-        "after": ["<Escape>"]
-      },
       {
         "before": ["<C-c>"],
         "commands": ["editor.action.clipboardCopyAction"]
@@ -273,96 +203,5 @@
         "before": ["<leader>", "/"],
         "commands": ["editor.action.commentLine"]
       }
-    ],
-
-    // ***** github copilot ***** //
-    "github.copilot.enable": {
-        "*": true,
-        "plaintext": false,
-        "markdown": true,
-        "scminput": false,
-        "yaml": false,
-        "python": true
-    },
-
-    "remote.extensionKind": {
-        "GitHub.copilot": [
-            "ui"
-        ],
-        "github.copilot-chat": [
-            "ui"
-        ]
-    },
-
-    // ***** powershell ***** //
-    "powershell.codeFormatting.autoCorrectAliases": true,
-    "powershell.powerShellAdditionalExePaths": {
-        "Windows PowerShell (x86)": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
-    },
-    "[powershell]": {
-        "debug.saveBeforeStart": "nonUntitledEditorsInActiveGroup",
-        "editor.semanticHighlighting.enabled": true,
-        "editor.wordSeparators": "`~!@#$%^&*()=+[{]}\\|;:'\",.<>/?",
-        "editor.renderWhitespace": "all",
-        "editor.renderControlCharacters": true,
-        "files.trimTrailingWhitespace": true,
-        "files.encoding": "utf8bom",
-        "files.autoGuessEncoding": true,
-    },
-
-    // ***** python ***** //
-    "[python]": {
-        "editor.formatOnType": true
-    },
-    "python.testing.pytestEnabled": true,
-    "python.testing.unittestEnabled": false,
-    "python.testing.autoTestDiscoverOnSaveEnabled": false,
-    "python.testing.unittestArgs": [],
-    "python.testing.pytestArgs": [],
-
-    // ***** c/c++ ***** //
-    "[cpp]": {
-      "editor.wordBasedSuggestions": "off",
-      "editor.suggest.insertMode": "replace",
-      "editor.semanticHighlighting.enabled": true
-    },
-    "C_Cpp.errorSquiggles": "enabled",
-
-    // ***** live server ***** //
-    "liveServer.settings.donotShowInfoMsg": true,
-    "liveServer.settings.port": 5657,
-
-    // ***** git ***** //
-    "git.openRepositoryInParentFolders": "never",
-    // if set to true, automatically fetch from the default remote of the current Git repository. If set to "all", fetch from all remotes.
-    "git.autofetch": false,
-    "gitlens.views.commitDetails.files.layout": "tree",
-
-    // ***** markdown ***** //
-    "markdown-preview-enhanced.enablePreviewZenMode": false,
-    "markdown-preview-enhanced.previewTheme": "github-dark.css",
-
-    "masmtasm.ASM.emulator": "dosbox-x",
-    "masmtasm.ASM.assembler": "MASM",
-    
-    // how to show the cell toolbar, or whether to hide it.
-    "notebook.cellToolbarLocation": {
-        "default": "right",
-        "jupyter-notebook": "left"
-    },
-    "jupyter.askForKernelRestart": false,
-
-    "easycode.userEmail": "1731237095@qq.com",
-    "easycode.model": "gpt-4-1106-preview",
-
-    "codesnap.containerPadding": "0.1em",
-
-    "projectManager.git.baseFolders": [
-        "D:/Program/Code"
-    ],
-
-    "vscode_custom_css.imports": [
-        "file:///D:/Program/Code/index.js",
-        "file:///c:/Users/KOBAYASHI/.vscode/extensions/brandonkirbyson.vscode-animations-2.0.1/dist/updateHandler.js"
-    ],
+    ]
 }

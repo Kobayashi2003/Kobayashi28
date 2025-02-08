@@ -2,8 +2,8 @@ from typing import Any, Dict
 
 from functools import wraps
 
-from api import celery, cache, db, scheduler
-from api.database import convert_model_to_dict
+from vndb import celery, cache, db, scheduler
+from vndb.database import convert_model_to_dict
 
 NOT_FOUND = {'status': 'NOT_FOUND','result': None}
 
