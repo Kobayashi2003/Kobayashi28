@@ -1,0 +1,19 @@
+2025-02-09 13:32:11,936 - logger - ERROR - __iter__
+2025-02-09 13:32:15,914 - logger - ERROR - __iter__
+2025-02-09 13:32:28,627 - logger - ERROR - __iter__
+2025-02-09 13:36:12,740 - logger - ERROR - __iter__
+2025-02-09 13:36:16,189 - logger - ERROR - __iter__
+2025-02-09 13:36:29,785 - logger - ERROR - __iter__
+2025-02-09 13:38:49,039 - logger - ERROR - __iter__
+2025-02-09 13:38:53,071 - logger - ERROR - __iter__
+2025-02-09 13:39:01,641 - logger - ERROR - __iter__
+2025-02-09 13:43:08,399 - logger - ERROR - 'Cache' object has no attribute '__iter__'
+2025-02-09 13:43:08,399 - logger - ERROR - 'Celery' object has no attribute '__iter__'
+2025-02-09 13:43:08,400 - logger - ERROR - __iter__
+2025-02-09 13:43:08,402 - logger - ERROR - 'APScheduler' object has no attribute '__iter__'
+2025-02-09 13:48:36,823 - logger - ERROR - __iter__
+2025-02-09 13:50:49,804 - logger - ERROR - __iter__
+2025-02-09 13:50:59,289 - logger - ERROR - 'Cache' object has no attribute '__iter__'
+2025-02-09 13:50:59,290 - logger - ERROR - 'Celery' object has no attribute '__iter__'
+2025-02-09 13:50:59,290 - logger - ERROR - __iter__
+2025-02-09 13:50:59,291 - logger - ERROR - 'APScheduler' object has no attribute '__iter__'

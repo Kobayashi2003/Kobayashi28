@@ -1,16 +1,20 @@
 import os
 import subprocess
 from datetime import datetime, timezone
+from urllib.parse import urlparse
 
 import click
 from flask import current_app
 from flask.cli import with_appcontext
+from sqlalchemy import inspect
+
 from imgserve import db
-from .model import IMAGE_MODEL
+from .models import IMAGE_MODEL
 
 def register_commands(app):
     app.cli.add_command(init_db)
     app.cli.add_command(clean_db)
+    app.cli.add_command(inspect_db)
     app.cli.add_command(drop_db)
     app.cli.add_command(backup_db)
     app.cli.add_command(restore_db)
@@ -57,6 +61,24 @@ def clean_db(force):
     
     click.echo('Database cleaned successfully.')
 
+@click.command('inspect-db')
+@with_appcontext
+def inspect_db():
+    """Inspect the database schema."""
+    inspector = inspect(db.engine)
+    for model_name, model_class in IMAGE_MODEL.items():
+        columns = inspector.get_columns(model_class.__tablename__)
+        foreign_keys = inspector.get_foreign_keys(model_class.__tablename__)
+
+        print(f"Table: {model_class.__tablename__}")
+        print("Columns:")
+        for column in columns:
+            print(f"  - {column['name']} ({column['type']})")
+        print("Foreign Keys:")
+        for fk in foreign_keys:
+            print(f"  - {fk['constrained_columns']} -> {fk['referred_table']}.{fk['referred_columns']}")
+        print("\n")
+
 @click.command('backup-db')
 @click.option('-f', '--filename', default=None, help='Specify a filename for the backup file.')
 @with_appcontext
@@ -66,11 +88,13 @@ def backup_db(filename):
     if not filename:
         filename = datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S') + '.dump'
 
-    db_name = current_app.config['DB_NAME']
-    db_user = current_app.config['DB_USER']
-    db_password = current_app.config['DB_PASSWORD']
-    db_host = current_app.config['DB_HOST']
-    db_port = current_app.config['DB_PORT']
+    db_url = urlparse(current_app.config['SQLALCHEMY_DATABASE_URI'])
+
+    db_name = db_url.path[1:]  # remove leading '/'
+    db_user = db_url.username
+    db_password = db_url.password
+    db_host = db_url.hostname
+    db_port = str(db_url.port)
 
     backup_folder = current_app.config['BACKUP_FOLDER']
     backup_path = os.path.join(backup_folder, filename)
@@ -101,11 +125,13 @@ def backup_db(filename):
 def restore_db(filename):
     """Restore the database from a backup file."""
 
-    db_name = current_app.config['DB_NAME']
-    db_user = current_app.config['DB_USER']
-    db_password = current_app.config['DB_PASSWORD']
-    db_host = current_app.config['DB_HOST']
-    db_port = current_app.config['DB_PORT']
+    db_url = urlparse(current_app.config['SQLALCHEMY_DATABASE_URI'])
+
+    db_name = db_url.path[1:]  # remove leading '/'
+    db_user = db_url.username
+    db_password = db_url.password
+    db_host = db_url.hostname
+    db_port = str(db_url.port)
 
     env = os.environ.copy()
     env['PGPASSWORD'] = db_password

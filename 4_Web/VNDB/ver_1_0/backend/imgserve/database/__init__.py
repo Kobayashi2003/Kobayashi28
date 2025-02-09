@@ -1,4 +1,4 @@
 from .common import*
-from .model import *
-from .operation import *
-from .command import *
+from .models import *
+from .operations import *
+from .commands import *

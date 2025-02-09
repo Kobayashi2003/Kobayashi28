@@ -2,7 +2,7 @@ from typing import Callable
 from functools import wraps
 from sqlalchemy.exc import SQLAlchemyError
 from imgserve import db
-from .model import IMAGE_MODEL
+from .models import IMAGE_MODEL
 
 def save_db_operation(func: Callable) -> Callable:
     @wraps(func)

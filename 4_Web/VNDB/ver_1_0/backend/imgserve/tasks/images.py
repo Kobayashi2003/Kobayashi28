@@ -1,14 +1,12 @@
-from typing import Dict, Any, List
+from typing import Dict, List, Any
 from flask import current_app
 from imgserve import celery
-from imgserve.database import exists, create, update, delete
+from imgserve.database import create, update, delete
 from imgserve.utils import download_images 
-from .common import SUCCESS, FAILED, NOT_FOUND
+from .common import SUCCESS, FAILED 
 
 @celery.task
 def create_image_task(type: str, id: int) -> Dict[str, str]:
-    if exists(type, id):
-        return FAILED
     try:
         result = create(type, id)
     except Exception as e:
@@ -19,8 +17,6 @@ def create_image_task(type: str, id: int) -> Dict[str, str]:
 
 @celery.task
 def update_image_task(type: str, id: int) -> Dict[str, str]:
-    if not exists(type, id):
-        return NOT_FOUND
     try:
         result = update(type, id)
     except Exception as e:
@@ -31,8 +27,6 @@ def update_image_task(type: str, id: int) -> Dict[str, str]:
 
 @celery.task
 def delete_image_task(type: str, id: int) -> Dict[str, str]:
-    if not exists(type, id):
-        return NOT_FOUND 
     try:
         result = delete(type, id)
     except Exception as e:

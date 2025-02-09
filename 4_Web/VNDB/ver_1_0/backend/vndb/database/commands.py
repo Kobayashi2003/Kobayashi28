@@ -1,6 +1,7 @@
 import os
 import subprocess
 from datetime import datetime, timezone
+from urllib.parse import urlparse
 
 import click
 from flask import current_app
@@ -94,11 +95,13 @@ def backup_db(filename):
     if not filename:
         filename = datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S') + '.dump'
 
-    db_name = current_app.config['DB_NAME']
-    db_user = current_app.config['DB_USER']
-    db_password = current_app.config['DB_PASSWORD']
-    db_host = current_app.config['DB_HOST']
-    db_port = current_app.config['DB_PORT']
+    db_url = urlparse(current_app.config['SQLALCHEMY_DATABASE_URI'])
+
+    db_name = db_url.path[1:]  # remove leading '/'
+    db_user = db_url.username
+    db_password = db_url.password
+    db_host = db_url.hostname
+    db_port = str(db_url.port)
 
     backup_folder = current_app.config['BACKUP_FOLDER']
     backup_path = os.path.join(backup_folder, filename)
@@ -129,11 +132,13 @@ def backup_db(filename):
 def restore_db(filename):
     """Restore the database from a backup file."""
 
-    db_name = current_app.config['DB_NAME']
-    db_user = current_app.config['DB_USER']
-    db_password = current_app.config['DB_PASSWORD']
-    db_host = current_app.config['DB_HOST']
-    db_port = current_app.config['DB_PORT']
+    db_url = urlparse(current_app.config['SQLALCHEMY_DATABASE_URI'])
+
+    db_name = db_url.path[1:]  # remove leading '/'
+    db_user = db_url.username
+    db_password = db_url.password
+    db_host = db_url.hostname
+    db_port = str(db_url.port)
 
     env = os.environ.copy()
     env['PGPASSWORD'] = db_password
