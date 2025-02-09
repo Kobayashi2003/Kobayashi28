@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Tester</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2 {
+            color: #2c3e50;
+        }
+        #apiForm {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"], select, textarea {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #response {
+            background-color: #e9ecef;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            padding: 15px;
+            white-space: pre-wrap;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        #imageResponse {
+            max-width: 100%;
+            margin-top: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>API Tester</h1>
+    <form id="apiForm">
+        <label for="url">API URL:</label>
+        <input type="text" id="url" name="url" required>
+        
+        <label for="method">Method:</label>
+        <select id="method" name="method">
+            <option value="GET">GET</option>
+            <option value="POST">POST</option>
+            <option value="PUT">PUT</option>
+            <option value="PATCH">PATCH</option>
+            <option value="DELETE">DELETE</option>
+        </select>
+        
+        <label for="headers">Headers (JSON format):</label>
+        <textarea id="headers" name="headers" rows="4"></textarea>
+        
+        <label for="body">Request Body (JSON format):</label>
+        <textarea id="body" name="body" rows="4"></textarea>
+        
+        <label for="contentType">Content-Type (optional):</label>
+        <input type="text" id="contentType" name="contentType" placeholder="e.g., application/json">
+        
+        <button type="submit">Send Request</button>
+    </form>
+    
+    <div class="loading">
+        <div class="spinner"></div>
+        <p>Loading...</p>
+    </div>
+    
+    <h2>Response:</h2>
+    <pre id="response"></pre>
+    <img id="imageResponse" alt="API Response Image">
+
+    <script>
+        document.getElementById('apiForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const url = document.getElementById('url').value;
+            const method = document.getElementById('method').value;
+            const headers = JSON.parse(document.getElementById('headers').value || '{}');
+            const body = document.getElementById('body').value;
+            const customContentType = document.getElementById('contentType').value;
+            if (customContentType) {
+                headers['Content-Type'] = customContentType;
+            }
+            
+            const loading = document.querySelector('.loading');
+            const responseElement = document.getElementById('response');
+            const imageResponseElement = document.getElementById('imageResponse');
+            
+            loading.style.display = 'block';
+            responseElement.textContent = '';
+            imageResponseElement.style.display = 'none';
+            
+            let fetchOptions = {
+                method: method,
+                headers: headers
+            };
+
+            if (method !== 'GET' && body) {
+                fetchOptions.headers['Content-Type'] = 'application/json';
+                fetchOptions.body = body;
+            }
+
+            fetch(url, fetchOptions)
+            .then(response => {
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('image/')) {
+                    return response.blob().then(blob => ({
+                        status: response.status,
+                        headers: Object.fromEntries(response.headers.entries()),
+                        body: blob,
+                        isImage: true
+                    }));
+                } else if (contentType && contentType.includes('application/json')) {
+                    return response.json().then(data => ({
+                        status: response.status,
+                        headers: Object.fromEntries(response.headers.entries()),
+                        body: data,
+                        isImage: false
+                    }));
+                } else {
+                    return response.text().then(text => ({
+                        status: response.status,
+                        headers: Object.fromEntries(response.headers.entries()),
+                        body: text,
+                        isImage: false
+                    }));
+                }
+            })
+            .then(data => {
+                loading.style.display = 'none';
+                if (data.isImage) {
+                    const imageUrl = URL.createObjectURL(data.body);
+                    imageResponseElement.src = imageUrl;
+                    imageResponseElement.style.display = 'block';
+                    responseElement.textContent = JSON.stringify({
+                        status: data.status,
+                        headers: data.headers,
+                        body: 'Image data (displayed below)'
+                    }, null, 2);
+                } else {
+                    responseElement.textContent = JSON.stringify(data, null, 2);
+                }
+            })
+            .catch(error => {
+                loading.style.display = 'none';
+                responseElement.textContent = 'Error: ' + error.message;
+            });
+        });
+    </script>
+</body>
+</html>

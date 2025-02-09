@@ -4,7 +4,7 @@ if __name__ == '__main__':
     print(search(
         resource_type='vn',
         params={
-            'id':'v32132',
+            'id':'v32132,v26180',
         },
-        response_size='large'
-    )['results'][0]['va'])
+        response_size='small'
+    ))

@@ -44,7 +44,7 @@ class VN(db.Model):
 
     created_at = Column(DateTime(timezone=True), default=func.now())
     updated_at = Column(DateTime(timezone=True), default=func.now(), onupdate=func.now())
-    deleted_at = Column(DateTime(timezone=True))
+    deleted_at = Column(DateTime(timezone=True), nullable=True)
 
 class Release(db.Model):
     __tablename__ ='releases'
@@ -75,7 +75,7 @@ class Release(db.Model):
 
     created_at = Column(DateTime(timezone=True), default=func.now())
     updated_at = Column(DateTime(timezone=True), default=func.now(), onupdate=func.now())
-    deleted_at = Column(DateTime(timezone=True))
+    deleted_at = Column(DateTime(timezone=True), nullable=True)
 
 class Tag(db.Model):
     __tablename__ = 'tags'
@@ -92,7 +92,7 @@ class Tag(db.Model):
 
     created_at = Column(DateTime(timezone=True), default=func.now())
     updated_at = Column(DateTime(timezone=True), default=func.now(), onupdate=func.now())
-    deleted_at = Column(DateTime(timezone=True))
+    deleted_at = Column(DateTime(timezone=True), nullable=True)
 
 class Producer(db.Model):
     __tablename__ = 'producers'
@@ -107,7 +107,7 @@ class Producer(db.Model):
 
     created_at = Column(DateTime(timezone=True), default=func.now())
     updated_at = Column(DateTime(timezone=True), default=func.now(), onupdate=func.now())
-    deleted_at = Column(DateTime(timezone=True))
+    deleted_at = Column(DateTime(timezone=True), nullable=True)
 
 class Staff(db.Model):
     __tablename__ = 'staff'
@@ -125,7 +125,7 @@ class Staff(db.Model):
 
     created_at = Column(DateTime(timezone=True), default=func.now())
     updated_at = Column(DateTime(timezone=True), default=func.now(), onupdate=func.now())
-    deleted_at = Column(DateTime(timezone=True))
+    deleted_at = Column(DateTime(timezone=True), nullable=True)
 
 class Character(db.Model):
     __tablename__ = 'characters'
@@ -151,7 +151,7 @@ class Character(db.Model):
 
     created_at = Column(DateTime(timezone=True), default=func.now())
     updated_at = Column(DateTime(timezone=True), default=func.now(), onupdate=func.now())
-    deleted_at = Column(DateTime(timezone=True))
+    deleted_at = Column(DateTime(timezone=True), nullable=True)
 
 class Trait(db.Model):
     __tablename__ = 'traits'
@@ -168,7 +168,7 @@ class Trait(db.Model):
 
     created_at = Column(DateTime(timezone=True), default=func.now())
     updated_at = Column(DateTime(timezone=True), default=func.now(), onupdate=func.now())
-    deleted_at = Column(DateTime(timezone=True))
+    deleted_at = Column(DateTime(timezone=True), nullable=True)
 
 # ----------------------------------------
 # Variables 

@@ -400,8 +400,8 @@ def create_cup_comparison_filter(value: str) -> BinaryExpression:
 def get_vn_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     filters = []
 
-    if id := params.get('id'):
-        return [VN.id == id]
+    if ids := params.get('id'):
+        filters.append(process_multi_value_expression(ids, lambda id : VN.id == id))
 
     if search := params.get('search'):
         def process_vn(vn_value):
@@ -519,8 +519,8 @@ def get_vn_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
 def get_release_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     filters = []
 
-    if id := params.get('id'):
-        return [Release.id == id]
+    if ids := params.get('id'):
+        filters.append(process_multi_value_expression(ids, lambda id : Release.id == id))
 
     if search := params.get('search'):
         def process_release(release_value):
@@ -636,8 +636,8 @@ def get_release_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
 def get_character_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     filters = []
 
-    if id := params.get('id'):
-        return [Character.id == id]
+    if ids := params.get('id'):
+        filters.append(process_multi_value_expression(ids, lambda id : Character.id == id))
 
     if search := params.get('search'):
         def process_character(character_value):
@@ -716,8 +716,8 @@ def get_character_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
 def get_producer_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     filters = []
 
-    if id := params.get('id'):
-        return [Producer.id == id]
+    if ids := params.get('id'):
+        filters.append(process_multi_value_expression(ids, lambda id : Producer.id == id))
 
     if search := params.get('search'):
         def process_producer(producer_value):
@@ -740,11 +740,11 @@ def get_producer_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
 def get_staff_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     filters = []
 
-    if id := params.get('id'):
-        return [Staff.id == id]
+    if ids := params.get('id'):
+        filters.append(process_multi_value_expression(ids, lambda id : Staff.id == id))
 
-    if aid := params.get('aid'):
-        return [Staff.aid == aid]
+    if aids := params.get('aid'):
+        filters.append(process_multi_value_expression(aids, lambda aid : Staff.aid == aid))
 
     if search := params.get('search'):
         def process_staff(staff_value):
@@ -788,8 +788,8 @@ def get_staff_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
 def get_tag_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     filters = []
 
-    if id := params.get('id'):
-        return [Tag.id == id]
+    if ids := params.get('id'):
+        filters.append(process_multi_value_expression(ids, lambda id : Tag.id == id))
 
     if search := params.get('search'):
         def process_tag(tag_value):
@@ -808,8 +808,8 @@ def get_tag_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
 def get_trait_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     filters = []
     
-    if id := params.get('id'):
-        return [Trait.id == id]
+    if ids := params.get('id'):
+        filters.append(process_multi_value_expression(ids, lambda id : Trait.id == id))
 
     if traits := params.get('search'):
         def process_trait(trait_value):

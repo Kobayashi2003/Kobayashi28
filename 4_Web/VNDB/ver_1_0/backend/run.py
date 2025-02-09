@@ -74,6 +74,11 @@ def main():
     imgserve_flask_process.start()
     processes.append(imgserve_flask_process)
 
+    # Start userserve application
+    userserve_flask_process = multiprocessing.Process(target=run_flask, args=('userserve',))
+    userserve_flask_process.start()
+    processes.append(userserve_flask_process)
+
     # Signal handler for graceful shutdown
     def signal_handler(signum, frame):
         print("\nReceived interrupt signal. Terminating processes...")

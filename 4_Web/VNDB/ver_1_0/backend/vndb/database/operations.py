@@ -33,9 +33,9 @@ def exists(type: str, id: str) -> bool:
 
 def count_all(type: str) -> int:
     model = MODEL_MAP[type]
-    return db.session.query(model).filter(model.deleted_at == None)
+    return db.session.query(model).filter(model.deleted_at == None).count()
 
-def updatable(type: str, id: str, update_interval: timedelta = timedelta(minutes=1)) -> bool:
+def updatable(type: str, id: str, update_interval: timedelta = timedelta(minutes=10)) -> bool:
     item = get(type, id)
     if not item:
         return True  # Allow update if item doesn't exist (it will be created)

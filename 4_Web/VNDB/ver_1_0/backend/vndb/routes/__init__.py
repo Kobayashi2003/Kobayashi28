@@ -1,8 +1,6 @@
 from flask import Blueprint, jsonify 
-from .query import handle_query
 
 api_bp = Blueprint('api', __name__, url_prefix='/')
-api_bp.add_url_rule('/<string:query>', 'handle_query', handle_query, methods=['GET'])
 
 @api_bp.errorhandler(400)
 def bad_request(e):
@@ -34,3 +32,6 @@ api_bp.register_blueprint(release_bp)
 
 from .tasks import task_bp
 api_bp.register_blueprint(task_bp)
+
+from .query import query_bp
+api_bp.register_blueprint(query_bp)

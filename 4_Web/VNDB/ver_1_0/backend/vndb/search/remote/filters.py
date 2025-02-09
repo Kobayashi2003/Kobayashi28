@@ -209,7 +209,10 @@ def get_vn_filters(params: Dict[str, Any]) -> Dict[str, Any]:
         Dict[str, Any]: A dictionary of filters for visual novel searches.
     """
     filters = []
-    
+
+    if id := params.get('id'):
+        filters.append(parse_logical_expression(id, 'id'))
+
     # Handle simple search parameter
     if search := params.get('search'):
         filters.append({"search": search})
@@ -256,6 +259,9 @@ def get_character_filters(params: Dict[str, Any]) -> Dict[str, Any]:
         Dict[str, Any]: A dictionary of filters for character searches.
     """
     filters = []
+
+    if id := params.get('id'):
+        filters.append(parse_logical_expression(id, 'id'))
     
     if search := params.get('search'):
         filters.append({"search": search})
@@ -298,11 +304,14 @@ def get_producer_filters(params: Dict[str, Any]) -> Dict[str, Any]:
         Dict[str, Any]: A dictionary of filters for producer searches.
     """
     filters = []
+
+    if id := params.get('id'):
+        filters.append(parse_logical_expression(id, 'id'))
     
     if search := params.get('search'):
         filters.append({"search": search})
     
-    multi_value_fields = ['lang', 'type']
+    multi_value_fields = ['id', 'lang', 'type']
     for field in multi_value_fields:
         if value := params.get(field):
             parsed = parse_logical_expression(value, field)
@@ -322,11 +331,14 @@ def get_staff_filters(params: Dict[str, Any]) -> Dict[str, Any]:
         Dict[str, Any]: A dictionary of filters for staff searches.
     """
     filters = []
+
+    if id := params.get('id'):
+        filters.append(parse_logical_expression(id, 'id'))
     
     if search := params.get('search'):
         filters.append({"search": search})
     
-    multi_value_fields = ['lang', 'role']
+    multi_value_fields = ['id', 'lang', 'role']
     for field in multi_value_fields:
         if value := params.get(field):
             parsed = parse_logical_expression(value, field)
@@ -355,6 +367,9 @@ def get_tag_filters(params: Dict[str, Any]) -> Dict[str, Any]:
         Dict[str, Any]: A dictionary of filters for tag searches.
     """
     filters = []
+
+    if id := params.get('id'):
+        filters.append(parse_logical_expression(id, 'id'))
     
     if search := params.get('search'):
         filters.append({"search": search})
@@ -377,6 +392,9 @@ def get_trait_filters(params: Dict[str, Any]) -> Dict[str, Any]:
         Dict[str, Any]: A dictionary of filters for trait searches.
     """
     filters = []
+
+    if id := params.get('id'):
+        filters.append(parse_logical_expression(id, 'id'))
     
     if search := params.get('search'):
         filters.append({"search": search})
@@ -394,6 +412,9 @@ def get_release_filters(params: Dict[str, Any]) -> Dict[str, Any]:
         Dict[str, Any]: A dictionary of filters for release searches.
     """
     filters = []
+
+    if id := params.get('id'):
+        filters.append(parse_logical_expression(id, 'id'))
 
     if search := params.get('search'):
         filters.append({"search": search})
@@ -469,8 +490,6 @@ def get_remote_filters(search_type: str, params: Dict[str, Any]) -> Dict[str, An
         ValueError: If an invalid search_type is provided.
     """
 
-    if id := params.get('id'): return {"id": id}
-
     if search_type == 'vn':
         return get_vn_filters(params)
     elif search_type == 'character':
@@ -487,3 +506,15 @@ def get_remote_filters(search_type: str, params: Dict[str, Any]) -> Dict[str, An
         return get_release_filters(params)
     else:
         raise ValueError(f"Invalid search_type: {search_type}")
+
+
+if __name__ == '__main__':
+    print(get_remote_filters(
+        search_type='vn',
+        params={
+            'search': 'ai kiss',
+            'id': 'v1,v2',
+            'tag': 't1+t2',
+            'developer': 'p1,p2'
+        }
+    ))
