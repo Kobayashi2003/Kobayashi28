@@ -1,4 +1,5 @@
 import "@/styles/globals.css"
+import "@/styles/icons.css"
 import { Search } from "@/components/search"
 import type React from "react" // Import React
 

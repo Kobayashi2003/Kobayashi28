@@ -64,10 +64,11 @@ export interface VN {
   }>;
   tags?: Array<{
     id?: string;
-    score?: number;
+    rating?: number;
     spoiler?: number;
     lie?: boolean;
     name?: string;
+    category?: string;
   }>;
   developers?: Array<{
     id?: string;

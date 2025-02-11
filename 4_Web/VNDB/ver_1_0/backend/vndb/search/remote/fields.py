@@ -206,7 +206,8 @@ SMALL_FIELDS_CHARACTER: List[str] = [
 
 SMALL_FIELDS_TAG: List[str] = [
     VNDBFields.Tag.ID,
-    VNDBFields.Tag.NAME
+    VNDBFields.Tag.NAME,
+    VNDBFields.Tag.CATAGORY
 ]
 
 SMALL_FIELDS_PRODUCER: List[str] = [
@@ -231,7 +232,19 @@ SMALL_FIELDS_TRAIT: List[str] = [
 SMALL_FIELDS_RELEASE: List[str] = [
     VNDBFields.Release.ID,
     VNDBFields.Release.TITLE, 
+    VNDBFields.Release.PLATFORMS,
+    VNDBFields.Release.MINAGE,
+    VNDBFields.Release.PATCH,
+    VNDBFields.Release.FREEWARE,
+    VNDBFields.Release.UNCENSSORED,
+    VNDBFields.Release.OFFICIAL,
+    VNDBFields.Release.HAS_ERO,
+    VNDBFields.Release.RESOLUTION,
+    VNDBFields.Release.VOICED,
+    VNDBFields.Release.NOTES,
     VNDBFields.Release.RELEASED,
+    VNDBFields.Release.MEDIA.MEDIA,
+    VNDBFields.Release.MEDIA.QTY,
     VNDBFields.Release.IMAGES.VN,
     VNDBFields.Release.IMAGES.TYPE,
     VNDBFields.Release.IMAGES.URL,

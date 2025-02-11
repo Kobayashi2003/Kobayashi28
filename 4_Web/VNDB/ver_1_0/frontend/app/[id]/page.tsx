@@ -1,8 +1,10 @@
-import { Details, ExternalLinkButton } from "@/components/details"
+import { VNDetails } from "@/components/vn/details/details"
+import { Tags } from "@/components/vn/tags/tags"
 import { api } from "@/lib/api"
 import { notFound } from "next/navigation"
 import type React from "react"
 import type { VN, Release, Character, Producer, Staff, VisualNovelDataBaseQueryResponse } from "@/lib/types"
+import { Details } from "@/components/details"
 
 type ContentType = "vn" | "release" | "character" | "producer" | "staff"
 
@@ -46,31 +48,13 @@ export default async function DetailPage({ params }: { params: { id: string } })
       data = await api.vn(id, { size: "large" })
       const vn = data.results[0] as VN
       detailsData = {
-        Titles: {
-          value: vn.title && (
-            <div className="space-y-0.5">
-              <div>{vn.title}</div>
-              {vn.alttitle && <div className="text-white/60">{vn.alttitle}</div>}
-            </div>
-          ),
-        },
-        Aliases: { value: vn.aliases?.join(", ") },
         "Original Language": { value: vn.olang },
         "Release Date": { value: vn.released },
         Length: { value: vn.length && `${vn.length} hours (${vn.length_votes} votes)` },
         Rating: { value: vn.rating && `${vn.rating.toFixed(2)} (${vn.votecount} votes)` },
         Developers: { value: vn.developers?.map((dev) => dev.name).join(", ") },
-        Links: {
-          value: vn.extlinks && (
-            <div className="flex flex-wrap gap-2">
-              {vn.extlinks.map((link) => (
-                <ExternalLinkButton key={link.url} href={link.url}>
-                  {link.name}
-                </ExternalLinkButton>
-              ))}
-            </div>
-          ),
-        },
+        Links: { value: "Links" },
+        Platforms: { value: "Platforms" },
       }
       break
 
@@ -166,17 +150,7 @@ export default async function DetailPage({ params }: { params: { id: string } })
         Aliases: { value: staff.aliases?.map((alias) => alias.name).join(", ") },
         Gender: { value: staff.gender },
         Language: { value: staff.lang },
-        Links: {
-          value: staff.extlinks?.length && (
-            <div className="flex flex-wrap gap-2">
-              {staff.extlinks.map((link) => (
-                <ExternalLinkButton key={link.url} href={link.url}>
-                  {link.name}
-                </ExternalLinkButton>
-              ))}
-            </div>
-          ),
-        },
+        Links: { value: "Links" },
       }
       break
 
@@ -190,13 +164,53 @@ export default async function DetailPage({ params }: { params: { id: string } })
 
   const result = data.results[0]
   const hasImage = (contentType === "vn" || contentType === "character") && "image" in result && result.image?.url
+  const mainTitle =
+    contentType === "vn" && "titles" in result ? result.titles?.find((t) => t.official && t.main)?.title : undefined
+
+  if (contentType === "vn") {
+    const vnResult = result as VN
+    const tags =
+      vnResult.tags?.map((tag) => ({
+        id: tag.id,
+        name: tag.name,
+        rating: tag.rating,
+        spoiler: tag.spoiler,
+        category: tag.category,
+      })) || []
+
+    return (
+      <div className="container mx-auto px-4 py-6 space-y-6">
+        <VNDetails
+          image={hasImage ? result.image!.url : undefined}
+          title={"title" in result ? result.title : undefined}
+          subtitle={mainTitle}
+          titles={"titles" in result ? result.titles : undefined}
+          data={detailsData}
+          description={"description" in result ? result.description : undefined}
+          developers={"developers" in result ? result.developers : undefined}
+          relations={"relations" in result ? result.relations : undefined}
+          platforms={"platforms" in result ? result.platforms : undefined}
+          links={
+            "extlinks" in result
+              ? result.extlinks?.map((link) => ({ url: link.url || "", name: link.name || "" }))
+              : undefined
+          }
+        />
+        {tags.length > 0 && <Tags tags={tags} />}
+      </div>
+    )
+  }
 
   return (
     <Details
       type={contentType}
       image={hasImage ? result.image!.url : undefined}
+      title={"title" in result ? result.title : "name" in result ? result.name : undefined}
+      subtitle={mainTitle}
+      titles={"titles" in result ? result.titles : undefined}
       data={detailsData}
       description={"description" in result ? result.description : "notes" in result ? result.notes : undefined}
+      developers={"developers" in result ? result.developers : undefined}
     />
   )
 }
