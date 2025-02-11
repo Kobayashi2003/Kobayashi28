@@ -1,9 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { cn } from "@/lib/utils"
 import { Group } from "./group"
+import { cn } from "@/lib/utils"
+import { TAG_CATEGORIES, SPOILER_LEVELS } from "@/lib/constants"
 
+// Props for the Tags component
 interface TagsProps {
   tags: Array<{
     id?: string
@@ -14,28 +16,20 @@ interface TagsProps {
   }>
 }
 
-const CATEGORIES = [
-  { id: "cont", label: "content" },
-  { id: "tech", label: "technical" },
-  { id: "ero", label: "sexual content" },
-]
-
-const SPOILER_LEVELS = [
-  { id: "hide", label: "hide spoilers", value: 0 },
-  { id: "minor", label: "show minor spoilers", value: 1 },
-  { id: "all", label: "spoil me!", value: 2 },
-]
-
+// Main component for displaying and filtering tags
 export function Tags({ tags }: TagsProps) {
+  // State for selected categories, spoiler level, and low-rated tag visibility
   const [selectedCategories, setSelectedCategories] = useState<string[]>(["cont"])
   const [selectedSpoilerLevel, setSelectedSpoilerLevel] = useState<string>("hide")
-  const [showLowRated, setShowLowRated] = useState(true)
+  const [showLowRated] = useState(true) // This state is not currently used, but kept for potential future use
 
   return (
-    <div className="w-full max-w-5xl mx-auto space-y-4">
+    <div className="w-full space-y-4">
+      {/* Filter controls */}
       <div className="bg-[#0F2942]/80 backdrop-blur-md px-4 py-1 flex items-center justify-end text-sm">
+        {/* Category filters */}
         <div className="flex items-center">
-          {CATEGORIES.map((category) => (
+          {TAG_CATEGORIES.map((category) => (
             <button
               key={category.id}
               className={cn(
@@ -53,6 +47,7 @@ export function Tags({ tags }: TagsProps) {
           ))}
         </div>
         <span className="text-white/20 px-2">|</span>
+        {/* Spoiler level filters */}
         <div className="flex items-center">
           {SPOILER_LEVELS.map((level) => (
             <button
@@ -68,8 +63,9 @@ export function Tags({ tags }: TagsProps) {
           ))}
         </div>
       </div>
-      {selectedCategories.length > 0 ? (
-        <div className="bg-[#0F2942]/80 backdrop-blur-md p-4 rounded-lg border border-white/10">
+      {/* Filtered tags display */}
+      {selectedCategories.length > 0 && (
+        <div className="p-4">
           <Group
             tags={tags}
             showLowRated={showLowRated}
@@ -77,7 +73,7 @@ export function Tags({ tags }: TagsProps) {
             maxSpoilerLevel={SPOILER_LEVELS.find((level) => level.id === selectedSpoilerLevel)?.value || 0}
           />
         </div>
-      ) : null}
+      )}
     </div>
   )
 }

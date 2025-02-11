@@ -13,11 +13,11 @@ class LocalFields:
 
     SMALL_VN = ['id', 'title', 'released', 'image']
     SMALL_CHARACTER = ['id', 'name', 'original', 'image']
-    SMALL_PRODUCER = ['id', 'name', 'original']
-    SMALL_STAFF = ['id', 'name', 'original']
+    SMALL_PRODUCER = ['id', 'name']
+    SMALL_STAFF = ['id', 'name']
     SMALL_TAG = ['id', 'name']
     SMALL_TRAIT = ['id', 'name', 'group_id', 'group_name']
-    SMALL_RELEASE = ['id', 'title', 'released', 'images']
+    SMALL_RELEASE = ['id', 'title']
 
     @staticmethod
     def get_fields(model_name: str) -> list:

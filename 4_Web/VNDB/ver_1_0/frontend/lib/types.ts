@@ -58,17 +58,17 @@ export interface VN {
   }>;
   relations?: Array<{
     id?: string;
-    relation?: string;
     title?: string;
+    relation?: string;
     official?: boolean;
   }>;
   tags?: Array<{
     id?: string;
+    name?: string;
+    category?: string;
     rating?: number;
     spoiler?: number;
     lie?: boolean;
-    name?: string;
-    category?: string;
   }>;
   developers?: Array<{
     id?: string;
@@ -83,9 +83,8 @@ export interface VN {
   }>;
   staff?: Array<{
     id?: string;
-    aid?: string;
     name?: string;
-    original?: string;
+    eid?: number;
     role?: string;
     note?: string;
   }>;
@@ -111,26 +110,10 @@ export interface VN {
   characters?: Array<{
     id?: string;
     name?: string;
-    original?: string;
-    role?: string;
-    image?: {
-      url?: string;
-      sexual?: number;
-      violence?: number;
-    };
   }>;
   releases?: Array<{
     id?: string;
     title?: string;
-    released?: string;
-    images?: Array<{
-      vn?: string;
-      type?: string;
-      url?: string;
-      thumbnail?: string;
-      sexual?: number;
-      violence?: number;
-    }>;
   }>;
 }
 

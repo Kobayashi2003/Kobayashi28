@@ -74,11 +74,13 @@ class VNDBFields:
 
         class RELATIONS(FieldGroup):
             _prefix = "relations."
-            _fields = ['ID', 'RELATION', 'RELATION_OFFICIAL', 'TITLE']
+            _fields = ['RELATION', 'RELATION_OFFICIAL',
+                       'ID', 'TITLE']
 
         class TAGS(FieldGroup):
             _prefix = "tags."
-            _fields = ['ID', 'RATING', 'SPOILER', 'LIE', 'NAME', 'CATEGORY']
+            _fields = ['RATING', 'SPOILER', 'LIE',
+                       'ID', 'NAME', 'CATEGORY']
 
         class DEVELOPERS(FieldGroup):
             _prefix = "developers."
@@ -86,7 +88,8 @@ class VNDBFields:
 
         class STAFF(FieldGroup):
             _prefix = "staff."
-            _fields = ['ID', 'EID', 'ROLE', 'NOTE', 'NAME', 'ORIGINAL']
+            _fields = ['EID', 'ROLE', 'NOTE',
+                       'ID', 'NAME', 'ORIGINAL']
 
         class EDITIONS(FieldGroup):
             _prefix = "editions."
@@ -207,19 +210,16 @@ SMALL_FIELDS_CHARACTER: List[str] = [
 SMALL_FIELDS_TAG: List[str] = [
     VNDBFields.Tag.ID,
     VNDBFields.Tag.NAME,
-    VNDBFields.Tag.CATAGORY
 ]
 
 SMALL_FIELDS_PRODUCER: List[str] = [
     VNDBFields.Producer.ID,
     VNDBFields.Producer.NAME,
-    VNDBFields.Producer.ORIGINAL
 ]
 
 SMALL_FIELDS_STAFF: List[str] = [
     VNDBFields.Staff.ID,
     VNDBFields.Staff.NAME,
-    VNDBFields.Staff.ORIGINAL
 ]
 
 SMALL_FIELDS_TRAIT: List[str] = [
@@ -231,26 +231,7 @@ SMALL_FIELDS_TRAIT: List[str] = [
 
 SMALL_FIELDS_RELEASE: List[str] = [
     VNDBFields.Release.ID,
-    VNDBFields.Release.TITLE, 
-    VNDBFields.Release.PLATFORMS,
-    VNDBFields.Release.MINAGE,
-    VNDBFields.Release.PATCH,
-    VNDBFields.Release.FREEWARE,
-    VNDBFields.Release.UNCENSSORED,
-    VNDBFields.Release.OFFICIAL,
-    VNDBFields.Release.HAS_ERO,
-    VNDBFields.Release.RESOLUTION,
-    VNDBFields.Release.VOICED,
-    VNDBFields.Release.NOTES,
-    VNDBFields.Release.RELEASED,
-    VNDBFields.Release.MEDIA.MEDIA,
-    VNDBFields.Release.MEDIA.QTY,
-    VNDBFields.Release.IMAGES.VN,
-    VNDBFields.Release.IMAGES.TYPE,
-    VNDBFields.Release.IMAGES.URL,
-    VNDBFields.Release.IMAGES.THUMBNAIL,
-    VNDBFields.Release.IMAGES.SEXUAL,
-    VNDBFields.Release.IMAGES.VIOLENCE
+    VNDBFields.Release.TITLE 
 ]
 
 

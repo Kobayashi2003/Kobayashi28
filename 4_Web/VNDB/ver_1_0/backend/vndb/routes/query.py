@@ -1,4 +1,4 @@
-from flask import Blueprint, abort, request
+from flask import Blueprint, abort, jsonify, request
 from vndb.database import updatable
 from vndb.tasks.resources import (
     update_resource_task, search_resources_task
@@ -41,8 +41,10 @@ def handle_query(query):
                 True, type, search_from, params, response_size, page, limit, sort, reverse, count)
 
         try:
-            return execute_task(search_resources_task, 
-                True, type, 'remote', params, response_size, page, limit, sort, reverse, count)
+            result = search_resources_task(
+                type, 'remote', params, response_size, page, limit, sort, reverse, count)
+            assert result['status'] == 'SUCCESS'
+            return jsonify(result)
         except:
             return execute_task(search_resources_task, 
                 True, type, 'local', params, response_size, page, limit, sort, reverse, count)
@@ -65,8 +67,10 @@ def handle_query(query):
                 True, type, search_from, {'id':query}, response_size)
 
         try:
-            return execute_task(search_resources_task,
-                True, type, 'remote', {'id':query}, response_size)
+            result = search_resources_task(
+                type, 'remote', {'id':query}, response_size)
+            assert result['status'] == 'SUCCESS'
+            return jsonify(result)
         except:
             return execute_task(search_resources_task,
                 True, type, 'local', {'id':query}, response_size)

@@ -10,6 +10,7 @@ import { Platforms } from "./platforms"
 import { Relations } from "./relations"
 import { Developers } from "./developers"
 
+// Props for the VNDetails component
 interface VNDetailsProps {
   image?: string
   title?: string
@@ -39,14 +40,16 @@ interface VNDetailsProps {
     name: string
   }>
   data: Record<
-  string,
-  {
-    value: React.ReactNode
-    icon?: React.ReactNode
-    className?: string
-  }>
+    string,
+    {
+      value: React.ReactNode
+      icon?: React.ReactNode
+      className?: string
+    }
+  >
 }
 
+// Main component for displaying visual novel details
 export function VNDetails({
   image,
   title,
@@ -60,60 +63,63 @@ export function VNDetails({
   links,
 }: VNDetailsProps) {
   return (
-    <div className="container mx-auto px-4 py-6">
-      <div className="bg-[#0F2942]/80 backdrop-blur-md rounded-lg shadow-lg border border-white/10 max-w-5xl mx-auto overflow-hidden">
-        {/* Header with title and subtitle */}
-        {(title || subtitle) && (
-          <div className="p-4 border-b border-white/10">
-            <div className="max-w-3xl pl-2">
-              <div className="text-lg text-white/90">{title}</div>
-              {subtitle && <div className="text-sm text-white/60">{subtitle}</div>}
-            </div>
+    <div className="bg-[#0F2942]/80 backdrop-blur-md rounded-lg shadow-lg border border-white/10 overflow-hidden">
+      {/* Header section with title and subtitle */}
+      {(title || subtitle) && (
+        <div className="p-4 border-b border-white/10">
+          <div className="max-w-3xl pl-2">
+            <div className="text-lg text-white/90">{title}</div>
+            {subtitle && <div className="text-sm text-white/60">{subtitle}</div>}
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Main content */}
-        <div className={cn("grid gap-6 p-6", image ? "md:grid-cols-[250px_1fr]" : "grid-cols-1")}>
-          {/* Image Section */}
-          <VNImage src={image} alt={title} />
+      {/* Main content grid */}
+      <div className={cn("grid gap-6 p-6", image ? "md:grid-cols-[250px_1fr]" : "grid-cols-1")}>
+        {/* Image Section */}
+        <VNImage src={image} alt={title} />
 
-          {/* Details Section */}
-          <div className="space-y-4 min-w-0">
-            {titles && titles.length > 0 && (
-              <div className="pb-4 border-b border-white/10">
-                <Titles titles={titles} mainTitle={title} />
-              </div>
-            )}
-
-            <div className="grid gap-2">
-              {Object.entries(data).map(([key, { value, icon, className }]) => {
-                if (key === "Developers") {
-                  return <Row key={key} label={key} value={<Developers developers={developers} />} />
-                }
-                if (key === "Platforms") {
-                  return <Row key={key} label={key} value={<Platforms platforms={platforms} />} />
-                }
-                if (key === "Links") {
-                  return <Row key={key} label={key} value={<Links links={links} />} />
-                }
-                return <Row key={key} label={key} value={value} icon={icon} className={className} />
-              })}
+        {/* Details Section */}
+        <div className="space-y-4 min-w-0">
+          {/* Titles section */}
+          {titles && titles.length > 0 && (
+            <div className="pb-4 border-b border-white/10">
+              <Titles titles={titles} />
             </div>
+          )}
 
-            {relations && relations.length > 0 && (
-              <div className="border-t border-white/10 pt-4">
-                <h3 className="text-sm font-semibold text-white/90 mb-2">Relations</h3>
-                <Relations relations={relations} />
-              </div>
-            )}
-
-            {description && (
-              <div className="border-t border-white/10 pt-4">
-                <h3 className="text-sm font-semibold text-white/90 mb-2">Description</h3>
-                <p className="text-sm text-white/80 leading-relaxed break-words">{description}</p>
-              </div>
-            )}
+          {/* Main data grid */}
+          <div className="grid gap-2">
+            {Object.entries(data).map(([key, { value, icon, className }]) => {
+              // Special handling for Developers, Platforms, and Links
+              if (key === "Developers") {
+                return <Row key={key} label={key} value={<Developers developers={developers} />} />
+              }
+              if (key === "Platforms") {
+                return <Row key={key} label={key} value={<Platforms platforms={platforms} />} />
+              }
+              if (key === "Links") {
+                return <Row key={key} label={key} value={<Links links={links} />} />
+              }
+              return <Row key={key} label={key} value={value} icon={icon} className={className} />
+            })}
           </div>
+
+          {/* Relations section */}
+          {relations && relations.length > 0 && (
+            <div className="border-t border-white/10 pt-4">
+              <h3 className="text-sm font-semibold text-white/90 mb-2">Relations</h3>
+              <Relations relations={relations} />
+            </div>
+          )}
+
+          {/* Description section */}
+          {description && (
+            <div className="border-t border-white/10 pt-4">
+              <h3 className="text-sm font-semibold text-white/90 mb-2">Description</h3>
+              <p className="text-sm text-white/80 leading-relaxed break-words">{description}</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

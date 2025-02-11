@@ -1,14 +1,17 @@
 import { ExternalLink } from "lucide-react"
 
+// Interface for a single link
 interface Link {
   url: string
   name: string
 }
 
+// Props for the Links component
 interface LinksProps {
   links?: Link[]
 }
 
+// Component to display external links
 export function Links({ links }: LinksProps) {
   if (!links || links.length === 0) return null
 
@@ -23,6 +26,7 @@ export function Links({ links }: LinksProps) {
           className="inline-flex items-center gap-1 text-blue-400 hover:text-blue-300 transition-colors text-sm"
         >
           {link.name}
+          {/* External link icon */}
           <ExternalLink className="h-3 w-3" />
         </a>
       ))}

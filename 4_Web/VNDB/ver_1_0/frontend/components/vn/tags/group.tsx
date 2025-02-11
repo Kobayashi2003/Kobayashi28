@@ -1,5 +1,6 @@
-import { Tag } from "./tag"
+import { TagItem } from "./tag"
 
+// Props for the Group component
 interface GroupProps {
   tags: Array<{
     id?: string
@@ -13,9 +14,11 @@ interface GroupProps {
   maxSpoilerLevel?: number
 }
 
+// Component for grouping and filtering tags
 export function Group({ tags, showLowRated = true, selectedCategories = [], maxSpoilerLevel = 0 }: GroupProps) {
   if (!tags?.length) return null
 
+  // Filter and sort tags based on criteria
   const filteredTags = tags
     .filter((tag) => {
       if (!showLowRated && (tag.rating || 0) < 1) return false
@@ -30,7 +33,7 @@ export function Group({ tags, showLowRated = true, selectedCategories = [], maxS
   return (
     <div className="flex flex-wrap items-center">
       {filteredTags.map((tag, index) => (
-        <Tag
+        <TagItem
           key={tag.id || tag.name}
           name={tag.name || ""}
           rating={tag.rating}

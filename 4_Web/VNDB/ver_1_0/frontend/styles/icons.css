@@ -19,6 +19,12 @@
   height: 16px;
 }
 
+[class^="icon-rel-"] {
+  background-image: url(../public/icons.svg);
+  width: 16px;
+  height: 16px;
+}
+
 .icon-lang-ar {
   background-position: -11px -14px;
 }
@@ -321,7 +327,63 @@
   background-position: -1812px 0;
 }
 
-[class^="icon-lang-"].mtl {
-  filter: grayscale(1);
-  opacity: 0.4;
+.icon-rel-ani-ero {
+  background-position: -1838px 0;
+  width: 16px;
+  height: 16px;
+}
+.icon-rel-ani-story {
+  background-position: -1864px 0;
+  width: 16px;
+  height: 16px;
+}
+.icon-rel-cartridge {
+  background-position: -1890px 0;
+  width: 16px;
+  height: 16px;
+}
+.icon-rel-disk {
+  background-position: -1916px 0;
+  width: 16px;
+  height: 16px;
+}
+.icon-rel-download {
+  background-position: -1942px 0;
+  width: 16px;
+  height: 16px;
+}
+.icon-rel-free {
+  background-position: -1968px 0;
+  width: 16px;
+  height: 16px;
+}
+.icon-rel-nonfree {
+  background-position: -1994px 0;
+  width: 16px;
+  height: 16px;
+}
+.icon-rel-notes {
+  background-position: -2020px 0;
+  width: 16px;
+  height: 16px;
+}
+.icon-rel-reso-169 {
+  background-position: -2046px 0;
+  width: 16px;
+  height: 16px;
+}
+.icon-rel-reso-43 {
+  background-position: -2072px 0;
+  width: 16px;
+  height: 16px;
+}
+.icon-rel-reso-custom {
+  background-position: -2098px 0;
+  width: 16px;
+  height: 16px;
+}
+.icon-rel-voiced {
+  background-position: -2124px 0;
+  width: 16px;
+  height: 16px;
 }
