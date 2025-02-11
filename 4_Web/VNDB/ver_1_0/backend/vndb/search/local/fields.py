@@ -17,7 +17,7 @@ class LocalFields:
     SMALL_STAFF = ['id', 'name', 'original']
     SMALL_TAG = ['id', 'name']
     SMALL_TRAIT = ['id', 'name', 'group_id', 'group_name']
-    SMALL_RELEASE = ['id', 'title', 'released']
+    SMALL_RELEASE = ['id', 'title', 'released', 'images']
 
     @staticmethod
     def get_fields(model_name: str) -> list:

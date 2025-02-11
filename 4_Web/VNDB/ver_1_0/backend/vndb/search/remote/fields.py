@@ -231,7 +231,13 @@ SMALL_FIELDS_TRAIT: List[str] = [
 SMALL_FIELDS_RELEASE: List[str] = [
     VNDBFields.Release.ID,
     VNDBFields.Release.TITLE, 
-    VNDBFields.Release.RELEASED
+    VNDBFields.Release.RELEASED,
+    VNDBFields.Release.IMAGES.VN,
+    VNDBFields.Release.IMAGES.TYPE,
+    VNDBFields.Release.IMAGES.URL,
+    VNDBFields.Release.IMAGES.THUMBNAIL,
+    VNDBFields.Release.IMAGES.SEXUAL,
+    VNDBFields.Release.IMAGES.VIOLENCE
 ]
 
 

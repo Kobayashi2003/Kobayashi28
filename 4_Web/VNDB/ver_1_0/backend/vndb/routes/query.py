@@ -33,8 +33,8 @@ def handle_query(query):
         reverse = params.pop('reverse', 'false').lower() == 'true'
         count = params.pop('count', 'true').lower() == 'true'
 
-        search_from = params.pop('search_from', '')
-        response_size = params.pop('response_size', 'large')
+        search_from = params.pop('from', '')
+        response_size = params.pop('size', 'large')
 
         if search_from in ['local', 'remote']:
             return execute_task(search_resources_task, 
@@ -54,8 +54,8 @@ def handle_query(query):
         except ValueError:
             abort(400, description="Invalid ID format")
 
-        search_from = params.pop('search_from', '')
-        response_size = params.pop('response_size', 'large')
+        search_from = params.pop('from', '')
+        response_size = params.pop('size', 'large')
 
         if updatable(type, query):
             execute_task(update_resource_task, False, type, query)

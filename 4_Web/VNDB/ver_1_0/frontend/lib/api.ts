@@ -1,0 +1,132 @@
+import {
+  VNDB_BASE_URL, IMGSERVE_BASE_URL, USERSERVE_BASE_URL
+} from './constants';
+import { 
+  VisualNovelDataBaseQueryParams, VisualNovelDataBaseQueryResponse,
+  VN, Release, Producer, Character, Staff, Tag, Trait, User, Category
+} from './types';
+import {
+  processApiResponse, processVNImages, processReleaseImages, processCharacterImages
+} from './process';
+
+
+async function vndbQuery<T>(endpoint: string, params: VisualNovelDataBaseQueryParams = {}): Promise<VisualNovelDataBaseQueryResponse<T>> {
+  const queryString = new URLSearchParams(params as Record<string, string>).toString();
+  const response = await fetch(`${VNDB_BASE_URL}/${endpoint}?${queryString}`);
+  
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  
+  return await response.json();
+}
+
+async function imgserveQuery(type: string, id: number): Promise<Blob> {
+  const response = await fetch(`${IMGSERVE_BASE_URL}/${type}/${id}`);
+  
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  
+  return await response.blob();
+}
+
+async function userserveQuery<T>(endpoint: string, method: string = 'GET', body?: any): Promise<T> {
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+  };
+
+  const token = localStorage.getItem('access_token');
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const response = await fetch(`${USERSERVE_BASE_URL}/${endpoint}`, {
+    method,
+    headers,
+    body: body ? JSON.stringify(body) : undefined,
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  return await response.json();
+}
+
+export const api = {
+  vn: async (id?: string, params: VisualNovelDataBaseQueryParams = {}) => {
+    const response = await vndbQuery<VN>(`v${id || ''}`, params);
+    return processApiResponse(response, processVNImages);
+  },
+
+  release: async (id?: string, params: VisualNovelDataBaseQueryParams = {}) => {
+    const response = await vndbQuery<Release>(`r${id || ''}`, params);
+    return processApiResponse(response, processReleaseImages);
+  },
+
+  producer: (id?: string, params: VisualNovelDataBaseQueryParams = {}) => 
+    vndbQuery<Producer>(`p${id || ''}`, params),
+
+  character: async (id?: string, params: VisualNovelDataBaseQueryParams = {}) => {
+    const response = await vndbQuery<Character>(`c${id || ''}`, params);
+    return processApiResponse(response, processCharacterImages);
+  },
+
+  staff: (id?: string, params: VisualNovelDataBaseQueryParams = {}) => 
+    vndbQuery<Staff>(`s${id || ''}`, params),
+
+  tag: (id?: string, params: VisualNovelDataBaseQueryParams = {}) => 
+    vndbQuery<Tag>(`g${id || ''}`, params),
+
+  trait: (id?: string, params: VisualNovelDataBaseQueryParams = {}) => 
+    vndbQuery<Trait>(`i${id || ''}`, params),
+
+  image: (type: 'cv' | 'sf' | 'cv.t' | 'sf.t' | 'ch', id: number) => 
+    imgserveQuery(type, id),
+
+  login: (username: string, password: string) => 
+    userserveQuery<{ access_token: string }>('login', 'POST', { username, password }),
+
+  register: (username: string, password: string) => 
+    userserveQuery<{ access_token: string }>('register', 'POST', { username, password }),
+
+  getUser: (userId: number) => 
+    userserveQuery<User>(`u${userId}`, 'GET'),
+
+  updateUser: (userId: number, username: string) => 
+    userserveQuery<User>(`u${userId}`, 'PUT', { username }),
+
+  deleteUser: (userId: number) => 
+    userserveQuery<{ message: string }>(`u${userId}`, 'DELETE'),
+
+  changePassword: (userId: number, oldPassword: string, newPassword: string) => 
+    userserveQuery<{ message: string }>(`u${userId}/change_password`, 'POST', { old_password: oldPassword, new_password: newPassword }),
+
+  getCategories: (type: string) => 
+    userserveQuery<Category[]>(`${type}/c`, 'GET'),
+
+  createCategory: (type: string, categoryName: string) => 
+    userserveQuery<Category>(`${type}/c`, 'POST', { category_name: categoryName }),
+
+  getCategory: (type: string, categoryId: number) => 
+    userserveQuery<Category>(`${type}/c${categoryId}`, 'GET'),
+
+  updateCategory: (type: string, categoryId: number, categoryName: string) => 
+    userserveQuery<Category>(`${type}/c${categoryId}`, 'PUT', { category_name: categoryName }),
+
+  deleteCategory: (type: string, categoryId: number) => 
+    userserveQuery<{ message: string }>(`${type}/c${categoryId}`, 'DELETE'),
+
+  clearCategory: (type: string, categoryId: number) => 
+    userserveQuery<{ message: string }>(`${type}/c${categoryId}/clear`, 'POST'),
+
+  getMarks: (type: string, categoryId: number) => 
+    userserveQuery<string[]>(`${type}/c${categoryId}/m`, 'GET'),
+
+  addMark: (type: string, categoryId: number, markId: number) => 
+    userserveQuery<Category>(`${type}/c${categoryId}/m`, 'POST', { mark_id: markId }),
+
+  removeMark: (type: string, categoryId: number, markId: number) => 
+    userserveQuery<Category>(`${type}/c${categoryId}/m/${markId}`, 'DELETE'),
+};
