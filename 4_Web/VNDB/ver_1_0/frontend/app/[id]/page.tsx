@@ -10,14 +10,14 @@ import type {
 } from "@/lib/types"
 
 
-import { Details as VNDetails } from "@/components/vn/details/details"
+import { Details as VNDetails } from "@/components/vn/main/details"
 import { Tags } from "@/components/vn/tags/tags"
 import { Staff } from "@/components/vn/staff/staff"
 import { Releases } from "@/components/vn/releases/releases"
 import { Characters } from "@/components/vn/characters/characters"
 import { Screenshots } from "@/components/vn/screenshots/screenshots"
 
-import { Details as CharacterDetails } from "@/components/character/details/details"
+import { CharacterDetails } from "@/components/character/main/details"
 
 type ContentType = "vn" | "release" | "character" | "producer" | "staff" | "tag" | "trait"
 

@@ -1,18 +1,16 @@
 "use client"
 
-import { useState, useMemo, Fragment } from "react"
-import { cn } from "@/lib/utils"
+import { useState } from "react"
 import type { VN } from "@/lib/types"
 import { CharacterItem } from "./character-item"
+import { cn } from "@/lib/utils"
 
 interface CharactersProps {
   vn: VN
 }
 
-// Define role order for sorting
 const roleOrder = { main: 0, primary: 1, side: 2, appears: 3 }
 
-// Sort characters by role and name
 function sortCharacters(
   roleA: string | undefined,
   roleB: string | undefined,
@@ -32,67 +30,58 @@ function sortCharacters(
 export function Characters({ vn }: CharactersProps) {
   const [spoilerLevel, setSpoilerLevel] = useState(0)
 
-  // Memoize filtered and sorted characters
-  const filteredCharacters = useMemo(() => {
-    if (!vn.characters?.length) return []
-
-    return vn.characters
-      .filter((character) => {
-        const vnInfo = character.vns?.find((v) => v.id === vn.id)
-        return (vnInfo?.spoiler || 0) <= spoilerLevel
-      })
-      .sort((a, b) => {
-        const roleA = a.vns?.find((v) => v.id === vn.id)?.role
-        const roleB = b.vns?.find((v) => v.id === vn.id)?.role
-        return sortCharacters(roleA, roleB, a.name, b.name)
-      })
-  }, [vn.characters, vn.id, spoilerLevel])
-
-  if (!filteredCharacters.length) return null
+  if (!vn.characters?.length) return null
 
   return (
     <div className="space-y-4">
-      {/* Spoiler control buttons */}
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg text-white/90">Characters</h3>
-        <div className="flex items-center gap-2 text-sm">
-          {[
-            { level: 0, text: "Hide spoilers", color: "text-[#88ccff]" },
-            { level: 1, text: "Show minor spoilers", color: "text-[#ffcc66]" },
-            { level: 2, text: "Spoil me!", color: "text-[#ff6666]" },
-          ].map((button, index) => (
-            <Fragment key={button.level}>
-              {index > 0 && <span className="text-white/20">|</span>}
-              <button
-                onClick={() => setSpoilerLevel(button.level)}
-                className={cn(
-                  "hover:text-white transition-colors",
-                  spoilerLevel === button.level ? button.color : "text-white/60",
-                )}
-              >
-                {button.text}
-              </button>
-            </Fragment>
-          ))}
-        </div>
+      <div className="flex items-center gap-2 text-sm">
+        <button
+          onClick={() => setSpoilerLevel(0)}
+          className={cn("hover:text-white transition-colors", spoilerLevel === 0 ? "text-[#88ccff]" : "text-white/60")}
+        >
+          Hide spoilers
+        </button>
+        <span className="text-white/20">|</span>
+        <button
+          onClick={() => setSpoilerLevel(1)}
+          className={cn("hover:text-white transition-colors", spoilerLevel === 1 ? "text-[#ffcc66]" : "text-white/60")}
+        >
+          Show minor spoilers
+        </button>
+        <span className="text-white/20">|</span>
+        <button
+          onClick={() => setSpoilerLevel(2)}
+          className={cn("hover:text-white transition-colors", spoilerLevel === 2 ? "text-[#ff6666]" : "text-white/60")}
+        >
+          Spoil me!
+        </button>
       </div>
 
-      {/* Character grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-4">
-        {filteredCharacters.map((character) => {
-          const vnRole = character.vns?.find((v) => v.id === vn.id)?.role
+        {vn.characters
+          ?.filter((character) => {
+            const vnInfo = character.vns?.find((v) => v.id === vn.id)
+            return (vnInfo?.spoiler || 0) <= spoilerLevel
+          })
+          .sort((a, b) => {
+            const roleA = a.vns?.find((v) => v.id === vn.id)?.role
+            const roleB = b.vns?.find((v) => v.id === vn.id)?.role
+            return sortCharacters(roleA, roleB, a.name, b.name)
+          })
+          .map((character) => {
+            const vnRole = character.vns?.find((v) => v.id === vn.id)?.role
 
-          return (
-            <CharacterItem
-              key={character.id}
-              id={character.id}
-              name={character.name}
-              sex={character.sex}
-              role={vnRole}
-              vn={vn}
-            />
-          )
-        })}
+            return (
+              <CharacterItem
+                key={character.id}
+                id={character.id}
+                name={character.name}
+                sex={character.sex}
+                role={vnRole}
+                vn={vn}
+              />
+            )
+          })}
       </div>
     </div>
   )
