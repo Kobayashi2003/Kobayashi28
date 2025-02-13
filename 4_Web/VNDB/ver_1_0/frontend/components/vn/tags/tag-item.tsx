@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils"
-import { TAG_SIZES } from "@/lib/constants"
+import { SIZES } from "@/lib/constants"
 
 // Props for the TagItem component
 interface TagProps {
@@ -15,11 +15,11 @@ interface TagProps {
 export function TagItem({ name, rating, spoiler, category, href, separator = true }: TagProps) {
   // Determine the text size based on the rating
   const getTagSize = (rating?: number) => {
-    if (!rating) return TAG_SIZES.xs
-    if (rating < 1) return TAG_SIZES.xs
-    if (rating < 2) return TAG_SIZES.sm
-    if (rating < 3) return TAG_SIZES.base
-    return TAG_SIZES.lg
+    if (!rating) return SIZES.xs
+    if (rating < 1) return SIZES.xs
+    if (rating < 2) return SIZES.sm
+    if (rating < 3) return SIZES.base
+    return SIZES.lg
   }
 
   // Tag content

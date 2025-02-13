@@ -50,7 +50,7 @@ interface VNDetailsProps {
 }
 
 // Main component for displaying visual novel details
-export function VNDetails({
+export function Details({
   image,
   title,
   subtitle,

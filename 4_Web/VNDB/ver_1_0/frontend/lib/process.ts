@@ -1,7 +1,7 @@
 import { IMGSERVE_BASE_URL } from './constants';
 import { VN, Character, Release } from './types';
 
-const IMAGE_REGEX = /^https?:\/\/[^\/]+\/(cv|sf|ch)\/\d+\/(\d+)\.jpg$/;
+const IMAGE_REGEX = /^https?:\/\/[^\/]+\/(cv|sf|ch)(?:\.t)?\/\d+\/(\d+)\.jpg$/;
 
 function convertToImgserveUrl(url?: string, thumbnail: boolean = false): string | undefined {
   if (!url) return undefined;

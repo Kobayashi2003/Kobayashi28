@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { SearchIcon, SlidersHorizontal } from "lucide-react"
+import { SearchIcon, SlidersHorizontal, Settings2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -12,11 +12,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
 
 const searchTypes = [
-  { value: "vn", label: "Visual Novels" },
-  { value: "release", label: "Releases" },
-  { value: "character", label: "Characters" },
-  { value: "producer", label: "Producers" },
-  { value: "staff", label: "Staff" },
+  { value: "vn", label: "Visual Novels", short: "VN" },
+  { value: "release", label: "Releases", short: "RL" },
+  { value: "character", label: "Characters", short: "CH" },
+  { value: "producer", label: "Producers", short: "PR" },
+  { value: "staff", label: "Staff", short: "ST" },
 ]
 
 type BooleanFilter = boolean | null
@@ -25,6 +25,17 @@ export function Search() {
   const [searchType, setSearchType] = React.useState("vn")
   const [isSortOpen, setSortOpen] = React.useState(false)
   const [isAdvancedOpen, setAdvancedOpen] = React.useState(false)
+  const [isCompact, setIsCompact] = React.useState(false)
+
+  React.useEffect(() => {
+    const checkWidth = () => {
+      setIsCompact(window.innerWidth < 640)
+    }
+
+    checkWidth()
+    window.addEventListener("resize", checkWidth)
+    return () => window.removeEventListener("resize", checkWidth)
+  }, [])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -35,13 +46,17 @@ export function Search() {
     <div className="w-full max-w-2xl mx-auto">
       <form onSubmit={handleSearch} className="flex gap-2">
         <Select value={searchType} onValueChange={setSearchType}>
-          <SelectTrigger className="w-[180px] bg-[#0F2942]/80 border-white/10 text-white">
-            <SelectValue placeholder="Select type" />
+          <SelectTrigger className="sm:w-[180px] w-[80px] bg-[#0F2942]/80 border-white/10 text-white">
+            <SelectValue placeholder="Select">
+              {isCompact
+                ? searchTypes.find((t) => t.value === searchType)?.short
+                : searchTypes.find((t) => t.value === searchType)?.label}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {searchTypes.map((type) => (
               <SelectItem key={type.value} value={type.value}>
-                {type.label}
+                {isCompact ? type.short : type.label}
               </SelectItem>
             ))}
           </SelectContent>
@@ -68,10 +83,10 @@ export function Search() {
 
         <Button
           variant="outline"
-          className="bg-[#0F2942]/80 border-white/10 hover:bg-[#0F2942] hover:border-white/20"
+          className="bg-[#0F2942]/80 border-white/10 hover:bg-[#0F2942] hover:border-white/20 text-white"
           onClick={() => setAdvancedOpen(true)}
         >
-          Advanced
+          {isCompact ? <Settings2 className="h-4 w-4" /> : "Advanced"}
         </Button>
       </form>
 

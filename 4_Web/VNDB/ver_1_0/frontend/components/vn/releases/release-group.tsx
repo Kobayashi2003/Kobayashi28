@@ -1,11 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { cn } from "@/lib/utils"
 import { ChevronDown } from 'lucide-react'
+import { cn } from "@/lib/utils"
 import type { Release } from "@/lib/types"
 import { LANGUAGES, LANGUAGE_ICONS } from "@/lib/constants"
-import { ReleaseItem } from "./release"
+import { ReleaseItem } from "./release-item"
 
 interface ReleaseGroupProps {
   lang: string

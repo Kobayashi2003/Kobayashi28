@@ -85,6 +85,7 @@ def update(type: str, id: str, data: Dict[str, Any]) -> ModelType | None:
         return None
     for key, value in data.items():
         setattr(item, key, value)
+    item.updated_at = datetime.now(timezone.utc)
     db.session.flush()
     return item
 

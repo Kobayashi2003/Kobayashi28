@@ -2,9 +2,9 @@ from remote.search import search
 
 if __name__ == '__main__':
     print(search(
-        resource_type='vn',
+        resource_type='character',
         params={
-            'id':'v32132,v26180',
+            'id':'c113836',
         },
-        response_size='small'
+        response_size='large'
     ))

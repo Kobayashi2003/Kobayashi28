@@ -252,25 +252,47 @@ def search(resource_type: str, params: Dict[str, Any], response_size: str = 'sma
             filters=filters, fields=fields, sort=sort, reverse=reverse, count=count
         )
     
-    if not (resource_type == 'vn' and response_size == 'large'):
-        return results
+    if (resource_type == 'vn' and response_size == 'large'):
+        for vn in results['results']:
+            vnid = vn['id']
 
-    for vn in results['results']:
-        vnid = vn['id']
+            characters = unpaginated_search(
+                search_function=search_characters_by_resource_id,
+                resource_type='vn', resource_id=vnid, response_size='small', limit=100
+            )['results']
+            characters = [{key: char[key] for key in ['id', 'name', 'sex', 'vns']} for char in characters]
+            vn['characters'] = characters
 
-        characters = unpaginated_search(
-            search_function=search_characters_by_resource_id,
-            resource_type='vn', resource_id=vnid, response_size='small', limit=100
-        )['results']
-        characters = [{key: char[key] for key in ['id', 'name']} for char in characters]
-        vn['characters'] = characters
+            releases = unpaginated_search(
+                search_function=search_releases_by_resource_id,
+                resource_type='vn', resource_id=vnid, response_size='small', limit=100
+            )['results']
+            releases = [{key: release[key] for key in ['id', 'title']} for release in releases]
+            vn['releases'] = releases
 
-        releases = unpaginated_search(
-            search_function=search_releases_by_resource_id,
-            resource_type='vn', resource_id=vnid, response_size='small', limit=100
-        )['results']
-        releases = [{key: release[key] for key in ['id', 'title']} for release in releases]
-        vn['releases'] = releases
+    if (resource_type == 'character' and response_size == 'large'):
+        for char in results['results']:
+            charid = char['id']
+
+            vns = api.get_vn(
+                filters=get_remote_filters('vn', {'id': ','.join([ vn['id'] for vn in char['vns']])}),
+                fields=['va.staff.id', 'va.staff.name', 'va.staff.original', 'va.character.id', 'va.note']
+            )['results']
+
+            seiyuu = list({
+                (d['id'], d['name'], d['note']): d 
+                for d in [
+                    {
+                        'id': va['staff']['id'],
+                        'name': va['staff']['name'],
+                        'note': va['note']
+                    }
+                    for vn in vns
+                    for va in vn['va']
+                    if va['character']['id'] == charid
+            ]}.values())
+
+            char['seiyuu'] = seiyuu
 
     return results
 

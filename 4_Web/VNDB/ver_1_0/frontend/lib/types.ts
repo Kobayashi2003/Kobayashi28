@@ -55,6 +55,10 @@ export interface VN {
     violence?: number;
     thumbnail?: string;
     thumbnail_dims?: [number, number];
+    release?: {
+      id?: string;
+      title?: string;
+    }
   }>;
   relations?: Array<{
     id?: string;
@@ -110,6 +114,12 @@ export interface VN {
   characters?: Array<{
     id?: string;
     name?: string;
+    sex?: string[];
+    vns?: Array<{
+      id?: string;
+      role?: string;
+      spoiler?: number;
+    }>;
   }>;
   releases?: Array<{
     id?: string;
@@ -247,12 +257,24 @@ export interface Character {
     id?: string;
     role?: string;
     title?: string;
+    release?: {
+      id?: string;
+      title?: string;
+    };
   }>;
   traits?: Array<{
     id?: string;
     name?: string;
+    group_id?: string;
+    group_name?: string;
     spoiler?: number;
     lie?: boolean;
+  }>;
+  seiyuu?: Array<{
+    id?: string;
+    name?: string;
+    original?: string;
+    note?: string;
   }>;
 }
 

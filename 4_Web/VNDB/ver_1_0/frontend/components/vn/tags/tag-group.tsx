@@ -1,4 +1,4 @@
-import { TagItem } from "./tag"
+import { TagItem } from "./tag-item"
 
 // Props for the Group component
 interface GroupProps {
@@ -15,7 +15,7 @@ interface GroupProps {
 }
 
 // Component for grouping and filtering tags
-export function Group({ tags, showLowRated = true, selectedCategories = [], maxSpoilerLevel = 0 }: GroupProps) {
+export function TagGroup({ tags, showLowRated = true, selectedCategories = [], maxSpoilerLevel = 0 }: GroupProps) {
   if (!tags?.length) return null
 
   // Filter and sort tags based on criteria

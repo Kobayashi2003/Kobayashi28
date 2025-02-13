@@ -187,24 +187,71 @@ export const RELATIONS: Record<string, string> = {
   other: "Other",
 }
 
-// Categories for tag filtering
-export const TAG_CATEGORIES = [
+export const MEDIUM: Record<string, string> = {
+  in: "Internet download",
+  cd: "CD",
+  dvd: "DVD",
+  blr: "Blu-ray",
+  gd: "GD",
+  gdr: "GD-ROM",
+  umd: "UMD",
+  flp: "Floppy Disk",
+  mrt: "Cartridge",
+}
+
+export const RELEASE_ICONS = {
+  media: {
+    download: "icon-rel-download",
+    disk: "icon-rel-disk",
+    cartridge: "icon-rel-cartridge",
+  },
+  voiced: {
+    v1: "icon-rel-voiced icon-rel-v1", // Not voiced
+    v2: "icon-rel-voiced icon-rel-v2", // Only ero scenes voiced
+    v3: "icon-rel-voiced icon-rel-v3", // Partially voiced
+    v4: "icon-rel-voiced icon-rel-v4", // Fully voiced
+  },
+  rtype: {
+    complete: "icon-rtcomplete",
+    partial: "icon-rtpartial",
+    trial: "icon-rttrial",
+  },
+  other: {
+    notes: "icon-rel-notes",
+    free: "icon-rel-free",
+    nonfree: "icon-rel-nonfree",
+    external: "icon-external",
+  },
+}
+
+export const VOICED = {
+  1: "Not voiced",
+  2: "Only ero scenes voiced",
+  3: "Partially voiced",
+  4: "Fully voiced",
+}
+
+export const CATEGORIES = [
   { id: "cont", label: "content" },
   { id: "tech", label: "technical" },
   { id: "ero", label: "sexual content" },
 ]
 
-// Spoiler levels for tag filtering
-export const SPOILER_LEVELS = [
+export const SPOILER = [
   { id: "hide", label: "hide spoilers", value: 0 },
   { id: "minor", label: "show minor spoilers", value: 1 },
   { id: "all", label: "spoil me!", value: 2 },
 ]
 
-// Tag sizes for display
-export const TAG_SIZES = {
+export const SIZES = {
   xs: "text-xs",
   sm: "text-sm",
   base: "text-base",
   lg: "text-lg",
 }
+
+export const ROLE = {
+  primary: "Main character",
+  side: "Side character",
+  main: "Protagonist",
+} as const

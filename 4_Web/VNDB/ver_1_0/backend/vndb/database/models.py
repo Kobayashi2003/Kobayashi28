@@ -148,6 +148,7 @@ class Character(db.Model):
     image = Column(JSONB)
     vns = Column(ARRAY(JSONB))
     traits = Column(ARRAY(JSONB))
+    seiyuu = Column(ARRAY(JSONB))
 
     created_at = Column(DateTime(timezone=True), default=func.now())
     updated_at = Column(DateTime(timezone=True), default=func.now(), onupdate=func.now())

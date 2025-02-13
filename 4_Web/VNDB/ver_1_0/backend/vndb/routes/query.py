@@ -45,7 +45,7 @@ def handle_query(query):
                 type, 'remote', params, response_size, page, limit, sort, reverse, count)
             assert result['status'] == 'SUCCESS'
             return jsonify(result)
-        except:
+        except Exception as exc:
             return execute_task(search_resources_task, 
                 True, type, 'local', params, response_size, page, limit, sort, reverse, count)
 
@@ -59,21 +59,26 @@ def handle_query(query):
         search_from = params.pop('from', '')
         response_size = params.pop('size', 'large')
 
-        if updatable(type, query):
-            execute_task(update_resource_task, False, type, query)
 
-        if search_from in ['local', 'remote']:
+        if search_from == 'remote':
+            if updatable(type, query):
+                execute_task(update_resource_task, False, type, query)
             return execute_task(search_resources_task,
-                True, type, search_from, {'id':query}, response_size)
-
-        try:
-            result = search_resources_task(
-                type, 'remote', {'id':query}, response_size)
-            assert result['status'] == 'SUCCESS'
-            return jsonify(result)
-        except:
+                True, type, 'remote', {'id':query}, response_size)
+        elif search_from == 'local':
             return execute_task(search_resources_task,
                 True, type, 'local', {'id':query}, response_size)
+
+        try:
+            assert updatable(type, query)
+            execute_task(update_resource_task, False, type, query)
+            result = search_resources_task(
+                type, 'remote', {'id':query}, response_size, 1, 1, 'id', False, True)
+            assert result['status'] == 'SUCCESS'
+            return jsonify(result)
+        except Exception as exc:
+            return execute_task(search_resources_task,
+                True, type, 'local', {'id':query}, response_size, 1, 1, 'id', False, True)
 
     else:
         abort(400, description="Invalid query")

@@ -70,7 +70,7 @@ class VNDBFields:
             
             class RELEASE(FieldGroup):
                 _prefix = "release."
-                _fields = ['ID']
+                _fields = ['ID', 'TITLE']
 
         class RELATIONS(FieldGroup):
             _prefix = "relations."
@@ -126,7 +126,7 @@ class VNDBFields:
 
             class RELEASE(FieldGroup):
                 _prefix = "release."
-                _fields = ['ID']
+                _fields = ['ID', 'TITLE']
 
         class TRAITS(FieldGroup):
             _prefix = "traits."
@@ -202,6 +202,10 @@ SMALL_FIELDS_CHARACTER: List[str] = [
     VNDBFields.Character.ID,
     VNDBFields.Character.NAME,
     VNDBFields.Character.ORIGINAL,
+    VNDBFields.Character.SEX,
+    VNDBFields.Character.VNS.ID,
+    VNDBFields.Character.VNS.ROLE,
+    VNDBFields.Character.VNS.SPOILER,
     VNDBFields.Character.IMAGE.URL,
     VNDBFields.Character.IMAGE.SEXUAL,
     VNDBFields.Character.IMAGE.VIOLENCE

@@ -41,7 +41,7 @@ export function Relations({ relations }: RelationsProps) {
           <div className="space-y-1">
             {items.map((relation) => (
               <div key={relation.id} className="flex items-center gap-1 text-sm">
-                <Link href={`/v${relation.id}`} className="text-white/90 hover:text-white">
+                <Link href={`/${relation.id}`} className="text-white/90 hover:text-white">
                   {relation.title}
                 </Link>
                 {/* Display 'unofficial' label if not an official relation */}
