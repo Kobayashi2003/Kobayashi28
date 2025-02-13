@@ -28,7 +28,7 @@ export function VNs({ vns }: VNsProps) {
         <div key={title} className="space-y-1">
           {/* Show VN title if there are multiple releases */}
           {entries.length > 1 && (
-            <Link href={`/v${entries[0].id}`} className="text-[#88ccff] hover:text-white transition-colors block">
+            <Link href={`/${entries[0].id}`} className="text-[#88ccff] hover:text-white transition-colors block">
               {title}
             </Link>
           )}
@@ -40,14 +40,14 @@ export function VNs({ vns }: VNsProps) {
                 {entries.length === 1 ? (
                   <>
                     <span className="text-[#4488cc]">-</span>
-                    <Link href={`/v${vn.id}`} className="text-[#88ccff] hover:text-white transition-colors">
+                    <Link href={`/${vn.id}`} className="text-[#88ccff] hover:text-white transition-colors">
                       {title}
                     </Link>
                   </>
                 ) : vn.release ? (
                   <>
                     <span className="text-[#4488cc]">-</span>
-                    <Link href={`/r${vn.release.id}`} className="text-[#88ccff] hover:text-white transition-colors">
+                    <Link href={`/${vn.release.id}`} className="text-[#88ccff] hover:text-white transition-colors">
                       {vn.release.title}
                     </Link>
                   </>

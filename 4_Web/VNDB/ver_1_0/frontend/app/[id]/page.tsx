@@ -14,6 +14,7 @@ import { Details as VNDetails } from "@/components/vn/details/details"
 import { Tags } from "@/components/vn/tags/tags"
 import { Staff } from "@/components/vn/staff/staff"
 import { Releases } from "@/components/vn/releases/releases"
+import { Characters } from "@/components/vn/characters/characters"
 import { Screenshots } from "@/components/vn/screenshots/screenshots"
 
 import { Details as CharacterDetails } from "@/components/character/details/details"
@@ -100,6 +101,16 @@ async function renderVNPage(vnResult: VNType) {
               <Suspense fallback={<div>Loading releases...</div>}>
                 <Releases releaseIds={releaseIds} />
               </Suspense>
+            </div>
+          </div>
+        )}
+        {vnResult.characters && vnResult.characters.length > 0 && (
+          <div className="bg-[#0F2942]/80 backdrop-blur-md rounded-lg shadow-lg border border-white/10 overflow-hidden">
+            <div className="p-4 border-b border-white/10">
+              <h2 className="text-lg text-white/90 pl-2">Characters</h2>
+            </div>
+            <div className="p-6">
+              <Characters vn={vnResult} />
             </div>
           </div>
         )}

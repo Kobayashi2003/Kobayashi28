@@ -30,6 +30,31 @@
   height: 16px;
 }
 
+[class^="icon-char-"] {
+  background-image: url(../public/icons.svg);
+  width: 16px;
+  height: 16px;
+}
+.charsex-w {
+  filter: invert(100%)
+}
+.charsex- {
+  filter: invert(38%) sepia(65%) saturate(467%) hue-rotate(162deg) brightness(98%) contrast(94%)
+}
+.charsex-m {
+  filter: invert(81%) sepia(89%) saturate(786%) hue-rotate(109deg) brightness(104%) contrast(106%)
+}
+.charsex-f {
+  filter: invert(25%) sepia(99%) saturate(4716%) hue-rotate(291deg) brightness(108%) contrast(133%)
+}
+.charsex-b {
+  filter: invert(16%) sepia(72%) saturate(5487%) hue-rotate(356deg) brightness(95%) contrast(121%)
+}
+.charsex-n {
+  filter: invert(96%) sepia(38%) saturate(2940%) hue-rotate(358deg) brightness(104%) contrast(105%)
+}
+
+
 .icon-lang-ar {
   background-position: -11px -14px;
 }
@@ -420,4 +445,40 @@
   background-position: -2124px 0;
   width: 16px;
   height: 16px;
+}
+
+.icon-char-a {
+  background-position: 0px 0;
+  width: 16px;
+  height: 16px
+}
+.icon-char-b {
+  background-position: -26px 0;
+  width: 16px;
+  height: 16px
+}
+.icon-char-f {
+  background-position: -52px 0;
+  width: 16px;
+  height: 16px
+}
+.icon-char-m {
+  background-position: -78px 0;
+  width: 16px;
+  height: 16px
+}
+.icon-char-n {
+  background-position: -104px 0;
+  width: 16px;
+  height: 16px
+}
+.icon-char-o {
+  background-position: -130px 0;
+  width: 16px;
+  height: 16px
+}
+.icon-char-u {
+  background-position: -156px 0;
+  width: 16px;
+  height: 16px
 }

@@ -43,9 +43,9 @@ export function Traits({ traits, showSexualTraits, spoilerLevel }: TraitsProps) 
           >
             {name}
           </Link>
-          <div>
+          <div className="flex flex-wrap items-center">
             {traits.map((trait, index) => (
-              <span key={trait.id}>
+              <span key={trait.id} className="flex items-center">
                 <Link
                   href={`/${trait.id}`}
                   className={cn(

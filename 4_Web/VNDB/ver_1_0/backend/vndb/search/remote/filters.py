@@ -51,6 +51,9 @@ class VNDBFilters:
         "role": VNDBFilter("role", FilterType.STRING, "m"),
         "blood_type": VNDBFilter("blood_type", FilterType.STRING),
         "sex": VNDBFilter("sex", FilterType.STRING),
+        "sex_spoil": VNDBFilter("sex_spoil", FilterType.STRING),
+        "gender": VNDBFilter("gender", FilterType.STRING),
+        "gender_spoil": VNDBFilter("gender_spoil", FilterType.STRING),
         "height": VNDBFilter("height", FilterType.INTEGER, "o,n,i"),
         "weight": VNDBFilter("weight", FilterType.INTEGER, "o,n,i"),
         "bust": VNDBFilter("bust", FilterType.INTEGER, "o,n,i"),
@@ -281,7 +284,7 @@ def get_character_filters(params: Dict[str, Any]) -> Dict[str, Any]:
             if parsed:
                 filters.append({field: parsed})
     
-    single_value_fields = ['blood_type', 'sex', 'cup']
+    single_value_fields = ['blood_type', 'sex', 'sex_spoil', 'gender', 'gender_spoil', 'cup']
     for field in single_value_fields:
         if value := params.get(field):
             filters.append({field: value})

@@ -57,7 +57,7 @@ export const LANGUAGES: Record<string, string> = {
   "zh-Hans": "Chinese (Simplified)",
   "zh-Hant": "Chinese (Traditional)",
   zh: "Chinese",
-}
+} as const
 
 // Language code to icon class mapping
 export const LANGUAGE_ICONS: Record<string, string> = {
@@ -115,7 +115,7 @@ export const LANGUAGE_ICONS: Record<string, string> = {
   "zh-Hans": "icon-lang-zh-Hans",
   "zh-Hant": "icon-lang-zh-Hant",
   zh: "icon-lang-zh",
-}
+} as const
 
 // Platform code to full name mapping
 export const PLATFORMS: Record<string, string> = {
@@ -142,7 +142,7 @@ export const PLATFORMS: Record<string, string> = {
   nds: "Nintendo DS",
   n3d: "Nintendo 3DS",
   web: "Web",
-}
+} as const
 
 // Platform code to icon class mapping
 export const PLATFORM_ICONS: Record<string, string> = {
@@ -169,7 +169,7 @@ export const PLATFORM_ICONS: Record<string, string> = {
   nds: "icon-plat-nds",
   n3d: "icon-plat-n3d",
   web: "icon-plat-web",
-}
+} as const
 
 // Relation type to full name mapping
 export const RELATIONS: Record<string, string> = {
@@ -185,7 +185,7 @@ export const RELATIONS: Record<string, string> = {
   par: "Parent story",
   child: "Child story",
   other: "Other",
-}
+} as const
 
 export const MEDIUM: Record<string, string> = {
   in: "Internet download",
@@ -197,7 +197,7 @@ export const MEDIUM: Record<string, string> = {
   umd: "UMD",
   flp: "Floppy Disk",
   mrt: "Cartridge",
-}
+} as const
 
 export const RELEASE_ICONS = {
   media: {
@@ -222,33 +222,54 @@ export const RELEASE_ICONS = {
     nonfree: "icon-rel-nonfree",
     external: "icon-external",
   },
-}
+} as const
+
+export const SEX = {
+  m: "Male",
+  f: "Female",
+  b: "Both",
+  n: "Sexless",
+} as const
+
+export const SEX_ICONS = {
+  m: "icon-char-m",
+  f: "icon-char-f",
+  b: "icon-char-b",
+  n: "icon-char-n",
+} as const
+
+export const SEX_COLORS = {
+  m: "charsex-m",
+  f: "charsex-f",
+  b: "charsex-b",
+  n: "charsex-n",
+} as const
 
 export const VOICED = {
   1: "Not voiced",
   2: "Only ero scenes voiced",
   3: "Partially voiced",
   4: "Fully voiced",
-}
+} as const
 
 export const CATEGORIES = [
   { id: "cont", label: "content" },
   { id: "tech", label: "technical" },
   { id: "ero", label: "sexual content" },
-]
+] as const
 
 export const SPOILER = [
   { id: "hide", label: "hide spoilers", value: 0 },
   { id: "minor", label: "show minor spoilers", value: 1 },
   { id: "all", label: "spoil me!", value: 2 },
-]
+] as const
 
 export const SIZES = {
   xs: "text-xs",
   sm: "text-sm",
   base: "text-base",
   lg: "text-lg",
-}
+} as const
 
 export const ROLE = {
   primary: "Main character",

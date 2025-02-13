@@ -4,7 +4,10 @@ if __name__ == '__main__':
     print(search(
         resource_type='character',
         params={
-            'id':'c113836',
+            'sex':'m',
+            'sex_spoil':'f'
         },
-        response_size='large'
+        page=1,
+        limit=10,
+        response_size='small'
     ))

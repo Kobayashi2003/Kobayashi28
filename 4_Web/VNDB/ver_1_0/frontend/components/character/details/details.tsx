@@ -10,6 +10,7 @@ import { VNs } from "./vns"
 import { Seiyuu } from "./seiyuu"
 import { Button } from "@/components/ui/button"
 import { SpoilerControls } from "./spoiler-controls"
+import { SexIndicator } from "./sex-indicator"
 
 interface CharacterDetailsProps {
   character: Character
@@ -33,6 +34,9 @@ export function Details({ character }: CharacterDetailsProps) {
     .join(", ")
 
   const detailsData = {
+    Original: { value: character.original },
+    "Blood Type": { value: character.blood_type?.toUpperCase() },
+    Sex: { value: <SexIndicator sex={character.sex} spoilerLevel={spoilerLevel} /> },
     Measurements: { value: measurements },
     Birthday: {
       value:
@@ -49,7 +53,6 @@ export function Details({ character }: CharacterDetailsProps) {
       <div className="p-4 border-b border-white/10 flex justify-between items-center">
         <div className="max-w-3xl pl-2">
           <div className="text-lg text-white/90">{character.name}</div>
-          {character.original && <div className="text-sm text-white/60">{character.original}</div>}
         </div>
         <div className="flex items-center gap-4">
           <SpoilerControls value={spoilerLevel} onChange={setSpoilerLevel} />
