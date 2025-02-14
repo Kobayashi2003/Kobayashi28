@@ -1,11 +1,23 @@
-import type { VN } from "@/lib/types"
-import { ScreenshotItem } from "./screenshot-item"
 import Link from "next/link"
+import { ScreenshotItem } from "./screenshot-item"
+
+interface Screenshot {
+  url?: string;
+  dims?: [number, number]
+  sexual?: number;
+  violence?: number;
+  thumbnail?: string;
+  thumbnail_dims?: [number, number];
+  release?: {
+    id?: string;
+    title?: string;
+  }
+}
 
 interface ScreenshotGroupProps {
   releaseId: string
   title: string
-  screenshots: NonNullable<VN["screenshots"]>
+  screenshots: Screenshot[]
 }
 
 export function ScreenshotGroup({ title, screenshots, releaseId }: ScreenshotGroupProps) {

@@ -35,105 +35,73 @@ function getContentType(id: string): ContentType | null {
   return types[firstChar] || null
 }
 
-async function renderVNPage(vnResult: VNType) {
-  if (!vnResult) return null
-
-  const hasImage = vnResult.image?.url
-  const mainTitle = vnResult.titles?.find((t) => t.official && t.main)?.title
-
-  const detailsData = {
-    "Original Language": { value: vnResult.olang },
-    "Release Date": { value: vnResult.released },
-    Length: { value: vnResult.length && `${vnResult.length} hours (${vnResult.length_votes} votes)` },
-    Rating: { value: vnResult.rating && `${vnResult.rating.toFixed(2)} (${vnResult.votecount} votes)` },
-    Developers: { value: vnResult.developers?.map((dev) => dev.name).join(", ") },
-    Links: { value: "Links" },
-    Platforms: { value: "Platforms" },
-  }
-
-  const tags =
-    vnResult.tags?.map((tag) => ({
-      id: tag.id,
-      name: tag.name,
-      rating: tag.rating,
-      spoiler: tag.spoiler,
-      category: tag.category,
-    })) || []
+async function renderVNPage(vn: VNType) {
+  if (!vn) return null
 
   // Safely handle release IDs
-  const releaseIds =
-    vnResult.releases
-      ?.map((release) => release.id)
-      .filter((id): id is string => id !== undefined)
-      .map((id) => id.slice(1)) || []
-
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="max-w-5xl mx-auto space-y-6">
-        <VNDetails
-          image={hasImage ? vnResult.image!.url : undefined}
-          title={vnResult.title}
-          subtitle={mainTitle}
-          titles={vnResult.titles}
-          data={detailsData}
-          description={vnResult.description}
-          developers={vnResult.developers}
-          relations={vnResult.relations}
-          platforms={vnResult.platforms}
-          links={vnResult.extlinks?.map((link) => ({ url: link.url || "", name: link.name || "" }))}
-        />
-        {tags.length > 0 && (
+
+        <VNDetails vn={vn} />
+
+        {vn.tags && vn.tags.length > 0 && (
           <div className="bg-[#0F2942]/80 backdrop-blur-md rounded-lg shadow-lg border border-white/10 overflow-hidden">
             <div className="p-4 border-b border-white/10">
               <h3 className="text-lg font-semibold text-white/90">Tags</h3>
             </div>
             <div className="p-4">
-              <Tags tags={tags} />
+              <Tags vn={vn} />
             </div>
           </div>
         )}
-        {releaseIds.length > 0 && (
+
+        {vn.releases && vn.releases.length > 0 && (
           <div className="bg-[#0F2942]/80 backdrop-blur-md rounded-lg shadow-lg border border-white/10 overflow-hidden">
             <div className="p-4 border-b border-white/10">
               <h3 className="text-lg font-semibold text-white/90">Releases</h3>
             </div>
             <div className="p-4">
               <Suspense fallback={<div>Loading releases...</div>}>
-                <Releases releaseIds={releaseIds} />
+                <Releases vn={vn} />
               </Suspense>
             </div>
           </div>
         )}
-        {vnResult.characters && vnResult.characters.length > 0 && (
+
+        {vn.characters && vn.characters.length > 0 && (
           <div className="bg-[#0F2942]/80 backdrop-blur-md rounded-lg shadow-lg border border-white/10 overflow-hidden">
             <div className="p-4 border-b border-white/10">
               <h2 className="text-lg text-white/90 pl-2">Characters</h2>
             </div>
             <div className="p-6">
-              <Characters vn={vnResult} />
+              <Characters vn={vn} />
             </div>
           </div>
         )}
-        {vnResult.staff && vnResult.staff.length > 0 && (
+
+        {vn.staff && vn.staff.length > 0 && (
           <div className="bg-[#0F2942]/80 backdrop-blur-md rounded-lg shadow-lg border border-white/10 overflow-hidden">
             <div className="p-4 border-b border-white/10">
               <h3 className="text-lg font-semibold text-white/90">Staff</h3>
             </div>
             <div className="p-4">
-              <Staff vn={vnResult} />
+              <Staff vn={vn} />
             </div>
           </div>
         )}
-        {vnResult.screenshots && vnResult.screenshots.length > 0 && (
+
+        {vn.screenshots && vn.screenshots.length > 0 && (
           <div className="bg-[#0F2942]/80 backdrop-blur-md rounded-lg shadow-lg border border-white/10 overflow-hidden">
             <div className="p-4 border-b border-white/10">
               <h3 className="text-lg font-semibold text-white/90">Screenshots</h3>
             </div>
             <div className="p-4">
-              <Screenshots vn={vnResult} />
+              <Screenshots vn={vn} />
             </div>
           </div>
         )}
+
       </div>
     </div>
   )

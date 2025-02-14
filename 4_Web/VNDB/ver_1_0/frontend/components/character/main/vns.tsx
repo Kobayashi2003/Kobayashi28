@@ -1,9 +1,14 @@
 import Link from "next/link"
 import type { Character } from "@/lib/types"
-import { ROLE } from "@/lib/constants"
 
 interface VNsProps {
   vns: NonNullable<Character["vns"]>
+}
+
+const ROLE_DISPLAY: Record<string, string> = {
+  primary: "Main character",
+  side: "Side character",
+  main: "Protagonist",
 }
 
 export function VNs({ vns }: VNsProps) {
@@ -34,7 +39,7 @@ export function VNs({ vns }: VNsProps) {
                 {/* Show bullet point for multiple entries */}
                 {entries.length > 1 && <span className="text-[#4488cc]">›</span>}
                 {/* Display character's role in the VN */}
-                <span className="text-[#4488cc]">{ROLE[vn.role as keyof typeof ROLE] || vn.role}</span>
+                <span className="text-[#4488cc]">{ROLE_DISPLAY[vn.role as keyof typeof ROLE_DISPLAY] || vn.role}</span>
                 {/* Display VN or release information */}
                 {renderVNLink(vn, entries.length === 1 ? title : undefined)}
               </div>

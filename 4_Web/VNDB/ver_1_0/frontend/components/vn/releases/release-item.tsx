@@ -1,78 +1,90 @@
-import type { Release } from "@/lib/types"
-import { PLATFORM_ICONS, PLATFORMS, MEDIUM, RELEASE_ICONS, VOICED } from "@/lib/constants"
 import { cn } from "@/lib/utils"
+import Link from "next/link"
 import { Heart } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import Link from "next/link"
+import type { Release } from "@/lib/types"
+import { PLATFORMS, PLATFORM_ICONS, RELEASE_ICONS } from "@/lib/constants"
 
 interface ReleaseItemProps {
+  vnid: string
+  lang: string
   release: Release
 }
 
-// Helper function to determine media icon type
-function getMediaIcon(media: Array<{ medium?: string; qty?: number }>) {
-  if (media.some((m) => m.medium?.toLowerCase() === "in")) return RELEASE_ICONS.media.download
-  if (media.some((m) => ["cd", "dvd", "bd", "blr", "gdr", "umd", "flp", "gd"].includes(m.medium?.toLowerCase() || "")))
-    return RELEASE_ICONS.media.disk
-  if (media.some((m) => ["cart", "mrt"].includes(m.medium?.toLowerCase() || ""))) return RELEASE_ICONS.media.cartridge
-  return RELEASE_ICONS.media.disk
+const MEDIUM_DISPLAY: Record<string, string> = {
+  in: "Internet download",
+  cd: "CD",
+  dvd: "DVD",
+  blr: "Blu-ray",
+  gd: "GD",
+  gdr: "GD-ROM",
+  umd: "UMD",
+  flp: "Floppy Disk",
+  mrt: "Cartridge",
 }
 
-// Helper function to generate media tooltip text
-function getMediaTooltip(media: Array<{ medium?: string; qty?: number }>) {
-  return media
-    .map(({ medium, qty }) => {
-      const mediumName = MEDIUM[medium?.toLowerCase() || ""] || medium
-      if (!qty || qty === 1) return mediumName
-      return `${qty} ${mediumName}s`
-    })
-    .join(", ")
+const VOICED_DISPLAY: Record<number, string> = {
+  1: "Not voiced",
+  2: "Only ero scenes voiced",
+  3: "Partially voiced",
+  4: "Fully voiced",
 }
 
-// Helper function to determine voice status
-function getVoicedStatus(voiced?: number | null) {
-  if (voiced === undefined || voiced === null) return null
-  return {
-    className: RELEASE_ICONS.voiced[`v${voiced}` as keyof typeof RELEASE_ICONS.voiced],
-    tooltip: VOICED[voiced as keyof typeof VOICED],
-  }
+function getMediaIcon(medium: string) {
+  const lowerMedium = medium.toLowerCase()
+  if (lowerMedium === "in") return RELEASE_ICONS.download
+  if (["cd", "dvd", "bd", "blr", "gdr", "umd", "flp", "gd"].includes(lowerMedium)) return RELEASE_ICONS.disk
+  if (["cart", "mrt"].includes(lowerMedium)) return RELEASE_ICONS.cartridge
+  return RELEASE_ICONS.disk
 }
 
-export function ReleaseItem({ release }: ReleaseItemProps) {
-  // Determine MTL status and build status text
-  const hasMTL = release.languages?.some((lang) => lang.mtl) ?? false
-  const statuses = [
-    hasMTL && "machine translation",
-    release.official === false && "unofficial",
-    release.patch && "patch",
-  ].filter(Boolean)
-  const statusText = statuses.length > 0 ? `(${statuses.join(" ")})` : ""
+function getMediaTooltip(medium: string, qty: number) {
+  const mediumName = MEDIUM_DISPLAY[medium.toLowerCase()]
+  if (qty <= 1) return mediumName
+  return `${qty} ${mediumName}s`
+}
 
-  // Get various status indicators
-  const voicedStatus = getVoicedStatus(release.voiced)
-  // Fix the type safety issue with optional chaining and null coalescing
-  const rtypeIcon =
-    release.vns?.[0]?.rtype && RELEASE_ICONS.rtype[release.vns[0].rtype as keyof typeof RELEASE_ICONS.rtype]
+export function ReleaseItem({ vnid, lang, release }: ReleaseItemProps) {
 
-  // Determine erotic content status
+  const hasEro: boolean = release.has_ero ?? false
+  const isUncensored: boolean = release.uncensored ?? false
   const eroStatus = (() => {
     if (release.has_ero === undefined) return null
-    if (!release.has_ero) return { color: "text-blue-400", tooltip: "No erotic scenes" }
-    if (release.uncensored === true) return { color: "text-green-400", tooltip: "Contains uncensored erotic scenes" }
-    if (release.uncensored === false)
-      return { color: "text-red-400", tooltip: "Contains erotic scenes with optical censoring" }
+    if (!hasEro) return { color: "text-blue-400", tooltip: "No erotic scenes" }
+    if (isUncensored) return { color: "text-green-400", tooltip: "Contains uncensored erotic scenes" }
+    if (!isUncensored) return { color: "text-red-400", tooltip: "Contains erotic scenes with optical censoring" }
     return { color: "text-white", tooltip: "Contains erotic scenes" }
+  })()
+
+  const isMTL: boolean = release.languages?.find((l) => l.lang === lang)?.mtl ?? false
+  const isOfficial: boolean = release.official ?? false
+  const isPatch: boolean = release.patch ?? false
+  const extStatus = [
+    isMTL && "machine translation",
+    !isOfficial && "unofficial",
+    isPatch && "patch",
+  ].filter(Boolean)
+  const extStatusText = extStatus.length > 0 ? `(${extStatus.join(" ")})` : ""
+
+  const rtype: string = release.vns?.find((vn) => vn.id === vnid)?.rtype ?? ""
+  const rtypeIcon = rtype && RELEASE_ICONS[rtype]
+
+  const voiced: number = release.voiced ?? 0
+  const voicedStatus = (() => {
+    if (release.voiced === undefined) return null
+    return { classname: RELEASE_ICONS[`v${voiced}`], tooltip: VOICED_DISPLAY[voiced] }
   })()
 
   return (
     <TooltipProvider>
-      <div className={cn("flex items-center gap-4 px-4 py-1 hover:bg-[#0F2942]/50", hasMTL && "opacity-60")}>
-        {/* Release date - Always visible */}
+      <div className={cn("flex items-center gap-4 px-4 py-1 hover:bg-[#0F2942]/50", (isMTL || !isOfficial) && "opacity-60")}>
+
+        {/* Release date */}
         <div className={cn("w-24 shrink-0 text-sm", release.released === "TBA" ? "text-red-500" : "text-[#88ccff]")}>
           {release.released}
         </div>
 
-        {/* Age rating and ero status - Hidden on small screens */}
+        {/* Age rating and ero status */}
         <div className="hidden sm:flex w-12 text-sm text-[#88ccff] items-center gap-1">
           {eroStatus && (
             <Tooltip>
@@ -87,7 +99,7 @@ export function ReleaseItem({ release }: ReleaseItemProps) {
           {release.minage === 0 ? "ALL" : release.minage ? `${release.minage}+` : ""}
         </div>
 
-        {/* Platform and release type icons - Hidden on small screens */}
+        {/* Platform and release type icons */}
         <div className="hidden sm:flex w-32 gap-1">
           {rtypeIcon && (
             <Tooltip>
@@ -96,8 +108,7 @@ export function ReleaseItem({ release }: ReleaseItemProps) {
               </TooltipTrigger>
               <TooltipContent side="top" className="bg-[#0F2942]">
                 <p className="text-white">
-                  {release.vns?.[0]?.rtype &&
-                    `${release.vns[0].rtype.charAt(0).toUpperCase()}${release.vns[0].rtype.slice(1)} release`}
+                  {rtype && `${rtype.charAt(0).toUpperCase()}${rtype.slice(1)} release`}
                 </p>
               </TooltipContent>
             </Tooltip>
@@ -119,7 +130,7 @@ export function ReleaseItem({ release }: ReleaseItemProps) {
           })}
         </div>
 
-        {/* Title and status - Always visible */}
+        {/* Title and extral status */}
         <div className="flex-1 min-w-0 text-sm">
           <Link
             href={`/${release.id}`}
@@ -128,18 +139,19 @@ export function ReleaseItem({ release }: ReleaseItemProps) {
           >
             <div className="truncate">
               {release.title}
-              {statusText && <span className="text-[#88ccff]/80 ml-1">{statusText}</span>}
+              {extStatusText && <span className="text-[#88ccff]/80 ml-1">{extStatusText}</span>}
             </div>
           </Link>
         </div>
 
-        {/* Additional information icons - Hidden on small screens */}
+        {/* Additional information icons */}
         <div className="hidden sm:flex items-center gap-2">
+
           {/* Notes icon */}
           {release.notes && (
             <Tooltip>
               <TooltipTrigger>
-                <span className={RELEASE_ICONS.other.notes} />
+                <span className={RELEASE_ICONS.notes} />
               </TooltipTrigger>
               <TooltipContent side="left" className="max-w-sm bg-[#0F2942]">
                 <p className="text-white">{release.notes}</p>
@@ -147,23 +159,23 @@ export function ReleaseItem({ release }: ReleaseItemProps) {
             </Tooltip>
           )}
 
-          {/* Media icon */}
-          {release.media && release.media.length > 0 && (
-            <Tooltip>
+          {/* Media icons */}
+          {release.media?.map((mediaItem, index) => (
+            <Tooltip key={`${mediaItem.medium}-${index}`}>
               <TooltipTrigger>
-                <span className={getMediaIcon(release.media)} />
+                <span className={getMediaIcon(mediaItem.medium || "")} />
               </TooltipTrigger>
               <TooltipContent side="left" className="bg-[#0F2942]">
-                <p className="text-white">{getMediaTooltip(release.media)}</p>
+                <p className="text-white">{getMediaTooltip(mediaItem.medium ?? "", mediaItem.qty ?? 0)}</p>
               </TooltipContent>
             </Tooltip>
-          )}
+          ))}
 
           {/* Freeware/Non-free icon */}
           {release.freeware !== undefined && (
             <Tooltip>
               <TooltipTrigger>
-                <span className={release.freeware ? RELEASE_ICONS.other.free : RELEASE_ICONS.other.nonfree} />
+                <span className={release.freeware ? RELEASE_ICONS.free : RELEASE_ICONS.nonfree} />
               </TooltipTrigger>
               <TooltipContent side="left" className="bg-[#0F2942]">
                 <p className="text-white">{release.freeware ? "Freeware" : "Non-free"}</p>
@@ -175,7 +187,7 @@ export function ReleaseItem({ release }: ReleaseItemProps) {
           {voicedStatus && (
             <Tooltip>
               <TooltipTrigger>
-                <span className={voicedStatus.className} />
+                <span className={voicedStatus.classname} />
               </TooltipTrigger>
               <TooltipContent side="left" className="bg-[#0F2942]">
                 <p className="text-white">{voicedStatus.tooltip}</p>
@@ -188,7 +200,7 @@ export function ReleaseItem({ release }: ReleaseItemProps) {
             <Tooltip>
               <TooltipTrigger asChild>
                 <a href={release.extlinks[0].url} target="_blank" rel="noopener noreferrer" className="inline-block">
-                  <span className={RELEASE_ICONS.other.external} />
+                  <span className={RELEASE_ICONS.external} />
                 </a>
               </TooltipTrigger>
               <TooltipContent side="left" className="p-0 overflow-hidden bg-[#0F2942]">
@@ -202,13 +214,14 @@ export function ReleaseItem({ release }: ReleaseItemProps) {
                       className="flex items-center justify-between px-3 py-1 hover:bg-white/5 transition-colors"
                     >
                       <span className="text-white">{link.label || link.name}</span>
-                      {link.id && <span className="ml-4 text-xs text-white">{link.id}</span>}
+                      {/* {link.id && <span className="ml-4 text-xs text-white">{link.id}</span>} */}
                     </a>
                   ))}
                 </div>
               </TooltipContent>
             </Tooltip>
           )}
+
         </div>
       </div>
     </TooltipProvider>

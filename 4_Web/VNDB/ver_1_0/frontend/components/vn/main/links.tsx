@@ -1,23 +1,25 @@
 import { ExternalLink } from "lucide-react"
 
 // Interface for a single link
-interface Link {
-  url: string
-  name: string
+interface ExtLink {
+  id?: string
+  label?: string
+  url?: string
+  name?: string
 }
 
 // Props for the Links component
 interface LinksProps {
-  links?: Link[]
+  extlinks?: ExtLink[]
 }
 
 // Component to display external links
-export function Links({ links }: LinksProps) {
-  if (!links || links.length === 0) return null
+export function Links({ extlinks }: LinksProps) {
+  if (!extlinks?.length) return null
 
   return (
     <div className="flex flex-wrap gap-2">
-      {links.map((link) => (
+      {extlinks.map((link) => (
         <a
           key={link.url}
           href={link.url}

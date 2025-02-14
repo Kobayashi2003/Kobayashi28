@@ -1,11 +1,19 @@
 import Link from "next/link"
-import type { Character } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
+interface Trait {
+  id?: string;
+  name?: string;
+  group_id?: string;
+  group_name?: string;
+  spoiler?: number;
+  lie?: boolean;
+}
+
 interface TraitsProps {
-  traits: NonNullable<Character["traits"]>
-  showSexual: boolean
-  spoilerLevel: number
+  traits: Trait[];
+  showSexual: boolean;
+  spoilerLevel: number;
 }
 
 export function Traits({ traits, showSexual, spoilerLevel }: TraitsProps) {

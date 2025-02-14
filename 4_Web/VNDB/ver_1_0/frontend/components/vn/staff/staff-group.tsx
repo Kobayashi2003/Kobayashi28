@@ -1,22 +1,38 @@
 "use client"
 
 import { useState } from "react"
-import { ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { ChevronRight } from "lucide-react"
 import { StaffItem } from "./staff-item"
-import type { VN } from "@/lib/types"
 
-interface StaffGroupProps {
-  name: string
-  staff: NonNullable<VN["staff"]>
-  isOriginal?: boolean
+interface Staff {
+  id?: string;
+  name?: string;
+  eid?: number;
+  role?: string;
+  note?: string;
 }
 
-export function StaffGroup({ name, staff, isOriginal }: StaffGroupProps) {
-  const [isExpanded, setIsExpanded] = useState(isOriginal)
+interface StaffGroupProps {
+  editionName: string
+  staffList: Staff[]
+}
 
-  // Group staff by role
-  const staffByRole = staff.reduce(
+function getRoleDisplay(role: string) {
+  if (role === "art") return "Artist" 
+  if (role === "music") return "Composer" 
+  if (role === "songs") return "Vocals" 
+  if (role === "chardesign") return "Character Design" 
+  return role
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ")
+}
+
+export function StaffGroup({ editionName, staffList }: StaffGroupProps) {
+  const [isExpanded, setIsExpanded] = useState(editionName === "Original edition")
+
+  const staffByRole = staffList.reduce(
     (groups, member) => {
       const role = member.role || "Other"
       if (!groups[role]) {
@@ -25,16 +41,8 @@ export function StaffGroup({ name, staff, isOriginal }: StaffGroupProps) {
       groups[role].push(member)
       return groups
     },
-    {} as Record<string, typeof staff>,
+    {} as Record<string, typeof staffList>,
   )
-
-  // Helper function to capitalize first letter of each word
-  const capitalizeRole = (role: string) => {
-    return role
-      .split(" ")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ")
-  }
 
   return (
     <div>
@@ -43,7 +51,7 @@ export function StaffGroup({ name, staff, isOriginal }: StaffGroupProps) {
         className="w-full text-left p-2 bg-[#0F2942] hover:bg-[#1A3A5A] transition-colors flex items-center gap-2 group"
       >
         <ChevronRight className={cn("h-4 w-4 text-[#88ccff] transition-transform", isExpanded && "rotate-90")} />
-        <span className="text-white font-semibold">{name}</span>
+        <span className="text-white font-semibold">{editionName}</span>
       </button>
 
       {isExpanded && (
@@ -51,10 +59,10 @@ export function StaffGroup({ name, staff, isOriginal }: StaffGroupProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-4">
             {Object.entries(staffByRole).map(([role, members]) => (
               <div key={role} className="min-w-[200px] break-inside-avoid">
-                <div className="text-white font-semibold text-base mb-2">{capitalizeRole(role)}</div>
+                <div className="text-white font-semibold text-base mb-2">{getRoleDisplay(role)}</div>
                 <div className="space-y-1 text-sm">
                   {members.map((member) => (
-                    <StaffItem key={member.id} staff={member} />
+                    <StaffItem key={`${member.id}-${member.role}-${member.note}`} staff={member} />
                   ))}
                 </div>
               </div>

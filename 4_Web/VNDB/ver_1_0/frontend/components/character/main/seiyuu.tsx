@@ -1,20 +1,26 @@
 import Link from "next/link"
-import type { Character } from "@/lib/types"
+
+interface Seiyuu {
+  id?: string;
+  name?: string;
+  original?: string;
+  note?: string;
+}
 
 // Define props interface for the Seiyuu component
 interface SeiyuuProps {
-  seiyuu: NonNullable<Character["seiyuu"]>
+  seiyuuList: Seiyuu[]
 }
 
 // Seiyuu component to display voice actors
-export function Seiyuu({ seiyuu }: SeiyuuProps) {
+export function Seiyuu({ seiyuuList }: SeiyuuProps) {
   // If there are no voice actors, don't render anything
-  if (!seiyuu?.length) return null
+  if (!seiyuuList?.length) return null
 
   return (
     // Container for the list of voice actors with small vertical spacing
     <div className="space-y-0.5">
-      {seiyuu
+      {seiyuuList
         // Sort voice actors alphabetically by name
         .sort((a, b) => (a.name || "").localeCompare(b.name || ""))
         // Map through sorted voice actors and create a div for each

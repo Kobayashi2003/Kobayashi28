@@ -1,39 +1,53 @@
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 import type { VN } from "@/lib/types"
-import { SEX_ICONS, SEX_COLORS, ROLE } from "@/lib/constants"
+import { CHARACTER_ICONS, CHARACTER_SEX_COLORS } from "@/lib/constants"
 
-interface CharacterItemProps {
-  id?: string
-  name?: string
-  sex?: string[]
-  role?: string
-  vn: VN
+interface Character {
+  id?: string;
+  name?: string;
+  sex?: [string, string];
+  vns?: Array<{
+    id?: string;
+    role?: string;
+    spoiler?: number;
+  }>;
 }
 
-export function CharacterItem({ id, name, sex, role, vn }: CharacterItemProps) {
-  // Use first (apparent) sex for the icon
-  const sexValue = sex?.[0]
+interface CharacterItemProps {
+  vn: VN
+  character: Character
+}
 
-  // Find voice actors for this character
-  const voiceActors = vn.va?.filter((va) => va.character?.id === id) || []
+const ROLE_DISPLAY: Record<string, string> = {
+  primary: "Main character",
+  side: "Side character",
+  main: "Protagonist"
+}
+
+export function CharacterItem({ vn, character }: CharacterItemProps) {
+
+  const apparentSex = character.sex?.[0] ?? ""
+  const realSex = character.sex?.[1] ?? ""
+  const role = character.vns?.find((v) => v.id === vn.id)?.role ?? ""
+  const voiceActors = vn.va?.filter((va) => va.character?.id === character.id) ?? []
 
   return (
     <div className="space-y-1 border border-white/10 rounded p-2">
       {/* Character name and sex icon */}
       <div className="flex items-center gap-2">
-        {sexValue && (
+        {apparentSex && (
           <span
             className={cn(
-              SEX_ICONS[sexValue as keyof typeof SEX_ICONS],
-              SEX_COLORS[sexValue as keyof typeof SEX_COLORS],
+              CHARACTER_ICONS[apparentSex],
+              CHARACTER_SEX_COLORS[apparentSex],
             )}
           />
         )}
-        <Link href={`/${id}`} className="text-[#88ccff] hover:text-white transition-colors">
-          {name}
+        <Link href={`/${character.id}`} className="text-[#88ccff] hover:text-white transition-colors">
+          {character.name}
         </Link>
-        {role && <span className="text-[#4488cc] italic text-xs">{ROLE[role as keyof typeof ROLE] || role}</span>}
+        {role && <span className="text-[#4488cc] italic text-xs">{ROLE_DISPLAY[role] || role}</span>}
       </div>
       {/* Voice actors section */}
       {voiceActors.length > 0 && (

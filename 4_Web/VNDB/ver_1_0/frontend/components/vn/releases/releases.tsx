@@ -2,18 +2,24 @@
 
 import { useEffect, useState } from "react"
 import { api } from "@/lib/api"
-import type { Release } from "@/lib/types"
+import type { Release, VN } from "@/lib/types"
 import { ReleaseGroup } from "./release-group"
 
 interface ReleasesProps {
-  releaseIds?: string[]
+  vn : VN
 }
 
-export function Releases({ releaseIds }: ReleasesProps) {
+export function Releases({ vn }: ReleasesProps) {
+
   const [releases, setReleases] = useState<Release[]>([])
 
   useEffect(() => {
     async function fetchReleases() {
+      const releaseIds =
+      vn.releases
+        ?.map((release) => release.id)
+        .filter((id): id is string => id !== null)
+        .map((id) => id.slice(1)) || []
       if (!releaseIds) return
 
       const fetchedReleases = await Promise.all(
@@ -21,26 +27,34 @@ export function Releases({ releaseIds }: ReleasesProps) {
       )
       setReleases(fetchedReleases)
     }
-
     fetchReleases()
-  }, [releaseIds])
+  }, [vn])
 
   if (!releases.length) return null
 
   // Group releases by language and sort within each group
   const groupedReleases = releases.reduce(
     (groups, release) => {
-      const mainLanguage = release.languages?.find((l) => l.main)?.lang || "other"
-      if (!groups[mainLanguage]) {
-        groups[mainLanguage] = []
-      }
-      groups[mainLanguage].push(release)
+      release.languages?.forEach((language) => {
+        const lang = language.lang || "unknown"
+        if (!groups[lang]) {
+          groups[lang] = []
+        }
+        groups[lang].push(release)
+      })
       return groups
     },
     {} as Record<string, Release[]>,
   )
 
-  // Sort releases within each language group
+  // Sort platforms for each release
+  Object.values(groupedReleases).flat().forEach((release) => {
+    if (release.platforms)   {
+      release.platforms.sort()
+    }
+  })
+
+  // Sort releases for each group by released, platforms and title
   Object.keys(groupedReleases).forEach((lang) => {
     groupedReleases[lang].sort((a, b) => {
       // First, compare by release date
@@ -63,7 +77,7 @@ export function Releases({ releaseIds }: ReleasesProps) {
   return (
     <div className="space-y-4">
       {Object.entries(groupedReleases).map(([lang, releases]) => (
-        <ReleaseGroup key={lang} lang={lang} releases={releases} />
+        <ReleaseGroup key={lang} vnid={vn.id || ""} lang={lang} releases={releases} />
       ))}
     </div>
   )

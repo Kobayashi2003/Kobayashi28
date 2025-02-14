@@ -1,5 +1,4 @@
 import Link from "next/link"
-import { RELATIONS } from "@/lib/constants"
 
 // Interface for a single relation
 interface Relation {
@@ -12,6 +11,21 @@ interface Relation {
 // Props for the Relations component
 interface RelationsProps {
   relations?: Relation[]
+}
+
+const RELATIONS_DISPLAY: Record<string, string> = {
+  ser: "Same series",
+  char: "Shares characters",
+  alt: "Alternative version",
+  preq: "Prequel",
+  seq: "Sequel",
+  side: "Side story",
+  set: "Same setting",
+  fan: "Fandisc",
+  orig: "Original game",
+  par: "Parent story",
+  child: "Child story",
+  other: "Other",
 }
 
 // Component to display related visual novels
@@ -36,7 +50,7 @@ export function Relations({ relations }: RelationsProps) {
       {Object.entries(groupedRelations).map(([group, items]) => (
         <div key={group} className="grid grid-cols-[120px_1fr] gap-4 items-start">
           {/* Relation type label */}
-          <div className="text-white/60 text-sm">{RELATIONS[group] || group}</div>
+          <div className="text-white/60 text-sm">{RELATIONS_DISPLAY[group] || group}</div>
           {/* List of related visual novels */}
           <div className="space-y-1">
             {items.map((relation) => (

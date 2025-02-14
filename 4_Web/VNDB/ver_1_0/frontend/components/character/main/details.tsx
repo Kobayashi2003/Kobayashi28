@@ -5,8 +5,11 @@ import { cn } from "@/lib/utils"
 
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 import type { Character } from "@/lib/types"
+import { CHARACTER_ICONS } from "@/lib/constants"
+import { CHARACTER_SEX_COLORS } from "@/lib/constants"
 
 import { Row } from "./row"
 import { Traits } from "./traits"
@@ -16,6 +19,13 @@ import { Seiyuu } from "./seiyuu"
 
 interface CharacterDetailsProps {
   character: Character
+}
+
+const SEX_DISPLAY = {
+  m: "Male",
+  f: "Female",
+  b: "Both",
+  n: "Sexless",
 }
 
 export function CharacterDetails({ character }: CharacterDetailsProps) {
@@ -31,22 +41,61 @@ export function CharacterDetails({ character }: CharacterDetailsProps) {
     character.blood_type && `Blood Type: ${character.blood_type.toUpperCase()}`
   ].filter(Boolean).join(", ")
 
-  const birthday = character.birthday &&
-    new Date(`2000-${character.birthday}`).toLocaleDateString("en-US", {
-      day: 'numeric',
-      month: "long"
+  const birthdayMatch = character.birthday?.match(/(\d+)\D+(\d+)/) ?? []
+  const month  = birthdayMatch[1]
+  const day = birthdayMatch[2]
+
+  const birthday = (month && day) &&
+    new Date(`2000-${month.padStart(2, "0")}-${day.padStart(2, "0")}`)
+    .toLocaleDateString("en-US", {
+      day: "numeric",
+      month: "long",
     })
 
-  const rowsData = {
-    Original: { value: character.original },
-    Sex: { value: character.blood_type?.toLocaleUpperCase() },
-    Measurements: { value: measurements },
-    Birthday: { value: birthday } 
-  }
+  const getSexIcon = (sex: string) => (
+    <span
+      className={cn(
+        CHARACTER_ICONS[sex as keyof typeof CHARACTER_ICONS],
+        CHARACTER_SEX_COLORS[sex as keyof typeof CHARACTER_SEX_COLORS],
+      )}
+    />
+  )
+
+  const renderSexIcon = () => (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger className="flex items-center gap-1">
+          {character.sex && character.sex[0] && getSexIcon(character.sex[0])}
+          {spoilerLevel > 1 && character.sex && character.sex[1] && character.sex[0] !== character.sex[1] && (
+            <>
+              <span className="text-white/20 mx-1">→</span>
+              {getSexIcon(character.sex[1])}
+            </>
+          )}
+        </TooltipTrigger>
+        <TooltipContent side="top" className="bg-[#0F2942]">
+          <p className="text-white">
+            {character.sex && character.sex[0] && (
+              <>
+                {getSexIcon(character.sex[0])}
+                <span className="ml-1">{SEX_DISPLAY[character.sex[0] as keyof typeof SEX_DISPLAY]}</span>
+              </>
+            )}
+            {spoilerLevel > 0 && character.sex && character.sex[1] && character.sex[0] !== character.sex[1] && (
+              <>
+                <span className="text-white/60 mx-1">→</span>
+                {getSexIcon(character.sex[1])}
+                <span className="ml-1">{SEX_DISPLAY[character.sex[1] as keyof typeof SEX_DISPLAY]}</span>
+              </>
+            )}
+          </p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  )
 
   return (
     <div className="bg-[#0F2942]/80 backdrop-blur-md rounded-lg shadow-lg border border-white/10 overflow-hidden">
-
 
       <div className="p-4 border-b border-white/10 flex justify-between items-center">
         {/* Character name section */}
@@ -122,9 +171,9 @@ export function CharacterDetails({ character }: CharacterDetailsProps) {
 
         <div className="space-y-4 min-w-0">
           {/* Rows */}
-          {Object.entries(rowsData).map(([key, { value }]) => (
-            value && <Row key={key} label={key} value={value} />
-          ))}
+          <Row label={character.name ?? ""} value={<div className="flex items-center gap-2"> {character.original} {renderSexIcon()} </div>} />
+          <Row label="Measurements" value={measurements} />
+          <Row label="Birthday" value={birthday} />
 
           {/* Traits */}
           {character.traits && character.traits.length > 0 && (
@@ -133,7 +182,7 @@ export function CharacterDetails({ character }: CharacterDetailsProps) {
 
           {/* Seiyuu */}
           {character.seiyuu && character.seiyuu.length > 0 && (
-            <Row label="Voiced by" value={<Seiyuu seiyuu={character.seiyuu} />} />
+            <Row label="Voiced by" value={<Seiyuu seiyuuList={character.seiyuu} />} />
           )}
 
           {/* Visual Novels */}

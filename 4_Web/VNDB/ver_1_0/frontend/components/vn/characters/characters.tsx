@@ -34,24 +34,24 @@ export function Characters({ vn }: CharactersProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2 text-sm">
+      <div className="flex items-center gap-2 text-sm justify-end">
         <button
           onClick={() => setSpoilerLevel(0)}
-          className={cn("hover:text-white transition-colors", spoilerLevel === 0 ? "text-[#88ccff]" : "text-white/60")}
+          className={cn("transition-colors", spoilerLevel === 0 ? "text-[#88ccff]" : "text-white/60 hover:text-white")}
         >
           Hide spoilers
         </button>
         <span className="text-white/20">|</span>
         <button
           onClick={() => setSpoilerLevel(1)}
-          className={cn("hover:text-white transition-colors", spoilerLevel === 1 ? "text-[#ffcc66]" : "text-white/60")}
+          className={cn("transition-colors", spoilerLevel === 1 ? "text-[#ffcc66]" : "text-white/60 hover:text-white")}
         >
           Show minor spoilers
         </button>
         <span className="text-white/20">|</span>
         <button
           onClick={() => setSpoilerLevel(2)}
-          className={cn("hover:text-white transition-colors", spoilerLevel === 2 ? "text-[#ff6666]" : "text-white/60")}
+          className={cn("transition-colors", spoilerLevel === 2 ? "text-[#ff6666]" : "text-white/60 hover:text-white")}
         >
           Spoil me!
         </button>
@@ -69,16 +69,11 @@ export function Characters({ vn }: CharactersProps) {
             return sortCharacters(roleA, roleB, a.name, b.name)
           })
           .map((character) => {
-            const vnRole = character.vns?.find((v) => v.id === vn.id)?.role
-
             return (
               <CharacterItem
                 key={character.id}
-                id={character.id}
-                name={character.name}
-                sex={character.sex}
-                role={vnRole}
                 vn={vn}
+                character={character}
               />
             )
           })}

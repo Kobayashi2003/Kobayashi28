@@ -1,63 +1,49 @@
 import { cn } from "@/lib/utils"
-import { SIZES } from "@/lib/constants"
+import type { Tag } from "@/lib/types"
 
-// Props for the TagItem component
 interface TagProps {
-  name: string
-  rating?: number
-  spoiler?: number
-  category?: string
-  href?: string
-  separator?: boolean
+  rating: number
+  spoiler: number
+  tag: Tag
 }
 
-// Component for rendering individual tags
-export function TagItem({ name, rating, spoiler, category, href, separator = true }: TagProps) {
-  // Determine the text size based on the rating
-  const getTagSize = (rating?: number) => {
-    if (!rating) return SIZES.xs
-    if (rating < 1) return SIZES.xs
-    if (rating < 2) return SIZES.sm
-    if (rating < 3) return SIZES.base
-    return SIZES.lg
+export function TagItem({ tag, rating, spoiler }: TagProps) {
+
+  const getTagSize = (rating: number) => {
+    if (rating < 1) return "text-xs"
+    if (rating < 2) return "text-sm"
+    if (rating < 3) return "text-base"
+    return "text-lg"
   }
 
-  // Tag content
-  const content = (
-    <>
+  const getTagColor = (spoiler: number) => {
+    if (spoiler === 0) return "text-[#88ccff] hover:text-[#aaddff]"
+    if (spoiler === 1) return "text-[#ffcc66] hover:text-[#ffdd88]"
+    if (spoiler === 2) return "text-[#ff6666] hover:text-[#ff8888]"
+    return null
+  }
+
+  return (
+    <a
+      href={`${tag.id}`}
+      className="hover:underline inline-block transform transition-transform duration-200 ease-in-out hover:scale-105"
+    >
       <span
         className={cn(
           getTagSize(rating),
+          getTagColor(spoiler),
           "transition-all duration-200 ease-in-out",
-          spoiler === 0 && "text-[#88ccff] hover:text-[#aaddff]",
-          spoiler === 1 && "text-[#ffcc66] hover:text-[#ffdd88]",
-          spoiler === 2 && "text-[#ff6666] hover:text-[#ff8888]",
-          spoiler ? "opacity-100" : "opacity-100",
+          "opacity-100",
           "hover:scale-110",
         )}
       >
-        {name}
+        {tag.name}
       </span>
       {rating !== undefined && (
         <span className="text-xs text-[#6699cc] ml-1 transition-all duration-200 ease-in-out hover:text-[#88bbee]">
           {rating.toFixed(1)}
         </span>
       )}
-      {separator && <span className="text-[#88ccff] mx-2 opacity-50">·</span>}
-    </>
+    </a>
   )
-
-  // Render as a link if href is provided, otherwise as a span
-  if (href) {
-    return (
-      <a
-        href={href}
-        className="hover:underline inline-block transform transition-transform duration-200 ease-in-out hover:scale-105"
-      >
-        {content}
-      </a>
-    )
-  }
-
-  return <span className="inline-block">{content}</span>
 }

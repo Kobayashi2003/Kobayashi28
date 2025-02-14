@@ -114,7 +114,7 @@ export interface VN {
   characters?: Array<{
     id?: string;
     name?: string;
-    sex?: string[];
+    sex?: [string, string];
     vns?: Array<{
       id?: string;
       role?: string;

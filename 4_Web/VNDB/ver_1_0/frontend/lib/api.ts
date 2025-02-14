@@ -55,6 +55,7 @@ async function userserveQuery<T>(endpoint: string, method: string = 'GET', body?
 }
 
 export const api = {
+
   vn: async (id?: string, params: VisualNovelDataBaseQueryParams = {}) => {
     const response = await vndbQuery<VN>(`v${id || ''}`, params);
     return processApiResponse(response, processVNImages);

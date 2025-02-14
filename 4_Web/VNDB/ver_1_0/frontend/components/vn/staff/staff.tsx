@@ -5,34 +5,47 @@ interface StaffProps {
   vn: VN
 }
 
+interface Staff {
+  id?: string;
+  name?: string;
+  eid?: number;
+  role?: string;
+  note?: string;
+}
+
 export function Staff({ vn }: StaffProps) {
-  // Create a Map to store staff by edition
-  const staffByEdition = new Map<number, { name: string; staff: typeof vn.staff }>()
+  const staffList = vn.staff ?? []
 
-  // Add Original edition (eid: 0)
-  staffByEdition.set(0, {
-    name: "Original edition",
-    staff: vn.staff?.filter((s) => s.eid === 0) || [],
-  })
+  // Group staff by edition name
+  const groupedStaff = staffList.reduce(
+    (groups, staff) => {
+      const editionName: string =
+        staff.eid === null ? "Original edition" : (vn.editions?.find((e) => e.eid === staff.eid)?.name ?? "Unknown")
+      if (!groups[editionName]) {
+        groups[editionName] = []
+      }
+      groups[editionName].push(staff)
+      return groups
+    },
+    {} as Record<string, Staff[]>,
+  )
 
-  // Add other editions
-  vn.editions?.forEach((edition) => {
-    if (edition.eid) {
-      const editionId = Number.parseInt(edition.eid)
-      staffByEdition.set(editionId, {
-        name: edition.name || `Edition ${edition.eid}`,
-        staff: vn.staff?.filter((s) => s.eid === editionId) || [],
-      })
-    }
+  // Sort editions: "Original edition" first, then others alphabetically
+  const sortedEditions = Object.entries(groupedStaff).sort(([a], [b]) => {
+    if (a === "Original edition") return -1
+    if (b === "Original edition") return 1
+    return a.localeCompare(b)
   })
 
   return (
     <div className="space-y-2">
-      {Array.from(staffByEdition.entries())
-        .filter(([_, { staff }]) => staff && staff.length > 0)
-        .map(([eid, { name, staff }]) => (
-          <StaffGroup key={eid} name={name} staff={staff || []} isOriginal={eid === 0} />
-        ))}
+      {sortedEditions.map(([editionName, staffList]) => (
+        <StaffGroup
+          key={editionName}
+          editionName={editionName}
+          staffList={staffList}
+        />
+      ))}
     </div>
   )
 }

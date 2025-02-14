@@ -1,18 +1,19 @@
 "use client"
 
+import { cn } from "@/lib/utils"
 import { useState } from "react"
 import { ChevronDown } from 'lucide-react'
-import { cn } from "@/lib/utils"
 import type { Release } from "@/lib/types"
 import { LANGUAGES, LANGUAGE_ICONS } from "@/lib/constants"
 import { ReleaseItem } from "./release-item"
 
 interface ReleaseGroupProps {
+  vnid: string
   lang: string
   releases: Release[]
 }
 
-export function ReleaseGroup({ lang, releases }: ReleaseGroupProps) {
+export function ReleaseGroup({ vnid, lang, releases }: ReleaseGroupProps) {
   const [isExpanded, setIsExpanded] = useState(true)
   const languageName = LANGUAGES[lang] || lang
   const iconClass = LANGUAGE_ICONS[lang] || LANGUAGE_ICONS.en
@@ -38,7 +39,7 @@ export function ReleaseGroup({ lang, releases }: ReleaseGroupProps) {
       {isExpanded && (
         <div className="space-y-0.5">
           {releases.map((release, index) => (
-            <ReleaseItem key={`${lang}-${release.id}-${index}`} release={release} />
+            <ReleaseItem key={`${lang}-${release.id}-${index}`} vnid={vnid} lang={lang} release={release} />
           ))}
         </div>
       )}

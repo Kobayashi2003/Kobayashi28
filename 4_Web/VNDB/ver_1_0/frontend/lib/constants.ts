@@ -59,7 +59,32 @@ export const LANGUAGES: Record<string, string> = {
   zh: "Chinese",
 } as const
 
-// Language code to icon class mapping
+export const PLATFORMS: Record<string, string> = {
+  win: "Windows",
+  lin: "Linux",
+  mac: "macOS",
+  ios: "iOS",
+  and: "Android",
+  dvd: "DVD",
+  bdp: "Blu-ray",
+  ps1: "PlayStation",
+  ps2: "PlayStation 2",
+  ps3: "PlayStation 3",
+  ps4: "PlayStation 4",
+  ps5: "PlayStation 5",
+  psp: "PlayStation Portable",
+  psv: "PlayStation Vita",
+  xb1: "Xbox One",
+  xb3: "Xbox Series X/S",
+  xbo: "Xbox",
+  swi: "Nintendo Switch",
+  wii: "Wii",
+  wiu: "Wii U",
+  nds: "Nintendo DS",
+  n3d: "Nintendo 3DS",
+  web: "Web",
+} as const
+
 export const LANGUAGE_ICONS: Record<string, string> = {
   ar: "icon-lang-ar",
   be: "icon-lang-be",
@@ -117,34 +142,6 @@ export const LANGUAGE_ICONS: Record<string, string> = {
   zh: "icon-lang-zh",
 } as const
 
-// Platform code to full name mapping
-export const PLATFORMS: Record<string, string> = {
-  win: "Windows",
-  lin: "Linux",
-  mac: "macOS",
-  ios: "iOS",
-  and: "Android",
-  dvd: "DVD",
-  bdp: "Blu-ray",
-  ps1: "PlayStation",
-  ps2: "PlayStation 2",
-  ps3: "PlayStation 3",
-  ps4: "PlayStation 4",
-  ps5: "PlayStation 5",
-  psp: "PlayStation Portable",
-  psv: "PlayStation Vita",
-  xb1: "Xbox One",
-  xb3: "Xbox Series X/S",
-  xbo: "Xbox",
-  swi: "Nintendo Switch",
-  wii: "Wii",
-  wiu: "Wii U",
-  nds: "Nintendo DS",
-  n3d: "Nintendo 3DS",
-  web: "Web",
-} as const
-
-// Platform code to icon class mapping
 export const PLATFORM_ICONS: Record<string, string> = {
   win: "icon-plat-win",
   lin: "icon-plat-lin",
@@ -171,108 +168,36 @@ export const PLATFORM_ICONS: Record<string, string> = {
   web: "icon-plat-web",
 } as const
 
-// Relation type to full name mapping
-export const RELATIONS: Record<string, string> = {
-  ser: "Same series",
-  char: "Shares characters",
-  alt: "Alternative version",
-  preq: "Prequel",
-  seq: "Sequel",
-  side: "Side story",
-  set: "Same setting",
-  fan: "Fandisc",
-  orig: "Original game",
-  par: "Parent story",
-  child: "Child story",
-  other: "Other",
+export const RELEASE_ICONS: Record<string, string> = {
+  download: "icon-rel-download",
+  disk: "icon-rel-disk",
+  cartridge: "icon-rel-cartridge",
+  v1: "icon-rel-voiced icon-rel-v1", // Not voiced
+  v2: "icon-rel-voiced icon-rel-v2", // Only ero scenes voiced
+  v3: "icon-rel-voiced icon-rel-v3", // Partially voiced
+  v4: "icon-rel-voiced icon-rel-v4", // Fully voiced
+  complete: "icon-rtcomplete",
+  partial: "icon-rtpartial",
+  trial: "icon-rttrial",
+  notes: "icon-rel-notes",
+  free: "icon-rel-free",
+  nonfree: "icon-rel-nonfree",
+  external: "icon-external",
 } as const
 
-export const MEDIUM: Record<string, string> = {
-  in: "Internet download",
-  cd: "CD",
-  dvd: "DVD",
-  blr: "Blu-ray",
-  gd: "GD",
-  gdr: "GD-ROM",
-  umd: "UMD",
-  flp: "Floppy Disk",
-  mrt: "Cartridge",
-} as const
 
-export const RELEASE_ICONS = {
-  media: {
-    download: "icon-rel-download",
-    disk: "icon-rel-disk",
-    cartridge: "icon-rel-cartridge",
-  },
-  voiced: {
-    v1: "icon-rel-voiced icon-rel-v1", // Not voiced
-    v2: "icon-rel-voiced icon-rel-v2", // Only ero scenes voiced
-    v3: "icon-rel-voiced icon-rel-v3", // Partially voiced
-    v4: "icon-rel-voiced icon-rel-v4", // Fully voiced
-  },
-  rtype: {
-    complete: "icon-rtcomplete",
-    partial: "icon-rtpartial",
-    trial: "icon-rttrial",
-  },
-  other: {
-    notes: "icon-rel-notes",
-    free: "icon-rel-free",
-    nonfree: "icon-rel-nonfree",
-    external: "icon-external",
-  },
-} as const
 
-export const SEX = {
-  m: "Male",
-  f: "Female",
-  b: "Both",
-  n: "Sexless",
-} as const
-
-export const SEX_ICONS = {
+export const CHARACTER_ICONS: Record<string, string> = {
   m: "icon-char-m",
   f: "icon-char-f",
   b: "icon-char-b",
   n: "icon-char-n",
 } as const
 
-export const SEX_COLORS = {
+export const CHARACTER_SEX_COLORS: Record<string, string> = {
   m: "charsex-m",
   f: "charsex-f",
   b: "charsex-b",
   n: "charsex-n",
 } as const
 
-export const VOICED = {
-  1: "Not voiced",
-  2: "Only ero scenes voiced",
-  3: "Partially voiced",
-  4: "Fully voiced",
-} as const
-
-export const CATEGORIES = [
-  { id: "cont", label: "content" },
-  { id: "tech", label: "technical" },
-  { id: "ero", label: "sexual content" },
-] as const
-
-export const SPOILER = [
-  { id: "hide", label: "hide spoilers", value: 0 },
-  { id: "minor", label: "show minor spoilers", value: 1 },
-  { id: "all", label: "spoil me!", value: 2 },
-] as const
-
-export const SIZES = {
-  xs: "text-xs",
-  sm: "text-sm",
-  base: "text-base",
-  lg: "text-lg",
-} as const
-
-export const ROLE = {
-  primary: "Main character",
-  side: "Side character",
-  main: "Protagonist",
-} as const
