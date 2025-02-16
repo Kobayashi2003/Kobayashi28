@@ -9,7 +9,7 @@ interface ReleasesProps {
   vn : VN
 }
 
-export function Releases({ vn }: ReleasesProps) {
+export function VNReleases({ vn }: ReleasesProps) {
 
   const [releases, setReleases] = useState<Release[]>([])
 

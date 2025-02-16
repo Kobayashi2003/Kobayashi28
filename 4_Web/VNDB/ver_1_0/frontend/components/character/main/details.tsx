@@ -41,9 +41,9 @@ export function CharacterDetails({ character }: CharacterDetailsProps) {
     character.blood_type && `Blood Type: ${character.blood_type.toUpperCase()}`
   ].filter(Boolean).join(", ")
 
-  const birthdayMatch = character.birthday?.match(/(\d+)\D+(\d+)/) ?? []
-  const month  = birthdayMatch[1]
-  const day = birthdayMatch[2]
+  const birthdayMatch = character.birthday && character.birthday.match(/(\d+)\D+(\d+)/)
+  const month  = birthdayMatch && birthdayMatch[1]
+  const day = birthdayMatch && birthdayMatch[2]
 
   const birthday = (month && day) &&
     new Date(`2000-${month.padStart(2, "0")}-${day.padStart(2, "0")}`)
@@ -95,8 +95,7 @@ export function CharacterDetails({ character }: CharacterDetailsProps) {
   )
 
   return (
-    <div className="bg-[#0F2942]/80 backdrop-blur-md rounded-lg shadow-lg border border-white/10 overflow-hidden">
-
+    <>
       <div className="p-4 border-b border-white/10 flex justify-between items-center">
         {/* Character name section */}
         <div className="max-w-3xl pl-2">
@@ -202,6 +201,6 @@ export function CharacterDetails({ character }: CharacterDetailsProps) {
           )}
         </div>
       </div>
-    </div>
+    </>
   )
 }

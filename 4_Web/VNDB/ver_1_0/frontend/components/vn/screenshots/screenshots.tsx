@@ -11,7 +11,7 @@ interface ScreenshotsProps {
 
 type FilterOption = "safe" | "suggestive" | "explicit"
 
-export function Screenshots({ vn }: ScreenshotsProps) {
+export function VNScreenshots({ vn }: ScreenshotsProps) {
   const [filterOption, setFilterOption] = useState<FilterOption>("safe")
 
   // Filter function
@@ -22,9 +22,9 @@ export function Screenshots({ vn }: ScreenshotsProps) {
 
       switch (filterOption) {
         case "safe":
-          return sexual < 0.5 && violence < 0.5
+          return sexual <= 0.5 && violence <= 0.5
         case "suggestive":
-          return sexual < 1 && violence < 1
+          return sexual <= 1 && violence <= 1
         case "explicit":
           return true
       }
@@ -55,9 +55,9 @@ export function Screenshots({ vn }: ScreenshotsProps) {
       const sexual = screenshot.sexual || 0
       const violence = screenshot.violence || 0
 
-      if (sexual < 0.5 && violence < 0.5) {
+      if (sexual <= 0.5 && violence <= 0.5) {
         counts.safe++
-      } else if (sexual < 1 && violence < 1) {
+      } else if (sexual <= 1 && violence <= 1) {
         counts.suggestive++
       } else {
         counts.explicit++

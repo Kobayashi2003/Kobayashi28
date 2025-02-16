@@ -139,3 +139,27 @@
 2025-02-12 23:24:36,727 - logger - ERROR - __iter__
 2025-02-12 23:24:37,312 - logger - ERROR - __iter__
 2025-02-12 23:24:37,943 - logger - ERROR - __iter__
+2025-02-16 00:22:44,708 - logger - ERROR - 'Cache' object has no attribute '__iter__'
+2025-02-16 00:22:44,716 - logger - ERROR - 'Celery' object has no attribute '__iter__'
+2025-02-16 00:22:44,716 - logger - ERROR - __iter__
+2025-02-16 00:22:44,719 - logger - ERROR - 'APScheduler' object has no attribute '__iter__'
+2025-02-16 00:22:45,656 - logger - ERROR - 'Cache' object has no attribute '__iter__'
+2025-02-16 00:22:45,657 - logger - ERROR - 'Celery' object has no attribute '__iter__'
+2025-02-16 00:22:45,657 - logger - ERROR - __iter__
+2025-02-16 00:22:45,658 - logger - ERROR - 'APScheduler' object has no attribute '__iter__'
+2025-02-16 00:22:47,021 - logger - ERROR - 'Cache' object has no attribute '__iter__'
+2025-02-16 00:22:47,022 - logger - ERROR - 'Celery' object has no attribute '__iter__'
+2025-02-16 00:22:47,023 - logger - ERROR - __iter__
+2025-02-16 00:22:47,024 - logger - ERROR - 'APScheduler' object has no attribute '__iter__'
+2025-02-16 01:04:30,167 - logger - ERROR - 'Cache' object has no attribute '__iter__'
+2025-02-16 01:04:30,167 - logger - ERROR - 'Celery' object has no attribute '__iter__'
+2025-02-16 01:04:30,168 - logger - ERROR - __iter__
+2025-02-16 01:04:30,168 - logger - ERROR - 'APScheduler' object has no attribute '__iter__'
+2025-02-16 01:04:31,645 - logger - ERROR - 'Cache' object has no attribute '__iter__'
+2025-02-16 01:04:31,646 - logger - ERROR - 'Celery' object has no attribute '__iter__'
+2025-02-16 01:04:31,646 - logger - ERROR - __iter__
+2025-02-16 01:04:31,646 - logger - ERROR - 'APScheduler' object has no attribute '__iter__'
+2025-02-16 01:04:32,309 - logger - ERROR - 'Cache' object has no attribute '__iter__'
+2025-02-16 01:04:32,309 - logger - ERROR - 'Celery' object has no attribute '__iter__'
+2025-02-16 01:04:32,310 - logger - ERROR - __iter__
+2025-02-16 01:04:32,311 - logger - ERROR - 'APScheduler' object has no attribute '__iter__'

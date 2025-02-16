@@ -13,7 +13,7 @@ interface Staff {
   note?: string;
 }
 
-export function Staff({ vn }: StaffProps) {
+export function VNStaff({ vn }: StaffProps) {
   const staffList = vn.staff ?? []
 
   // Group staff by edition name

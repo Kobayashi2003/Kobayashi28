@@ -244,6 +244,11 @@ def search(resource_type: str, params: Dict[str, Any], response_size: str = 'sma
     filters = get_remote_filters(resource_type, params)
     fields = get_remote_fields(resource_type, response_size)
 
+    if not filters:
+        filters = {"search":""}
+    if not fields:
+        fields = "id"
+
     if page and limit: 
         results = search_functions[resource_type](filters, fields, page=page, results=limit, sort=sort, reverse=reverse, count=count)
     else:

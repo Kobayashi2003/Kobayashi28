@@ -314,7 +314,7 @@ def get_producer_filters(params: Dict[str, Any]) -> Dict[str, Any]:
     if search := params.get('search'):
         filters.append({"search": search})
     
-    multi_value_fields = ['id', 'lang', 'type']
+    multi_value_fields = ['lang', 'type']
     for field in multi_value_fields:
         if value := params.get(field):
             parsed = parse_logical_expression(value, field)
@@ -341,7 +341,7 @@ def get_staff_filters(params: Dict[str, Any]) -> Dict[str, Any]:
     if search := params.get('search'):
         filters.append({"search": search})
     
-    multi_value_fields = ['id', 'lang', 'role']
+    multi_value_fields = ['lang', 'role']
     for field in multi_value_fields:
         if value := params.get(field):
             parsed = parse_logical_expression(value, field)

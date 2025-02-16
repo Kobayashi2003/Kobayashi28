@@ -14,7 +14,7 @@ interface ReleaseGroupProps {
 }
 
 export function ReleaseGroup({ vnid, lang, releases }: ReleaseGroupProps) {
-  const [isExpanded, setIsExpanded] = useState(true)
+  const [isExpanded, setIsExpanded] = useState(['ja', 'zh', 'zh-Hans', 'zh-Hant'].includes(lang))
   const languageName = LANGUAGES[lang] || lang
   const iconClass = LANGUAGE_ICONS[lang] || LANGUAGE_ICONS.en
 

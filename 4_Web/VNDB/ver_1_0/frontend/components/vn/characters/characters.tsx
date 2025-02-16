@@ -27,7 +27,7 @@ function sortCharacters(
   return (nameA || "").localeCompare(nameB || "")
 }
 
-export function Characters({ vn }: CharactersProps) {
+export function VNCharacters({ vn }: CharactersProps) {
   const [spoilerLevel, setSpoilerLevel] = useState(0)
 
   if (!vn.characters?.length) return null

@@ -5,7 +5,7 @@ interface Relation {
   id?: string
   relation?: string
   title?: string
-  official?: boolean
+  relation_official?: boolean
 }
 
 // Props for the Relations component
@@ -59,7 +59,7 @@ export function Relations({ relations }: RelationsProps) {
                   {relation.title}
                 </Link>
                 {/* Display 'unofficial' label if not an official relation */}
-                {!relation.official && <span className="text-white/60 text-xs">(unofficial)</span>}
+                {!relation.relation_official && <span className="text-white/60 text-xs">(unofficial)</span>}
               </div>
             ))}
           </div>

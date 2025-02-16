@@ -656,7 +656,21 @@ def get_character_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
         filters.append(Character.blood_type == blood_type)
     
     if sex := params.get('sex'):
-        filters.append(array_string_match(Character.sex, sex))
+        # filters.append(array_string_match(Character.sex, sex))
+        # TODO
+        ...
+    
+    if sex_spoiler := params.get('sex_spoiler'):
+        # TODO
+        ...
+
+    if gender := params.get('gender'):
+        # TODO
+        ...
+
+    if gender_sex := params.get('gender_sex'):
+        # TODO
+        ...
     
     if height := params.get('height'):
         filters.append(create_comparison_filter(Character.height, height, int))
@@ -734,6 +748,14 @@ def get_producer_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     
     if type := params.get('type'):
         filters.append(Producer.type == type)
+
+    if extlink := params.get('extlink'):
+        filters.append(or_(
+            array_jsonb_exact_match(Producer.extlinks, 'id', extlink),
+            array_jsonb_match(Producer.extlinks, 'url', extlink),
+            array_jsonb_match(Producer.extlinks, 'label', extlink),
+            array_jsonb_match(Producer.extlinks, 'name', extlink)
+        ))
     
     return filters
 

@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, abort, request
-from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token
+from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token, get_jwt
 
 api_bp = Blueprint('api', __name__, url_prefix='/')
 
@@ -47,50 +47,59 @@ def register():
     return jsonify(error="Username already exists"), 400
 
 
-@api_bp.route('/u<int:user_id>', methods=['GET'])
+@api_bp.route('/u<username>', methods=['GET'])
 @jwt_required()
-def get_user_route(user_id):
+def get_user_route(username):
     current_user_id = get_jwt_identity()
-    if current_user_id != user_id:
+    user = get_user_by_username(username)
+    if not user:
+        return jsonify(error="User not found"), 404
+    if current_user_id != user.id:
         return jsonify(error="Unauthorized"), 403
-    user = get_user(user_id)
-    if user:
-        return jsonify(user), 200
-    return jsonify(error="User not found"), 404
+    return jsonify(dict(user)), 200
 
-@api_bp.route('/u<int:user_id>', methods=['PUT'])
+@api_bp.route('/u<username>', methods=['PUT'])
 @jwt_required()
-def update_user_route(user_id):
+def update_user_route(username):
     current_user_id = get_jwt_identity()
-    if current_user_id != user_id:
+    user = get_user_by_username(username)
+    if not user:
+        return jsonify(error="User not found"), 404
+    if current_user_id != user.id:
         return jsonify(error="Unauthorized"), 403
     data = request.json
-    user = update_user(user_id, username=data.get('username'))
-    if user:
-        return jsonify(user), 200
-    return jsonify(error="User not found"), 404
+    user = update_user(user.id, username=data.get('username'))
+    if not user:
+        return jsonify(error="Update failed"), 400
+    return jsonify(dict(user)), 200
 
-@api_bp.route('/u<int:user_id>', methods=['DELETE'])
+@api_bp.route('/u<username>', methods=['DELETE'])
 @jwt_required()
-def delete_user_route(user_id):
+def delete_user_route(username):
     current_user_id = get_jwt_identity()
-    if current_user_id != user_id:
+    user = get_user_by_username(username)
+    if not user:
+        return jsonify(error="User not found"), 404
+    if current_user_id != user.id:
         return jsonify(error="Unauthorized"), 403
-    if delete_user(user_id):
-        return jsonify(message="User deleted"), 200
-    return jsonify(error="User not found"), 404
+    if not delete_user(user.id):
+        return jsonify(message="Delete failed"), 400
+    return jsonify(message="User deleted"), 200
 
-@api_bp.route('/u<int:user_id>/change_password', methods=['POST'])
+@api_bp.route('/u<uername>/change_password', methods=['POST'])
 @jwt_required()
-def change_password_route(user_id):
+def change_password_route(username):
     current_user_id = get_jwt_identity()
-    if current_user_id != user_id:
+    user = get_user_by_username(username)
+    if not user:
+        return jsonify(error="User not found"), 400
+    if current_user_id != user.id:
         return jsonify(error="Unauthorized"), 403
     data = request.json
-    user = change_password(user_id, data['old_password'], data['new_password'])
-    if user:
-        return jsonify(message="Password changed successfully"), 200
-    return jsonify(error="Invalid old password or user not found"), 400
+    user = change_password(user.id, data['old_password'], data['new_password'])
+    if not user:
+        return jsonify(error="Invaild old password"), 400
+    return jsonify(message="Password changed successfully"), 200
 
 
 @api_bp.route('/<string:type>/c', methods=['GET'])
@@ -98,6 +107,7 @@ def change_password_route(user_id):
 def get_categories_route(type):
     user_id = get_jwt_identity()
     categories = search_categories(user_id, type, '')
+    categories = [dict(c) for c in categories]
     return jsonify(categories), 200
 
 @api_bp.route('/<string:type>/c', methods=['POST'])
@@ -107,7 +117,7 @@ def create_category_route(type):
     data = request.json
     category = create_category(user_id, type, data['category_name'])
     if category:
-        return jsonify(category), 201
+        return jsonify(dict(category)), 201
     return jsonify(error="Failed to create category"), 400
 
 @api_bp.route('/<string:type>/c<int:category_id>', methods=['GET'])
@@ -116,7 +126,7 @@ def get_category_route(type, category_id):
     user_id = get_jwt_identity()
     category = get_category(user_id, category_id, type)
     if category:
-        return jsonify(category), 200
+        return jsonify(dict(category)), 200
     return jsonify(error="Category not found"), 404
 
 @api_bp.route('/<string:type>/c<int:category_id>', methods=['PUT'])
@@ -126,7 +136,7 @@ def update_category_route(type, category_id):
     data = request.json
     category = update_category(user_id, category_id, type, data.get('category_name'))
     if category:
-        return jsonify(category), 200
+        return jsonify(dict(category)), 200
     return jsonify(error="Category not found"), 404
 
 @api_bp.route('/<string:type>/c<int:category_id>', methods=['DELETE'])
@@ -163,7 +173,7 @@ def add_mark_route(type, category_id):
     data = request.json
     category = add_mark_to_category(user_id, category_id, type, data['mark_id'])
     if category:
-        return jsonify(category), 201
+        return jsonify(dict(category)), 201
     return jsonify(error="Failed to add mark"), 400
 
 @api_bp.route('/<string:type>/c<int:category_id>/m/<int:mark_id>', methods=['DELETE'])
@@ -172,5 +182,5 @@ def remove_mark_route(type, category_id, mark_id):
     user_id = get_jwt_identity()
     category = remove_mark_from_category(user_id, category_id, type, mark_id)
     if category:
-        return jsonify(category), 200
+        return jsonify(dict(category)), 200
     return jsonify(error="Failed to remove mark"), 400

@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+from datetime import timedelta 
 
 load_dotenv()
 
@@ -10,6 +11,11 @@ class Config:
     USE_RELOADER = False
     SECRET_KEY = os.environ['SECRET_KEY']
     APP_PORT = int(os.environ['USERSERVE_PORT'])
+
+    JWT_SECRET_KEY = os.environ['JWT_SECRET_KEY']
+    JWT_VERIFY_SUB = False
+    JWT_ALGORITHM = 'HS256'
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(days=7) 
 
     # Database configuration
     SQLALCHEMY_DATABASE_URI = os.environ['USERSERVE_DB_URL']

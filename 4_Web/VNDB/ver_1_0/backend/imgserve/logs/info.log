@@ -17,3 +17,48 @@
 2025-02-09 13:50:59,290 - logger - ERROR - 'Celery' object has no attribute '__iter__'
 2025-02-09 13:50:59,290 - logger - ERROR - __iter__
 2025-02-09 13:50:59,291 - logger - ERROR - 'APScheduler' object has no attribute '__iter__'
+2025-02-16 21:57:25,579 - logger - ERROR - __iter__
+2025-02-16 21:57:25,580 - logger - ERROR - 'JWTManager' object has no attribute '__iter__'
+2025-02-16 21:57:25,581 - logger - ERROR - 'APScheduler' object has no attribute '__iter__'
+2025-02-16 22:52:01,243 - logger - ERROR - __iter__
+2025-02-16 22:52:01,245 - logger - ERROR - 'JWTManager' object has no attribute '__iter__'
+2025-02-16 22:52:01,245 - logger - ERROR - 'APScheduler' object has no attribute '__iter__'
+2025-02-16 22:54:40,684 - logger - ERROR - __iter__
+2025-02-16 22:54:40,685 - logger - ERROR - 'JWTManager' object has no attribute '__iter__'
+2025-02-16 22:54:40,688 - logger - ERROR - 'APScheduler' object has no attribute '__iter__'
+2025-02-16 23:15:36,665 - logger - ERROR - __iter__
+2025-02-16 23:15:36,667 - logger - ERROR - 'JWTManager' object has no attribute '__iter__'
+2025-02-16 23:15:36,668 - logger - ERROR - 'APScheduler' object has no attribute '__iter__'
+2025-02-16 23:25:51,078 - logger - ERROR - __iter__
+2025-02-16 23:25:51,079 - logger - ERROR - 'JWTManager' object has no attribute '__iter__'
+2025-02-16 23:25:51,079 - logger - ERROR - 'APScheduler' object has no attribute '__iter__'
+2025-02-16 23:26:25,749 - logger - ERROR - __iter__
+2025-02-16 23:26:25,750 - logger - ERROR - 'JWTManager' object has no attribute '__iter__'
+2025-02-16 23:26:25,751 - logger - ERROR - 'APScheduler' object has no attribute '__iter__'
+2025-02-16 23:33:24,659 - logger - ERROR - __iter__
+2025-02-16 23:33:24,660 - logger - ERROR - 'JWTManager' object has no attribute '__iter__'
+2025-02-16 23:33:24,662 - logger - ERROR - 'APScheduler' object has no attribute '__iter__'
+2025-02-16 23:47:57,790 - logger - ERROR - __iter__
+2025-02-16 23:47:57,794 - logger - ERROR - 'JWTManager' object has no attribute '__iter__'
+2025-02-16 23:47:57,796 - logger - ERROR - 'APScheduler' object has no attribute '__iter__'
+2025-02-16 23:55:13,781 - logger - ERROR - __iter__
+2025-02-16 23:55:13,782 - logger - ERROR - 'JWTManager' object has no attribute '__iter__'
+2025-02-16 23:55:13,782 - logger - ERROR - 'APScheduler' object has no attribute '__iter__'
+2025-02-17 00:05:55,483 - logger - ERROR - __iter__
+2025-02-17 00:05:55,484 - logger - ERROR - 'JWTManager' object has no attribute '__iter__'
+2025-02-17 00:05:55,484 - logger - ERROR - 'APScheduler' object has no attribute '__iter__'
+2025-02-17 00:24:10,748 - logger - ERROR - __iter__
+2025-02-17 00:28:18,974 - logger - ERROR - __iter__
+2025-02-17 00:28:27,064 - logger - ERROR - __iter__
+2025-02-17 00:28:30,437 - logger - ERROR - __iter__
+2025-02-17 00:28:32,824 - logger - ERROR - __iter__
+2025-02-17 00:28:37,526 - logger - ERROR - __iter__
+2025-02-17 00:28:41,880 - logger - ERROR - __iter__
+2025-02-17 00:28:43,469 - logger - ERROR - __iter__
+2025-02-17 00:28:44,847 - logger - ERROR - __iter__
+2025-02-17 00:28:45,890 - logger - ERROR - __iter__
+2025-02-17 00:28:49,804 - logger - ERROR - __iter__
+2025-02-17 00:29:02,869 - logger - ERROR - __iter__
+2025-02-17 00:29:02,871 - logger - ERROR - 'JWTManager' object has no attribute '__iter__'
+2025-02-17 00:29:02,873 - logger - ERROR - 'APScheduler' object has no attribute '__iter__'
+2025-02-17 00:30:32,958 - logger - ERROR - __iter__

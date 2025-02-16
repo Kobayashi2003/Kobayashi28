@@ -28,7 +28,7 @@ const LENGTH_DISPLAY : Record<number, string> = {
 }
 
 // Main component for displaying visual novel details
-export function Details({ vn }: VNDetailsProps) {
+export function VNDetails({ vn }: VNDetailsProps) {
 
   const mainTitle = vn.title
   const subTitle = vn.titles?.find((t) => t.official && t.main)?.title
@@ -39,8 +39,7 @@ export function Details({ vn }: VNDetailsProps) {
   const lengthVotes = vn.length_votes
 
   return (
-    <div className="bg-[#0F2942]/80 backdrop-blur-md rounded-lg shadow-lg border border-white/10 overflow-hidden">
-
+    <>
       {/* Header section with title and subtitle */}
       {(mainTitle || subTitle) && (
         <div className="p-4 border-b border-white/10">
@@ -117,6 +116,6 @@ export function Details({ vn }: VNDetailsProps) {
           )}
         </div>
       </div>
-    </div>
+    </>
   )
 }

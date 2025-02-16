@@ -120,6 +120,8 @@ def update_category(user_id: int, category_id: int, category_type: str, category
 @save_db_operation
 def delete_category(user_id: int, category_id: int, category_type: str) -> CategoryType | None:
     category = get_category(user_id, category_id, category_type)
+    if category.category_name == 'Default':
+        return None
     if category:
         db.session.delete(category)
         return category

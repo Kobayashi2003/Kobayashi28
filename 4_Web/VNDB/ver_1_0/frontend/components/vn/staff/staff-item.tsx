@@ -16,7 +16,7 @@ interface StaffItemProps {
 export function StaffItem({ staff }: StaffItemProps) {
   return (
     <div className="flex items-baseline gap-2 text-sm">
-      <Link href={`/s${staff.id}`} className="text-[#88ccff] hover:text-white transition-colors shrink-0">
+      <Link href={`/${staff.id}`} className="text-[#88ccff] hover:text-white transition-colors shrink-0">
         {staff.name}
       </Link>
       {staff.note && (

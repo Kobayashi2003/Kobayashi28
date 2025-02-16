@@ -16,7 +16,7 @@ const CATEGORIES_DISPLAY = [
   { id: "ero", label: "sexual content" },
 ]
 
-export function Tags({ vn }: TagsProps) {
+export function VNTags({ vn }: TagsProps) {
   const [selectedCategories, setSelectedCategories] = useState<string[]>(["cont"])
   const [spoilerLevel, setSpoilerLevel] = useState(0)
   const [showLowRated] = useState(true)

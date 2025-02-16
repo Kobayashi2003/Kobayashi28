@@ -37,6 +37,7 @@ async function userserveQuery<T>(endpoint: string, method: string = 'GET', body?
   };
 
   const token = localStorage.getItem('access_token');
+  console.log(`TOKEN:${token}`)
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
@@ -92,17 +93,17 @@ export const api = {
   register: (username: string, password: string) => 
     userserveQuery<{ access_token: string }>('register', 'POST', { username, password }),
 
-  getUser: (userId: number) => 
-    userserveQuery<User>(`u${userId}`, 'GET'),
+  getUser: (username: string) => 
+    userserveQuery<User>(`u${username}`, 'GET'),
 
-  updateUser: (userId: number, username: string) => 
-    userserveQuery<User>(`u${userId}`, 'PUT', { username }),
+  updateUser: (old_username: string, new_username: string) => 
+    userserveQuery<User>(`u${old_username}`, 'PUT', { username: new_username }),
 
-  deleteUser: (userId: number) => 
-    userserveQuery<{ message: string }>(`u${userId}`, 'DELETE'),
+  deleteUser: (username: string) => 
+    userserveQuery<{ message: string }>(`u${username}`, 'DELETE'),
 
-  changePassword: (userId: number, oldPassword: string, newPassword: string) => 
-    userserveQuery<{ message: string }>(`u${userId}/change_password`, 'POST', { old_password: oldPassword, new_password: newPassword }),
+  changePassword: (username: string, oldPassword: string, newPassword: string) => 
+    userserveQuery<{ message: string }>(`u${username}/change_password`, 'POST', { old_password: oldPassword, new_password: newPassword }),
 
   getCategories: (type: string) => 
     userserveQuery<Category[]>(`${type}/c`, 'GET'),

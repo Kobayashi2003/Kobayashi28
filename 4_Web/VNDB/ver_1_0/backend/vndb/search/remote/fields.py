@@ -111,52 +111,6 @@ class VNDBFields:
             _prefix = "extlinks."
             _fields = ['URL', 'LABEL', 'NAME', 'ID']
 
-    class Character(FieldGroup):
-        _prefix = ""
-        _fields = ['ID', 'NAME', 'ORIGINAL', 'ALIASES', 'DESCRIPTION', 'BLOOD_TYPE', 'HEIGHT', 
-                   'WEIGHT', 'BUST', 'WAIST', 'HIPS', 'CUP', 'AGE', 'BIRTHDAY', 'SEX']
-
-        class IMAGE(FieldGroup):
-            _prefix = "image."
-            _fields = ['ID', 'URL', 'DIMS', 'SEXUAL', 'VIOLENCE']
-
-        class VNS(FieldGroup):
-            _prefix = "vns."
-            _fields = ['ID', 'SPOILER', 'ROLE', 'TITLE']
-
-            class RELEASE(FieldGroup):
-                _prefix = "release."
-                _fields = ['ID', 'TITLE']
-
-        class TRAITS(FieldGroup):
-            _prefix = "traits."
-            _fields = ['ID', 'SPOILER', 'LIE', 'GROUP_ID', 'NAME', 'GROUP_NAME']
-
-    class Tag(FieldGroup):
-        _prefix = ""
-        _fields = ['ID', 'NAME', 'ALIASES', 'DESCRIPTION', 'CATEGORY', 'SEARCHABLE', 'APPLICABLE', 'VN_COUNT']
-
-    class Producer(FieldGroup):
-        _prefix = ""
-        _fields = ['ID', 'NAME', 'ORIGINAL', 'ALIASES', 'LANG', 'TYPE', 'DESCRIPTION']
-
-    class Staff(FieldGroup):
-        _prefix = ""
-        _fields = ['ID', 'AID', 'ISMAIN', 'NAME', 'ORIGINAL', 'LANG', 'GENDER', 'DESCRIPTION']
-
-        class ALIASES(FieldGroup):
-            _prefix = "aliases."
-            _fields = ['AID', 'NAME', 'LATIN', 'ISMAIN']
-
-        class EXTLINKS(FieldGroup):
-            _prefix = "extlinks."
-            _fields = ['URL', 'LABEL', 'NAME', 'ID']
-
-    class Trait(FieldGroup):
-        _prefix = ""
-        _fields = ['ID', 'NAME', 'ALIASES', 'DESCRIPTION', 'SEARCHABLE', 'APPLICABLE', 
-                   'GROUP_ID', 'GROUP_NAME', 'CHAR_COUNT']
-
     class Release(FieldGroup):
         _prefix = ""
         _fields = ['ID', 'TITLE', 'ALTTITLE', 'PLATFORMS', 'RELEASED', 'MINAGE', 'PATCH', 'FREEWARE', 
@@ -186,6 +140,56 @@ class VNDBFields:
         class EXTLINKS(FieldGroup):
             _prefix = "extlinks."
             _fields = ['URL', 'LABEL', 'NAME', 'ID']
+
+    class Character(FieldGroup):
+        _prefix = ""
+        _fields = ['ID', 'NAME', 'ORIGINAL', 'ALIASES', 'DESCRIPTION', 'BLOOD_TYPE', 'HEIGHT', 
+                   'WEIGHT', 'BUST', 'WAIST', 'HIPS', 'CUP', 'AGE', 'BIRTHDAY', 'SEX']
+
+        class IMAGE(FieldGroup):
+            _prefix = "image."
+            _fields = ['ID', 'URL', 'DIMS', 'SEXUAL', 'VIOLENCE']
+
+        class VNS(FieldGroup):
+            _prefix = "vns."
+            _fields = ['ID', 'SPOILER', 'ROLE', 'TITLE']
+
+            class RELEASE(FieldGroup):
+                _prefix = "release."
+                _fields = ['ID', 'TITLE']
+
+        class TRAITS(FieldGroup):
+            _prefix = "traits."
+            _fields = ['ID', 'SPOILER', 'LIE', 'GROUP_ID', 'NAME', 'GROUP_NAME']
+
+    class Producer(FieldGroup):
+        _prefix = ""
+        _fields = ['ID', 'NAME', 'ORIGINAL', 'ALIASES', 'LANG', 'TYPE', 'DESCRIPTION']
+
+        class EXTLINKS(FieldGroup):
+            _prefix = "extlinks."
+            _fields = ['URL', 'LABEL', 'NAME', 'ID']
+
+    class Staff(FieldGroup):
+        _prefix = ""
+        _fields = ['ID', 'AID', 'ISMAIN', 'NAME', 'ORIGINAL', 'LANG', 'GENDER', 'DESCRIPTION']
+
+        class ALIASES(FieldGroup):
+            _prefix = "aliases."
+            _fields = ['AID', 'NAME', 'LATIN', 'ISMAIN']
+
+        class EXTLINKS(FieldGroup):
+            _prefix = "extlinks."
+            _fields = ['URL', 'LABEL', 'NAME', 'ID']
+
+    class Tag(FieldGroup):
+        _prefix = ""
+        _fields = ['ID', 'NAME', 'ALIASES', 'DESCRIPTION', 'CATEGORY', 'SEARCHABLE', 'APPLICABLE', 'VN_COUNT']
+
+    class Trait(FieldGroup):
+        _prefix = ""
+        _fields = ['ID', 'NAME', 'ALIASES', 'DESCRIPTION', 'SEARCHABLE', 'APPLICABLE', 
+                   'GROUP_ID', 'GROUP_NAME', 'CHAR_COUNT']
 
 
 SMALL_FIELDS_VN: List[str] = [

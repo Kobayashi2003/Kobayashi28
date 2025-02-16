@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from userserve import db
-from sqlalchemy import Integer, String, Boolean, DateTime, Column, ForeignKey, event
+from sqlalchemy import Integer, String, Boolean, DateTime, Column, ForeignKey, event, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB, ARRAY
 from sqlalchemy.orm import relationship, declared_attr
 
@@ -30,6 +30,19 @@ class User(db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+    def __iter__(self):
+        yield 'id', self.id
+        yield 'username', self.username
+        yield 'is_admin', self.is_admin
+        yield 'created_at', self.created_at.isoformat() if self.created_at else None
+        yield 'updated_at', self.updated_at.isoformat() if self.updated_at else None
+
+    def __str__(self):
+        return f"<User(id={self.id}, username={self.username}, is_admin={self.is_admin})>"
+
+    def __repr__(self):
+        return f"User(id={self.id!r}, username={self.username!r}, is_admin={self.is_admin!r})"
+
 class Category(db.Model):
     __abstract__ = True
 
@@ -39,6 +52,12 @@ class Category(db.Model):
     marks = Column(ARRAY(JSONB), default=lambda: [])
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
+
+    @declared_attr
+    def __table_args__(cls):
+        return (
+            UniqueConstraint('user_id', 'category_name', name=f'uq_{cls.__name__.lower()}_user_category'),
+        )
 
     @property
     def type(self):

@@ -77,18 +77,28 @@ class Release(db.Model):
     updated_at = Column(DateTime(timezone=True), default=func.now(), onupdate=func.now())
     deleted_at = Column(DateTime(timezone=True), nullable=True)
 
-class Tag(db.Model):
-    __tablename__ = 'tags'
+class Character(db.Model):
+    __tablename__ = 'characters'
 
     id = Column(String, primary_key=True)
-    aid = Column(String)
     name = Column(String)
+    original = Column(String)
     aliases = Column(ARRAY(String))
     description = Column(Text)
-    category = Column(String)
-    searchable = Column(Boolean)
-    applicable = Column(Boolean)
-    vn_count = Column(Integer)
+    blood_type = Column(String)
+    height = Column(Integer)
+    weight = Column(Integer)
+    bust = Column(Integer)
+    waist = Column(Integer)
+    hips = Column(Integer)
+    cup = Column(String)
+    age = Column(Integer)
+    birthday = Column(String)
+    sex = Column(ARRAY(String))
+    image = Column(JSONB)
+    vns = Column(ARRAY(JSONB))
+    traits = Column(ARRAY(JSONB))
+    seiyuu = Column(ARRAY(JSONB))
 
     created_at = Column(DateTime(timezone=True), default=func.now())
     updated_at = Column(DateTime(timezone=True), default=func.now(), onupdate=func.now())
@@ -104,6 +114,7 @@ class Producer(db.Model):
     lang = Column(String)
     type = Column(String)
     description = Column(Text)
+    extlinks = Column(ARRAY(JSONB))
 
     created_at = Column(DateTime(timezone=True), default=func.now())
     updated_at = Column(DateTime(timezone=True), default=func.now(), onupdate=func.now())
@@ -127,28 +138,18 @@ class Staff(db.Model):
     updated_at = Column(DateTime(timezone=True), default=func.now(), onupdate=func.now())
     deleted_at = Column(DateTime(timezone=True), nullable=True)
 
-class Character(db.Model):
-    __tablename__ = 'characters'
+class Tag(db.Model):
+    __tablename__ = 'tags'
 
     id = Column(String, primary_key=True)
+    aid = Column(String)
     name = Column(String)
-    original = Column(String)
     aliases = Column(ARRAY(String))
     description = Column(Text)
-    blood_type = Column(String)
-    height = Column(Integer)
-    weight = Column(Integer)
-    bust = Column(Integer)
-    waist = Column(Integer)
-    hips = Column(Integer)
-    cup = Column(String)
-    age = Column(Integer)
-    birthday = Column(String)
-    sex = Column(ARRAY(String))
-    image = Column(JSONB)
-    vns = Column(ARRAY(JSONB))
-    traits = Column(ARRAY(JSONB))
-    seiyuu = Column(ARRAY(JSONB))
+    category = Column(String)
+    searchable = Column(Boolean)
+    applicable = Column(Boolean)
+    vn_count = Column(Integer)
 
     created_at = Column(DateTime(timezone=True), default=func.now())
     updated_at = Column(DateTime(timezone=True), default=func.now(), onupdate=func.now())

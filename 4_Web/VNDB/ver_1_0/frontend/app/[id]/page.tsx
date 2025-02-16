@@ -10,14 +10,20 @@ import type {
 } from "@/lib/types"
 
 
-import { Details as VNDetails } from "@/components/vn/main/details"
-import { Tags } from "@/components/vn/tags/tags"
-import { Staff } from "@/components/vn/staff/staff"
-import { Releases } from "@/components/vn/releases/releases"
-import { Characters } from "@/components/vn/characters/characters"
-import { Screenshots } from "@/components/vn/screenshots/screenshots"
+import { VNDetails } from "@/components/vn/main/details"
+import { VNTags } from "@/components/vn/tags/tags"
+import { VNStaff } from "@/components/vn/staff/staff"
+import { VNReleases } from "@/components/vn/releases/releases"
+import { VNCharacters } from "@/components/vn/characters/characters"
+import { VNScreenshots } from "@/components/vn/screenshots/screenshots"
 
 import { CharacterDetails } from "@/components/character/main/details"
+
+import { ProducerDetails } from "@/components/producer/main/detials"
+import { ProducerVNs } from "@/components/producer/vns/vns"
+
+import { StaffDetails } from "@/components/staff/main/details"
+import { StaffCredits } from "@/components/staff/credits/credits"
 
 type ContentType = "vn" | "release" | "character" | "producer" | "staff" | "tag" | "trait"
 
@@ -36,96 +42,140 @@ function getContentType(id: string): ContentType | null {
 }
 
 async function renderVNPage(vn: VNType) {
-  if (!vn) return null
+  const containerClass = "container max-w-5xl mx-auto space-y-6 px-4 py-6"
+  const sectionClass = "bg-[#0F2942]/80 backdrop-blur-md rounded-lg shadow-lg border border-white/10 overflow-hidden"
+  const headerClass = "p-4 text-white/90 text-lg font-semibold"
 
-  // Safely handle release IDs
   return (
-    <div className="container mx-auto px-4 py-6">
-      <div className="max-w-5xl mx-auto space-y-6">
-
-        <VNDetails vn={vn} />
-
-        {vn.tags && vn.tags.length > 0 && (
-          <div className="bg-[#0F2942]/80 backdrop-blur-md rounded-lg shadow-lg border border-white/10 overflow-hidden">
-            <div className="p-4 border-b border-white/10">
-              <h3 className="text-lg font-semibold text-white/90">Tags</h3>
-            </div>
-            <div className="p-4">
-              <Tags vn={vn} />
-            </div>
+    <div className={containerClass}>
+      {vn && (
+        <div className={sectionClass}>
+          <VNDetails vn={vn} />
+        </div>
+      )}
+      {vn.tags && vn.tags.length > 0 && (
+        <div className={sectionClass}>
+          <div className={headerClass}>
+            <h3>Tags</h3>
           </div>
-        )}
-
-        {vn.releases && vn.releases.length > 0 && (
-          <div className="bg-[#0F2942]/80 backdrop-blur-md rounded-lg shadow-lg border border-white/10 overflow-hidden">
-            <div className="p-4 border-b border-white/10">
-              <h3 className="text-lg font-semibold text-white/90">Releases</h3>
-            </div>
-            <div className="p-4">
-              <Suspense fallback={<div>Loading releases...</div>}>
-                <Releases vn={vn} />
-              </Suspense>
-            </div>
+          <div className="p-4">
+            <VNTags vn={vn} />
           </div>
-        )}
-
-        {vn.characters && vn.characters.length > 0 && (
-          <div className="bg-[#0F2942]/80 backdrop-blur-md rounded-lg shadow-lg border border-white/10 overflow-hidden">
-            <div className="p-4 border-b border-white/10">
-              <h2 className="text-lg text-white/90 pl-2">Characters</h2>
-            </div>
-            <div className="p-6">
-              <Characters vn={vn} />
-            </div>
+        </div>
+      )}
+      {vn.releases && vn.releases.length > 0 && (
+        <div className={sectionClass}>
+          <div className={headerClass}>
+            <h3>Releases</h3>
           </div>
-        )}
-
-        {vn.staff && vn.staff.length > 0 && (
-          <div className="bg-[#0F2942]/80 backdrop-blur-md rounded-lg shadow-lg border border-white/10 overflow-hidden">
-            <div className="p-4 border-b border-white/10">
-              <h3 className="text-lg font-semibold text-white/90">Staff</h3>
-            </div>
-            <div className="p-4">
-              <Staff vn={vn} />
-            </div>
+          <div className="p-4">
+            <Suspense fallback={<div>Loading releases...</div>}>
+              <VNReleases vn={vn} />
+            </Suspense>
           </div>
-        )}
-
-        {vn.screenshots && vn.screenshots.length > 0 && (
-          <div className="bg-[#0F2942]/80 backdrop-blur-md rounded-lg shadow-lg border border-white/10 overflow-hidden">
-            <div className="p-4 border-b border-white/10">
-              <h3 className="text-lg font-semibold text-white/90">Screenshots</h3>
-            </div>
-            <div className="p-4">
-              <Screenshots vn={vn} />
-            </div>
+        </div>
+      )}
+      {vn.characters && vn.characters.length > 0 && (
+        <div className={sectionClass}>
+          <div className={headerClass}>
+            <h3>Characters</h3>
           </div>
-        )}
-
-      </div>
+          <div className="p-4">
+            <VNCharacters vn={vn} />
+          </div>
+        </div>
+      )}
+      {vn.staff && vn.staff.length > 0 && (
+        <div className={sectionClass}>
+          <div className={headerClass}>
+            <h3>Staff</h3>
+          </div>
+          <div className="p-4">
+            <VNStaff vn={vn} />
+          </div>
+        </div>
+      )}
+      {vn.screenshots && vn.screenshots.length > 0 && (
+        <div className={sectionClass}>
+          <div className={headerClass}>
+            <h3>Screenshots</h3>
+          </div>
+          <div className="p-4">
+            <VNScreenshots vn={vn} />
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
-async function renderReleasepage(releaseResult: ReleaseType) {
+async function renderReleasepage(release: ReleaseType) {
 }
 
 async function renderCharacterPage(character: CharacterType) {
-  if (!character) return null
+  const containerClass = "container max-w-5xl mx-auto space-y-6 px-4 py-6"
+  const sectionClass = "bg-[#0F2942]/80 backdrop-blur-md rounded-lg shadow-lg border border-white/10 overflow-hidden"
+  const headerClass = "p-4 text-white/90 text-lg font-semibold"
 
   return (
-    <div className="container mx-auto px-4 py-6">
-      <div className="max-w-5xl mx-auto">
-        <CharacterDetails character={character} />
-      </div>
+    <div className={containerClass}>
+      {character && (
+        <div className={sectionClass}>
+          <CharacterDetails character={character} />
+        </div>
+      )}
     </div>
   )
 }
 
 async function renderProducerPage(producer: ProducerType) {
+  const containerClass = "container max-w-5xl mx-auto space-y-6 px-4 py-6"
+  const sectionClass = "bg-[#0F2942]/80 backdrop-blur-md rounded-lg shadow-lg border border-white/10 overflow-hidden"
+  const headerClass = "p-4 text-white/90 text-lg font-semibold"
+
+  return (
+    <div className={containerClass}>
+      {producer && (
+        <div className={sectionClass}>
+          <ProducerDetails producer={producer} />
+        </div>
+      )}
+      {producer && (
+        <div className={sectionClass}>
+          <div className={headerClass}>
+            <h3>Visual Novels</h3>
+          </div>
+          <div className="p-4">
+            <ProducerVNs producer={producer} />
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }
 
 async function renderStaffPage(staff: StaffType) {
+  const containerClass = "container max-w-5xl mx-auto space-y-6 px-4 py-6"
+  const sectionClass = "bg-[#0F2942]/80 backdrop-blur-md rounded-lg shadow-lg border border-white/10 overflow-hidden"
+  const headerClass = "p-4 text-white/90 text-lg font-semibold"
+
+  return (
+    <div className={containerClass}>
+      {staff && (
+        <div className={sectionClass}>
+          <StaffDetails staff={staff}/>
+        </div>
+      )}
+      {staff && (
+        <div className={sectionClass}>
+          <div className={headerClass}>
+            <h3>Credtis</h3>
+          </div>
+          <StaffCredits staff={staff}/>
+        </div>
+      )}
+    </div>
+  )
 }
 
 async function renderTagPage(tag: TagType) {
@@ -149,6 +199,11 @@ export default async function DetailPage({ params }: { params: { id: string } })
         response = await api.vn(id, { size: "large" })
         if (!response?.results?.[0]) notFound()
         return await renderVNPage(response.results[0] as VNType)
+
+      case "release":
+        response = await api.release(id, { size: "large" })
+        if (!response?.results?.[0]) notFound()
+        return await renderReleasepage(response.results[0] as ReleaseType)
 
       case "character":
         response = await api.character(id, { size: "large" })
