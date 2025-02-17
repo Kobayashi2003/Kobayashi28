@@ -7,6 +7,7 @@ from userserve import db
 from sqlalchemy import Integer, String, Boolean, DateTime, Column, ForeignKey, event, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB, ARRAY
 from sqlalchemy.orm import relationship, declared_attr
+from sqlalchemy.ext.mutable import MutableList
 
 
 class User(db.Model):
@@ -49,7 +50,8 @@ class Category(db.Model):
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     category_name = Column(String(255), nullable=False)
-    marks = Column(ARRAY(JSONB), default=lambda: [])
+    # marks = Column(ARRAY(JSONB), default=lambda: [])
+    marks = Column(MutableList.as_mutable(ARRAY(JSONB)), default=lambda: [])
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
 

@@ -3,8 +3,6 @@
 import type React from "react"
 import { cn } from "@/lib/utils"
 
-import Image from "next/image"
-
 import type { VN } from "@/lib/types"
 
 import { Row } from "./row"
@@ -13,6 +11,7 @@ import { Links } from "./links"
 import { Platforms } from "./platforms"
 import { Relations } from "./relations"
 import { Developers } from "./developers"
+import { VNImage } from "./image"
 
 // Props for the VNDetails component
 interface VNDetailsProps {
@@ -56,19 +55,7 @@ export function VNDetails({ vn }: VNDetailsProps) {
         {/* Image Section */}
         {vn.image?.url && (
           <div className="flex flex-col items-center">
-            <div className="bg-transparent p-1 rounded-sm">
-              {/* Container for the image with fixed dimensions */}
-              <div className="relative w-[250px] aspect-[3/4]">
-                {/* Next.js Image component for optimized image loading */}
-                <Image
-                  src={vn.image.url || "/placeholder.svg"}
-                  alt={mainTitle || "Cover"}
-                  fill
-                  className="object-contain"
-                  sizes="250px"
-                />
-              </div>
-            </div>
+            <VNImage image={vn.image} title={mainTitle || ""} />
           </div>
         )}
 

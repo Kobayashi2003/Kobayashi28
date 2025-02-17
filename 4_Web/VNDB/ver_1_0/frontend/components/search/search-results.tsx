@@ -37,7 +37,7 @@ export function SearchResults({ type, response, currentPage, itemsPerPage }: Sea
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-7 gap-6 mb-8">
         {uniqueResults.map((item) => renderResultItem(type, item))}
       </div>
-      <SearchPagination currentPage={currentPage} totalPages={totalPages} />
+      {totalPages > 1 && <SearchPagination currentPage={currentPage} totalPages={totalPages} />}
     </div>
   )
 }

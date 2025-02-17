@@ -1,5 +1,5 @@
 export type SearchType = "vn" | "release" | "character" | "producer" | "staff" | "tag" | "trait"
-export type ResourceType = VN | Release | Character | Producer | Staff | Tag | Trait
+export type ResourceType = VN |  Release  |  Character  |  Producer  |  Staff  |  Tag  |  Trait
 
 export interface VisualNovelDataBaseQueryParams {
   page?: number;

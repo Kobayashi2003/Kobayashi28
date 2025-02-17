@@ -1,7 +1,7 @@
 import { api } from "@/lib/api"
 import type { VN, Release, Character, Producer, Staff } from "@/lib/types"
-import * as DropdownMenu from "@radix-ui/react-dropdown-menu"
 import * as ScrollArea from "@radix-ui/react-scroll-area"
+import Link from "next/link"
 
 async function fetchData() {
   const vns = await api.vn("", { size: "small", limit: 100, from: "local" })
@@ -59,21 +59,12 @@ function Column({ title, items, type }: ColumnProps) {
             <ul className="p-2">
               {items.map((item) => (
                 <li key={item.id}>
-                  <DropdownMenu.Root>
-                    <DropdownMenu.Trigger className="w-full text-left p-2 rounded text-white/80 hover:text-white hover:bg-white/5 transition-colors duration-200">
-                      {getDisplayName(item)}
-                    </DropdownMenu.Trigger>
-                    <DropdownMenu.Portal>
-                      <DropdownMenu.Content className="bg-[#0F2942] p-1 rounded-md shadow-lg border border-white/10 backdrop-blur-md min-w-[160px]">
-                        <DropdownMenu.Item className="outline-none cursor-pointer p-2 text-sm text-white/80 hover:text-white hover:bg-white/5 rounded transition-colors duration-200">
-                          View Details
-                        </DropdownMenu.Item>
-                        <DropdownMenu.Item className="outline-none cursor-pointer p-2 text-sm text-white/80 hover:text-white hover:bg-white/5 rounded transition-colors duration-200">
-                          Add to Favorites
-                        </DropdownMenu.Item>
-                      </DropdownMenu.Content>
-                    </DropdownMenu.Portal>
-                  </DropdownMenu.Root>
+                  <Link
+                    href={`/${item.id}`}
+                    className="block w-full text-left p-2 rounded text-white/80 hover:text-white hover:bg-white/5 transition-colors duration-200"
+                  >
+                    {getDisplayName(item)}
+                  </Link>
                 </li>
               ))}
             </ul>

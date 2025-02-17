@@ -15,6 +15,7 @@ import { Row } from "./row"
 import { Traits } from "./traits"
 import { VNs } from "./vns"
 import { Seiyuu } from "./seiyuu"
+import { CharacterImage } from "./image"
 
 
 interface CharacterDetailsProps {
@@ -41,7 +42,7 @@ export function CharacterDetails({ character }: CharacterDetailsProps) {
     character.blood_type && `Blood Type: ${character.blood_type.toUpperCase()}`
   ].filter(Boolean).join(", ")
 
-  const birthdayMatch = character.birthday && character.birthday.match(/(\d+)\D+(\d+)/)
+  const birthdayMatch = typeof character.birthday === 'string' ? character.birthday.match(/(\d+)\D+(\d+)/) : null
   const month  = birthdayMatch && birthdayMatch[1]
   const day = birthdayMatch && birthdayMatch[2]
 
@@ -143,30 +144,11 @@ export function CharacterDetails({ character }: CharacterDetailsProps) {
       <div className={cn("grid gap-6 p-6", character.image ? "md:grid-cols-[250px_1fr]" : "grid-cols-1")}>
 
         {/* Only render if character image URL exists */}
-        {character.image?.url ? (
-          // Container for centering the image
+        {character.image?.url && (
           <div className="flex flex-col items-center">
-            {/* Wrapper with transparent background and slight padding */}
-            <div className="bg-transparent p-1 rounded-sm">
-              {/* Container for maintaining image aspect ratio (3:4) */}
-              <div className="relative w-[250px] aspect-[3/4]">
-                {/* Next.js Image component for optimized image loading */}
-                <Image
-                  // Use character image URL or fallback to placeholder
-                  src={character.image.url || "/placeholder.svg"}
-                  // Use character name as alt text or fallback to "Character"
-                  alt={character.name || "Character"}
-                  // Fill the container while maintaining aspect ratio
-                  fill
-                  // Contain the image within its container
-                  className="object-contain"
-                  // Specify image size for optimization
-                  sizes="250px"
-                />
-              </div>
-            </div>
+            <CharacterImage image={character.image} name={character.name || ""} />
           </div>
-        ) : null}
+        )}
 
         <div className="space-y-4 min-w-0">
           {/* Rows */}

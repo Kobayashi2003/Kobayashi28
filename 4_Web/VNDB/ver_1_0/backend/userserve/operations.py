@@ -1,4 +1,4 @@
-from typing import List, Callable
+from typing import List, Dict, Callable
 from functools import wraps
 from operator import itemgetter
 from datetime import datetime, timezone
@@ -136,6 +136,22 @@ def clear_category(user_id: int, category_id: int, category_type: str) -> Catego
     return None
 
 @save_db_operation
+def isMarked(user_id: int, category_type: str, mark_id: int) -> List[int] | None:
+    category_class = CATEGORY_MODEL.get(category_type)
+    if not category_class:
+        return None
+    
+    categories = category_class.query.filter_by(user_id=user_id).all()
+
+    marked_categories = []
+
+    for category in categories:
+        if any(mark['id'] == mark_id for mark in category.marks):
+            marked_categories.append(category.id)
+
+    return marked_categories
+
+@save_db_operation
 def add_mark_to_category(user_id: int, category_id: int, category_type: str, mark_id: int) -> CategoryType | None:
     category = get_category(user_id, category_id, category_type)
     if category:
@@ -153,18 +169,31 @@ def remove_mark_from_category(user_id: int, category_id: int, category_type: str
     return None
 
 @save_db_operation
-def get_marks_from_category(user_id: int, category_id: int, category_type: str) -> List[str] | None:
+def get_marks_from_category(user_id: int, category_id: int, category_type: str,
+                            page: int = 1, limit: int = 100, sort: str = 'id', 
+                            reverse: bool = False, count: bool = True) -> List[Dict] | None:
     category = get_category(user_id, category_id, category_type)
     if not category:
         return None
     
-    # Sort marks by marked_at in descending order
-    sorted_marks = sorted(category.marks, key=itemgetter('marked_at'), reverse=True)
+    # Sort marks by the specified field
+    sorted_marks = sorted(category.marks, key=itemgetter(sort), reverse=reverse)
     
-    # Extract mark_ids as strings
-    mark_ids = [str(mark['id']) for mark in sorted_marks]
+    # Calculate pagination
+    total = len(sorted_marks)
+    start = (page - 1) * limit
+    end = start + limit
     
-    return mark_ids
+    # Paginate the marks
+    paginated_marks = sorted_marks[start:end]
+    
+    # Extract required fields
+    results = [{"id": str(mark['id']), "marked_at": mark['marked_at']} for mark in paginated_marks]
+    
+    # Check if there are more results
+    more = end < total
+    
+    return {'results': results, 'more': more, 'count': total} if count else {'results': results, 'more': more}
 
 @save_db_operation
 def get_categories_for_user(user_id: int, category_type: str) -> List[CategoryType] | None:

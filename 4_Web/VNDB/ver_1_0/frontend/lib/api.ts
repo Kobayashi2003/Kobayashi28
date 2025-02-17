@@ -3,7 +3,7 @@ import {
 } from './constants';
 import { 
   VisualNovelDataBaseQueryParams, VisualNovelDataBaseQueryResponse,
-  VN, Release, Producer, Character, Staff, Tag, Trait, User, Category
+  VN, Release, Producer, Character, Staff, Tag, Trait, User, Category, Mark
 } from './types';
 import {
   processApiResponse, processVNImages, processReleaseImages, processCharacterImages
@@ -88,10 +88,10 @@ export const api = {
     imgserveQuery(type, id),
 
   login: (username: string, password: string) => 
-    userserveQuery<{ access_token: string }>('login', 'POST', { username, password }),
+    userserveQuery<{ access_token: string, username: string }>('login', 'POST', { username, password }),
 
   register: (username: string, password: string) => 
-    userserveQuery<{ access_token: string }>('register', 'POST', { username, password }),
+    userserveQuery<{ access_token: string, username: string }>('register', 'POST', { username, password }),
 
   getUser: (username: string) => 
     userserveQuery<User>(`u${username}`, 'GET'),
@@ -123,12 +123,57 @@ export const api = {
   clearCategory: (type: string, categoryId: number) => 
     userserveQuery<{ message: string }>(`${type}/c${categoryId}/clear`, 'POST'),
 
-  getMarks: (type: string, categoryId: number) => 
-    userserveQuery<string[]>(`${type}/c${categoryId}/m`, 'GET'),
-
   addMark: (type: string, categoryId: number, markId: number) => 
     userserveQuery<Category>(`${type}/c${categoryId}/m`, 'POST', { mark_id: markId }),
 
   removeMark: (type: string, categoryId: number, markId: number) => 
     userserveQuery<Category>(`${type}/c${categoryId}/m/${markId}`, 'DELETE'),
+
+  isMarked: (type: string, markId: number) =>
+    userserveQuery<{categoryIds?:Array<number>}>(`${type}/m/${markId}`, 'POST'),
+
+  getMarks: async (
+    type: string,
+    categoryId: number,
+    params: {
+      page?: number
+      limit?: number
+      sort?: string
+      reverse?: boolean
+      count?: boolean
+    } = {},
+  ) => {
+    const headers: HeadersInit = {
+      "Content-Type": "application/json",
+    }
+
+    const token = localStorage.getItem("access_token")
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`
+    }
+
+    const queryParams = new URLSearchParams({
+      ...params,
+      page: params.page?.toString() || "1",
+      limit: params.limit?.toString() || "100",
+      sort: params.sort || "marked_at",
+      reverse: params.reverse?.toString() || "true",
+      count: params.count?.toString() || "true",
+    })
+
+    const response = await fetch(`${USERSERVE_BASE_URL}/${type}/c${categoryId}/m?${queryParams}`, {
+      method: "GET",
+      headers,
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    return (await response.json()) as {
+      results: Mark[]
+      more: boolean
+      count?: number
+    }
+  },
 };
