@@ -1,3 +1,4 @@
+import re
 import httpx
 from typing import Dict, List, Any, Callable
 from enum import Enum
@@ -83,6 +84,14 @@ class VNDBAPIWrapper:
             operator, filter_value = value
         else:
             operator, filter_value = '=', value
+
+        if 'o' in filter_def.flags:
+            pattern = r'^(>=|<=|>|<|=)(.+)$'
+            match = re.match(pattern, value.strip())
+            if match:
+                operator, filter_value = match.groups()
+            else:
+                operator, filter_value = '=', value
 
         # Special handling for array type filters
         if filter_def.filter_type == FilterType.ARRAY and not isinstance(filter_value, list):

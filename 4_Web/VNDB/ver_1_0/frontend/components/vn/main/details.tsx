@@ -69,23 +69,23 @@ export function VNDetails({ vn }: VNDetailsProps) {
           )}
 
           <div className="grid gap-2">
-            <Row label={ "Original Language" } value={vn.olang} />
-            <Row label={ "Release Date" } value={vn.released} />
-            <Row label={ "Length" } value={ 
+            {vn.olang && <Row label={ "Original Language" } value={vn.olang} />}
+            {vn.released && <Row label={ "Release Date" } value={vn.released} />}
+            {(vn.length || vn.length_minutes) && <Row label={ "Length" } value={ 
               (length) + (vn.length_minutes ? ` (` + (lengthHours ? `${lengthHours}h` : ``) + (lengthMinutes ? `${lengthMinutes}m` : ``) + ` from ${lengthVotes} votes)` : ``)} 
-            />
-            <Row label={ "Rating" } value={
+            />}
+            {vn.rating && <Row label={ "Rating" } value={
               vn.rating && `${vn.rating.toFixed(0)} (${vn.votecount} votes)`} 
-            />
-            <Row label={ "Developers" } value={
+            />}
+            {vn.developers && vn.developers.length > 0 &&<Row label={ "Developers" } value={
               <Developers developers={vn.developers} />} 
-            />
-            <Row label={ "Platforms" } value={
+            />}
+            {vn.platforms && vn.platforms.length > 0 && <Row label={ "Platforms" } value={
               <Platforms platforms={vn.platforms} />} 
-            />
-            <Row label={ "Links" } value={
+            />}
+            {vn.extlinks && vn.extlinks.length > 0 && <Row label={ "Links" } value={
               <Links extlinks= {vn.extlinks} />} 
-            />
+            />}
           </div>
 
           {vn.relations && vn.relations.length > 0 && (

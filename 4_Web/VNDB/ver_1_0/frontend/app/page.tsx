@@ -1,82 +1,164 @@
-import { api } from "@/lib/api"
-import type { VN, Release, Character, Producer, Staff } from "@/lib/types"
-import * as ScrollArea from "@radix-ui/react-scroll-area"
+"use client"
+
+import { useState, useEffect } from "react"
+import Image from "next/image"
 import Link from "next/link"
+import { ChevronDown, Loader2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { api } from "@/lib/api"
+import type { VN } from "@/lib/types"
 
-async function fetchData() {
-  const vns = await api.vn("", { size: "small", limit: 100, from: "local" })
-  const releases = await api.release("", { size: "small", limit: 100, from: "local" })
-  const characters = await api.character("", { size: "small", limit: 100, from: "local" })
-  const producers = await api.producer("", { size: "small", limit: 100, from: "local" })
-  const staff = await api.staff("", { size: "small", limit: 100, from: "local" })
+export default function Home() {
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const now = new Date()
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`
+  })
+  const [vns, setVns] = useState<VN[]>([])
+  const [loading, setLoading] = useState(true)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [hasMore, setHasMore] = useState(false)
+  const itemsPerPage = 20
 
-  return { vns, releases, characters, producers, staff }
-}
+  const currentYear = new Date().getFullYear()
+  const years = Array.from({ length: 37 }, (_, i) => currentYear - 35 + i)
 
-export default async function Home() {
-  const { vns, releases, characters, producers, staff } = await fetchData()
+  // Generate month options
+  const months = Array.from({ length: 12 }, (_, i) => ({
+    value: String(i + 1).padStart(2, "0"),
+    label: new Date(2000, i).toLocaleString("default", { month: "long" }),
+  }))
 
-  return (
-    <main className="container mx-auto p-4 pb-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 h-[calc(100vh-12rem)]">
-        <Column title="Visual Novels" items={vns.results} type="vn" />
-        <Column title="Releases" items={releases.results} type="release" />
-        <Column title="Characters" items={characters.results} type="character" />
-        <Column title="Producers" items={producers.results} type="producer" />
-        <Column title="Staff" items={staff.results} type="staff" />
-      </div>
-    </main>
-  )
-}
+  useEffect(() => {
+    const fetchVNs = async () => {
+      setLoading(true)
+      try {
+        const [year, month] = selectedDate.split("-")
+        const startDateStr1 = `${year}-${month}-01`
+        const startDateStr2 = `${year}-${month}-01`
 
-type ColumnProps = {
-  title: string
-  items: VN[] | Release[] | Character[] | Producer[] | Staff[]
-  type: "vn" | "release" | "character" | "producer" | "staff"
-}
+        const lastDay = new Date(Number.parseInt(year), Number.parseInt(month), 0).getDate()
+        const endDateStr1 = `${year}-${month}-${lastDay}`
 
-function Column({ title, items, type }: ColumnProps) {
-  const getDisplayName = (item: VN | Release | Character | Producer | Staff) => {
-    switch (type) {
-      case "vn":
-      case "release":
-        return (item as VN | Release).title
-      case "character":
-      case "producer":
-      case "staff":
-        return (item as Character | Producer | Staff).name
-      default:
-        return "Unknown"
+        const nextMonth = Number.parseInt(month) === 12 ? "01" : String(Number.parseInt(month) + 1).padStart(2, "0")
+        const nextMonthYear = Number.parseInt(month) === 12 ? String(Number.parseInt(year) + 1) : year
+        const endDateStr2 = `${nextMonthYear}-${nextMonth}-01`
+
+        const response = await api.vn("", {
+          released: `(>=${startDateStr1}+<=${endDateStr1}),(>=${startDateStr2}+<${endDateStr2})`,
+          // olang: "ja,zh,zh-Hans,zh-Hant",
+          olang: "ja",
+          size: "small",
+          sort: "released",
+          reverse: true,
+          page: currentPage,
+          limit: itemsPerPage,
+        })
+
+        setVns((prev) => (currentPage === 1 ? response.results : [...prev, ...response.results]))
+        setHasMore(response.more ?? false)
+      } catch (error) {
+        console.error("Failed to fetch VNs:", error)
+      } finally {
+        setLoading(false)
+      }
     }
+
+    fetchVNs()
+  }, [selectedDate, currentPage])
+
+  const handleDateChange = (value: string) => {
+    setSelectedDate(value)
+    setCurrentPage(1)
+    setVns([])
   }
 
   return (
-    <div className="bg-[#0F2942]/80 backdrop-blur-md rounded-lg shadow-lg flex flex-col h-full border border-white/10 transition-all duration-300 hover:bg-[#0F2942]/90 hover:border-white/20 overflow-hidden">
-      <h2 className="text-xl font-semibold p-4 border-b border-white/10 text-white/90 shrink-0">{title}</h2>
-      <div className="flex-1 min-h-0">
-        <ScrollArea.Root className="h-full">
-          <ScrollArea.Viewport className="h-full w-full">
-            <ul className="p-2">
-              {items.map((item) => (
-                <li key={item.id}>
-                  <Link
-                    href={`/${item.id}`}
-                    className="block w-full text-left p-2 rounded text-white/80 hover:text-white hover:bg-white/5 transition-colors duration-200"
-                  >
-                    {getDisplayName(item)}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </ScrollArea.Viewport>
-          <ScrollArea.Scrollbar
-            className="flex select-none touch-none p-0.5 bg-white/5 transition-colors duration-[160ms] ease-out hover:bg-white/10 data-[orientation=vertical]:w-2.5 data-[orientation=horizontal]:flex-col data-[orientation=horizontal]:h-2.5"
-            orientation="vertical"
+    <main className="container mx-auto p-4 pb-8">
+      <div className="mb-8 flex flex-col gap-4">
+        <h1 className="text-3xl font-bold text-white">Visual Novel Releases</h1>
+
+        <div className="flex gap-4">
+          <Select
+            value={selectedDate.split("-")[0]}
+            onValueChange={(year) => handleDateChange(`${year}-${selectedDate.split("-")[1]}`)}
           >
-            <ScrollArea.Thumb className="flex-1 bg-white/20 rounded-[10px] relative before:content-[''] before:absolute before:top-1/2 before:left-1/2 before:-translate-x-1/2 before:-translate-y-1/2 before:w-full before:h-full before:min-w-[44px] before:min-h-[44px]" />
-          </ScrollArea.Scrollbar>
-        </ScrollArea.Root>
+            <SelectTrigger className="w-[180px] bg-[#0F2942]/80 border-white/10 text-white font-bold ">
+              <SelectValue placeholder="Select year" />
+            </SelectTrigger>
+            <SelectContent>
+              {years.map((year) => (
+                <SelectItem key={year} value={year.toString()}>
+                  {year}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={selectedDate.split("-")[1]}
+            onValueChange={(month) => handleDateChange(`${selectedDate.split("-")[0]}-${month}`)}
+          >
+            <SelectTrigger className="w-[180px] bg-[#0F2942]/80 border-white/10 text-white font-bold">
+              <SelectValue placeholder="Select month" />
+            </SelectTrigger>
+            <SelectContent>
+              {months.map((month) => (
+                <SelectItem key={month.value} value={month.value}>
+                  {month.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
-    </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+        {vns.map((vn) => (
+          <Link key={vn.id} href={`/${vn.id}`} className="group">
+            <div className="bg-[#0F2942] rounded-lg overflow-hidden shadow-lg transition-all duration-300 ease-in-out group-hover:shadow-xl group-hover:scale-105">
+              <div className="relative w-full" style={{ paddingBottom: "133.33%" }}>
+                {vn.image?.url ? (
+                  <Image
+                    src={vn.image.url || "/placeholder.svg"}
+                    alt={vn.title || "Visual Novel Cover"}
+                    fill
+                    style={{ objectFit: "cover" }}
+                    className="transition-transform duration-300 ease-in-out group-hover:scale-110"
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center bg-gray-200 text-gray-500">
+                    No image
+                  </div>
+                )}
+              </div>
+              <div className="p-4 transition-colors duration-300 ease-in-out group-hover:bg-[#1A3A5A]">
+                <h3 className="text-lg font-semibold text-white truncate">{vn.title}</h3>
+                <p className="text-sm text-white/60">{vn.released}</p>
+              </div>
+            </div>
+          </Link>
+        ))}
+      </div>
+
+      {loading && (
+        <div className="flex justify-center items-center mt-8">
+          <Loader2 className="h-8 w-8 animate-spin text-white" />
+        </div>
+      )}
+
+      {!loading && hasMore && (
+        <div className="flex justify-center mt-8">
+          <Button
+            variant="outline"
+            className="bg-[#0F2942]/80 border-white/10 hover:bg-[#0F2942] hover:border-white/20"
+            onClick={() => setCurrentPage((prev) => prev + 1)}
+          >
+            Load More
+            <ChevronDown className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
+      )}
+    </main>
   )
 }

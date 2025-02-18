@@ -8,7 +8,7 @@ interface CreditItemProps {
 
 export function CreditItem({ vn }: CreditItemProps) {
   return (
-    <Link href={`/vn/${vn.id}`} className="block group">
+    <Link href={`/${vn.id}`} className="block group">
       <div className="bg-[#0F2942] rounded-lg overflow-hidden shadow-lg transition-all duration-300 ease-in-out group-hover:shadow-xl group-hover:scale-105">
         <div className="relative w-full" style={{ paddingBottom: "133.33%" }}>
           {vn.image?.url ? (

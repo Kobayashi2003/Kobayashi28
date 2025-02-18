@@ -1,5 +1,5 @@
 import { IMGSERVE_BASE_URL } from './constants';
-import { VN, Character, Release } from './types';
+import { VN, Character, Release, VisualNovelDataBaseQueryResponse } from './types';
 
 const IMAGE_REGEX = /^https?:\/\/[^\/]+\/(cv|sf|ch)(?:\.t)?\/\d+\/(\d+)\.jpg$/;
 
@@ -27,21 +27,6 @@ export function processVNImages(vn: VN): VN {
       url: convertToImgserveUrl(screenshot?.url),
       thumbnail: convertToImgserveUrl(screenshot?.thumbnail, true)
     })),
-    characters: vn.characters?.map(character => ({
-      ...character,
-      image: character.image && {
-        ...character.image,
-        url: convertToImgserveUrl(character.image?.url)
-      }
-    })),
-    releases: vn.releases?.map(release => ({
-      ...release,
-      images: release.images?.map(image => ({
-        ...image,
-        url: convertToImgserveUrl(image?.url),
-        thumbnail: convertToImgserveUrl(image?.thumbnail, true)
-      }))
-    }))
   };
 }
 
@@ -67,9 +52,9 @@ export function processReleaseImages(release: Release): Release {
 }
 
 export function processApiResponse<T extends VN | Character | Release>(
-  response: { results: T[] },
+  response: VisualNovelDataBaseQueryResponse<T>,
   processor: (item: T) => T
-): { results: T[] } {
+): VisualNovelDataBaseQueryResponse<T> {
   return {
     ...response,
     results: response.results.map(processor)

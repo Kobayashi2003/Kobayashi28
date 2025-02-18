@@ -25,8 +25,34 @@ export function StaffCredits({ staff }: CreditsProps) {
 
       try {
         setLoading(true)
-        const response = await api.vn("", { staff: staff.id, size: "small" })
-        setCredits(response.results)
+
+        let allResults: VN[] = []
+        let page = 1
+        let hasMore = true
+
+        while (hasMore) {
+          const response = await api.vn("", {
+            staff: staff.id,
+            size: "small",
+            limit: 100,
+            page: page,
+          })
+
+          allResults = [...allResults, ...response.results]
+          hasMore = response.more ?? false
+          page++
+        }
+
+        const sortedCredits = allResults.sort((a, b) => {
+          if (a.released === "TBA" && b.released === "TBA") return 0
+          if (a.released === "TBA") return -1
+          if (b.released === "TBA") return 1
+          const dateA = a.released ? new Date(a.released).getTime() : 0
+          const dateB = b.released ? new Date(b.released).getTime() : 0
+          return dateB - dateA
+        })
+
+        setCredits(sortedCredits)
       } catch (err) {
         setError("Failed to fetch visual novels")
         console.error(err)
