@@ -2,6 +2,7 @@ export const VNDB_BASE_URL = process.env.NEXT_PUBLIC_VNDB_BASE_URL || 'http://lo
 export const IMGSERVE_BASE_URL = process.env.NEXT_PUBLIC_IMGSERVE_BASE_URL || 'http://localhost:5001';
 export const USERSERVE_BASE_URL = process.env.NEXT_PUBLIC_IMGSERVE_BASE_URL || 'http://localhost:5002';
 
+
 export const LANGUAGES: Record<string, string> = {
   ar: "Arabic",
   be: "Belarusian",
@@ -84,6 +85,7 @@ export const PLATFORMS: Record<string, string> = {
   n3d: "Nintendo 3DS",
   web: "Web",
 } as const
+
 
 export const LANGUAGE_ICONS: Record<string, string> = {
   ar: "icon-lang-ar",
@@ -185,8 +187,6 @@ export const RELEASE_ICONS: Record<string, string> = {
   external: "icon-external",
 } as const
 
-
-
 export const CHARACTER_ICONS: Record<string, string> = {
   m: "icon-char-m",
   f: "icon-char-f",
@@ -200,4 +200,3 @@ export const CHARACTER_SEX_COLORS: Record<string, string> = {
   b: "charsex-b",
   n: "charsex-n",
 } as const
-
