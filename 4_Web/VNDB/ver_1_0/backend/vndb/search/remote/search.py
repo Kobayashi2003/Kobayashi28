@@ -275,14 +275,14 @@ def search(resource_type: str, params: Dict[str, Any], response_size: str = 'sma
                 resource_type='vn', resource_id=vnid, response_size='small', limit=100
             )['results']
             characters = [{key: char[key] for key in ['id', 'name', 'sex', 'vns']} for char in characters]
-            vn['characters'] = characters
+            vn['characters'] = characters if characters else []
 
             releases = unpaginated_search(
                 search_function=search_releases_by_resource_id,
                 resource_type='vn', resource_id=vnid, response_size='small', limit=100
             )['results']
             releases = [{key: release[key] for key in ['id', 'title']} for release in releases]
-            vn['releases'] = releases
+            vn['releases'] = releases if releases else []
 
     if (resource_type == 'character' and response_size == 'large'):
         for char in results['results']:
@@ -306,7 +306,7 @@ def search(resource_type: str, params: Dict[str, Any], response_size: str = 'sma
                     if va['character']['id'] == charid
             ]}.values())
 
-            char['seiyuu'] = seiyuu
+            char['seiyuu'] = seiyuu if seiyuu else []
 
     return results
 

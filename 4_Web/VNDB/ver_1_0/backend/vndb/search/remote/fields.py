@@ -197,9 +197,21 @@ SMALL_FIELDS_VN: List[str] = [
     VNDBFields.VN.TITLE,
     VNDBFields.VN.RELEASED,
     VNDBFields.VN.IMAGE.URL,
+    VNDBFields.VN.IMAGE.DIMS,
     VNDBFields.VN.IMAGE.THUMBNAIL,
+    VNDBFields.VN.IMAGE.THUMBNAIL_DIMS,
     VNDBFields.VN.IMAGE.SEXUAL,
     VNDBFields.VN.IMAGE.VIOLENCE
+]
+
+SMALL_FIELDS_RELEASE: List[str] = [
+    VNDBFields.Release.ID,
+    VNDBFields.Release.TITLE,
+    VNDBFields.Release.VNS.ID,
+    VNDBFields.Release.VNS.RTYPE,
+    VNDBFields.Release.PRODUCERS.ID,
+    VNDBFields.Release.PRODUCERS.DEVELOPER,
+    VNDBFields.Release.PRODUCERS.PUBLISHER,
 ]
 
 SMALL_FIELDS_CHARACTER: List[str] = [
@@ -212,12 +224,7 @@ SMALL_FIELDS_CHARACTER: List[str] = [
     VNDBFields.Character.VNS.SPOILER,
     VNDBFields.Character.IMAGE.URL,
     VNDBFields.Character.IMAGE.SEXUAL,
-    VNDBFields.Character.IMAGE.VIOLENCE
-]
-
-SMALL_FIELDS_TAG: List[str] = [
-    VNDBFields.Tag.ID,
-    VNDBFields.Tag.NAME,
+    VNDBFields.Character.IMAGE.VIOLENCE,
 ]
 
 SMALL_FIELDS_PRODUCER: List[str] = [
@@ -230,16 +237,16 @@ SMALL_FIELDS_STAFF: List[str] = [
     VNDBFields.Staff.NAME,
 ]
 
+SMALL_FIELDS_TAG: List[str] = [
+    VNDBFields.Tag.ID,
+    VNDBFields.Tag.NAME,
+]
+
 SMALL_FIELDS_TRAIT: List[str] = [
     VNDBFields.Trait.ID,
     VNDBFields.Trait.NAME,
     VNDBFields.Trait.GROUP_ID,
     VNDBFields.Trait.GROUP_NAME
-]
-
-SMALL_FIELDS_RELEASE: List[str] = [
-    VNDBFields.Release.ID,
-    VNDBFields.Release.TITLE 
 ]
 
 
