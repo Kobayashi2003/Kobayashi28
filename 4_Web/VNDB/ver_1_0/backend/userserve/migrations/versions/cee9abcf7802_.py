@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 6e346749e04c
+Revision ID: cee9abcf7802
 Revises: 
-Create Date: 2025-02-09 18:37:43.914655
+Create Date: 2025-02-20 13:59:07.153623
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = '6e346749e04c'
+revision = 'cee9abcf7802'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -36,7 +36,8 @@ def upgrade():
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('user_id', 'category_name', name='uq_charactercategory_user_category')
     )
     op.create_table('producer_categories',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -46,7 +47,8 @@ def upgrade():
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('user_id', 'category_name', name='uq_producercategory_user_category')
     )
     op.create_table('staff_categories',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -56,7 +58,8 @@ def upgrade():
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('user_id', 'category_name', name='uq_staffcategory_user_category')
     )
     op.create_table('vn_categories',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -66,7 +69,8 @@ def upgrade():
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('user_id', 'category_name', name='uq_vncategory_user_category')
     )
     # ### end Alembic commands ###
 
