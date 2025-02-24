@@ -47,7 +47,8 @@ function Bytes2String([int64]$bytes) {
 
 function ListDirectory([string]$path, [int]$depth) {
 	$depth++
-	$items = Get-ChildItem -path $path
+	# $items = Get-ChildItem -path $path
+	$items = Get-ChildItem -LiteralPath $path
 	foreach($item in $items) {
 		$filename = $item.Name
 		for ($i = 1; $i -lt $depth; $i++) { Write-Host "│ " -noNewline }

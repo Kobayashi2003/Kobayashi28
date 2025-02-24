@@ -34,7 +34,8 @@ try {
             [int]$IndentLevel = 0
         )
 
-        $items = Get-ChildItem -Path $Path
+        # $items = Get-ChildItem -Path $Path
+        $items = Get-ChildItem -LiteralPath $Path
 
         foreach ($item in $items) {
             $indent = "│   " * $IndentLevel

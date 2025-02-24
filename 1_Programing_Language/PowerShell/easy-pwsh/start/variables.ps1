@@ -90,7 +90,7 @@ $global:MODULES = $( if (-not $IMPORT_MODULES) { @{} } else {
 @{
     "PSReadLine"         = $(if ($global:PSVERSION -ge "7.2.0") { "latest" } else { "==2.3.4" })
     # "PSFzf"              = $(if ($global:PSVERSION -ge "7.2.0") { "latest" } else { "==2.0.0" })
-    "Get-ChildItemColor" = "latest"
+    # "Get-ChildItemColor" = "latest"
     "WriteAscii"         = "latest"
     # "Terminal-Icons"     = "latest"
     # "posh-git"           = "latest"
