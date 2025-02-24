@@ -98,7 +98,7 @@ export function Marks({ type, categoryId }: MarksProps) {
 
   useEffect(() => {
     fetchMarks(currentPage)
-  }, [currentPage])
+  }, [currentPage, categoryId])
 
   if (error) {
     return <div className="text-red-500">{error}</div>

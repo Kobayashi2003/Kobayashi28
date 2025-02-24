@@ -15,6 +15,7 @@ pillow = ">=10.4.0,<11"
 psutil = ">=6.0.0,<7"
 pycryptodome = ">=3.20.0,<4"
 requests = ">=2.32.3,<3"
+python-dotenv = ">=1.0.1,<2"
 
 [pypi-dependencies]
 commonx = { path = '.\dependence\commonX-0.6.33-py3-none-any.whl' }

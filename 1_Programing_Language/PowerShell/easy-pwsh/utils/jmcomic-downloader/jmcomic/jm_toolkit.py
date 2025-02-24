@@ -25,7 +25,7 @@ class JmcomicText:
     pattern_html_album_album_id = compile(r'<span class="number">.*?：JM(\d+)</span>')
     pattern_html_album_scramble_id = compile(r'var scramble_id = (\d+);')
     pattern_html_album_name = compile(r'<h1 class="book-name" id="book-name">([\s\S]*?)</h1>')
-    pattern_html_album_episode_list = compile(r'data-album="(\d+)"\s*?>\s*?<li.*?>\s*?第(\d+)話([\s\S]*?)<[\s\S]*?>(\d+-\d+-\d+).*?')
+    pattern_html_album_episode_list = compile(r'data-album="(\d+)"[^>]*>\s*?<li.*?>\s*?第(\d+)話([\s\S]*?)<[\s\S]*?>(\d+-\d+-\d+).*?')
     pattern_html_album_page_count = compile(r'<span class="pagecount">.*?:(\d+)</span>')
     pattern_html_album_pub_date = compile(r'>上架日期 : (.*?)</span>')
     pattern_html_album_update_date = compile(r'>更新日期 : (.*?)</span>')
@@ -329,7 +329,8 @@ class JmcomicText:
                 limit = JmModuleConfig.VAR_FILE_NAME_LENGTH_LIMIT
                 jm_log('error', f'目录名过长，无法创建目录，强制缩短到{limit}个字符并重试')
                 save_dir = save_dir[0:limit]
-                mkdir_if_not_exists(save_dir)
+                return cls.try_mkdir(save_dir)
+            raise e
         return save_dir
 
 

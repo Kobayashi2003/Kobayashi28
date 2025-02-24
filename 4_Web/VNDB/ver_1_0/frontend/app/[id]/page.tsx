@@ -266,7 +266,7 @@ async function AsyncDetailContent({ contentType, id }: { contentType: ContentTyp
 }
 
 export default async function DetailPage({ params }: { params: { id: string } }) {
-  const id = params.id
+  const { id } = await params
   const contentType = getContentType(id)
 
   if (!contentType) {

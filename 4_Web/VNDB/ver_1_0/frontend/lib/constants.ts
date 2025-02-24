@@ -1,6 +1,10 @@
-export const VNDB_BASE_URL = process.env.NEXT_PUBLIC_VNDB_BASE_URL || 'http://localhost:5000';
-export const IMGSERVE_BASE_URL = process.env.NEXT_PUBLIC_IMGSERVE_BASE_URL || 'http://localhost:5001';
-export const USERSERVE_BASE_URL = process.env.NEXT_PUBLIC_IMGSERVE_BASE_URL || 'http://localhost:5002';
+// export const VNDB_BASE_URL = process.env.NEXT_PUBLIC_VNDB_BASE_URL || 'http://localhost:5000';
+// export const IMGSERVE_BASE_URL = process.env.NEXT_PUBLIC_IMGSERVE_BASE_URL || 'http://localhost:5001';
+// export const USERSERVE_BASE_URL = process.env.NEXT_PUBLIC_IMGSERVE_BASE_URL || 'http://localhost:5002';
+
+export const VNDB_BASE_URL = "/api/vndb"
+export const IMGSERVE_BASE_URL = "/api/imgserve"
+export const USERSERVE_BASE_URL = "/api/userserve"
 
 
 export const LANGUAGES: Record<string, string> = {

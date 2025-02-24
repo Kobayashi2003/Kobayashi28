@@ -10,9 +10,33 @@ import {
 } from './process';
 
 
+const isServer = typeof window === "undefined"
+
+const getBaseUrl = (type: "vndb" | "imgserve" | "userserve") => {
+  if (isServer) {
+    switch (type) {
+      case "vndb":
+        return "http://localhost:5000"
+      case "imgserve":
+        return "http://localhost:5001"
+      case "userserve":
+        return "http://localhost:5002"
+    }
+  } else {
+    switch (type) {
+      case "vndb":
+        return VNDB_BASE_URL
+      case "imgserve":
+        return IMGSERVE_BASE_URL
+      case "userserve":
+        return USERSERVE_BASE_URL
+    }
+  }
+}
+
 async function vndbQuery<T>(endpoint: string, params: VisualNovelDataBaseQueryParams = {}): Promise<VisualNovelDataBaseQueryResponse<T>> {
   const queryString = new URLSearchParams(params as Record<string, string>).toString();
-  const response = await fetch(`${VNDB_BASE_URL}/${endpoint}?${queryString}`);
+  const response = await fetch(`${getBaseUrl("vndb")}/${endpoint}?${queryString}`);
   
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`);
@@ -22,7 +46,7 @@ async function vndbQuery<T>(endpoint: string, params: VisualNovelDataBaseQueryPa
 }
 
 async function imgserveQuery(type: string, id: number): Promise<Blob> {
-  const response = await fetch(`${IMGSERVE_BASE_URL}/${type}/${id}`);
+  const response = await fetch(`${getBaseUrl("imgserve")}/${type}/${id}`);
   
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`);
@@ -42,7 +66,7 @@ async function userserveQuery<T>(endpoint: string, method: string = 'GET', body?
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${USERSERVE_BASE_URL}/${endpoint}`, {
+  const response = await fetch(`${getBaseUrl("userserve")}/${endpoint}`, {
     method,
     headers,
     body: body ? JSON.stringify(body) : undefined,

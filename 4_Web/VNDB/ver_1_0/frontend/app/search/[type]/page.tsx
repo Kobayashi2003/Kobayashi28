@@ -100,7 +100,7 @@ function LoadingSpinner() {
 }
 
 export default async function SearchPage({ params, searchParams }: SearchPageProps) {
-  const { type } = params
+  const { type } = await params
 
   return (
     <div className="container mx-auto px-4 py-8">
