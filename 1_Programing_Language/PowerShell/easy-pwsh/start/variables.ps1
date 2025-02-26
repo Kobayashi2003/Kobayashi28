@@ -32,8 +32,8 @@ $global:CHECK_MODULES   = $false
 $global:SHOW_MODULES    = $false
 
 $global:SCOOP_MAIN_FLAG    = $true
-$global:SCOOP_EXTRAS_FLAG  = $true
-$global:SCOOP_VERSION_FLAG = $true
+$global:SCOOP_EXTRAS_FLAG  = $false
+$global:SCOOP_VERSION_FLAG = $false
 
 $global:SCOOP_CHECK_UPDATE = $false
 $global:SCOOP_CHECK_INSTALL = $false
