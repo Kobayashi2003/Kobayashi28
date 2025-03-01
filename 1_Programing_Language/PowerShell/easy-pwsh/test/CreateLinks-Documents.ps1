@@ -174,6 +174,7 @@ try {
     # Wait for user confirmation
     Write-Host "`nPress Enter to exit..." -ForegroundColor Cyan -NoNewline
     $null = Read-Host
+    exit 0
     #endregion
 }
 catch {

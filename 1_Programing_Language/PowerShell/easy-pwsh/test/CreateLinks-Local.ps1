@@ -1,12 +1,12 @@
 ﻿<#
 .SYNOPSIS
-Creates symbolic links from current directory to Roaming folder with admin privileges
+Creates symbolic links from current directory to Local folder with admin privileges
 
 .DESCRIPTION
 This script will:
 1. Auto-elevate to admin privileges if needed
 2. Show preview of items to link
-3. Create symbolic links in Roaming folder
+3. Create symbolic links in Local folder
 4. Display results and wait for user confirmation
 #>
 
@@ -73,10 +73,10 @@ try {
     # Get target directories
     ##################################################
 
-    # Roaming folder path
-    $roamingPath = [Environment]::GetFolderPath([Environment+SpecialFolder]::ApplicationData)
-    if (-not $roamingPath) {
-        throw "Failed to locate Roaming folder"
+    # Local folder path
+    $localPath = [Environment]::GetFolderPath([Environment+SpecialFolder]::LocalApplicationData)
+    if (-not $localPath) {
+        throw "Failed to locate Local folder"
     }
 
     # Source directory (script location or current directory)
@@ -110,7 +110,7 @@ try {
     } | Format-Table -AutoSize
 
     # Confirmation prompt
-    Write-Host "`nCreate these links in Roaming folder? (Y/N)" -ForegroundColor Yellow -NoNewline
+    Write-Host "`nCreate these links in Local folder? (Y/N)" -ForegroundColor Yellow -NoNewline
     $confirmation = Read-Host
     if ($confirmation -notmatch '^[yY]') {
         Write-Host "Aborted by user" -ForegroundColor Red
@@ -126,7 +126,7 @@ try {
     $results = foreach ($item in $items) {
         # Generate link name
         $itemName = if ($item.PSIsContainer) { $item.Name } else { $item.BaseName }
-        $linkPath = Join-Path $roamingPath $itemName
+        $linkPath = Join-Path $localPath $itemName
 
         # Skip existing items
         if (Test-Path $linkPath) {
