@@ -196,6 +196,14 @@ def get_marks_from_category(user_id: int, category_id: int, category_type: str,
     return {'results': results, 'more': more, 'count': total} if count else {'results': results, 'more': more}
 
 @save_db_operation
+def get_marks_from_category_without_pagination(user_id: int, category_id: int, category_type: str) -> List[Dict] | None:
+    category = get_category(user_id, category_id, category_type)
+    if not category:
+        return None
+    # return category.marks
+    return {'results': category.marks, 'more': False, 'count': len(category.marks)}
+
+@save_db_operation
 def get_categories_for_user(user_id: int, category_type: str) -> List[CategoryType] | None:
     category_class = CATEGORY_MODEL.get(category_type)
     if not category_class:

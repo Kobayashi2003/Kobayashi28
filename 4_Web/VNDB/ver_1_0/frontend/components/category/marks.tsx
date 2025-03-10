@@ -81,7 +81,7 @@ export function Marks({ type, categoryId }: MarksProps) {
       }
 
       const combinedData = detailedData.results.map((item: ResourceType) => {
-        const mark = marksResponse.results.find((m) => m.id === Number(item.id))
+        const mark = marksResponse.results.find((m) => m.id === Number(item.id.slice(1)))
         return { ...item, marked_at: mark ? mark.marked_at : "" }
       })
 

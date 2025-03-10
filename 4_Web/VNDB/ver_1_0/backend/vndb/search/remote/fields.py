@@ -223,6 +223,7 @@ SMALL_FIELDS_CHARACTER: List[str] = [
     VNDBFields.Character.VNS.ROLE,
     VNDBFields.Character.VNS.SPOILER,
     VNDBFields.Character.IMAGE.URL,
+    VNDBFields.Character.IMAGE.DIMS,
     VNDBFields.Character.IMAGE.SEXUAL,
     VNDBFields.Character.IMAGE.VIOLENCE,
 ]

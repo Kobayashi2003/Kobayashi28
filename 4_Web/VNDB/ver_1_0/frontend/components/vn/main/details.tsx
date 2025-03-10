@@ -74,9 +74,9 @@ export function VNDetails({ vn }: VNDetailsProps) {
             {(vn.length || vn.length_minutes) && <Row label={ "Length" } value={ 
               (length) + (vn.length_minutes ? ` (` + (lengthHours ? `${lengthHours}h` : ``) + (lengthMinutes ? `${lengthMinutes}m` : ``) + ` from ${lengthVotes} votes)` : ``)} 
             />}
-            {vn.rating && <Row label={ "Rating" } value={
+            {/* {vn.rating && <Row label={ "Rating" } value={
               vn.rating && `${vn.rating.toFixed(0)} (${vn.votecount} votes)`} 
-            />}
+            />} */}
             {vn.developers && vn.developers.length > 0 &&<Row label={ "Developers" } value={
               <Developers developers={vn.developers} />} 
             />}

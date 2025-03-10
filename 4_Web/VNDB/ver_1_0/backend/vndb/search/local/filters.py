@@ -45,27 +45,90 @@ def array_string_match(column: Any, value: str) -> BinaryExpression:
         .where(text(f"array_item ILIKE :{param_value}"))
     ).params({param_value: f"%{value}%"})
 
+# def process_multi_value_expression(expression: str, value_processor: Callable[[str], BinaryExpression]) -> BinaryExpression:
+#     """
+#     Process a multi-value expression with OR/AND logic.
+    
+#     :param expression: The input expression (e.g., "value1,value2+value3")
+#     :param value_processor: A function that takes a string value and returns a SQLAlchemy filter condition
+#     :return: A single SQLAlchemy filter condition (OR of all processed conditions)
+#     """
+#     or_expressions = re.split(r'\s*,\s*', expression.strip())
+#     or_conditions = []
+    
+#     for or_expr in or_expressions:
+#         if '+' in or_expr:
+#             and_values = re.split(r'\s*\+\s*', or_expr)
+#             and_conditions = [value_processor(value.strip()) for value in and_values]
+#             or_conditions.append(and_(*and_conditions))
+#         else:
+#             or_conditions.append(value_processor(or_expr.strip()))
+    
+#     return or_(*or_conditions)
 
 def process_multi_value_expression(expression: str, value_processor: Callable[[str], BinaryExpression]) -> BinaryExpression:
     """
-    Process a multi-value expression with OR/AND logic.
+    Process a multi-value expression with OR/AND logic and parentheses.
     
-    :param expression: The input expression (e.g., "value1,value2+value3")
+    :param expression: The input expression (e.g., "value1,value2+(value3,value4)")
     :param value_processor: A function that takes a string value and returns a SQLAlchemy filter condition
-    :return: A single SQLAlchemy filter condition (OR of all processed conditions)
+    :return: A single SQLAlchemy filter condition
     """
-    or_expressions = re.split(r'\s*,\s*', expression.strip())
-    or_conditions = []
-    
-    for or_expr in or_expressions:
-        if '+' in or_expr:
-            and_values = re.split(r'\s*\+\s*', or_expr)
-            and_conditions = [value_processor(value.strip()) for value in and_values]
-            or_conditions.append(and_(*and_conditions))
+
+    def evaluate_stack(stack: list) -> BinaryExpression:
+        while len(stack) > 1:
+            left = stack.pop(0)
+            op = stack.pop(0)
+            right = stack.pop(0)
+            if op == ',':
+                stack.insert(0, or_(left, right))
+            elif op == '+':
+                stack.insert(0, and_(left, right))
+        return stack[0]
+
+    def process_simple_expression(expr: str, processor: Callable[[str], BinaryExpression]) -> BinaryExpression:
+        if '+' in expr:
+            and_values = re.split(r'\s*\+\s*', expr)
+            return and_(*[processor(value.strip()) for value in and_values])
         else:
-            or_conditions.append(value_processor(or_expr.strip()))
-    
-    return or_(*or_conditions)
+            return processor(expr.strip())
+
+    def parse_sub_expression(expr: str) -> BinaryExpression:
+        if '(' not in expr and ')' not in expr:
+            return process_simple_expression(expr, value_processor)
+        
+        stack = []
+        current_expr = ""
+        depth = 0
+        
+        for char in expr:
+            if char == '(':
+                if depth > 0:
+                    current_expr += char
+                depth += 1
+            elif char == ')':
+                depth -= 1
+                if depth == 0:
+                    stack.append(parse_sub_expression(current_expr))
+                    current_expr = ""
+                else:
+                    current_expr += char
+            elif depth > 0:
+                current_expr += char
+            elif char in ',+':
+                if current_expr:
+                    stack.append(process_simple_expression(current_expr, value_processor))
+                stack.append(char)
+                current_expr = ""
+            else:
+                current_expr += char
+        
+        if current_expr:
+            stack.append(process_simple_expression(current_expr, value_processor))
+        
+        return evaluate_stack(stack)
+
+    return parse_sub_expression(expression)
 
 def create_comparison_filter(field: Any, value: str, value_parser: Callable[[str], Any]) -> BinaryExpression:
     pattern = r'^(>=|<=|>|<|=)?(.+)$'
@@ -427,7 +490,9 @@ def get_vn_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
         filters.append(create_comparison_filter(VN.length, length, int))
 
     if released := params.get('released'):
-        filters.append(create_released_comparison_filter(released, VN))
+        def process_released(released_value):
+            return create_released_comparison_filter(released_value, VN)
+        filters.append(process_multi_value_expression(released, process_released))
 
     if rating := params.get('rating'):
         filters.append(create_comparison_filter(VN.rating, rating, int))
@@ -538,7 +603,9 @@ def get_release_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
         filters.append(array_string_match(Release.platforms, platform))
         
     if released := params.get('released'):
-        filters.append(create_released_comparison_filter(released, Release))
+        def process_released(released_value):
+            return create_released_comparison_filter(released_value, Release)
+        filters.append(process_multi_value_expression(released, process_released))
 
     if resolution := params.get('resolution'):
         filters.append(create_resolution_comparison_filter(resolution))

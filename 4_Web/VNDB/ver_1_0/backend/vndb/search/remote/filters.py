@@ -132,7 +132,7 @@ def parse_logical_expression(expression: str, field: str) -> Dict[str, Any]:
     Returns:
         Dict[str, Any]: A nested dictionary representing the parsed logical expression.
     """
-    def parse_subexpression(subexpr: str) -> Dict[str, Any]:
+    def parse_sub_expression(subexpr: str) -> Dict[str, Any]:
         if ',' in subexpr:
             return {"or": [{field: term.strip()} for term in subexpr.split(',')]}
         elif '+' in subexpr:
@@ -145,7 +145,7 @@ def parse_logical_expression(expression: str, field: str) -> Dict[str, Any]:
         return {}
 
     if '(' not in expression:
-        return parse_subexpression(expression)
+        return parse_sub_expression(expression)
 
     result = {}
     current_op = None
@@ -160,7 +160,7 @@ def parse_logical_expression(expression: str, field: str) -> Dict[str, Any]:
             current_expr = ""
         elif char == ')':
             if current_expr:
-                sub_result = parse_subexpression(current_expr)
+                sub_result = parse_sub_expression(current_expr)
                 result = sub_result if not result else {current_op or "and": [result, sub_result]}
             prev_op, prev_result = stack.pop()
             if not prev_result:
@@ -171,7 +171,7 @@ def parse_logical_expression(expression: str, field: str) -> Dict[str, Any]:
             current_expr = ""
         elif char in ('+', ','):
             if current_expr:
-                sub_result = parse_subexpression(current_expr)
+                sub_result = parse_sub_expression(current_expr)
                 result = sub_result if not result else {current_op or "and": [result, sub_result]}
                 current_expr = ""
             current_op = "and" if char == '+' else "or"
@@ -179,7 +179,7 @@ def parse_logical_expression(expression: str, field: str) -> Dict[str, Any]:
             current_expr += char
 
     if current_expr:
-        sub_result = parse_subexpression(current_expr)
+        sub_result = parse_sub_expression(current_expr)
         result = sub_result if not result else {current_op or "and": [result, sub_result]}
 
     return result

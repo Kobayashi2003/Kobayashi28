@@ -21,11 +21,11 @@ def hello_world():
 
 
 from .operations import (
-    get_user, create_user, update_user, delete_user, change_password,
+    isMarked, create_user, update_user, delete_user, change_password,
     get_category, create_category, update_category, delete_category,
     clear_category, add_mark_to_category, remove_mark_from_category,
     get_marks_from_category, search_categories, get_user_by_username,
-    isMarked
+    get_marks_from_category_without_pagination
 )
 
 
@@ -171,28 +171,35 @@ def is_marked_route(type, mark_id):
     categoryIds = isMarked(user_id, type, mark_id)
     return jsonify(categoryIds=categoryIds), 200
 
+# @api_bp.route('/<string:type>/c<int:category_id>/m', methods=['GET'])
+# @jwt_required()
+# def get_marks_route(type, category_id):
+#     user_id = get_jwt_identity()
+
+#     page = request.args.get('page', 1, type=int)
+#     limit = request.args.get('limit', 100, type=int)
+#     sort = request.args.get('sort', 'marked_at')
+#     reverse = request.args.get('reverse', 'true').lower() == 'true'
+#     count = request.args.get('count', 'true').lower() == 'true'
+
+#     page = max(1, page) 
+#     limit = min(max(1, limit), 1000)
+
+#     results = get_marks_from_category(
+#         user_id, category_id, type,page=page, limit=limit,
+#         sort=sort, reverse=reverse, count=count
+#     )
+
+#     if results is not None:
+#         return jsonify(results), 200
+#     return jsonify(error="Category not found"), 404
+
 @api_bp.route('/<string:type>/c<int:category_id>/m', methods=['GET'])
 @jwt_required()
 def get_marks_route(type, category_id):
     user_id = get_jwt_identity()
-
-    page = request.args.get('page', 1, type=int)
-    limit = request.args.get('limit', 100, type=int)
-    sort = request.args.get('sort', 'marked_at')
-    reverse = request.args.get('reverse', 'true').lower() == 'true'
-    count = request.args.get('count', 'true').lower() == 'true'
-
-    page = max(1, page) 
-    limit = min(max(1, limit), 1000)
-
-    results = get_marks_from_category(
-        user_id, category_id, type,page=page, limit=limit,
-        sort=sort, reverse=reverse, count=count
-    )
-
-    if results is not None:
-        return jsonify(results), 200
-    return jsonify(error="Category not found"), 404
+    marks = get_marks_from_category_without_pagination(user_id, category_id, type)
+    return jsonify(marks), 200
 
 @api_bp.route('/<string:type>/c<int:category_id>/m', methods=['POST'])
 @jwt_required()

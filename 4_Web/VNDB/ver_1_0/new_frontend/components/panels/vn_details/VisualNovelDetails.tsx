@@ -6,7 +6,4 @@ export function VisualNovelDetails({
 }: VisualNovelDetails) {
 
 
-  return (
-    <></>
-  )
 }
