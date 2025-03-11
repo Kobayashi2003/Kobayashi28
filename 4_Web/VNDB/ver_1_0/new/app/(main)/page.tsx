@@ -33,18 +33,30 @@ export default function Home() {
     label: (currentYear - 35 + i).toString()
   }))
   const monthsSelectable = [
-    { value: "01", label: "January" },
-    { value: "02", label: "February" }, 
-    { value: "03", label: "March" },
-    { value: "04", label: "April" },
-    { value: "05", label: "May" },
-    { value: "06", label: "June" },
-    { value: "07", label: "July" },
-    { value: "08", label: "August" },
-    { value: "09", label: "September" },
-    { value: "10", label: "October" },
-    { value: "11", label: "November" },
-    { value: "12", label: "December" }
+    { value: "01", label: "JAN" },
+    { value: "02", label: "FEB" },
+    { value: "03", label: "MAR" },
+    { value: "04", label: "APR" },
+    { value: "05", label: "MAY" },
+    { value: "06", label: "JUN" },
+    { value: "07", label: "JUL" },
+    { value: "08", label: "AUG" },
+    { value: "09", label: "SEP" },
+    { value: "10", label: "OCT" },
+    { value: "11", label: "NOV" },
+    { value: "12", label: "DEC" }
+    // { value: "01", label: "January" },
+    // { value: "02", label: "February" }, 
+    // { value: "03", label: "March" },
+    // { value: "04", label: "April" },
+    // { value: "05", label: "May" },
+    // { value: "06", label: "June" },
+    // { value: "07", label: "July" },
+    // { value: "08", label: "August" },
+    // { value: "09", label: "September" },
+    // { value: "10", label: "October" },
+    // { value: "11", label: "November" },
+    // { value: "12", label: "December" }
   ]
 
   const [sexualLevel, setSexualLevel] = useState<"safe" | "suggestive" | "explicit">("safe")
@@ -125,9 +137,10 @@ export default function Home() {
   }
 
   return (
-    <main className="container mx-auto p-4 pb-8">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex gap-4">
+    <main className="container mx-auto min-h-screen flex flex-col p-4 pb-8">
+      {/* Filters */}
+      <div className="flex overflow-x-auto items-center justify-between mb-4 gap-4">
+        <div className="flex flex-wrap justify-start gap-2">
           {/* Year Selector */}
           <Select value={selectedYear} onValueChange={(value) => handleYearChange(value)}>
             <SelectTrigger className="bg-[#0F2942]/80 border-white/10 text-white font-bold">
@@ -152,7 +165,7 @@ export default function Home() {
           </Select>
         </div>
 
-        <div className="flex gap-4">
+        <div className="flex flex-wrap justify-end gap-2">
           {/* Sexual Level Selector */}
           <LevelSelecter 
             levelOptions={[
@@ -164,7 +177,7 @@ export default function Home() {
             onChange={handleSexualLevelChange} 
           />
           {/* Divider */}
-          <div className="h-8 w-px bg-gray-300 dark:bg-gray-700"></div>
+          <div className="w-px bg-gray-300 dark:bg-gray-700 hidden sm:block"></div>
           {/* Violence Level Selector */}
           <LevelSelecter 
             levelOptions={[
@@ -180,33 +193,35 @@ export default function Home() {
 
       {/* Loading */}
       {loading && (
-        <div className="flex justify-center items-center mt-8">
+        <div className="flex-grow flex justify-center items-center">
           <Loader2 className="w-10 h-10 animate-spin text-white" />
         </div>
       )}
       {/* Error */}
       {error && (
-        <div className="flex justify-center items-center mt-8">
+        <div className="flex-grow flex justify-center items-center">
           <p className="text-red-500">Error: {error}</p>
         </div>
       )}
       {/* No vns found */}
       {!loading && !error && vns.length === 0 && (
-        <div className="flex justify-center items-center mt-8">
+        <div className="flex-grow flex justify-center items-center">
           <p className="text-gray-500">No VNs found</p>
         </div>
       )}
       {/* VN Cards */}
       {vns.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
           {vns.map((vn) => (
             <Link key={vn.id} href={"#"}>
-              {/* <ImageCard imageTitle={vn.title} imageUrl={vn.image?.url} imageDims={vn.image?.dims} /> */}
               <ImageCard imageTitle={vn.title} imageUrl={vn.image?.thumbnail} imageDims={vn.image?.thumbnail_dims} />
             </Link>
           ))}
         </div>
       )}
+
+      {/* Keep the footer at the bottom of the page */}
+      <div className="flex-grow"></div>
 
       {/* Pagination */}
       {vns.length > 0 && (

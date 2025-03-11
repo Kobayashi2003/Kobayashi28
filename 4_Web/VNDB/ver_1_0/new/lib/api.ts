@@ -10,20 +10,21 @@ const getBaseUrl = (type: "vndb" | "imgserve" | "userserve") => {
   if (typeof window === "undefined") {
     switch (type) {
       case "vndb":
+        return process.env.NEXT_PUBLIC_VNDB_BASE_URL || VNDB_BASE_URL
+      case "imgserve":
+        return process.env.NEXT_PUBLIC_IMGSERVE_BASE_URL || IMGSERVE_BASE_URL
+      case "userserve":
+        return process.env.NEXT_PUBLIC_USERSERVE_BASE_URL || USERSERVE_BASE_URL
+    }
+  } else {
+    switch (type) {
+      case "vndb":
         return VNDB_BASE_URL
       case "imgserve":
         return IMGSERVE_BASE_URL
       case "userserve":
         return USERSERVE_BASE_URL
     }
-  }
-  switch (type) {
-    case "vndb":
-      return process.env.NEXT_PUBLIC_VNDB_BASE_URL || VNDB_BASE_URL
-    case "imgserve":
-      return process.env.NEXT_PUBLIC_IMGSERVE_BASE_URL || IMGSERVE_BASE_URL
-    case "userserve":
-      return process.env.NEXT_PUBLIC_USERSERVE_BASE_URL || USERSERVE_BASE_URL
   }
 }
 

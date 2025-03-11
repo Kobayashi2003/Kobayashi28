@@ -5,11 +5,12 @@ interface ImageCardProps {
   imageTitle?: string
   imageUrl?: string  
   imageDims?: [number, number]
+  className?: string
 }
 
-export function ImageCard({ imageTitle, imageUrl, imageDims }: ImageCardProps) {
+export function ImageCard({ imageTitle, imageUrl, imageDims, className }: ImageCardProps) {
   return (
-    <div className="rounded-lg border border-white/10 overflow-hidden transition-transform duration-300 ease-in-out hover:scale-105 text-white text-lg bg-[#0F2942]">
+    <div className={`bg-[#0F2942]/80 hover:bg-[#0F2942] rounded-lg border border-white/10 overflow-hidden hover:scale-105 transition-transform duration-300 ease-in-out ${className}`}>
       {/* <div className="relative w-full bg-gray-200" style={{ aspectRatio: imageDims ? `${imageDims[0]}/${imageDims[1]}` : "0.85" }}> */}
       <div className="relative w-full bg-gray-200 aspect-[0.85]">
         {imageUrl ? (
@@ -20,8 +21,8 @@ export function ImageCard({ imageTitle, imageUrl, imageDims }: ImageCardProps) {
           </div>
         )}
       </div>
-      <div className="p-4">
-        <h2 className="font-semibold truncate">{imageTitle}</h2>
+      <div className="p-4 border-t border-white/10">
+        <h2 className="font-semibold truncate text-white text-sm md:text-base">{imageTitle}</h2>
       </div>
     </div>
   )

@@ -1,6 +1,5 @@
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { randomUUID } from "crypto"
 
 interface PaginationButtonsProps {
   totalPages: number,
@@ -57,9 +56,9 @@ export function PaginationButtons({ currentPage, totalPages, onPageChange }: Pag
         <ChevronLeft />
       </Button>
 
-      {pageButtons.map((page) => (
+      {pageButtons.map((page, index) => (
         page === 0 ? (
-          <div key={`${Math.random()}`}>
+          <div key={`page-ellipsis-${index}`}>
             ...
           </div>
         ) : (

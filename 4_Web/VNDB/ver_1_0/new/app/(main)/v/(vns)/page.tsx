@@ -75,9 +75,10 @@ export default function VNSearchResults() {
   }
 
   return (
-    <main className="container mx-auto p-4 pb-8">
-      <div className="flex items-center justify-end mb-4">
-        <div className="flex gap-4">
+    <main className="container mx-auto min-h-screen flex flex-col p-4 pb-8">
+      {/* Filters */}
+      <div className="flex flex-wrap overflow-x-auto items-center justify-end mb-4">
+        <div className="flex flex-wrap justify-end gap-4">
           {/* Sexual Level Selector */}
           <LevelSelecter
             levelOptions={[
@@ -89,7 +90,7 @@ export default function VNSearchResults() {
             onChange={handleSexualLevelChange}
           />
           {/* Divider */}
-          <div className="h-8 w-px bg-gray-300 dark:bg-gray-700"></div>
+          <div className="w-px bg-gray-300 dark:bg-gray-700 hidden sm:block"></div>
           {/* Violence Level Selector */}
           <LevelSelecter
             levelOptions={[
@@ -105,25 +106,25 @@ export default function VNSearchResults() {
 
       {/* Loading */}
       {loading && (
-        <div className="flex justify-center items-center mt-8">
+        <div className="flex-grow flex justify-center items-center">
           <Loader2 className="w-10 h-10 animate-spin text-white" />
         </div>
       )}
       {/* Error */}
       {error && (
-        <div className="flex justify-center items-center mt-8">
+        <div className="flex-grow flex justify-center items-center">
           <p className="text-red-500">Error: {error}</p>
         </div>
       )}
       {/* No vns found */}
       {!loading && !error && vns.length === 0 && (
-        <div className="flex justify-center items-center mt-8">
+        <div className="flex-grow flex justify-center items-center">
           <p className="text-gray-500">No VNs found</p>
         </div>
       )}
       {/* VN Cards */}
       {vns.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
           {vns.map((vn) => (
             <Link key={vn.id} href={"#"}>
               {/* <ImageCard imageTitle={vn.title} imageUrl={vn.image?.url} imageDims={vn.image?.dims} /> */}
@@ -133,9 +134,12 @@ export default function VNSearchResults() {
         </div>
       )}
 
+      {/* Keep the footer at the bottom of the page */}
+      <div className="flex-grow"></div>
+
       {/* Pagination */}
       {vns.length > 0 && (
-        <div className="flex justify-center mt-4">
+        <div className="flex justify-center items-center mt-4">
           <PaginationButtons
             totalPages={totalPages}
             currentPage={currentPage}
