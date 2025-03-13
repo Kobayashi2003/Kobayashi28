@@ -1,3 +1,5 @@
+import time
+import copy
 from abc import ABC, abstractmethod
 from functools import wraps
 
@@ -22,12 +24,14 @@ def error_handler(func):
 
 class Extension(ABC):
     def __init__(self, app):
-        self.app = app
-        self.instance = self.create(app)
+        self._app= app
+        self._instance = self.create(app)
 
     @error_handler
     def __getattr__(self, name):
-        return getattr(self.instance, name)
+        if not self._instance:
+            raise AttributeError(f"{self.__class__.__name__} has not been initialized")
+        return getattr(self._instance, name)
 
     @abstractmethod
     def create(self, app):
@@ -74,10 +78,6 @@ class ExtCelery(Extension):
         return celery
 
 class ExtAPScheduler(Extension):
-    def __init__(self, app):
-        self.app = app
-        super().__init__(app)
-
     def __getattr__(self, name):
         if name == 'task':
             return self.scheduled_task
@@ -92,9 +92,9 @@ class ExtAPScheduler(Extension):
     def scheduled_task(self, *args, **kwargs):
         def decorator(func):
             @wraps(func)
-            @self.instance.task(*args, **kwargs)
+            @self._instance.task(*args, **kwargs)
             def wrapper(*a, **kw):
-                with self.app.app_context():
+                with self._app.app_context():
                     return func(*a, **kw)
             return wrapper
         return decorator

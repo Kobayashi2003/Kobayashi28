@@ -1,7 +1,6 @@
 from flask import Flask, jsonify, render_template
 from flask_cors import CORS
 from flask_migrate import Migrate
-
 from .config import Config
 from .extensions import (
     ExtSQLAchemy, ExtCache, ExtCelery, ExtAPScheduler
@@ -45,7 +44,7 @@ def create_app(config_class=Config):
     # Migrate Initialization
     # This section sets up the Flask-Migrate extension for database migration management
     # ----------------------------------------
-    migrate = Migrate(app, db.instance)
+    migrate = Migrate(app, db)
 
     # ----------------------------------------
     # Cache Initialization

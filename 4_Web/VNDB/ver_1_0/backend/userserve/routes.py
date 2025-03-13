@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, abort, request
+from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token 
 
 api_bp = Blueprint('api', __name__, url_prefix='/')
@@ -21,11 +21,11 @@ def hello_world():
 
 
 from .operations import (
-    isMarked, create_user, update_user, delete_user, change_password,
+    is_marked, create_user, update_user, delete_user, change_password,
     get_category, create_category, update_category, delete_category,
     clear_category, add_mark_to_category, remove_mark_from_category,
-    get_marks_from_category, search_categories, get_user_by_username,
-    get_marks_from_category_without_pagination
+    contains_mark, search_categories, get_user_by_username,
+    get_marks_from_category_without_pagination, get_categories_by_mark
 )
 
 
@@ -163,43 +163,12 @@ def clear_category_route(type, category_id):
         return jsonify(message="Category cleared"), 200
     return jsonify(error="Category not found"), 404
 
-
-@api_bp.route('/<string:type>/m/<int:mark_id>', methods=['POST'])
+@api_bp.route('/<string:type>/c<int:category_id>/m<int:mark_id>', methods=['GET'])
 @jwt_required()
-def is_marked_route(type, mark_id):
+def contains_mark_route(type, category_id, mark_id):
     user_id = get_jwt_identity()
-    categoryIds = isMarked(user_id, type, mark_id)
-    return jsonify(categoryIds=categoryIds), 200
-
-# @api_bp.route('/<string:type>/c<int:category_id>/m', methods=['GET'])
-# @jwt_required()
-# def get_marks_route(type, category_id):
-#     user_id = get_jwt_identity()
-
-#     page = request.args.get('page', 1, type=int)
-#     limit = request.args.get('limit', 100, type=int)
-#     sort = request.args.get('sort', 'marked_at')
-#     reverse = request.args.get('reverse', 'true').lower() == 'true'
-#     count = request.args.get('count', 'true').lower() == 'true'
-
-#     page = max(1, page) 
-#     limit = min(max(1, limit), 1000)
-
-#     results = get_marks_from_category(
-#         user_id, category_id, type,page=page, limit=limit,
-#         sort=sort, reverse=reverse, count=count
-#     )
-
-#     if results is not None:
-#         return jsonify(results), 200
-#     return jsonify(error="Category not found"), 404
-
-@api_bp.route('/<string:type>/c<int:category_id>/m', methods=['GET'])
-@jwt_required()
-def get_marks_route(type, category_id):
-    user_id = get_jwt_identity()
-    marks = get_marks_from_category_without_pagination(user_id, category_id, type)
-    return jsonify(marks), 200
+    containsMark = contains_mark(user_id, type, category_id, mark_id)
+    return jsonify(containsMark=containsMark), 200
 
 @api_bp.route('/<string:type>/c<int:category_id>/m', methods=['POST'])
 @jwt_required()
@@ -211,7 +180,7 @@ def add_mark_route(type, category_id):
         return jsonify(dict(category)), 201
     return jsonify(error="Failed to add mark"), 400
 
-@api_bp.route('/<string:type>/c<int:category_id>/m/<int:mark_id>', methods=['DELETE'])
+@api_bp.route('/<string:type>/c<int:category_id>/m<int:mark_id>', methods=['DELETE'])
 @jwt_required()
 def remove_mark_route(type, category_id, mark_id):
     user_id = get_jwt_identity()
@@ -219,3 +188,25 @@ def remove_mark_route(type, category_id, mark_id):
     if category:
         return jsonify(dict(category)), 200
     return jsonify(error="Failed to remove mark"), 400
+
+@api_bp.route('/<string:type>/c<int:category_id>/m', methods=['GET'])
+@jwt_required()
+def get_marks_route(type, category_id):
+    user_id = get_jwt_identity()
+    marks = get_marks_from_category_without_pagination(user_id, category_id, type)
+    return jsonify(marks), 200
+
+
+@api_bp.route('/<string:type>/m<int:mark_id>', methods=['GET'])
+@jwt_required()
+def is_marked_route(type, mark_id):
+    user_id = get_jwt_identity()
+    isMarked = is_marked(user_id, type, mark_id)
+    return jsonify(isMarked=isMarked), 200
+
+@api_bp.route('/<string:type>/m<int:mark_id>/c', methods=['GET'])
+@jwt_required()
+def get_categories_by_mark_route(type, mark_id):
+    user_id = get_jwt_identity()
+    categoryIds = get_categories_by_mark(user_id, type, mark_id)
+    return jsonify(categoryIds=categoryIds), 200

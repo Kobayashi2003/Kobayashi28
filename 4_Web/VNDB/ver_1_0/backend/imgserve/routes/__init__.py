@@ -20,6 +20,8 @@ def hello_world():
 
 from .images import image_bp
 from .tasks import task_bp
+from .additional import additional_bp
 
 api_bp.register_blueprint(image_bp)
 api_bp.register_blueprint(task_bp)
+api_bp.register_blueprint(additional_bp)

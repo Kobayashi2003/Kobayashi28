@@ -4,17 +4,39 @@ import { useEffect, useState } from "react"
 import { Loader2 } from "lucide-react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
+import { TextCard } from "@/components/common/TextCard"
 import { ImageCard } from "@/components/common/ImageCard"
+import { CardTypeSelecter } from "@/components/common/CardTypeSelecter"
 import { LevelSelecter } from "@/components/common/LevelSelecter"
 import { PaginationButtons } from "@/components/common/PaginationButtons"
 import { Character_Small, VNDBQueryParams } from "@/lib/types"
 import { api } from "@/lib/api"
+
+function GenCharacterCard(character: Character_Small, sexualLevel: "safe" | "suggestive" | "explicit", violenceLevel: "tame" | "violent" | "brutal", cardType: "image" | "text") {
+  if (cardType === "text") {
+    return <TextCard title={character.name} className="h-full" />
+  }
+  const sexual = character.image?.sexual || 0
+  const violence = character.image?.violence || 0
+  if (sexualLevel === "safe" && sexual > 0.5 || violenceLevel === "tame" && violence > 0.5) {
+    if (sexual <= 1 && violence <= 1) {
+      return <ImageCard imageTitle={character.name} imageUrl={""} imageDims={[0, 0]} textColor="text-yellow-400" />
+    }
+    return <ImageCard imageTitle={character.name} imageUrl={""} imageDims={[0, 0]} textColor="text-red-400" />
+  } 
+  if (sexualLevel === "suggestive" && sexual > 1 || violenceLevel === "violent" && violence > 1) {
+    return <ImageCard imageTitle={character.name} imageUrl={""} imageDims={[0, 0]} textColor="text-red-400" />
+  }
+  return <ImageCard imageTitle={character.name} imageUrl={character.image?.url} imageDims={character.image?.dims} />
+}
 
 export default function CharacterSearchResults() {
   const searchParams = useSearchParams()
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  const [cardType, setCardType] = useState<"image" | "text">("image")
 
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(0)
@@ -30,7 +52,7 @@ export default function CharacterSearchResults() {
     setError(null)
     setCharacters([])
     fetchCharacters()
-  }, [currentPage, sexualLevel, violenceLevel])
+  }, [currentPage, searchParams])
 
   const fetchCharacters = async () => {
     try {
@@ -38,7 +60,7 @@ export default function CharacterSearchResults() {
       for (const [key, value] of searchParams.entries()) {
         params[key as string] = value as string
       }
-      const response = await api.small.character("", params)
+      const response = await api.small.character(params)
 
       response.results.forEach((character) => {
         const sexual = character.image?.sexual || 0
@@ -76,15 +98,21 @@ export default function CharacterSearchResults() {
 
   return (
     <main className="container mx-auto min-h-screen flex flex-col p-4 pb-8">
-      {/* Filters */}
-      <div className="flex flex-wrap overflow-x-auto items-center justify-end mb-4">
+      <div className="flex flex-wrap overflow-x-auto items-center justify-between mb-4">
+        <div className="flex flex-wrap justify-start gap-4">
+          {/* Card Type Selector */}
+          <CardTypeSelecter
+            selected={cardType}
+            onSelect={setCardType}
+          />
+        </div>
         <div className="flex flex-wrap justify-end gap-4">
           {/* Sexual Level Selector */}
           <LevelSelecter
             levelOptions={[
-              { key: "sexual-level-save", label: "Safe", value: "safe", activeColor: "text-[#88ccff]" },
-              { key: "sexual-level-suggestive", label: "Suggestive", value: "suggestive", activeColor: "text-[#ffcc66]" },
-              { key: "sexual-level-explicit", label: "Explicit", value: "explicit", activeColor: "text-[#ff6666]" },
+              { key: "sexual-level-save", label: "Safe", labelSmall: "🟢SA", value: "safe", activeColor: "text-[#88ccff]" },
+              { key: "sexual-level-suggestive", label: "Suggestive", labelSmall: "🟡SU", value: "suggestive", activeColor: "text-[#ffcc66]" },
+              { key: "sexual-level-explicit", label: "Explicit", labelSmall: "🔴EX", value: "explicit", activeColor: "text-[#ff6666]" },
             ]}
             selectedValue={sexualLevel}
             onChange={handleSexualLevelChange}
@@ -94,9 +122,9 @@ export default function CharacterSearchResults() {
           {/* Violence Level Selector */}
           <LevelSelecter
             levelOptions={[
-              { key: "violence-level-tame", label: "Tame", value: "tame", activeColor: "text-[#88ccff]" },
-              { key: "violence-level-violent", label: "Violent", value: "violent", activeColor: "text-[#ffcc66]" },
-              { key: "violence-level-brutal", label: "Brutal", value: "brutal", activeColor: "text-[#ff6666]" },
+              { key: "violence-level-tame", label: "Tame", labelSmall: "🟢TA", value: "tame", activeColor: "text-[#88ccff]" },
+              { key: "violence-level-violent", label: "Violent", labelSmall: "🟡VI", value: "violent", activeColor: "text-[#ffcc66]" },
+              { key: "violence-level-brutal", label: "Brutal", labelSmall: "🔴BR", value: "brutal", activeColor: "text-[#ff6666]" },
             ]}
             selectedValue={violenceLevel}
             onChange={handleViolenceLevelChange}
@@ -124,10 +152,13 @@ export default function CharacterSearchResults() {
       )}
       {/* Character Cards */}
       {characters.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <div className={ cardType === "image" ?
+          `grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4` :
+          `grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4`
+        }>
           {characters.map((character) => (
-            <Link key={character.id} href={"#"}>
-              <ImageCard imageTitle={character.name} imageUrl={character.image?.url} imageDims={character.image?.dims} />
+            <Link key={character.id} href={`/c/${character.id.slice(1, -1)}`}>
+              {GenCharacterCard(character, sexualLevel, violenceLevel, cardType)}
             </Link>
           ))}
         </div>

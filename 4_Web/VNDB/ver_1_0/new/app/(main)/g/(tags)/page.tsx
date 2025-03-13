@@ -26,7 +26,7 @@ export default function TagSearchResults() {
     setError(null)
     setTags([])
     fetchTags()
-  }, [currentPage])
+  }, [currentPage, searchParams])
 
   const fetchTags = async () => {
     try {
@@ -34,7 +34,7 @@ export default function TagSearchResults() {
       for (const [key, value] of searchParams.entries()) {
         params[key as string] = value as string
       }
-      const response = await api.small.tag("", params)
+      const response = await api.small.tag(params)
       setTags(response.results)
       setTotalPages(Math.ceil(response.count / itemsPerPage) || 1)
     } catch (error) {
@@ -72,10 +72,10 @@ export default function TagSearchResults() {
       )}
       {/* Tag Cards */}
       {!loading && !error && tags.length > 0 && (
-        <div className="flex-grow grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {tags.map((tag) => (
-            <Link key={tag.id} href={"#"}>
-              <TextCard title={tag.name} className="h-full" />
+            <Link key={tag.id} href={`/g/${tag.id.slice(1, -1)}`}>
+              <TextCard title={tag.name} />
             </Link>
           ))}
         </div>

@@ -1,10 +1,10 @@
 from typing import Union
 
-from datetime import datetime, timezone
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from userserve import db
 from sqlalchemy import Integer, String, Boolean, DateTime, Column, ForeignKey, event, UniqueConstraint
+from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import JSONB, ARRAY
 from sqlalchemy.orm import relationship, declared_attr
 from sqlalchemy.ext.mutable import MutableList
@@ -16,8 +16,8 @@ class User(db.Model):
     is_admin = Column(Boolean, default=False, nullable=False)
     username = Column(String(255), unique=True, nullable=False)
     password_hash = Column(String(255))
-    created_at = Column(DateTime, default=datetime.now(timezone.utc))
-    updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
+    created_at = Column(DateTime(timezone=True), default=func.now())
+    updated_at = Column(DateTime(timezone=True), default=func.now(), onupdate=func.now())
 
     # Relationships
     vn_categories = relationship("VNCategory", back_populates="user", cascade="all, delete-orphan")
@@ -50,10 +50,9 @@ class Category(db.Model):
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     category_name = Column(String(255), nullable=False)
-    # marks = Column(ARRAY(JSONB), default=lambda: [])
     marks = Column(MutableList.as_mutable(ARRAY(JSONB)), default=lambda: [])
-    created_at = Column(DateTime, default=datetime.now(timezone.utc))
-    updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
+    created_at = Column(DateTime(timezone=True), default=func.now())
+    updated_at = Column(DateTime(timezone=True), default=func.now(), onupdate=func.now())
 
     @declared_attr
     def __table_args__(cls):

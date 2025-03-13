@@ -20,12 +20,14 @@ def error_handler(func):
 
 class Extension(ABC):
     def __init__(self, app):
-        self.app = app
-        self.instance = self.create(app)
+        self._app = app
+        self._instance = self.create(app)
 
     @error_handler
     def __getattr__(self, name):
-        return getattr(self.instance, name)
+        if not self._instance:
+            raise AttributeError(f"{self.__class__.__name__} has not been initialized")
+        return getattr(self._instance, name)
 
     @abstractmethod
     def create(self, app):
@@ -58,9 +60,9 @@ class ExtAPScheduler(Extension):
     def scheduled_task(self, *args, **kwargs):
         def decorator(func):
             @wraps(func)
-            @self.instance.task(*args, **kwargs)
+            @self._instance.task(*args, **kwargs)
             def wrapper(*a, **kw):
-                with self.app.app_context():
+                with self._app.app_context():
                     return func(*a, **kw)
             return wrapper
         return decorator

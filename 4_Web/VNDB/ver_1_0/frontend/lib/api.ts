@@ -151,10 +151,10 @@ export const api = {
     userserveQuery<Category>(`${type}/c${categoryId}/m`, 'POST', { mark_id: markId }),
 
   removeMark: (type: string, categoryId: number, markId: number) => 
-    userserveQuery<Category>(`${type}/c${categoryId}/m/${markId}`, 'DELETE'),
+    userserveQuery<Category>(`${type}/c${categoryId}/m${markId}`, 'DELETE'),
 
   isMarked: (type: string, markId: number) =>
-    userserveQuery<{categoryIds?:Array<number>}>(`${type}/m/${markId}`, 'POST'),
+    userserveQuery<{categoryIds?:Array<number>}>(`${type}/m${markId}/c`, 'GET'),
 
   getMarks: async (
     type: string,

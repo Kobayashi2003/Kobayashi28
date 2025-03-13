@@ -26,7 +26,7 @@ export default function ReleaseSearchResults() {
     setError(null)
     setReleases([])
     fetchReleases()
-  }, [currentPage])
+  }, [currentPage, searchParams])
 
   const fetchReleases = async () => {
     try {
@@ -34,7 +34,7 @@ export default function ReleaseSearchResults() {
       for (const [key, value] of searchParams.entries()) {
         params[key as string] = value as string
       }
-      const response = await api.small.release("", params)
+      const response = await api.small.release(params)
       setReleases(response.results)
       setTotalPages(Math.ceil(response.count / itemsPerPage) || 1)
     } catch (error) {
@@ -73,7 +73,7 @@ export default function ReleaseSearchResults() {
       {releases.length > 0 && (
         <div className="flex flex-col gap-2">
           {releases.map((release) => (
-            <Link key={release.id} href={"#"}>
+            <Link key={release.id} href={`/r/${release.id.slice(1, -1)}`}>
               <TextCard title={release.title} />
             </Link>
           ))}

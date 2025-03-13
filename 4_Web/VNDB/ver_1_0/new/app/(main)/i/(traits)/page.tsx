@@ -26,7 +26,7 @@ export default function TraitSearchResults() {
     setError(null)
     setTraits([])
     fetchTraits()
-  }, [currentPage])
+  }, [currentPage, searchParams])
 
   const fetchTraits = async () => {
     try {
@@ -34,7 +34,7 @@ export default function TraitSearchResults() {
       for (const [key, value] of searchParams.entries()) {
         params[key as string] = value as string
       }
-      const response = await api.small.trait("", params)
+      const response = await api.small.trait(params)
       setTraits(response.results)
       setTotalPages(Math.ceil(response.count / itemsPerPage) || 1)
     } catch (error) {
@@ -71,9 +71,9 @@ export default function TraitSearchResults() {
       )}
       {/* Trait Cards */}
       {traits.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {traits.map((trait) => (
-            <Link key={trait.id} href={"#"}>
+            <Link key={trait.id} href={`/i/${trait.id.slice(1, -1)}`}>
               <TextCard title={trait.group_name ? `${trait.group_name} - ${trait.name}` : trait.name} className="h-full" />
             </Link>
           ))}

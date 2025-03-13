@@ -4,6 +4,7 @@ interface LevelSelecterProps {
   levelOptions: {
     key: string,
     label: string,
+    labelSmall?: string,
     value: string,
     activeColor: string,
   }[],
@@ -39,7 +40,7 @@ export function LevelSelecter({ levelOptions, selectedValue, onChange }: LevelSe
           <SelectContent className="bg-[#0F2942]/80 border-white/10 text-white font-bold">
             {levelOptions.map((option) => (
               <SelectItem key={option.key} value={option.value}>
-                {option.label}
+                {option.labelSmall || option.label}
               </SelectItem>
             ))}
           </SelectContent>

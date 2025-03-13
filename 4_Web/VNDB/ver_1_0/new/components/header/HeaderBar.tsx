@@ -3,20 +3,20 @@
 import { useRouter, usePathname } from "next/navigation"
 import Link from "next/link"
 import { Button } from "../ui/button"
-import { ArrowLeft } from "lucide-react"
+import { ArrowBigLeft } from "lucide-react"
 import { useUserContext } from "@/context/UserContext"
 import { UserMark } from "./user/UserMark"
 import { UserHome } from "./user/UserHome"
 import { UserLogout } from "./user/UserLogout"
 import { UserLogin } from "./user/UserLogin"
 import { UserRegister } from "./user/UserRegister"
-
+import { Search } from "./search/Search"
 
 interface HeaderBarProps {
-
+  className?: string
 }
 
-export function HeaderBar({}: HeaderBarProps) {
+export function HeaderBar({ className }: HeaderBarProps) {
 
   const router = useRouter()
   const pathname = usePathname()
@@ -25,7 +25,7 @@ export function HeaderBar({}: HeaderBarProps) {
   const { user, isLoading } = useUserContext()
 
   return (
-      <header className="px-4 border-b border-white/10">
+      <header className={`px-4 border-b border-white/10 ${className}`}>
         <div className="container mx-auto flex flex-col justify-center items-between py-4 gap-1">
           <div className="flex flex-row justify-between items-center gap-2">
             <div className="flex flex-row justify-between items-center gap-1">
@@ -34,16 +34,17 @@ export function HeaderBar({}: HeaderBarProps) {
                   variant="ghost"
                   size="icon"
                   onClick={() => router.back()}
-                  className="text-white hover:bg-white/10"
+                  className="text-white hover:text-white/80 hover:bg-white/10"
                   aria-label="Go back"
                 >
-                  <ArrowLeft className="h-5 w-5" />
+                  <ArrowBigLeft className="h-5 w-5" />
                 </Button>
               )}
               <Link href="/" className="hover:opacity-80 transition-opacity">
-                <h1 className="font-bold text-white text-sm md:text-base lg:text-lg xl:text-xl">Visual Novel Database</h1>
+                <h1 className="font-serif italic font-black text-xl text-white">VNDB</h1>
               </Link>
             </div>
+            <Search className="hidden md:flex" />
             <div className="flex flex-row justify-between items-center gap-1">
               {isLoading ? (
                 <>
@@ -65,7 +66,7 @@ export function HeaderBar({}: HeaderBarProps) {
               )}
             </div>
           </div>
-          <div className=""></div>
+          <Search className="flex md:hidden" />
         </div>
       </header>
   )

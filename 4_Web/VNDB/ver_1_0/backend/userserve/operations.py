@@ -13,9 +13,7 @@ def save_db_operation(func: Callable) -> Callable:
     @wraps(func)
     def wrapper(*args, **kwargs):
         try:
-            result = func(*args, **kwargs)
-            db.session.commit()
-            return result
+            return func(*args, **kwargs)
         except SQLAlchemyError:
             db.session.rollback()
             return None
@@ -34,6 +32,8 @@ def create_user(username: str, password: str) -> User | None:
     user = User(username=username)
     user.set_password(password)
     db.session.add(user)
+    db.session.flush()
+    db.session.commit()
     return user
 
 @save_db_operation
@@ -43,6 +43,8 @@ def create_admin(username: str, password: str, admin_password: str) -> User | No
     user = User(username=username, is_admin=True)
     user.set_password(password)
     db.session.add(user)
+    db.session.flush()
+    db.session.commit()
     return user
 
 @save_db_operation
@@ -53,6 +55,8 @@ def grant_admin_privileges(user_id: int, admin_password: str) -> User | None:
     if not user:
         return None
     user.is_admin = True
+    db.session.flush()
+    db.session.commit()
     return user
 
 @save_db_operation
@@ -63,6 +67,8 @@ def revoke_admin_privileges(user_id: int, admin_password: str) -> User | None:
     if not user:
         return None
     user.is_admin = False
+    db.session.flush()
+    db.session.commit()
     return user
 
 @save_db_operation
@@ -72,6 +78,8 @@ def update_user(user_id: int, username: str = None) -> User | None:
         return None
     if username:
         user.username = username
+    db.session.flush()
+    db.session.commit()
     return user
 
 @save_db_operation
@@ -82,15 +90,20 @@ def change_password(user_id: int, old_password: str, new_password: str) -> User 
     if not user.check_password(old_password):
         return None
     user.set_password(new_password)
+    db.session.flush()
+    db.session.commit()
     return user
 
 @save_db_operation
 def delete_user(user_id: int) -> bool:
     user = get_user(user_id)
-    if user:
-        db.session.delete(user)
-        return True
-    return False
+    if not user:
+        return False
+    db.session.delete(user)
+    db.session.flush()
+    db.session.commit()
+    return True
+
 
 @save_db_operation
 def get_category(user_id: int, category_id: int, category_type: str) -> CategoryType | None:
@@ -106,6 +119,8 @@ def create_category(user_id: int, category_type: str, category_name: str) -> Cat
         return None
     category = category_class(user_id=user_id, category_name=category_name)
     db.session.add(category)
+    db.session.flush()
+    db.session.commit()
     return category
 
 @save_db_operation
@@ -115,58 +130,59 @@ def update_category(user_id: int, category_id: int, category_type: str, category
         return None
     if category_name:
         category.category_name = category_name
+    db.session.flush()
+    db.session.commit()
     return category
 
 @save_db_operation
 def delete_category(user_id: int, category_id: int, category_type: str) -> CategoryType | None:
     category = get_category(user_id, category_id, category_type)
+    if not category:
+        return None
     if category.category_name == 'Default':
         return None
-    if category:
-        db.session.delete(category)
-        return category
-    return None
+    db.session.delete(category)
+    db.session.flush()
+    db.session.commit()
+    return category
 
 @save_db_operation
 def clear_category(user_id: int, category_id: int, category_type: str) -> CategoryType | None:
     category = get_category(user_id, category_id, category_type)
-    if category:
-        category.marks = []
-        return category
-    return None
+    if not category:
+        return None
+    category.marks = []
+    db.session.flush()
+    db.session.commit()
+    return category
 
 @save_db_operation
-def isMarked(user_id: int, category_type: str, mark_id: int) -> List[int] | None:
-    category_class = CATEGORY_MODEL.get(category_type)
-    if not category_class:
-        return None
-    
-    categories = category_class.query.filter_by(user_id=user_id).all()
-
-    marked_categories = []
-
-    for category in categories:
-        if any(mark['id'] == mark_id for mark in category.marks):
-            marked_categories.append(category.id)
-
-    return marked_categories
+def contains_mark(user_id: int, category_type: str, category_id: int, mark_id: int) -> bool:
+    category = get_category(user_id, category_id, category_type)
+    if category:
+        return any(mark['id'] == mark_id for mark in category.marks)
+    return False
 
 @save_db_operation
 def add_mark_to_category(user_id: int, category_id: int, category_type: str, mark_id: int) -> CategoryType | None:
     category = get_category(user_id, category_id, category_type)
-    if category:
-        new_mark = {"id": mark_id, "marked_at": datetime.now(timezone.utc).isoformat()}
-        category.marks.append(new_mark)
-        return category
-    return None
+    if not category:
+        return None
+    new_mark = {"id": mark_id, "marked_at": datetime.now(timezone.utc).isoformat()}
+    category.marks.append(new_mark)
+    db.session.flush()
+    db.session.commit()
+    return category
 
 @save_db_operation
 def remove_mark_from_category(user_id: int, category_id: int, category_type: str, mark_id: int) -> CategoryType | None:
     category = get_category(user_id, category_id, category_type)
-    if category:
-        category.marks = [mark for mark in category.marks if mark['id'] != mark_id]
-        return category
-    return None
+    if not category:
+        return None
+    category.marks = [mark for mark in category.marks if mark['id'] != mark_id]
+    db.session.flush()
+    db.session.commit()
+    return category
 
 @save_db_operation
 def get_marks_from_category(user_id: int, category_id: int, category_type: str,
@@ -219,3 +235,31 @@ def search_categories(user_id: int, category_type: str, query: str) -> List[Cate
         category_class.user_id == user_id,
         category_class.category_name.ilike(f"%{query}%")
     ).all()
+
+
+@save_db_operation
+def is_marked(user_id: int, category_type: str, mark_id: int) -> bool:
+    category_class = CATEGORY_MODEL.get(category_type)
+    if not category_class:
+        return False
+    categories = category_class.query.filter_by(user_id=user_id).all()
+    for category in categories:
+        if any(mark['id'] == mark_id for mark in category.marks):
+            return True
+    return False
+
+@save_db_operation
+def get_categories_by_mark(user_id: int, category_type: str, mark_id: int) -> List[int] | None:
+    category_class = CATEGORY_MODEL.get(category_type)
+    if not category_class:
+        return None
+    
+    categories = category_class.query.filter_by(user_id=user_id).all()
+
+    marked_categories = []
+
+    for category in categories:
+        if any(mark['id'] == mark_id for mark in category.marks):
+            marked_categories.append(category.id)
+
+    return marked_categories

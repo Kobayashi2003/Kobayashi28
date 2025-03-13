@@ -26,7 +26,7 @@ export default function StaffSearchResults() {
     setError(null)
     setStaff([])
     fetchStaff()
-  }, [currentPage])
+  }, [currentPage, searchParams])
 
   const fetchStaff = async () => {
     try {
@@ -34,7 +34,7 @@ export default function StaffSearchResults() {
       for (const [key, value] of searchParams.entries()) {
         params[key as string] = value as string
       }
-      const response = await api.small.staff("", params)
+      const response = await api.small.staff(params)
       setStaff(response.results)
       setTotalPages(Math.ceil(response.count / itemsPerPage) || 1)
     } catch (error) {
@@ -71,9 +71,9 @@ export default function StaffSearchResults() {
       )}
       {/* Staff Cards */}
       {staff.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {staff.map((staff, index) => (
-            <Link key={`${index}-${staff.id}`} href={"#"}>
+            <Link key={`${index}-${staff.id}`} href={`/s/${staff.id.slice(1, -1)}`}>
               <TextCard title={staff.name} className="h-full" />
             </Link>
           ))}

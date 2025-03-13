@@ -1,7 +1,6 @@
 from flask import Flask, jsonify, render_template
 from flask_cors import CORS
 from flask_migrate import Migrate
-
 from .config import Config
 from .extensions import (
     ExtSQLAchemy, ExtJWT, ExtAPScheduler
@@ -38,7 +37,7 @@ def create_app(config_class=Config):
     }})
 
     db = ExtSQLAchemy(app)
-    migrate = Migrate(app, db.instance)
+    migrate = Migrate(app, db)
     jwt = ExtJWT(app)
     scheduler = ExtAPScheduler(app)
 
