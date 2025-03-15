@@ -32,12 +32,14 @@ from .operations import (
 @api_bp.route('/login', methods=['POST'])
 def login():
     data = request.json
-    user = get_user_by_username(data['username'])
-    if user and user.check_password(data['password']):
+    username = data['username'].strip()
+    password = data['password']
+    user = get_user_by_username(username)
+    if user and user.check_password(password):
         access_token = create_access_token(identity=user.id)
         return jsonify({
             'access_token':access_token,
-            'username': data['username'] 
+            'username': username 
         }), 200
     return jsonify(error="Invalid username or password"), 401
 

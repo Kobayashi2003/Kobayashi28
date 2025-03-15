@@ -3,6 +3,8 @@
 import { useEffect, useState, useMemo } from "react"
 import Link from "next/link"
 import { useSearchParams, useRouter } from "next/navigation"
+import { motion, AnimatePresence } from "motion/react"
+
 import { TextCard } from "@/components/common/TextCard"
 import { ImageCard } from "@/components/common/ImageCard"
 import { CardTypeSelecter } from "@/components/common/CardTypeSelecter"
@@ -11,6 +13,7 @@ import { PaginationButtons } from "@/components/common/PaginationButtons"
 import { Loading } from "@/components/common/Loading"
 import { Error } from "@/components/common/Error"
 import { NotFound } from "@/components/common/NotFound"
+
 import { Character_Small, VNDBQueryParams } from "@/lib/types"
 import { api } from "@/lib/api"
 
@@ -27,7 +30,7 @@ function GenCharacterCard(character: Character_Small, sexualLevel: "safe" | "sug
     }
     const red = sexual > 1 && violence > 1 ? `text-red-800` : `text-red-400`
     return <ImageCard imageTitle={character.name} imageUrl={""} imageDims={[0, 0]} textColor={red} />
-  } 
+  }
   if (sexualLevel === "suggestive" && sexual > 1 || violenceLevel === "violent" && violence > 1) {
     const red = sexual > 1 && violence > 1 ? `text-red-800` : `text-red-400`
     return <ImageCard imageTitle={character.name} imageUrl={""} imageDims={[0, 0]} textColor={red} />
@@ -118,59 +121,106 @@ export default function CharacterSearchResults() {
           {/* Sexual Level Selector */}
           <LevelSelecter
             levelOptions={[
-              { key: "sexual-level-save", label: "Safe", labelSmall: "🟢SA", value: "safe", activeColor: "text-[#88ccff]" },
-              { key: "sexual-level-suggestive", label: "Suggestive", labelSmall: "🟡SU", value: "suggestive", activeColor: "text-[#ffcc66]" },
-              { key: "sexual-level-explicit", label: "Explicit", labelSmall: "🔴EX", value: "explicit", activeColor: "text-[#ff6666]" },
+              { key: "sexual-level-safe", label: "Safe", labelSmall: "🟢SA", value: "safe",
+                activeColor: "text-[#88ccff]", defaultClassName: "hover:text-[#88ccff]/70" },
+              { key: "sexual-level-suggestive", label: "Suggestive", labelSmall: "🟡SU", value: "suggestive",
+                activeColor: "text-[#ffcc66]", defaultClassName: "hover:text-[#ffcc66]/70" },
+              { key: "sexual-level-explicit", label: "Explicit", labelSmall: "🔴EX", value: "explicit",
+                activeColor: "text-[#ff6666]", defaultClassName: "hover:text-[#ff6666]/70" },
             ]}
             selectedValue={sexualLevel}
             onChange={handleSexualLevelChange}
+            className="font-serif italic"
           />
           {/* Divider */}
           <div className="w-px bg-gray-300 dark:bg-gray-700 hidden sm:block"></div>
           {/* Violence Level Selector */}
           <LevelSelecter
             levelOptions={[
-              { key: "violence-level-tame", label: "Tame", labelSmall: "🟢TA", value: "tame", activeColor: "text-[#88ccff]" },
-              { key: "violence-level-violent", label: "Violent", labelSmall: "🟡VI", value: "violent", activeColor: "text-[#ffcc66]" },
-              { key: "violence-level-brutal", label: "Brutal", labelSmall: "🔴BR", value: "brutal", activeColor: "text-[#ff6666]" },
+              { key: "violence-level-tame", label: "Tame", labelSmall: "🟢TA", value: "tame",
+                activeColor: "text-[#88ccff]", defaultClassName: "hover:text-[#88ccff]/70" },
+              { key: "violence-level-violent", label: "Violent", labelSmall: "🟡VI", value: "violent",
+                activeColor: "text-[#ffcc66]", defaultClassName: "hover:text-[#ffcc66]/70" },
+              { key: "violence-level-brutal", label: "Brutal", labelSmall: "🔴BR", value: "brutal",
+                activeColor: "text-[#ff6666]", defaultClassName: "hover:text-[#ff6666]/70" },
             ]}
             selectedValue={violenceLevel}
             onChange={handleViolenceLevelChange}
+            className="font-serif italic"
           />
         </div>
       </div>
 
-      {/* Loading */}
-      {loading && (
-        <div className="flex-grow flex justify-center items-center">
-          <Loading message="Loading..." />
-        </div>
-      )}
-      {/* Error */}
-      {error && (
-        <div className="flex-grow flex justify-center items-center">
-          <Error message="Error: {error}" />
-        </div>
-      )}
-      {/* No characters found */}
-      {!loading && !error && characters.length === 0 && (
-        <div className="flex-grow flex justify-center items-center">
-          <NotFound message="No characters found" />
-        </div>
-      )}
-      {/* Character Cards */}
-      {characters.length > 0 && (
-        <div className={ cardType === "image" ?
-          `grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4` :
-          `grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4`
-        }>
-          {characters.map((character) => (
-            <Link key={`card-${character.id}`} href={`/c/${character.id.slice(1, -1)}`}>
-              {GenCharacterCard(character, sexualLevel, violenceLevel, cardType)}
-            </Link>
-          ))}
-        </div>
-      )}
+      <AnimatePresence mode="wait">
+        {/* Loading */}
+        {loading && (
+          <motion.div
+            key="loading"
+            initial={{ filter: "blur(20px)", opacity: 0 }}
+            animate={{ filter: "blur(0px)", opacity: 1 }}
+            exit={{ filter: "blur(20px)", opacity: 0 }}
+            transition={{ duration: 0.4 }}
+            className="flex-grow flex justify-center items-center"
+          >
+            <Loading message="Loading..." />
+          </motion.div>
+        )}
+
+        {/* Error */}
+        {error && (
+          <motion.div
+            key="error"
+            initial={{ filter: "blur(20px)", opacity: 0 }}
+            animate={{ filter: "blur(0px)", opacity: 1 }}
+            exit={{ filter: "blur(20px)", opacity: 0 }}
+            transition={{ duration: 0.4 }}
+            className="flex-grow flex justify-center items-center"
+          >
+            <Error message={`Error: ${error}`} />
+          </motion.div>
+        )}
+
+        {/* No characters found */}
+        {!loading && !error && characters.length === 0 && (
+          <motion.div
+            key="notfound"
+            initial={{ filter: "blur(20px)", opacity: 0 }}
+            animate={{ filter: "blur(0px)", opacity: 1 }}
+            exit={{ filter: "blur(20px)", opacity: 0 }}
+            transition={{ duration: 0.4 }}
+            className="flex-grow flex justify-center items-center"
+          >
+            <NotFound message="No characters found" />
+          </motion.div>
+        )}
+
+        {/* Character Cards */}
+        {characters.length > 0 && (
+          <motion.div
+            key={`characters-${currentPage}-${cardType}`}
+            initial={{ filter: "blur(20px)", opacity: 0 }}
+            animate={{ filter: "blur(0px)", opacity: 1 }}
+            exit={{ filter: "blur(20px)", opacity: 0 }}
+            transition={{ duration: 0.5, ease: "easeInOut" }}
+            className={cardType === "image" ?
+              `grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4` :
+              `grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4`
+            }>
+            {characters.map((character) => (
+              <Link key={`card-${character.id}`} href={`/c/${character.id.slice(1, -1)}`}>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3, delay: 0.1 }}
+                >
+                  {GenCharacterCard(character, sexualLevel, violenceLevel, cardType)}
+                </motion.div>
+              </Link>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Keep the footer at the bottom of the page */}
       <div className="flex-grow"></div>

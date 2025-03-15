@@ -1,8 +1,10 @@
 "use client"
 
-import { useEffect, useState, useMemo } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useSearchParams, useRouter } from "next/navigation"
+import { motion, AnimatePresence } from "motion/react"
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { TextCard } from "@/components/common/TextCard"
 import { ImageCard } from "@/components/common/ImageCard"
@@ -12,6 +14,7 @@ import { PaginationButtons } from "@/components/common/PaginationButtons"
 import { Loading } from "@/components/common/Loading"
 import { Error } from "@/components/common/Error"
 import { NotFound } from "@/components/common/NotFound"
+
 import { VN_Small } from "@/lib/types"
 import { api } from "@/lib/api"
 
@@ -28,7 +31,7 @@ function GenVNCard(vn: VN_Small, sexualLevel: "safe" | "suggestive" | "explicit"
     }
     const red = sexual > 1 && violence > 1 ? `text-red-800` : `text-red-400`
     return <ImageCard imageTitle={vn.title} imageUrl={""} imageDims={[0, 0]} textColor={red} />
-  } 
+  }
   if (sexualLevel === "suggestive" && sexual > 1 || violenceLevel === "violent" && violence > 1) {
     const red = sexual > 1 && violence > 1 ? `text-red-800` : `text-red-400`
     return <ImageCard imageTitle={vn.title} imageUrl={""} imageDims={[0, 0]} textColor={red} />
@@ -185,7 +188,6 @@ export default function Home() {
 
   return (
     <main className="container mx-auto min-h-screen flex flex-col p-4 pb-8">
-      {/* Filters */}
       <div className="overflow-x-auto flex flex-col sm:flex-row items-end sm:items-center justify-center sm:justify-between mb-4 gap-4">
         <div className="flex flex-wrap justify-end sm:justify-start gap-2">
           {/* Card Type Selector */}
@@ -222,61 +224,109 @@ export default function Home() {
 
         <div className="flex flex-wrap justify-end gap-2">
           {/* Sexual Level Selector */}
-          <LevelSelecter 
+          <LevelSelecter
             levelOptions={[
-              { key: "sexual-level-save", label: "Safe", labelSmall: "🟢SA", value: "safe", activeColor: "text-[#88ccff]" },
-              { key: "sexual-level-suggestive", label: "Suggestive", labelSmall: "🟡SU", value: "suggestive", activeColor: "text-[#ffcc66]" },
-              { key: "sexual-level-explicit", label: "Explicit", labelSmall: "🔴EX", value: "explicit", activeColor: "text-[#ff6666]" },
-            ]} 
-            selectedValue={sexualLevel} 
-            onChange={handleSexualLevelChange} 
+              { key: "sexual-level-safe", label: "Safe", labelSmall: "🟢SA", value: "safe",
+                activeColor: "text-[#88ccff]", defaultClassName: "hover:text-[#88ccff]/70" },
+              { key: "sexual-level-suggestive", label: "Suggestive", labelSmall: "🟡SU", value: "suggestive",
+                activeColor: "text-[#ffcc66]", defaultClassName: "hover:text-[#ffcc66]/70" },
+              { key: "sexual-level-explicit", label: "Explicit", labelSmall: "🔴EX", value: "explicit",
+                activeColor: "text-[#ff6666]", defaultClassName: "hover:text-[#ff6666]/70" },
+            ]}
+            selectedValue={sexualLevel}
+            onChange={handleSexualLevelChange}
+            className="font-serif italic"
           />
           {/* Divider */}
           <div className="w-px bg-gray-300 dark:bg-gray-700 hidden sm:block"></div>
           {/* Violence Level Selector */}
-          <LevelSelecter 
+          <LevelSelecter
             levelOptions={[
-              { key: "violence-level-tame", label: "Tame", labelSmall: "🟢TA", value: "tame", activeColor: "text-[#88ccff]" },
-              { key: "violence-level-violent", label: "Violent", labelSmall: "🟡VI", value: "violent", activeColor: "text-[#ffcc66]" },
-              { key: "violence-level-brutal", label: "Brutal", labelSmall: "🔴BR", value: "brutal", activeColor: "text-[#ff6666]" },
-            ]} 
-            selectedValue={violenceLevel} 
-            onChange={handleViolenceLevelChange} 
+              { key: "violence-level-tame", label: "Tame", labelSmall: "🟢TA", value: "tame",
+                activeColor: "text-[#88ccff]", defaultClassName: "hover:text-[#88ccff]/70" },
+              { key: "violence-level-violent", label: "Violent", labelSmall: "🟡VI", value: "violent",
+                activeColor: "text-[#ffcc66]", defaultClassName: "hover:text-[#ffcc66]/70" },
+              { key: "violence-level-brutal", label: "Brutal", labelSmall: "🔴BR", value: "brutal",
+                activeColor: "text-[#ff6666]", defaultClassName: "hover:text-[#ff6666]/70" },
+            ]}
+            selectedValue={violenceLevel}
+            onChange={handleViolenceLevelChange}
+            className="font-serif italic"
           />
         </div>
       </div>
 
-      {/* Loading */}
-      {loading && (
-        <div className="flex-grow flex justify-center items-center">
-          <Loading message="Loading..." />
-        </div>
-      )}
-      {/* Error */}
-      {error && (
-        <div className="flex-grow flex justify-center items-center">
-          <Error message="Error: {error}" />
-        </div>
-      )}
-      {/* No vns found */}
-      {!loading && !error && vns.length === 0 && (
-        <div className="flex-grow flex justify-center items-center">
-          <NotFound message="No VNs found" />
-        </div>
-      )}
-      {/* VN Cards */}
-      {vns.length > 0 && (
-        <div className={ cardType === "image" ?
-          `grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4` :
-          `grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4`
-        }>
-          {vns.map((vn) => (
-            <Link key={`card-${vn.id}`} href={`/v/${vn.id.slice(1, -1)}`}>
-              {GenVNCard(vn, sexualLevel, violenceLevel, cardType)}
-            </Link>
-          ))}
-        </div>
-      )}
+      <AnimatePresence mode="wait">
+        {/* Loading */}
+        {loading && (
+          <motion.div
+            key="loading"
+            initial={{ filter: "blur(20px)", opacity: 0 }}
+            animate={{ filter: "blur(0px)", opacity: 1 }}
+            exit={{ filter: "blur(20px)", opacity: 0 }}
+            transition={{ duration: 0.4 }}
+            className="flex-grow flex justify-center items-center"
+          >
+            <Loading message="Loading..." />
+          </motion.div>
+        )}
+
+        {/* Error */}
+        {error && (
+          <motion.div
+            key="error"
+            initial={{ filter: "blur(20px)", opacity: 0 }}
+            animate={{ filter: "blur(0px)", opacity: 1 }}
+            exit={{ filter: "blur(20px)", opacity: 0 }}
+            transition={{ duration: 0.4 }}
+            className="flex-grow flex justify-center items-center"
+          >
+            <Error message={`Error: ${error}`} />
+          </motion.div>
+        )}
+
+        {/* Not Found */}
+        {!loading && !error && vns.length === 0 && (
+          <motion.div
+            key="notfound"
+            initial={{ filter: "blur(20px)", opacity: 0 }}
+            animate={{ filter: "blur(0px)", opacity: 1 }}
+            exit={{ filter: "blur(20px)", opacity: 0 }}
+            transition={{ duration: 0.4 }}
+            className="flex-grow flex justify-center items-center"
+          >
+            <NotFound message="No VNs found" />
+          </motion.div>
+        )}
+
+        {/* VN Cards */}
+        {vns.length > 0 && (
+          <motion.div
+            key={`cards-${currentPage}-${cardType}-${selectedYear}-${selectedMonth}`}
+            initial={{ filter: "blur(20px)", opacity: 0 }}
+            animate={{ filter: "blur(0px)", opacity: 1 }}
+            exit={{ filter: "blur(20px)", opacity: 0 }}
+            transition={{ duration: 0.5, ease: "easeInOut" }}
+            className={cardType === "image" ?
+              "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4" :
+              "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"
+            }
+          >
+            {vns.map((vn) => (
+              <Link key={`card-${vn.id}`} href={`/v/${vn.id.slice(1, -1)}`}>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3, delay: 0.1 }}
+                >
+                  {GenVNCard(vn, sexualLevel, violenceLevel, cardType)}
+                </motion.div>
+              </Link>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Keep the footer at the bottom of the page */}
       <div className="flex-grow"></div>
@@ -284,10 +334,10 @@ export default function Home() {
       {/* Pagination */}
       {vns.length > 0 && (
         <div className="flex justify-center mt-4">
-          <PaginationButtons 
-            totalPages={totalPages} 
-            currentPage={currentPage} 
-            onPageChange={handlePageChange} 
+          <PaginationButtons
+            totalPages={totalPages}
+            currentPage={currentPage}
+            onPageChange={handlePageChange}
           />
         </div>
       )}

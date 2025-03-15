@@ -15,7 +15,7 @@ export function HeaderNavi({ className }: HeaderNaviProps) {
   const isHomePage = pathname === "/home"
 
   return (
-    <div className={`flex flex-row justify-between items-center gap-1 ${className}`}>
+    <div className={`flex flex-row justify-between items-center gap-1 ${className} select-none`}>
       {!isHomePage && (
         <Button
           variant="ghost"

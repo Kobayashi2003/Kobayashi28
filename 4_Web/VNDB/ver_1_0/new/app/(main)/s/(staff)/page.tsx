@@ -3,11 +3,14 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useSearchParams, useRouter } from "next/navigation"
+import { motion, AnimatePresence } from "motion/react"
+
 import { TextCard } from "@/components/common/TextCard"
 import { PaginationButtons } from "@/components/common/PaginationButtons"
 import { Loading } from "@/components/common/Loading"
 import { Error } from "@/components/common/Error"
 import { NotFound } from "@/components/common/NotFound"
+
 import { Staff_Small, VNDBQueryParams } from "@/lib/types"
 import { api } from "@/lib/api"
 
@@ -60,34 +63,63 @@ export default function StaffSearchResults() {
 
   return (
     <main className="container mx-auto min-h-screen flex flex-col p-4 pb-8">
-      {/* Loading */}
-      {loading && (
-        <div className="flex-grow flex justify-center items-center">
-          <Loading message="Loading..." />
-        </div>
-      )}
-      {/* Error */}
-      {error && (
-        <div className="flex-grow flex justify-center items-center">
-          <Error message="Error: {error}" />
-        </div>
-      )}
-      {/* No staff found */}
-      {!loading && !error && staff.length === 0 && (
-        <div className="flex-grow flex justify-center items-center">
-          <NotFound message="No staff found" />
-        </div>
-      )}
-      {/* Staff Cards */}
-      {staff.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-          {staff.map((staff, index) => (
+      <AnimatePresence mode="wait">
+        {/* Loading */}
+        {loading && (
+          <motion.div
+            key="loading"
+            initial={{ filter: "blur(20px)", opacity: 0 }}
+            animate={{ filter: "blur(0px)", opacity: 1 }}
+            exit={{ filter: "blur(20px)", opacity: 0 }}
+            transition={{ duration: 0.4 }}
+            className="flex-grow flex justify-center items-center">
+            <Loading message="Loading..." />
+          </motion.div>
+        )}
+
+        {/* Error */}
+        {error && (
+          <motion.div
+            key="error"
+            initial={{ filter: "blur(20px)", opacity: 0 }}
+            animate={{ filter: "blur(0px)", opacity: 1 }}
+            exit={{ filter: "blur(20px)", opacity: 0 }}
+            transition={{ duration: 0.4 }}
+            className="flex-grow flex justify-center items-center">
+            <Error message="Error: {error}" />
+          </motion.div>
+        )}
+
+        {/* No staff found */}
+        {!loading && !error && staff.length === 0 && (
+          <motion.div
+            key="notfound"
+            initial={{ filter: "blur(20px)", opacity: 0 }}
+            animate={{ filter: "blur(0px)", opacity: 1 }}
+            exit={{ filter: "blur(20px)", opacity: 0 }}
+            transition={{ duration: 0.4 }}
+            className="flex-grow flex justify-center items-center">
+            <NotFound message="No staff found" />
+          </motion.div>
+        )}
+
+        {/* Staff Cards */}
+        {staff.length > 0 && (
+          <motion.div
+            key={`staff-${currentPage}`}
+            initial={{ filter: "blur(20px)", opacity: 0 }}
+            animate={{ filter: "blur(0px)", opacity: 1 }}
+            exit={{ filter: "blur(20px)", opacity: 0 }}
+            transition={{ duration: 0.5, ease: "easeInOut" }}
+            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {staff.map((staff, index) => (
             <Link key={`card-${index}-${staff.id}`} href={`/s/${staff.id.slice(1, -1)}`}>
               <TextCard title={staff.name} />
-            </Link>
-          ))}
-        </div>
-      )}
+              </Link>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Keep the footer at the bottom of the page */}
       <div className="flex-grow"></div>

@@ -27,7 +27,7 @@ export function SearchTypeSelector({ searchType, onSearchTypeChange }: SearchTyp
         <Button
           variant="outline"
           size="icon"
-          className="bg-[#0F2942]/80 hover:bg-[#0F2942] border-white/10 hover:border-white/20
+          className="bg-[#0F2942]/80 hover:bg-[#0F2942] border-white/10 hover:border-white/20 select-none
           text-white hover:text-white/80 text-base md:text-lg font-bold font-serif italic transition-all duration-300"
         >
           <span className="font-serif italic font-black text-xl text-white">
@@ -41,7 +41,7 @@ export function SearchTypeSelector({ searchType, onSearchTypeChange }: SearchTyp
             <Button
               key={option.value}
               variant="ghost"
-              className={`w-full justify-start font-normal text-white hover:text-white hover:bg-white/10 ${searchType === option.value ? "bg-white/10" : ""}`}
+              className={`w-full justify-start font-normal text-white hover:text-white hover:bg-white/10 select-none ${searchType === option.value ? "bg-white/10" : ""}`}
               onClick={() => {
                 onSearchTypeChange(option.value)
                 setOpen(false)

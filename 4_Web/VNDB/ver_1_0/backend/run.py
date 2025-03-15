@@ -46,38 +46,53 @@ def terminate_processes(processes):
             process.join()
 
 def main():
+
+    start_vndb = True
+    start_imgserve = True 
+    start_userserve = True
+
     multiprocessing.set_start_method('spawn')
     processes = []
 
-    # Start redis server
-    redis_process = multiprocessing.Process(target=run_redis_server)
-    redis_process.start()
-    processes.append(redis_process)
+    if start_vndb | start_imgserve:
+        # Start redis server
+        redis_process = multiprocessing.Process(target=run_redis_server)
+        redis_process.start()
+        processes.append(redis_process)
 
-    # Start vndb celery worker
-    vndb_celery_process = multiprocessing.Process(target=run_celery_worker, args=('vndb',))
-    vndb_celery_process.start()
-    processes.append(vndb_celery_process)
+    if start_vndb:
+        # Start vndb celery worker
+        vndb_celery_process = multiprocessing.Process(target=run_celery_worker, args=('vndb',))
+        vndb_celery_process.start()
+        processes.append(vndb_celery_process)
 
-    # Start vndb application
-    vndb_flask_process = multiprocessing.Process(target=run_flask, args=('vndb',))
-    vndb_flask_process.start()
-    processes.append(vndb_flask_process)
+        # Start vndb application
+        vndb_flask_process = multiprocessing.Process(target=run_flask, args=('vndb',))
+        vndb_flask_process.start()
+        processes.append(vndb_flask_process)
 
-    # Start imgserve celery worker
-    imgserve_celery_process = multiprocessing.Process(target=run_celery_worker, args=('imgserve',))
-    imgserve_celery_process.start()
-    processes.append(imgserve_celery_process)
+        print("="*25 + "VNDB START" + "="*50)
 
-    # Start imgserve application
-    imgserve_flask_process = multiprocessing.Process(target=run_flask, args=('imgserve',))
-    imgserve_flask_process.start()
-    processes.append(imgserve_flask_process)
+    if start_imgserve:
+        # Start imgserve celery worker
+        imgserve_celery_process = multiprocessing.Process(target=run_celery_worker, args=('imgserve',))
+        imgserve_celery_process.start()
+        processes.append(imgserve_celery_process)
 
-    # Start userserve application
-    userserve_flask_process = multiprocessing.Process(target=run_flask, args=('userserve',))
-    userserve_flask_process.start()
-    processes.append(userserve_flask_process)
+        # Start imgserve application
+        imgserve_flask_process = multiprocessing.Process(target=run_flask, args=('imgserve',))
+        imgserve_flask_process.start()
+        processes.append(imgserve_flask_process)
+
+        print("="*25 + "IMGSERVE" + "="*50)
+
+    if start_userserve:
+        # Start userserve application
+        userserve_flask_process = multiprocessing.Process(target=run_flask, args=('userserve',))
+        userserve_flask_process.start()
+        processes.append(userserve_flask_process)
+    
+        print("="*25 + "USERSERVE" + "="*50)
 
     # Signal handler for graceful shutdown
     def signal_handler(signum, frame):

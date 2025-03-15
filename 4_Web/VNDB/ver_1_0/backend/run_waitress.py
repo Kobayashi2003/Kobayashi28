@@ -38,7 +38,17 @@ def run_waitress(app_name):
     app = create_app()
     config = app.config
     print(f"Starting Waitress server for {app_name}")
-    serve(app, host='0.0.0.0', port=config['APP_PORT'])
+    serve(
+        app, 
+        host='0.0.0.0', 
+        port=config['APP_PORT'],
+        threads=100,
+        connection_limit=1000,
+        channel_timeout=60,
+        cleanup_interval=30,
+        asyncore_loop_timeout=60,
+        send_bytes=4096,
+    )
 
 def terminate_processes(processes):
     for process in processes:

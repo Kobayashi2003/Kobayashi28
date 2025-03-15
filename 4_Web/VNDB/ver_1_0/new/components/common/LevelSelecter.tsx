@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 
 interface LevelSelecterProps {
@@ -6,7 +7,11 @@ interface LevelSelecterProps {
     label: string,
     labelSmall?: string,
     value: string,
-    activeColor: string,
+    activeColor?: string,
+    defaultColor?: string,
+    className?: string,
+    defaultClassName?: string,
+    activeClassName?: string,
   }[],
   selectedValue: string,
   onChange: (value: string) => void,
@@ -22,11 +27,16 @@ export function LevelSelecter({ levelOptions, selectedValue, onChange, className
           <button
             key={option.key}
             onClick={() => onChange(option.value)}
-            className={`transition-colors ${
-              selectedValue === option.value 
-                ? option.activeColor 
-                : "text-white"
-            } hover:text-white/80`}
+            className={cn(
+              "transition-colors",
+              selectedValue === option.value
+                ? option.activeColor || "text-white"
+                : option.defaultColor || "text-white/80",
+              selectedValue === option.value
+                ? option.activeClassName
+                : option.defaultClassName,
+              option.className
+            )}
           >
             {option.label}
           </button>
