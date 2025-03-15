@@ -10,13 +10,14 @@ interface LevelSelecterProps {
   }[],
   selectedValue: string,
   onChange: (value: string) => void,
+  className?: string,
 }
 
-export function LevelSelecter({ levelOptions, selectedValue, onChange }: LevelSelecterProps) {
+export function LevelSelecter({ levelOptions, selectedValue, onChange, className }: LevelSelecterProps) {
   return (
     <>
       {/* When screen is large enough, show all options */}
-      <div className="hidden sm:flex flex-wrap gap-2 items-center select-none">
+      <div className={`hidden sm:flex flex-wrap gap-2 items-center select-none ${className}`}>
         {levelOptions.map((option) => (
           <button
             key={option.key}

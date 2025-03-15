@@ -36365,3 +36365,11 @@ connection to server at "localhost" (127.0.0.1), port 5432 failed: Connection re
 (Background on this error at: https://sqlalche.me/e/20/e3q8)
 2025-03-12 12:54:46,491 - logger - ERROR - A 'SQLAlchemy' instance has already been registered on this Flask app. Import and use that instance instead.
 2025-03-12 12:54:46,905 - logger - ERROR - ExtSQLAchemy has not been initialized
+2025-03-15 03:17:51,545 - logger - ERROR - 'Celery' object has no attribute '__iter__'
+2025-03-15 03:17:52,048 - logger - ERROR - 'Celery' object has no attribute '__iter__'
+2025-03-15 03:17:53,930 - logger - ERROR - 'Celery' object has no attribute '__iter__'
+2025-03-15 03:17:54,412 - logger - ERROR - 'Celery' object has no attribute '__iter__'
+2025-03-15 03:17:54,918 - logger - ERROR - 'Celery' object has no attribute '__iter__'
+2025-03-15 03:19:22,368 - logger - ERROR - 'Celery' object has no attribute '__iter__'
+2025-03-15 03:19:24,611 - logger - ERROR - 'Celery' object has no attribute '__iter__'
+2025-03-15 03:42:33,674 - logger - ERROR - __iter__

@@ -1,24 +1,27 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Loader2 } from "lucide-react"
 import Link from "next/link"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
 import { TextCard } from "@/components/common/TextCard"
 import { PaginationButtons } from "@/components/common/PaginationButtons"
+import { Loading } from "@/components/common/Loading"
+import { Error } from "@/components/common/Error"
+import { NotFound } from "@/components/common/NotFound"
 import { Staff_Small, VNDBQueryParams } from "@/lib/types"
 import { api } from "@/lib/api"
 
 export default function StaffSearchResults() {
+  const router = useRouter()
   const searchParams = useSearchParams()
+
+  const itemsPerPage = 24
+
+  const currentPage = parseInt(searchParams.get("page") || "1")
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-
-  const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(0)
-  const itemsPerPage = 24
-
   const [staff, setStaff] = useState<Staff_Small[]>([])
 
   useEffect(() => {
@@ -45,8 +48,14 @@ export default function StaffSearchResults() {
     }
   }
 
+  const updateSearchParams = (key: string, value: string) => {
+    const params = new URLSearchParams(searchParams)
+    params.set(key, value)
+    router.push(`/s?${params.toString()}`)
+  }
+
   const handlePageChange = (page: number) => {
-    setCurrentPage(page)
+    updateSearchParams("page", page.toString())
   }
 
   return (
@@ -54,27 +63,27 @@ export default function StaffSearchResults() {
       {/* Loading */}
       {loading && (
         <div className="flex-grow flex justify-center items-center">
-          <Loader2 className="w-10 h-10 animate-spin text-white" />
+          <Loading message="Loading..." />
         </div>
       )}
       {/* Error */}
       {error && (
         <div className="flex-grow flex justify-center items-center">
-          <p className="text-red-500">Error: {error}</p>
+          <Error message="Error: {error}" />
         </div>
       )}
       {/* No staff found */}
       {!loading && !error && staff.length === 0 && (
         <div className="flex-grow flex justify-center items-center">
-          <p className="text-gray-500">No staff found</p>
+          <NotFound message="No staff found" />
         </div>
       )}
       {/* Staff Cards */}
       {staff.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {staff.map((staff, index) => (
-            <Link key={`${index}-${staff.id}`} href={`/s/${staff.id.slice(1, -1)}`}>
-              <TextCard title={staff.name} className="h-full" />
+            <Link key={`card-${index}-${staff.id}`} href={`/s/${staff.id.slice(1, -1)}`}>
+              <TextCard title={staff.name} />
             </Link>
           ))}
         </div>

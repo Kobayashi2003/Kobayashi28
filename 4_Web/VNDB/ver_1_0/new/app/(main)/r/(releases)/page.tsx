@@ -1,25 +1,29 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Loader2 } from "lucide-react"
 import Link from "next/link"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
 import { TextCard } from "@/components/common/TextCard"
 import { PaginationButtons } from "@/components/common/PaginationButtons"
+import { Loading } from "@/components/common/Loading"
+import { Error } from "@/components/common/Error"
+import { NotFound } from "@/components/common/NotFound"
 import { Release_Small, VNDBQueryParams } from "@/lib/types"
 import { api } from "@/lib/api"
 
 export default function ReleaseSearchResults() {
+  const router = useRouter()
   const searchParams = useSearchParams()
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const [currentPage, setCurrentPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(0)
   const itemsPerPage = 24
 
+  const currentPage = parseInt(searchParams.get("page") || "1")
+
   const [releases, setReleases] = useState<Release_Small[]>([])
+  const [totalPages, setTotalPages] = useState(0)
 
   useEffect(() => {
     setLoading(true)
@@ -45,8 +49,14 @@ export default function ReleaseSearchResults() {
     }
   }
 
+  const updateSearchParams = (key: string, value: string) => {
+    const params = new URLSearchParams(searchParams)
+    params.set(key, value)
+    router.push(`/r?${params.toString()}`)
+  }
+
   const handlePageChange = (page: number) => {
-    setCurrentPage(page)
+    updateSearchParams("page", page.toString())
   }
 
   return (
@@ -54,26 +64,26 @@ export default function ReleaseSearchResults() {
       {/* Loading */}
       {loading && (
         <div className="flex-grow flex justify-center items-center">
-          <Loader2 className="w-10 h-10 animate-spin text-white" />
+          <Loading message="Loading..." />
         </div>
       )}
       {/* Error */}
       {error && (
         <div className="flex-grow flex justify-center items-center">
-          <p className="text-red-500">Error: {error}</p>
+          <Error message="Error: {error}" />
         </div>
       )}
       {/* No releases found */}
       {!loading && !error && releases.length === 0 && (
         <div className="flex-grow flex justify-center items-center">
-          <p className="text-gray-500">No releases found</p>
+          <NotFound message="No releases found" />
         </div>
       )}
       {/* Release Cards */}
       {releases.length > 0 && (
         <div className="flex flex-col gap-2">
           {releases.map((release) => (
-            <Link key={release.id} href={`/r/${release.id.slice(1, -1)}`}>
+            <Link key={`card-${release.id}`} href={`/r/${release.id.slice(1, -1)}`}>
               <TextCard title={release.title} />
             </Link>
           ))}

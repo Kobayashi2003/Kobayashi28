@@ -1,11 +1,36 @@
+"use client"
+
+import { useRef, useEffect, useState } from "react"
+import { useHideOnScroll } from "@/hooks/useHideOnScroll"
 import { HeaderBar } from "@/components/header/HeaderBar"
 import { UserProvider } from "@/context/UserContext"
 import { SearchProvider } from "@/context/SearchContext"
 import { IMGSERVE_BASE_URL } from "@/lib/constants"
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
+  const bgUrl = `url(${IMGSERVE_BASE_URL}/bg)`
 
-  const bgUrl = `url(${(typeof window === 'undefined') ? `${process.env.NEXT_PUBLIC_IMGSERVE_BASE_URL || IMGSERVE_BASE_URL}/bg` : `${IMGSERVE_BASE_URL}/bg`})`
+  const { hidden } = useHideOnScroll({
+    scrollThreshold: 50,
+    throttleTime: 100
+  })
+
+  const headerRef = useRef<HTMLDivElement>(null)
+  const [headerHeight, setHeaderHeight] = useState(0)
+
+  useEffect(() => {
+    const header = headerRef.current
+    if (!header) return
+
+    setHeaderHeight(header.offsetHeight)
+
+    const observer = new ResizeObserver((entries) => {
+      setHeaderHeight(entries[0].target.clientHeight)
+    })
+
+    observer.observe(header)
+    return () => observer.disconnect()
+  }, [])
 
   return (
     <div style={{ 
@@ -13,12 +38,22 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed',
       }}>
       <div className="min-h-screen bg-[#0A1929]/80 text-white">
         <SearchProvider>
         <UserProvider>
-          <HeaderBar className="fixed top-0 left-0 right-0 z-50 bg-[#0A1929]/80" />
-          <div className="pt-[110px] md:pt-[55px]"></div>
+          <div
+            ref={headerRef}
+            className={
+              `fixed top-0 left-0 right-0 z-50 bg-[#0A1929]/80 
+              backdrop-blur-sm transition-opacity duration-300
+              ${hidden ? "opacity-0" : "opacity-100"}`
+            }
+          >
+            <HeaderBar />
+          </div>
+          <div style={{ height: `${headerHeight}px` }} />
           {children}
         </UserProvider>
         </SearchProvider>

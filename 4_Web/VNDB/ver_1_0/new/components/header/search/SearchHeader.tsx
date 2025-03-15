@@ -9,7 +9,7 @@ import { SearchBar } from "./SearchBar"
 import { SearchFilters } from "./SearchFilters"
 import { SearchSubmitButton } from "./SearchSubmitButton"
 
-interface SearchProps {
+interface SearchHeaderProps {
   className?: string
 }
 
@@ -34,7 +34,7 @@ function getSearchTypeShort(searchType: string) {
   }
 }
 
-export function Search({ className }: SearchProps) {
+export function SearchHeader({ className }: SearchHeaderProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
 

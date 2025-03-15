@@ -37,6 +37,9 @@ def download_image(type: str, id: int) -> Optional[BytesIO]:
 
     response = httpx.get(url, timeout=10.0, follow_redirects=True)
     response.raise_for_status()
+
+    print(f"Downloaded image {url}")
+
     image_data = BytesIO(response.content)
     image_data.seek(0)
     return image_data

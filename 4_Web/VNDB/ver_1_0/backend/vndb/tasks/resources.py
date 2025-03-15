@@ -2,10 +2,11 @@ from typing import Dict, List, Any
 
 from vndb.search import (
     search_remote, search_local,
-    convert_remote_to_local 
+    convert_remote_to_local,
+    search_remote_and_update_database
 )
 from vndb.database import (
-    get, get_all, create, update,
+    get, get_all, create, update, updatable,
     delete, delete_all, exists, count_all 
 )
 from .common import (
@@ -117,3 +118,30 @@ def edit_resources_task(resouce_type: str, update_datas: List[Dict[str, Any]]) -
         update_results[resource_id] = True if result['status'] == 'SUCCESS' else False
 
     return format_results(update_results)
+
+
+@task_with_cache_clear
+def update_resources_from_search_results_task(resource_type: str, results: List[Dict[str, Any]]) -> Dict[str, Dict[str, bool]]:
+    created = {}
+    updated = {}
+    for result in results:
+        id = result['id']
+        if not exists(resource_type, id):
+            created[id] = (create(resource_type, id, result) is not None)
+        elif updatable(resource_type, id):
+            updated[id] = (update(resource_type, id, result) is not None)
+    return {'created': created, 'updated': updated}
+
+@task_with_cache_clear
+def search_remote_and_update_database_task(
+    resource_type: str, params: Dict[str, Any], response_size: str = 'small',
+    page: int = None, limit: int = None, sort: str = 'id', reverse: bool = False, count: bool = True,
+    ignore_small_response: bool = False
+) -> Dict[str, Any]:
+
+    results = search_remote_and_update_database(resource_type, params, response_size, page, limit, sort, reverse, count, ignore_small_response)
+    if not results or not isinstance(results, dict) or not results.get('results'):
+        return NOT_FOUND
+    results = format_results(results)
+    results['source'] = 'remote'
+    return results

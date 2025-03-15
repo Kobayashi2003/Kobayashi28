@@ -98,7 +98,7 @@ function convertToImgserveUrl(url: string): string {
   if (!match) return url
 
   const [, type, id] = match
-  return `${getBaseUrl("imgserve")}/${type}/${id}`
+  return `${getBaseUrl("imgserve")}/img/${type}/${id}`
 }
 
 function processVNImages(vn: VN): VN {

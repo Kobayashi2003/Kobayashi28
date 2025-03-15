@@ -1,14 +1,17 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { Loader2 } from "lucide-react"
+import { useEffect, useState, useMemo } from "react"
 import Link from "next/link"
+import { useSearchParams, useRouter } from "next/navigation"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { TextCard } from "@/components/common/TextCard"
 import { ImageCard } from "@/components/common/ImageCard"
 import { CardTypeSelecter } from "@/components/common/CardTypeSelecter"
 import { LevelSelecter } from "@/components/common/LevelSelecter"
 import { PaginationButtons } from "@/components/common/PaginationButtons"
+import { Loading } from "@/components/common/Loading"
+import { Error } from "@/components/common/Error"
+import { NotFound } from "@/components/common/NotFound"
 import { VN_Small } from "@/lib/types"
 import { api } from "@/lib/api"
 
@@ -20,33 +23,23 @@ function GenVNCard(vn: VN_Small, sexualLevel: "safe" | "suggestive" | "explicit"
   const violence = vn.image?.violence || 0
   if (sexualLevel === "safe" && sexual > 0.5 || violenceLevel === "tame" && violence > 0.5) {
     if (sexual <= 1 && violence <= 1) {
-      return <ImageCard imageTitle={vn.title} imageUrl={""} imageDims={[0, 0]} textColor="text-yellow-400" />
+      const yellow = sexual > 1 && violence > 1 ? `text-yellow-800` : `text-yellow-400`
+      return <ImageCard imageTitle={vn.title} imageUrl={""} imageDims={[0, 0]} textColor={yellow} />
     }
-    return <ImageCard imageTitle={vn.title} imageUrl={""} imageDims={[0, 0]} textColor="text-red-400" />
+    const red = sexual > 1 && violence > 1 ? `text-red-800` : `text-red-400`
+    return <ImageCard imageTitle={vn.title} imageUrl={""} imageDims={[0, 0]} textColor={red} />
   } 
   if (sexualLevel === "suggestive" && sexual > 1 || violenceLevel === "violent" && violence > 1) {
-    return <ImageCard imageTitle={vn.title} imageUrl={""} imageDims={[0, 0]} textColor="text-red-400" />
+    const red = sexual > 1 && violence > 1 ? `text-red-800` : `text-red-400`
+    return <ImageCard imageTitle={vn.title} imageUrl={""} imageDims={[0, 0]} textColor={red} />
   }
   return <ImageCard imageTitle={vn.title} imageUrl={vn.image?.thumbnail || vn.image?.url} imageDims={vn.image?.thumbnail_dims || vn.image?.dims} />
 }
 
 export default function Home() {
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  
-  const [cardType, setCardType] = useState<"image" | "text">("image")
+  const router = useRouter()
+  const searchParams = useSearchParams()
 
-  const [selectedYear, setSelectedYear] = useState(() => {
-    const now = new Date()
-    return `${now.getFullYear().toString()}`
-  })
-  const [selectedMonth, setSelectedMonth] = useState(() => {
-    const now = new Date()
-    return `${(now.getMonth() + 1).toString().padStart(2, '0')}`
-  })
-
-  const [currentPage, setCurrentPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(0)
   const itemsPerPage = 24
 
   const currentYear = new Date().getFullYear()
@@ -73,9 +66,17 @@ export default function Home() {
     { value: "12", label: "DEC" }
   ]
 
-  const [sexualLevel, setSexualLevel] = useState<"safe" | "suggestive" | "explicit">("safe")
-  const [violenceLevel, setViolenceLevel] = useState<"tame" | "violent" | "brutal">("tame")
+  const currentPage = searchParams.get("page") ? Number.parseInt(searchParams.get("page") as string) : 1
+  const selectedYear = searchParams.get("year") || `${new Date().getFullYear().toString()}`
+  const selectedMonth = searchParams.get("month") || `${(new Date().getMonth() + 1).toString().padStart(2, '0')}`
 
+  const cardType = searchParams.get("card") as "image" | "text" || "image"
+  const sexualLevel = searchParams.get("sexual") as "safe" | "suggestive" | "explicit" || "safe"
+  const violenceLevel = searchParams.get("violence") as "tame" | "violent" | "brutal" || "tame"
+
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [totalPages, setTotalPages] = useState(0)
   const [vns, setVNs] = useState<VN_Small[]>([])
 
   useEffect(() => {
@@ -85,6 +86,19 @@ export default function Home() {
     fetchVNs()
   }, [selectedYear, selectedMonth, currentPage])
 
+  const updateSearchParams = (key: string, value: string) => {
+    const params = new URLSearchParams(searchParams)
+    params.set(key, value)
+    router.push(`/home?${params.toString()}`)
+  }
+
+  const updateMultipleSearchParams = (params: Record<string, string>) => {
+    const newParams = new URLSearchParams(searchParams)
+    Object.entries(params).forEach(([key, value]) => {
+      newParams.set(key, value)
+    })
+    router.push(`/home?${newParams.toString()}`)
+  }
 
   const fetchVNs = async () => {
     try {
@@ -146,41 +160,43 @@ export default function Home() {
   }
 
   const handleYearChange = (value: string) => {
-    setSelectedYear(value)
-    setCurrentPage(1)
+    updateMultipleSearchParams({ year: value, page: "1" })
   }
 
   const handleMonthChange = (value: string) => {
-    setSelectedMonth(value)
-    setCurrentPage(1)
+    updateMultipleSearchParams({ month: value, page: "1" })
   }
 
   const handleSexualLevelChange = (value: string) => {
-    setSexualLevel(value as "safe" | "suggestive" | "explicit")
+    updateSearchParams("sexual", value)
   }
 
   const handleViolenceLevelChange = (value: string) => {
-    setViolenceLevel(value as "tame" | "violent" | "brutal")
+    updateSearchParams("violence", value)
   }
 
   const handlePageChange = (page: number) => {
-    setCurrentPage(page)
+    updateSearchParams("page", page.toString())
+  }
+
+  const handleCardTypeChange = (value: string) => {
+    updateSearchParams("card", value)
   }
 
   return (
     <main className="container mx-auto min-h-screen flex flex-col p-4 pb-8">
       {/* Filters */}
-      <div className="flex overflow-x-auto items-center justify-between mb-4 gap-4">
-        <div className="flex flex-wrap justify-start gap-2">
+      <div className="overflow-x-auto flex flex-col sm:flex-row items-end sm:items-center justify-center sm:justify-between mb-4 gap-4">
+        <div className="flex flex-wrap justify-end sm:justify-start gap-2">
           {/* Card Type Selector */}
           <CardTypeSelecter
             selected={cardType}
-            onSelect={setCardType}
+            onSelect={handleCardTypeChange}
             className="hidden sm:block"
           />
           <div className="flex flex-wrap justify-start gap-2">
             {/* Year Selector */}
-            <Select value={selectedYear} onValueChange={(value) => handleYearChange(value)}>
+            <Select value={selectedYear} onValueChange={handleYearChange}>
               <SelectTrigger className="bg-[#0F2942]/80 border-white/10 hover:border-white/20 text-white font-bold">
                 <SelectValue placeholder="Year" />
               </SelectTrigger>
@@ -191,7 +207,7 @@ export default function Home() {
               </SelectContent>
             </Select>
             {/* Month Selector */}
-            <Select value={selectedMonth} onValueChange={(value) => handleMonthChange(value)}>
+            <Select value={selectedMonth} onValueChange={handleMonthChange}>
               <SelectTrigger className={`bg-[#0F2942]/80 border-white/10 hover:border-white/20 text-white font-bold ${selectedYear === "00" ? "hidden" : ""}`}>
                 <SelectValue placeholder="Month" />
               </SelectTrigger>
@@ -233,19 +249,19 @@ export default function Home() {
       {/* Loading */}
       {loading && (
         <div className="flex-grow flex justify-center items-center">
-          <Loader2 className="w-10 h-10 animate-spin text-white" />
+          <Loading message="Loading..." />
         </div>
       )}
       {/* Error */}
       {error && (
         <div className="flex-grow flex justify-center items-center">
-          <p className="text-red-500">Error: {error}</p>
+          <Error message="Error: {error}" />
         </div>
       )}
       {/* No vns found */}
       {!loading && !error && vns.length === 0 && (
         <div className="flex-grow flex justify-center items-center">
-          <p className="text-gray-500">No VNs found</p>
+          <NotFound message="No VNs found" />
         </div>
       )}
       {/* VN Cards */}
@@ -255,7 +271,7 @@ export default function Home() {
           `grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4`
         }>
           {vns.map((vn) => (
-            <Link key={vn.id} href={"#"}>
+            <Link key={`card-${vn.id}`} href={`/v/${vn.id.slice(1, -1)}`}>
               {GenVNCard(vn, sexualLevel, violenceLevel, cardType)}
             </Link>
           ))}

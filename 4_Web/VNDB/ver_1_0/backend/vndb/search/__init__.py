@@ -15,7 +15,8 @@ from .remote.search import (
     search_resources_by_release_id_paginated as search_resources_by_release_id_remote,
     search_vns_by_resource_id_cache as search_vns_by_resource_id_remote,
     search_characters_by_resource_id_cache as search_characters_by_resource_id_remote, 
-    search_releases_by_resource_id_cache as search_releases_by_resource_id_remote
+    search_releases_by_resource_id_cache as search_releases_by_resource_id_remote,
+    search_remote_and_update_database 
 )
 
 from .common import (

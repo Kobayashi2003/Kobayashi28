@@ -71,8 +71,8 @@ const sortByOptions: Record<string, {value: string, label: string, sortable?: bo
   trait: [
     {value: "id", label: "Id"},
     {value: "name", label: "Name"},
-    {value: "group_id", label: "Group Id"},
-    {value: "group_name", label: "Group Name"},
+    {value: "group_id", label: "Group Id", sortable: false},
+    {value: "group_name", label: "Group Name", sortable: false},
   ]
 }
 

@@ -23,6 +23,9 @@ def db_transaction(func):
             db.session.rollback()
             print(f"Error in {func.__name__}: {str(e)}")
             return None
+        except Exception as e:
+            db.session.rollback()
+            raise e
     return wrapper
 
 

@@ -58,6 +58,11 @@ const filterFields: Record<string, FilterField[]> = {
       label: "Developer",
       type: "text",
     },
+    {
+      value: "lang",
+      label: "Language",
+      type: "text",
+    }
   ], 
   release: [
     {
@@ -168,57 +173,58 @@ function SearchFiltersDialog({ SearchType, open, setOpen, setSearchFilters }: Fi
         <ScrollArea className="h-[50vh] pr-4">
           <div className="flex flex-col gap-2">
             {filterFields[SearchType].map(filter => (
-              <>{filter.type === "text" ? (
-                <div key={`text-filter-${filter.value}`} className="flex flex-col justify-start items-start gap-1">
-                  <Label htmlFor={`text-filter-${filter.value}`} className="text-white/80 text-sm md:text-base">
-                    {filter.label}
-                  </Label>
-                  <Input
-                    id={`text-filter-${filter.value}`}
-                    value={params[filter.value] || ""}
-                    onChange={(e) => setParams({ ...params, [filter.value]: e.target.value })}
-                    placeholder={filter.textField?.placeholder}
-                    className="w-full bg-black/20 border-white/10 hover:border-white/20 text-white placeholder:text-white/60"
-                  />
-                </div>
-              ) : filter.type === "number" ? (
-                <div key={`number-filter-${filter.value}`} className="flex flex-col justify-start items-start gap-1">
-                  <Label htmlFor={`number-filter-${filter.value}`} className="text-white/80 text-sm md:text-base">
-                    {filter.label}
-                  </Label>
-                  <Input
-                    id={`number-filter-${filter.value}`}
-                    value={params[filter.value] || ""}
-                    onChange={(e) => setParams({ ...params, [filter.value]: e.target.value })}
-                    placeholder={filter.numberField?.placeholder}
-                    className="w-full bg-black/20 border-white/10 hover:border-white/20 text-white placeholder:text-white/60"
-                  />
-                </div>
-              ) : filter.type === "select" ? (
-                <div key={`select-filter-${filter.value}`} className="flex flex-col justify-start items-start gap-1">
-                  <div className="text-white/80 text-sm md:text-base">{filter.label}</div>
-                  <Select
-                    value={params[filter.value] || filter.selectField?.default}
-                    onValueChange={(value) => setParams({ ...params, [filter.value]: value })}
-                  >
-                    <SelectTrigger className="w-full bg-black/20 border-white/10 hover:border-white/20 text-white placeholder:text-white/60">
-                      <SelectValue placeholder={filter.selectField?.default} />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#0F2942]/95 border-white/10 hover:border-white/20 text-white placeholder:text-white/60">
-                      {filter.selectField?.options.map((option) => (
-                        <SelectItem 
-                          key={`select-filter-${filter.value}-${option.value}`} 
-                          value={option.value}
-                          className={"text-white/80 hover:border-white/10 data-[state=checked]:bg-white/10"}
-                        >
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              ) : null}
-              </>
+              <div key={`${filter.type}-filter-${filter.value}`} className="flex flex-col justify-start items-start gap-1">
+                {filter.type === "text" ? (
+                  <>
+                    <Label htmlFor={`text-filter-${filter.value}`} className="text-white/80 text-sm md:text-base">
+                      {filter.label}
+                    </Label>
+                    <Input
+                      id={`text-filter-${filter.value}`}
+                      value={params[filter.value] || ""}
+                      onChange={(e) => setParams({ ...params, [filter.value]: e.target.value })}
+                      placeholder={filter.textField?.placeholder}
+                      className="w-full bg-black/20 border-white/10 hover:border-white/20 text-white placeholder:text-white/60"
+                    />
+                  </>
+                ) : filter.type === "number" ? (
+                  <>
+                    <Label htmlFor={`number-filter-${filter.value}`} className="text-white/80 text-sm md:text-base">
+                      {filter.label}
+                    </Label>
+                    <Input
+                      id={`number-filter-${filter.value}`}
+                      value={params[filter.value] || ""}
+                      onChange={(e) => setParams({ ...params, [filter.value]: e.target.value })}
+                      placeholder={filter.numberField?.placeholder}
+                      className="w-full bg-black/20 border-white/10 hover:border-white/20 text-white placeholder:text-white/60"
+                    />
+                  </>
+                ) : filter.type === "select" ? (
+                  <>
+                    <div className="text-white/80 text-sm md:text-base">{filter.label}</div>
+                    <Select
+                      value={params[filter.value] || filter.selectField?.default}
+                      onValueChange={(value) => setParams({ ...params, [filter.value]: value })}
+                    >
+                      <SelectTrigger className="w-full bg-black/20 border-white/10 hover:border-white/20 text-white placeholder:text-white/60">
+                        <SelectValue placeholder={filter.selectField?.default} />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#0F2942]/95 border-white/10 hover:border-white/20 text-white placeholder:text-white/60">
+                        {filter.selectField?.options.map((option) => (
+                          <SelectItem
+                            key={`select-filter-${filter.value}-${option.value}`}
+                            value={option.value}
+                            className={"text-white/80 hover:border-white/10 data-[state=checked]:bg-white/10"}
+                          >
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </>
+                ) : null}
+              </div>
             ))}
           </div>
         </ScrollArea>

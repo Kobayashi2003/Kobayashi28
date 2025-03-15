@@ -1,9 +1,10 @@
-import { Input } from "@/components/ui/input"
-
 export default function VPage() {
+
+  // test
+  const loading = true
+  const error = "Error"
+
   return (
-    <div>
-      <h1>V Page</h1>
-    </div>
+    <></>
   )
 }

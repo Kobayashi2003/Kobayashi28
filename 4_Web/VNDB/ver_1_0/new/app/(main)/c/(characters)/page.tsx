@@ -1,14 +1,16 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { Loader2 } from "lucide-react"
+import { useEffect, useState, useMemo } from "react"
 import Link from "next/link"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
 import { TextCard } from "@/components/common/TextCard"
 import { ImageCard } from "@/components/common/ImageCard"
 import { CardTypeSelecter } from "@/components/common/CardTypeSelecter"
 import { LevelSelecter } from "@/components/common/LevelSelecter"
 import { PaginationButtons } from "@/components/common/PaginationButtons"
+import { Loading } from "@/components/common/Loading"
+import { Error } from "@/components/common/Error"
+import { NotFound } from "@/components/common/NotFound"
 import { Character_Small, VNDBQueryParams } from "@/lib/types"
 import { api } from "@/lib/api"
 
@@ -20,31 +22,40 @@ function GenCharacterCard(character: Character_Small, sexualLevel: "safe" | "sug
   const violence = character.image?.violence || 0
   if (sexualLevel === "safe" && sexual > 0.5 || violenceLevel === "tame" && violence > 0.5) {
     if (sexual <= 1 && violence <= 1) {
-      return <ImageCard imageTitle={character.name} imageUrl={""} imageDims={[0, 0]} textColor="text-yellow-400" />
+      const yellow = sexual > 1 && violence > 1 ? `text-yellow-800` : `text-yellow-400`
+      return <ImageCard imageTitle={character.name} imageUrl={""} imageDims={[0, 0]} textColor={yellow} />
     }
-    return <ImageCard imageTitle={character.name} imageUrl={""} imageDims={[0, 0]} textColor="text-red-400" />
+    const red = sexual > 1 && violence > 1 ? `text-red-800` : `text-red-400`
+    return <ImageCard imageTitle={character.name} imageUrl={""} imageDims={[0, 0]} textColor={red} />
   } 
   if (sexualLevel === "suggestive" && sexual > 1 || violenceLevel === "violent" && violence > 1) {
-    return <ImageCard imageTitle={character.name} imageUrl={""} imageDims={[0, 0]} textColor="text-red-400" />
+    const red = sexual > 1 && violence > 1 ? `text-red-800` : `text-red-400`
+    return <ImageCard imageTitle={character.name} imageUrl={""} imageDims={[0, 0]} textColor={red} />
   }
   return <ImageCard imageTitle={character.name} imageUrl={character.image?.url} imageDims={character.image?.dims} />
 }
 
 export default function CharacterSearchResults() {
+  const router = useRouter()
   const searchParams = useSearchParams()
+  const filteredParams = useMemo(() => {
+    const params = new URLSearchParams(searchParams)
+    params.delete("card")
+    params.delete("sexual")
+    params.delete("violence")
+    return params.toString()
+  }, [searchParams])
+
+  const itemsPerPage = 24
+
+  const currentPage = parseInt(searchParams.get("page") || "1")
+  const cardType = searchParams.get("card") as "image" | "text" || "image"
+  const sexualLevel = searchParams.get("sexual") as "safe" | "suggestive" | "explicit" || "safe"
+  const violenceLevel = searchParams.get("violence") as "tame" | "violent" | "brutal" || "tame"
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-
-  const [cardType, setCardType] = useState<"image" | "text">("image")
-
-  const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(0)
-  const itemsPerPage = 24
-
-  const [sexualLevel, setSexualLevel] = useState<"safe" | "suggestive" | "explicit">("safe")
-  const [violenceLevel, setViolenceLevel] = useState<"tame" | "violent" | "brutal">("tame")
-
   const [characters, setCharacters] = useState<Character_Small[]>([])
 
   useEffect(() => {
@@ -52,7 +63,13 @@ export default function CharacterSearchResults() {
     setError(null)
     setCharacters([])
     fetchCharacters()
-  }, [currentPage, searchParams])
+  }, [currentPage, filteredParams])
+
+  const updateSearchParams = (key: string, value: string) => {
+    const params = new URLSearchParams(searchParams)
+    params.set(key, value)
+    router.push(`/c?${params.toString()}`)
+  }
 
   const fetchCharacters = async () => {
     try {
@@ -61,19 +78,6 @@ export default function CharacterSearchResults() {
         params[key as string] = value as string
       }
       const response = await api.small.character(params)
-
-      response.results.forEach((character) => {
-        const sexual = character.image?.sexual || 0
-        const violence = character.image?.violence || 0
-
-        const sexualFilter = sexualLevel === "safe" ? sexual <= 0.5 : sexualLevel === "suggestive" ? sexual <= 1 : true
-        const violenceFilter = violenceLevel === "tame" ? violence <= 0.5 : violenceLevel === "violent" ? violence <= 1 : true
-
-        if (!(sexualFilter && violenceFilter)) {
-          character.image = undefined
-        }
-      })
-
       setCharacters(response.results)
       setTotalPages(Math.ceil(response.count / itemsPerPage) || 1)
     } catch (error) {
@@ -85,15 +89,19 @@ export default function CharacterSearchResults() {
   }
 
   const handleSexualLevelChange = (value: string) => {
-    setSexualLevel(value as "safe" | "suggestive" | "explicit")
+    updateSearchParams("sexual", value)
   }
 
   const handleViolenceLevelChange = (value: string) => {
-    setViolenceLevel(value as "tame" | "violent" | "brutal")
+    updateSearchParams("violence", value)
   }
 
   const handlePageChange = (page: number) => {
-    setCurrentPage(page)
+    updateSearchParams("page", page.toString())
+  }
+
+  const handleCardTypeChange = (value: string) => {
+    updateSearchParams("card", value)
   }
 
   return (
@@ -103,7 +111,7 @@ export default function CharacterSearchResults() {
           {/* Card Type Selector */}
           <CardTypeSelecter
             selected={cardType}
-            onSelect={setCardType}
+            onSelect={handleCardTypeChange}
           />
         </div>
         <div className="flex flex-wrap justify-end gap-4">
@@ -135,19 +143,19 @@ export default function CharacterSearchResults() {
       {/* Loading */}
       {loading && (
         <div className="flex-grow flex justify-center items-center">
-          <Loader2 className="w-10 h-10 animate-spin text-white" />
+          <Loading message="Loading..." />
         </div>
       )}
       {/* Error */}
       {error && (
         <div className="flex-grow flex justify-center items-center">
-          <p className="text-red-500">Error: {error}</p>
+          <Error message="Error: {error}" />
         </div>
       )}
       {/* No characters found */}
       {!loading && !error && characters.length === 0 && (
         <div className="flex-grow flex justify-center items-center">
-          <p className="text-gray-500">No characters found</p>
+          <NotFound message="No characters found" />
         </div>
       )}
       {/* Character Cards */}
@@ -157,7 +165,7 @@ export default function CharacterSearchResults() {
           `grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4`
         }>
           {characters.map((character) => (
-            <Link key={character.id} href={`/c/${character.id.slice(1, -1)}`}>
+            <Link key={`card-${character.id}`} href={`/c/${character.id.slice(1, -1)}`}>
               {GenCharacterCard(character, sexualLevel, violenceLevel, cardType)}
             </Link>
           ))}

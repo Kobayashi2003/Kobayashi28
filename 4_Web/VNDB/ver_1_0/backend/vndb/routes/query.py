@@ -1,7 +1,7 @@
 from flask import Blueprint, abort, jsonify, request
 from vndb.database import updatable
 from vndb.tasks.resources import (
-    update_resource_task, search_resources_task
+    search_resources_task, search_remote_and_update_database_task
 )
 from .common import execute_task
 
@@ -19,6 +19,8 @@ query_bp = Blueprint('query', __name__, url_prefix='/')
 
 @query_bp.route('/<string:query>', methods=['GET'])
 def handle_query(query):
+    ignore_small_response = False
+
     type = RESOURCE_TYPE_MAP.get(query[0].lower())
     if not type:
         abort(400, description="Invalid resource type")
@@ -36,16 +38,20 @@ def handle_query(query):
         search_from = params.pop('from', '')
         response_size = params.pop('size', 'large')
 
-        if search_from in ['local', 'remote']:
+        if search_from == 'local':
             return execute_task(search_resources_task, 
-                True, type, search_from, params, response_size, page, limit, sort, reverse, count)
+                True, type, 'local', params, response_size, page, limit, sort, reverse, count)
+        elif search_from == 'remote':
+            return execute_task(search_remote_and_update_database_task,
+                True, type, params, response_size, page, limit, sort, reverse, count, ignore_small_response=ignore_small_response)
 
         try:
-            result = search_resources_task(
-                type, 'remote', params, response_size, page, limit, sort, reverse, count)
-            assert result['status'] == 'SUCCESS'
-            return jsonify(result)
+            func_return = search_remote_and_update_database_task(
+                type, params, response_size, page, limit, sort, reverse, count, ignore_small_response=ignore_small_response)
+            assert func_return['status'] == 'SUCCESS'
+            return jsonify(func_return)
         except Exception as exc:
+            print(f"Error in search_remote_and_update_database_task: {exc}")
             return execute_task(search_resources_task, 
                 True, type, 'local', params, response_size, page, limit, sort, reverse, count)
 
@@ -61,22 +67,19 @@ def handle_query(query):
 
 
         if search_from == 'remote':
-            if updatable(type, query):
-                execute_task(update_resource_task, False, type, query)
-            return execute_task(search_resources_task,
-                True, type, 'remote', {'id':query}, response_size)
+            return execute_task(search_remote_and_update_database_task,
+                True, type, {'id':query}, response_size, 1, 1, 'id', False, True, ignore_small_response=ignore_small_response)
         elif search_from == 'local':
             return execute_task(search_resources_task,
-                True, type, 'local', {'id':query}, response_size)
+                True, type, 'local', {'id':query}, response_size, 1, 1, 'id', False, True)
 
         try:
-            assert updatable(type, query)
-            execute_task(update_resource_task, False, type, query)
-            result = search_resources_task(
-                type, 'remote', {'id':query}, response_size, 1, 1, 'id', False, True)
-            assert result['status'] == 'SUCCESS'
-            return jsonify(result)
+            func_return = search_remote_and_update_database_task(
+                type, {'id':query}, response_size, 1, 1, 'id', False, True, ignore_small_response=ignore_small_response)
+            assert func_return['status'] == 'SUCCESS'
+            return jsonify(func_return)
         except Exception as exc:
+            print(f"Error in search_remote_and_update_database_task: {exc}")
             return execute_task(search_resources_task,
                 True, type, 'local', {'id':query}, response_size, 1, 1, 'id', False, True)
 
