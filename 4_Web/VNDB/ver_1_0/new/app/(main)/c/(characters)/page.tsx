@@ -19,7 +19,7 @@ import { api } from "@/lib/api"
 
 function GenCharacterCard(character: Character_Small, sexualLevel: "safe" | "suggestive" | "explicit", violenceLevel: "tame" | "violent" | "brutal", cardType: "image" | "text") {
   if (cardType === "text") {
-    return <TextCard title={character.name} className="h-full" />
+    return <TextCard title={character.name} />
   }
   const sexual = character.image?.sexual || 0
   const violence = character.image?.violence || 0

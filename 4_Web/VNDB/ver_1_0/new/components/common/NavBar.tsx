@@ -1,7 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, ArrowRight, ArrowUp, ArrowDown } from "lucide-react"
 
@@ -34,7 +34,7 @@ interface NavPanelProps {
   options: NavOption[]
   selectedValue: string
   position: Position
-  panelSize: number
+  panelSize?: number
   setOpen: (open: boolean) => void
   className?: string
 }
@@ -70,60 +70,46 @@ function NavPanel({ open, options, selectedValue, position, panelSize, setOpen, 
   return (
     <div className={
       cn(
-        "h-min-content w-min-content",
-        "flex items-center gap-2 select-none",
-        " bg-[#0F2942]/60 hover:bg-[#0F2942]/80 backdrop-blur-sm rounded-lg",
-        "font-bold text-base md:text-lg",
-        "transition-all duration-300",
-
+        "flex items-center select-none bg-[#0F2942]/60 hover:bg-[#0F2942]/80 backdrop-blur-sm rounded-lg font-bold text-base md:text-lg transition-all duration-300",
         (position === "top" || position === "bottom") && "w-full justify-between",
         (position === "left" || position === "right") && "h-full justify-between",
-
-        !open && {
-          "-translate-y-[calc(90%)]": position === "top",
-          "translate-y-[calc(90%)]": position === "bottom",
-          "-translate-x-[calc(90%)]": position === "left",
-          "translate-x-[calc(90%)]": position === "right",
-        },
-        !open ? "opacity-50 border-2 border-white/30 hover:border-white/40" : "opacity-100 border border-white/10 hover:border-white/20",
-
+        !open ? "opacity-50 border-2 border-white/30 hover:border-white/40" : "gap-2 opacity-100 border border-white/10 hover:border-white/20",
         position === "top" && "border-t-0 flex-col h-full rounded-t-none",
         position === "bottom" && "border-b-0 flex-col-reverse h-full rounded-b-none",
         position === "left" && "border-l-0 flex-row h-full rounded-l-none",
         position === "right" && "border-r-0 flex-row-reverse h-full rounded-r-none",
-
         className
       )
-    }
-      style={{
-        minWidth: minWidthWhenVertical,
-        minHeight: minHeightWhenHorizontal,
-      }}
-    >
-
+    }>
       <div className={
         cn(
-          "container mx-auto flex flex-col gap-2 justify-center items-center",
-          (position === "left" || position === "right") && "pt-4 pb-4"
+          "flex flex-col gap-4 justify-center items-center overflow-hidden",
+          (position === "left" || position === "right") && "pt-4 pb-4",
+          "transition-all duration-300",
+          !open && "gap-0"
         )
-      }>
+      } style={{
+        minWidth: minWidthWhenVertical,
+        minHeight: minHeightWhenHorizontal,
+      }}>
         {options.map((option) => (
           <Button
             key={option.key}
             variant={selectedValue === option.value ? "ghost" : "outline"}
             onClick={() => {
               option.onClick?.()
-              setOpen(false)
+              // setOpen(false)
             }}
             className={cn(
-              "flex flex-row justify-center items-center gap-2",
-              "w-full transition-all duration-300",
+              "flex flex-row justify-center items-center gap-2 w-full transition-all duration-300",
               selectedValue === option.value ?
                 "bg-white/10 hover:bg-white/20" :
                 "bg-transparent hover:bg-[#0F2942]/80 border-white/10 hover:border-white/20",
+              "transition-all duration-300",
+              !open && "p-0 opacity-0"
             )}
           >
-            {selectedValue === option.value && (
+            {open && selectedValue === option.value && (
               <>
                 {position === "left" && <ArrowRight className="w-4 h-4" />}
                 {position === "right" && <ArrowLeft className="w-4 h-4" />}
@@ -131,7 +117,7 @@ function NavPanel({ open, options, selectedValue, position, panelSize, setOpen, 
                 {position === "bottom" && <ArrowUp className="w-4 h-4" />}
               </>
             )}
-            {option.label}
+            {open && option.label}
           </Button>
         ))}
       </div>
@@ -146,19 +132,20 @@ function NavPanel({ open, options, selectedValue, position, panelSize, setOpen, 
 
 export function NavBar({ options, selectedValue, position, panelSize, className }: NavBarProps) {
 
-  const [open, setOpen] = useState(true)
+  const [open, setOpen] = useState(false)
 
   return (
     <div className={cn(
-      "h-min-content w-min-content",
+      (position === "left" || position === "right") && "h-full",
+      (position === "top" || position === "bottom") && "w-full",
       className
     )}>
       <NavPanel
         open={open}
         options={options}
         selectedValue={selectedValue}
-        position={position || "top"}
-        panelSize={panelSize || 100}
+        position={position || "left"}
+        panelSize={panelSize}
         setOpen={setOpen}
       />
     </div>

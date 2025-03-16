@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { NavBar } from "@/components/common/NavBar"
 
@@ -9,10 +9,6 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
   const pathname = usePathname()
 
   const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   const options = [
     {
@@ -35,17 +31,45 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
     }
   ]
 
+  const navBarRef = useRef<HTMLDivElement>(null)
+  const [navBarWidth, setNavBarWidth] = useState(0)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    const width = navBarRef.current
+    if (!width) return
+
+    setNavBarWidth(width.offsetWidth)
+
+    const observer = new ResizeObserver((entries) => {
+      setNavBarWidth(entries[0].target.clientWidth)
+    })
+
+    observer.observe(width)
+    return () => observer.disconnect()
+  }, [])
+
   return (
     <div className="flex flex-row">
-      <NavBar 
-        options={options} 
-        selectedValue={pathname} 
-        position="left" 
-        className={`flex-1/9 ${mounted ? "opacity-100" : "opacity-0"} transition-opacity duration-500`}
-      />
-      <div className="flex-8/9">
-        {children}
+      <div 
+        ref={navBarRef}
+        className={
+          `fixed left-0 z-50 h-full
+          transition-opacity duration-500
+          ${mounted ? "opacity-100" : "opacity-0"}`
+        }
+      >
+        <NavBar 
+          options={options} 
+          selectedValue={pathname} 
+          position="left" 
+        />
       </div>
+      <div className="mr-4" style={{ height: "100%", width: `${navBarWidth}px` }}></div>
+      {children}
     </div>
   )
 }
