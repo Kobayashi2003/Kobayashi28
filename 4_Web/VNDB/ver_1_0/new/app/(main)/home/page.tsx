@@ -172,7 +172,6 @@ export default function Home() {
           <CardTypeSelecter
             selected={cardType}
             onSelect={handleCardTypeChange}
-            className="hidden sm:block"
           />
           <div className="flex flex-wrap justify-start gap-2">
             {/* Year Selector */}

@@ -33,6 +33,7 @@ const fetchVNDB = async<T>(
   params: VNDBQueryParams = {},
   processor?: (item: T) => T
 ): Promise<PaginatedResponse<T>> => {
+  // TODO: Add auth check
   const queryString = new URLSearchParams(params as Record<string, string>).toString()
   const url = `${getBaseUrl("vndb")}/${endpoint}?${queryString}`
   const response = await fetch(url, { method: "GET", headers: {}, body: null })
