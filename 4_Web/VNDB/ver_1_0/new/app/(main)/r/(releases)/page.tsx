@@ -5,11 +5,11 @@ import Link from "next/link"
 import { useSearchParams, useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "motion/react"
 
-import { TextCard } from "@/components/common/TextCard"
 import { PaginationButtons } from "@/components/common/PaginationButtons"
 import { Loading } from "@/components/common/Loading"
 import { Error } from "@/components/common/Error"
 import { NotFound } from "@/components/common/NotFound"
+import { GenReleaseCard } from "@/utils/genCard"
 
 import { Release_Small, VNDBQueryParams } from "@/lib/types"
 import { api } from "@/lib/api"
@@ -121,7 +121,7 @@ export default function ReleaseSearchResults() {
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.3, delay: 0.1 }}
                 >
-                  <TextCard title={release.title} />
+                  {GenReleaseCard(release)}
                 </motion.div>
               </Link>
             ))}

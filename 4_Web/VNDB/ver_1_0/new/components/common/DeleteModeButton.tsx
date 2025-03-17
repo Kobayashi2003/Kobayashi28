@@ -2,16 +2,16 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Trash, X } from "lucide-react";
 
-interface DelectModeButtonProps {
+interface DeleteModeButtonProps {
 	deleteMode: boolean
 	setDeleteMode: (deleteMode: boolean) => void
 	className?: string
 }
 
-export function DelectModeButton({ deleteMode, setDeleteMode, className }: DelectModeButtonProps) {
+export function DeleteModeButton({ deleteMode, setDeleteMode, className }: DeleteModeButtonProps) {
 	return (
 		<Button
-			key={`delect-mode-button`}
+			key={`delete-mode-button`}
 			size="icon"
 			variant="outline"
 			onClick={() => setDeleteMode(!deleteMode)}

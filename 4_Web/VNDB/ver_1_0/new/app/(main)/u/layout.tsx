@@ -2,14 +2,16 @@
 
 import { useEffect, useState, useRef } from "react"
 import { useRouter, usePathname } from "next/navigation"
+
+import { cn } from "@/lib/utils"
 import { NavBar } from "@/components/common/NavBar"
+import { useHideOnScroll } from "@/hooks/useHideOnScroll"
 
 export default function UserLayout({ children }: { children: React.ReactNode }) {
-  const router = useRouter()
-  const pathname = usePathname()
 
   const [mounted, setMounted] = useState(false)
-
+  const router = useRouter()
+  const pathname = usePathname()
   const options = [
     {
       key: "info",
@@ -30,6 +32,11 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
       onClick: () => { router.push("/u/r") }
     }
   ]
+
+  const { hidden } = useHideOnScroll({
+    scrollThreshold: 50,
+    throttleTime: 100
+  })
 
   const navBarRef = useRef<HTMLDivElement>(null)
   const [navBarWidth, setNavBarWidth] = useState(0)
@@ -54,21 +61,28 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <div className="flex flex-row">
-      <div 
+      <div
         ref={navBarRef}
-        className={
-          `fixed left-0 z-50 h-full
-          transition-opacity duration-500
-          ${mounted ? "opacity-100" : "opacity-0"}`
-        }
+        className={cn(
+          "fixed left-0 z-50 h-full",
+          "transition-opacity duration-500",
+          mounted ? "opacity-100" : "opacity-0",
+          hidden ? "opacity-0" : "opacity-100"
+        )}
       >
-        <NavBar 
-          options={options} 
-          selectedValue={pathname} 
-          position="left" 
+        <NavBar
+          options={options}
+          selectedValue={pathname}
+          position="left"
         />
       </div>
-      <div className="mr-4" style={{ height: "100%", width: `${navBarWidth}px` }}></div>
+      <div
+        className={cn(
+          "transform-width duration-300",
+          !hidden && "mr-4"
+        )}
+        style={{ height: "100%", width: `${!hidden ? navBarWidth : 0}px` }}
+      />
       {children}
     </div>
   )

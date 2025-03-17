@@ -5,11 +5,11 @@ import Link from "next/link"
 import { useSearchParams, useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "motion/react"
 
-import { TextCard } from "@/components/common/TextCard"
 import { PaginationButtons } from "@/components/common/PaginationButtons"
 import { Loading } from "@/components/common/Loading"
 import { Error } from "@/components/common/Error"
 import { NotFound } from "@/components/common/NotFound"
+import { GenTagCard } from "@/utils/genCard"
 
 import { Tag_Small, VNDBQueryParams } from "@/lib/types"
 import { api } from "@/lib/api"
@@ -114,7 +114,7 @@ export default function TagSearchResults() {
             animate={{ filter: "blur(0px)", opacity: 1 }}
             exit={{ filter: "blur(20px)", opacity: 0 }}
             transition={{ duration: 0.5, ease: "easeInOut" }}
-            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {tags.map((tag) => (
               <Link key={`card-${tag.id}`} href={`/g/${tag.id.slice(0, -1)}`}>
                 <motion.div
@@ -123,7 +123,7 @@ export default function TagSearchResults() {
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.3, delay: 0.1 }}
                 >
-                  <TextCard title={tag.name} />
+                  {GenTagCard(tag)}
                 </motion.div>
               </Link>
             ))}

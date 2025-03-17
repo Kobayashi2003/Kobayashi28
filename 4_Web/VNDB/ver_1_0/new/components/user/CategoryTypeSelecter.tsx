@@ -1,6 +1,3 @@
-"use client"
-
-import { useEffect } from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
@@ -8,24 +5,17 @@ interface TypeOption {
   key: string
   value: string
   label: string
-  labelSmall?: string
 }
 
 interface CategoryTypeSelecterProps {
   typeOptions: TypeOption[]
-  selectedValue?: string
+  selectedValue: string
   onChange: (value: string) => void
+  size?: "default" | "sm" | "lg" | "icon" | null | undefined
   className?: string
 }
 
-export function CategoryTypeSelecter({ typeOptions, selectedValue, onChange, className }: CategoryTypeSelecterProps) {
-
-  useEffect(() => {
-    if (!selectedValue && typeOptions.length > 0) {
-      onChange(typeOptions[0].value)
-    }
-  }, [typeOptions])
-
+export function CategoryTypeSelecter({ typeOptions, selectedValue, onChange, size, className }: CategoryTypeSelecterProps) {
   return (
     <div className={cn(
       "flex flex-row flex-wrap gap-2",
@@ -34,7 +24,7 @@ export function CategoryTypeSelecter({ typeOptions, selectedValue, onChange, cla
       {typeOptions.map(typeOption => (
         <Button
           key={`category-type-${typeOption.key}`}
-          size="default"
+          size={size}
           variant="outline"
           onClick={() => onChange(typeOption.value)}
           className={cn(
@@ -43,14 +33,7 @@ export function CategoryTypeSelecter({ typeOptions, selectedValue, onChange, cla
             selectedValue === typeOption.value && "border-2 border-white/40"
           )}
         >
-          {typeOption.labelSmall ? (
-            <>
-              <span className="text-lg hidden sm:block">{typeOption.label}</span>
-              <span className="text-sm block sm:hidden">{typeOption.labelSmall}</span>
-            </>
-          ) : (
-            <span>{typeOption.label}</span>
-          )}
+          <span>{typeOption.label}</span>
         </Button>
       ))}
     </div>

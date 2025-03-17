@@ -5,38 +5,16 @@ import Link from "next/link"
 import { useSearchParams, useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "motion/react"
 
-import { TextCard } from "@/components/common/TextCard"
-import { ImageCard } from "@/components/common/ImageCard"
 import { CardTypeSelecter } from "@/components/common/CardTypeSelecter"
 import { LevelSelecter } from "@/components/common/LevelSelecter"
 import { PaginationButtons } from "@/components/common/PaginationButtons"
 import { Loading } from "@/components/common/Loading"
 import { Error } from "@/components/common/Error"
 import { NotFound } from "@/components/common/NotFound"
+import { GenVNCard } from "@/utils/genCard"
 
 import { VN_Small, VNDBQueryParams } from "@/lib/types"
 import { api } from "@/lib/api"
-
-function GenVNCard(vn: VN_Small, sexualLevel: "safe" | "suggestive" | "explicit", violenceLevel: "tame" | "violent" | "brutal", cardType: "image" | "text") {
-  if (cardType === "text") {
-    return <TextCard title={vn.title} />
-  }
-  const sexual = vn.image?.sexual || 0
-  const violence = vn.image?.violence || 0
-  if (sexualLevel === "safe" && sexual > 0.5 || violenceLevel === "tame" && violence > 0.5) {
-    if (sexual <= 1 && violence <= 1) {
-      const yellow = sexual > 1 && violence > 1 ? `text-yellow-800` : `text-yellow-400`
-      return <ImageCard imageTitle={vn.title} imageUrl={""} imageDims={[0, 0]} textColor={yellow} />
-    }
-    const red = sexual > 1 && violence > 1 ? `text-red-800` : `text-red-400`
-    return <ImageCard imageTitle={vn.title} imageUrl={""} imageDims={[0, 0]} textColor={red} />
-  }
-  if (sexualLevel === "suggestive" && sexual > 1 || violenceLevel === "violent" && violence > 1) {
-    const red = sexual > 1 && violence > 1 ? `text-red-800` : `text-red-400`
-    return <ImageCard imageTitle={vn.title} imageUrl={""} imageDims={[0, 0]} textColor={red} />
-  }
-  return <ImageCard imageTitle={vn.title} imageUrl={vn.image?.thumbnail || vn.image?.url} imageDims={vn.image?.thumbnail_dims || vn.image?.dims} />
-}
 
 export default function VNSearchResults() {
   const router = useRouter()
@@ -204,7 +182,7 @@ export default function VNSearchResults() {
             transition={{ duration: 0.5, ease: "easeInOut" }}
             className={cardType === "image" ?
               "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4" :
-              "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"
+              "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
             }
           >
             {vns.map((vn) => (
