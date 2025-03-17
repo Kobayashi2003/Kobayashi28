@@ -73,8 +73,7 @@ export default function UserCategoriesPage() {
     try {
       setLoadingResources(true)
       const marksResponse = await api.category.getMarks(selectedType, selectedCategoryId)
-      const sortedMarks = marksResponse.results.sort((a, b) => new Date(b.marked_at).getTime() - new Date(a.marked_at).getTime())
-      const markIds = sortedMarks.map(mark => mark.id).join(",")
+      const markIds = marksResponse.results.map(mark => mark.id).join(",")
 
       setTotalPages(Math.ceil(marksResponse.results.length / itemsPerPage))
 
@@ -82,58 +81,39 @@ export default function UserCategoriesPage() {
         case "v":
           const vnsResponse = await api.small.vn({
             id: markIds,
-            sort: "id",
+            sort: "released",
+            reverse: true,
             page: currentPage,
             limit: itemsPerPage,
           })
-          const sortedVns = vnsResponse.results.sort((a, b) => {
-            const aId = parseInt(a.id.slice(1))
-            const bId = parseInt(b.id.slice(1))
-            return sortedMarks.findIndex(mark => mark.id === aId) - sortedMarks.findIndex(mark => mark.id === bId)
-          })
-          setVNs(sortedVns)
+          setVNs(vnsResponse.results)
           break
         case "c":
           const charactersResponse = await api.small.character({
             id: markIds,
-            sort: "id",
+            sort: "name",
             page: currentPage,
             limit: itemsPerPage,
           })
-          const sortedCharacters = charactersResponse.results.sort((a, b) => {
-            const aId = parseInt(a.id.slice(1))
-            const bId = parseInt(b.id.slice(1))
-            return sortedMarks.findIndex(mark => mark.id === aId) - sortedMarks.findIndex(mark => mark.id === bId)
-          })
-          setCharacters(sortedCharacters)
+          setCharacters(charactersResponse.results)
           break
         case "p":
           const producersResponse = await api.small.producer({
             id: markIds,
-            sort: "id",
+            sort: "name",
             page: currentPage,
             limit: itemsPerPage,
           })
-          const sortedProducers = producersResponse.results.sort((a, b) => {
-            const aId = parseInt(a.id.slice(1))
-            const bId = parseInt(b.id.slice(1))
-            return sortedMarks.findIndex(mark => mark.id === aId) - sortedMarks.findIndex(mark => mark.id === bId)
-          })
-          setProducers(sortedProducers)
+          setProducers(producersResponse.results)
           break
         case "s":
           const staffsResponse = await api.small.staff({
             id: markIds,
-            sort: "id",
+            sort: "name",
             page: currentPage,
             limit: itemsPerPage,
           })
-          const sortedStaffs = staffsResponse.results.sort((a, b) => {
-            const aId = parseInt(a.id.slice(1))
-            const bId = parseInt(b.id.slice(1))
-            return sortedMarks.findIndex(mark => mark.id === aId) - sortedMarks.findIndex(mark => mark.id === bId)
-          })
-          setStaffs(sortedStaffs)
+          setStaffs(staffsResponse.results)
           break
       }
     } catch (error) {
