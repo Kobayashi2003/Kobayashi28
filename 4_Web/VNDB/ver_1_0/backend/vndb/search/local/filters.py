@@ -460,6 +460,59 @@ def create_cup_comparison_filter(value: str) -> BinaryExpression:
     return operators[operator](Character.cup, cup_size)
 
 
+def get_vn_additional_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
+    filters = []
+
+    if release_id := params.get('release_id'):
+        filters.append(array_jsonb_exact_match(VN.releases, 'id', release_id))
+
+    if character_id := params.get('character_id'):
+        filters.append(array_jsonb_exact_match(VN.characters, 'id', character_id))
+
+    if staff_id := params.get('staff_id'):
+        filters.append(array_jsonb_exact_match(VN.staff, 'id', staff_id))
+
+    if developer_id := params.get('developer_id'):
+        filters.append(array_jsonb_exact_match(VN.developers, 'id', developer_id))
+
+    return filters
+
+def get_release_additional_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
+    filters = []
+
+    if vn_id := params.get('vn_id'):
+        filters.append(array_jsonb_exact_match(Release.vns, 'id', vn_id))
+
+    if producer_id := params.get('producer_id'):
+        filters.append(array_jsonb_exact_match(Release.producers, 'id', producer_id))
+
+    return filters
+
+def get_character_additional_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
+    filters = []
+
+    if vn_id := params.get('vn_id'):
+        filters.append(array_jsonb_exact_match(Character.vns, 'id', vn_id))
+
+    return filters
+
+def get_producer_additional_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
+    filters = []
+    return filters
+
+def get_staff_additional_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
+    filters = []
+    return filters
+
+def get_tag_additional_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
+    filters = []
+    return filters
+
+def get_trait_additional_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
+    filters = []
+    return filters
+
+
 def get_vn_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     filters = []
 
@@ -578,6 +631,8 @@ def get_vn_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
                 array_jsonb_match(VN.developers, 'original', dev_value)
             )
         filters.append(process_multi_value_expression(developers, process_developer))
+
+    filters.extend(get_vn_additional_filters(params))
 
     return filters
 
@@ -698,6 +753,8 @@ def get_release_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
             )
         filters.append(process_multi_value_expression(producers, process_producer))
 
+    filters.extend(get_release_additional_filters(params))
+
     return filters
 
 def get_character_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
@@ -781,8 +838,14 @@ def get_character_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     if birthday := params.get('birthday'):
         filters.append(create_birthday_comparison_filter(birthday))
 
-    if seiyuu := params.get('seiyuu'): #TODO
-        ...
+    if seiyuu := params.get('seiyuu'):
+        def process_seiyuu(seiyuu_value):
+            return or_(
+                array_jsonb_exact_match(Character.seiyuu, 'id', seiyuu_value),
+                array_jsonb_match(Character.seiyuu, 'name', seiyuu_value),
+                array_jsonb_match(Character.seiyuu, 'original', seiyuu_value)
+            )
+        filters.append(process_multi_value_expression(seiyuu, process_seiyuu))
 
     if vns := params.get('vn'):
         def process_vn(vn_value):
@@ -792,6 +855,8 @@ def get_character_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
             )
         filters.append(process_multi_value_expression(vns, process_vn))
     
+    filters.extend(get_character_additional_filters(params))
+
     return filters
     
 def get_producer_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
@@ -824,6 +889,8 @@ def get_producer_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
             array_jsonb_match(Producer.extlinks, 'name', extlink)
         ))
     
+    filters.extend(get_producer_additional_filters(params))
+
     return filters
 
 def get_staff_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
@@ -872,6 +939,8 @@ def get_staff_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
         else:
             raise ValueError(f"Invalid value for ismain: {ismain}. Use 'true' or 'false'.")
     
+    filters.extend(get_staff_additional_filters(params))
+
     return filters
 
 def get_tag_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
@@ -892,6 +961,8 @@ def get_tag_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     if category := params.get('category'):
         filters.append(Tag.category == category)
     
+    filters.extend(get_tag_additional_filters(params))
+
     return filters
 
 def get_trait_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
@@ -909,7 +980,10 @@ def get_trait_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
             )
         filters.append(process_multi_value_expression(traits, process_trait))
     
+    filters.extend(get_trait_additional_filters(params))
+
     return filters
+
 
 def get_local_filters(search_type: str, params: Dict[str, Any]) -> List[BinaryExpression]:
 

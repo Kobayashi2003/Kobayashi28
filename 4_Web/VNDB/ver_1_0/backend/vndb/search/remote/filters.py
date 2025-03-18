@@ -201,6 +201,64 @@ def parse_int(value: str | None) -> int | None:
     except ValueError:
         return None
 
+
+def get_vn_additional_filters(params: Dict[str, Any]) -> Dict[str, Any]:
+    filters = []
+
+    if release_id := params.get('release_id'):
+        filters.append({"release": ["id", "=", release_id]})
+
+    if character_id := params.get('character_id'):
+        filters.append({"character": ["id", "=", character_id]})
+
+    if staff_id := params.get('staff_id'):
+        filters.append({"staff": ["id", "=", staff_id]})
+
+    if developer_id := params.get('developer_id'):
+        filters.append({"developer": ["id", "=", developer_id]})
+
+    return filters
+
+def get_release_additional_filters(params: Dict[str, Any]) -> Dict[str, Any]:
+    filters = []
+
+    if vn_id := params.get('vn_id'):
+        filters.append({"vn": ["id", "=", vn_id]})
+
+    if producer_id := params.get('producer_id'):
+        filters.append({"producer": ["id", "=", producer_id]})
+
+    return filters
+
+def get_character_additional_filters(params: Dict[str, Any]) -> Dict[str, Any]:
+    filters = []
+
+    if vn_id := params.get('vn_id'):
+        filters.append({"vn": ["id", "=", vn_id]})
+
+    return filters
+
+def get_producer_additional_filters(params: Dict[str, Any]) -> Dict[str, Any]:
+    filters = []
+
+    return filters
+
+def get_staff_additional_filters(params: Dict[str, Any]) -> Dict[str, Any]:
+    filters = []
+
+    return filters
+
+def get_tag_additional_filters(params: Dict[str, Any]) -> Dict[str, Any]:
+    filters = []
+
+    return filters
+
+def get_trait_additional_filters(params: Dict[str, Any]) -> Dict[str, Any]:
+    filters = []
+
+    return filters
+
+
 def get_vn_filters(params: Dict[str, Any]) -> Dict[str, Any]:
     """
     Generate filters for visual novel searches based on the provided parameters.
@@ -248,160 +306,9 @@ def get_vn_filters(params: Dict[str, Any]) -> Dict[str, Any]:
         if value := params.get(field):
             filters.append({field: str(value).lower() == 'true'})
     
+    filters.extend(get_vn_additional_filters(params))
+
     # Wrap in 'and' if there are multiple filters
-    return {"and": filters} if len(filters) > 1 else filters[0] if filters else {}
-
-def get_character_filters(params: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Generate filters for character searches based on the provided parameters.
-    
-    Args:
-        params (Dict[str, Any]): The search parameters.
-    
-    Returns:
-        Dict[str, Any]: A dictionary of filters for character searches.
-    """
-    filters = []
-
-    if id := params.get('id'):
-        filters.append(parse_logical_expression(id, 'id'))
-    
-    if search := params.get('search'):
-        filters.append({"search": search})
-    
-    multi_value_fields = ['role', 'trait', 'dtrait', 'birthday']
-    for field in multi_value_fields:
-        if value := params.get(field):
-            parsed = parse_logical_expression(value, field)
-            if parsed:
-                filters.append(parsed)
-    
-    # Handle nested fields
-    nested_fields = ['seiyuu', 'vn']
-    for field in nested_fields:
-        if value := params.get(field):
-            parsed = parse_logical_expression(value, 'search')
-            if parsed:
-                filters.append({field: parsed})
-    
-    single_value_fields = ['blood_type', 'sex', 'sex_spoil', 'gender', 'gender_spoil', 'cup']
-    for field in single_value_fields:
-        if value := params.get(field):
-            filters.append({field: value})
-    
-    numeric_fields = ['height', 'weight', 'bust', 'waist', 'hips', 'age']
-    for field in numeric_fields:
-        if value := parse_int(params.get(field)):
-            filters.append({field: value})
-    
-    return {"and": filters} if len(filters) > 1 else filters[0] if filters else {}
-
-def get_producer_filters(params: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Generate filters for producer searches based on the provided parameters.
-    
-    Args:
-        params (Dict[str, Any]): The search parameters.
-    
-    Returns:
-        Dict[str, Any]: A dictionary of filters for producer searches.
-    """
-    filters = []
-
-    if id := params.get('id'):
-        filters.append(parse_logical_expression(id, 'id'))
-    
-    if search := params.get('search'):
-        filters.append({"search": search})
-    
-    multi_value_fields = ['lang', 'type']
-    for field in multi_value_fields:
-        if value := params.get(field):
-            parsed = parse_logical_expression(value, field)
-            if parsed:
-                filters.append(parsed)
-    
-    return {"and": filters} if len(filters) > 1 else filters[0] if filters else {}
-
-def get_staff_filters(params: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Generate filters for staff searches based on the provided parameters.
-    
-    Args:
-        params (Dict[str, Any]): The search parameters.
-    
-    Returns:
-        Dict[str, Any]: A dictionary of filters for staff searches.
-    """
-    filters = []
-
-    if id := params.get('id'):
-        filters.append(parse_logical_expression(id, 'id'))
-    
-    if search := params.get('search'):
-        filters.append({"search": search})
-    
-    multi_value_fields = ['lang', 'role']
-    for field in multi_value_fields:
-        if value := params.get(field):
-            parsed = parse_logical_expression(value, field)
-            if parsed:
-                filters.append(parsed)
-    
-    if gender := params.get('gender'):
-        filters.append({"gender": gender})
-    
-    if ismain := params.get('ismain'):
-        filters.append({"ismain": str(ismain).lower() == 'true'})
-
-    if extlink := params.get('extlink'):
-        filters.append({"extlink": extlink})
-
-    return {"and": filters} if len(filters) > 1 else filters[0] if filters else {}
-
-def get_tag_filters(params: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Generate filters for tag searches based on the provided parameters.
-    
-    Args:
-        params (Dict[str, Any]): The search parameters.
-    
-    Returns:
-        Dict[str, Any]: A dictionary of filters for tag searches.
-    """
-    filters = []
-
-    if id := params.get('id'):
-        filters.append(parse_logical_expression(id, 'id'))
-    
-    if search := params.get('search'):
-        filters.append({"search": search})
-    
-    if category := params.get('category'):
-        parsed = parse_logical_expression(category, 'category')
-        if parsed:
-            filters.append(parsed)
-    
-    return {"and": filters} if len(filters) > 1 else filters[0] if filters else {}
-
-def get_trait_filters(params: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Generate filters for trait searches based on the provided parameters.
-    
-    Args:
-        params (Dict[str, Any]): The search parameters.
-    
-    Returns:
-        Dict[str, Any]: A dictionary of filters for trait searches.
-    """
-    filters = []
-
-    if id := params.get('id'):
-        filters.append(parse_logical_expression(id, 'id'))
-    
-    if search := params.get('search'):
-        filters.append({"search": search})
-    
     return {"and": filters} if len(filters) > 1 else filters[0] if filters else {}
 
 def get_release_filters(params: Dict[str, Any]) -> Dict[str, Any]:
@@ -476,7 +383,173 @@ def get_release_filters(params: Dict[str, Any]) -> Dict[str, Any]:
     if extlink := params.get('extlink'):
         filters.append({"extlink": extlink})
 
+    filters.extend(get_release_additional_filters(params))
+
     return {"and": filters} if len(filters) > 1 else filters[0] if filters else {}
+
+def get_character_filters(params: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Generate filters for character searches based on the provided parameters.
+    
+    Args:
+        params (Dict[str, Any]): The search parameters.
+    
+    Returns:
+        Dict[str, Any]: A dictionary of filters for character searches.
+    """
+    filters = []
+
+    if id := params.get('id'):
+        filters.append(parse_logical_expression(id, 'id'))
+    
+    if search := params.get('search'):
+        filters.append({"search": search})
+    
+    multi_value_fields = ['role', 'trait', 'dtrait', 'birthday']
+    for field in multi_value_fields:
+        if value := params.get(field):
+            parsed = parse_logical_expression(value, field)
+            if parsed:
+                filters.append(parsed)
+    
+    # Handle nested fields
+    nested_fields = ['seiyuu', 'vn']
+    for field in nested_fields:
+        if value := params.get(field):
+            parsed = parse_logical_expression(value, 'search')
+            if parsed:
+                filters.append({field: parsed})
+    
+    single_value_fields = ['blood_type', 'sex', 'sex_spoil', 'gender', 'gender_spoil', 'cup']
+    for field in single_value_fields:
+        if value := params.get(field):
+            filters.append({field: value})
+    
+    numeric_fields = ['height', 'weight', 'bust', 'waist', 'hips', 'age']
+    for field in numeric_fields:
+        if value := parse_int(params.get(field)):
+            filters.append({field: value})
+    
+    filters.extend(get_character_additional_filters(params))
+
+    return {"and": filters} if len(filters) > 1 else filters[0] if filters else {}
+
+def get_producer_filters(params: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Generate filters for producer searches based on the provided parameters.
+    
+    Args:
+        params (Dict[str, Any]): The search parameters.
+    
+    Returns:
+        Dict[str, Any]: A dictionary of filters for producer searches.
+    """
+    filters = []
+
+    if id := params.get('id'):
+        filters.append(parse_logical_expression(id, 'id'))
+    
+    if search := params.get('search'):
+        filters.append({"search": search})
+    
+    multi_value_fields = ['lang', 'type']
+    for field in multi_value_fields:
+        if value := params.get(field):
+            parsed = parse_logical_expression(value, field)
+            if parsed:
+                filters.append(parsed)
+    
+    filters.extend(get_producer_additional_filters(params))
+
+    return {"and": filters} if len(filters) > 1 else filters[0] if filters else {}
+
+def get_staff_filters(params: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Generate filters for staff searches based on the provided parameters.
+    
+    Args:
+        params (Dict[str, Any]): The search parameters.
+    
+    Returns:
+        Dict[str, Any]: A dictionary of filters for staff searches.
+    """
+    filters = []
+
+    if id := params.get('id'):
+        filters.append(parse_logical_expression(id, 'id'))
+    
+    if search := params.get('search'):
+        filters.append({"search": search})
+    
+    multi_value_fields = ['lang', 'role']
+    for field in multi_value_fields:
+        if value := params.get(field):
+            parsed = parse_logical_expression(value, field)
+            if parsed:
+                filters.append(parsed)
+    
+    if gender := params.get('gender'):
+        filters.append({"gender": gender})
+    
+    if ismain := params.get('ismain'):
+        filters.append({"ismain": str(ismain).lower() == 'true'})
+
+    if extlink := params.get('extlink'):
+        filters.append({"extlink": extlink})
+
+    filters.extend(get_staff_additional_filters(params))
+
+    return {"and": filters} if len(filters) > 1 else filters[0] if filters else {}
+
+def get_tag_filters(params: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Generate filters for tag searches based on the provided parameters.
+    
+    Args:
+        params (Dict[str, Any]): The search parameters.
+    
+    Returns:
+        Dict[str, Any]: A dictionary of filters for tag searches.
+    """
+    filters = []
+
+    if id := params.get('id'):
+        filters.append(parse_logical_expression(id, 'id'))
+    
+    if search := params.get('search'):
+        filters.append({"search": search})
+    
+    if category := params.get('category'):
+        parsed = parse_logical_expression(category, 'category')
+        if parsed:
+            filters.append(parsed)
+    
+    filters.extend(get_tag_additional_filters(params))
+
+    return {"and": filters} if len(filters) > 1 else filters[0] if filters else {}
+
+def get_trait_filters(params: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Generate filters for trait searches based on the provided parameters.
+    
+    Args:
+        params (Dict[str, Any]): The search parameters.
+    
+    Returns:
+        Dict[str, Any]: A dictionary of filters for trait searches.
+    """
+    filters = []
+
+    if id := params.get('id'):
+        filters.append(parse_logical_expression(id, 'id'))
+    
+    if search := params.get('search'):
+        filters.append({"search": search})
+    
+    filters.extend(get_trait_additional_filters(params))
+
+    return {"and": filters} if len(filters) > 1 else filters[0] if filters else {}
+
 
 def get_remote_filters(search_type: str, params: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -495,6 +568,8 @@ def get_remote_filters(search_type: str, params: Dict[str, Any]) -> Dict[str, An
 
     if search_type == 'vn':
         return get_vn_filters(params)
+    elif search_type == 'release':
+        return get_release_filters(params)
     elif search_type == 'character':
         return get_character_filters(params)
     elif search_type == 'producer':
@@ -505,8 +580,6 @@ def get_remote_filters(search_type: str, params: Dict[str, Any]) -> Dict[str, An
         return get_tag_filters(params)
     elif search_type == 'trait':
         return get_trait_filters(params)
-    elif search_type == 'release':
-        return get_release_filters(params)
     else:
         raise ValueError(f"Invalid search_type: {search_type}")
 

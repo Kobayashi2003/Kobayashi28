@@ -302,11 +302,12 @@ def search(resource_type: str, params: Dict[str, Any], response_size: str = 'sma
             )['results']
 
             seiyuu = list({
-                (d['id'], d['name'], d['note']): d 
+                (d['id'], d['name'], d['original'], d['note']): d 
                 for d in [
                     {
                         'id': va['staff']['id'],
                         'name': va['staff']['name'],
+                        'original': va['staff']['original'],
                         'note': va['note']
                     }
                     for vn in vns

@@ -1,5 +1,4 @@
 from flask import Blueprint, abort, jsonify, request
-from vndb.database import updatable
 from vndb.tasks.resources import (
     search_resources_task, search_remote_and_update_database_task
 )

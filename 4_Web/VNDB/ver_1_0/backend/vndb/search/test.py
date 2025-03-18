@@ -4,11 +4,10 @@ if __name__ == '__main__':
     print(search(
         resource_type='vn',
         params={
-            'id':"v53937",
-            'released':">=2025-02-01+<2025-03-01"
+            'developer_id': 'p98'
         },
-        sort='released',
+        sort='id',
         page=1,
-        limit=100,
+        limit=10,
         response_size='small'
     ))
