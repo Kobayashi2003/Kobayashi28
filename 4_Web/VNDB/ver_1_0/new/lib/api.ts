@@ -194,27 +194,31 @@ export const api = {
 
   by_id: {
     vn: (id: number, params: VNDBQueryParams = {}) => {
-      params.size = "large"; return fetchVNDBById<VN>(`v/${id}`, params, processVNImages)
+      params.size = "large"; return fetchVNDBById<VN>(`v${id}`, params, processVNImages)
     },
 
     release: (id: number, params: VNDBQueryParams = {}) => {
-      params.size = "large"; return fetchVNDBById<Release>(`r/${id}`, params, processReleaseImages)
+      params.size = "large"; return fetchVNDBById<Release>(`r${id}`, params, processReleaseImages)
     },
 
     character: (id: number, params: VNDBQueryParams = {}) => {
-      params.size = "large"; return fetchVNDBById<Character>(`c/${id}`, params, processCharacterImages)
+      params.size = "large"; return fetchVNDBById<Character>(`c${id}`, params, processCharacterImages)
+    },
+
+    producer: (id: number, params: VNDBQueryParams = {}) => {
+      params.size = "large"; return fetchVNDBById<Producer>(`p${id}`, params)
     },
     
     staff: (id: number, params: VNDBQueryParams = {}) => {
-      params.size = "large"; return fetchVNDBById<Staff>(`s/${id}`, params)
+      params.size = "large"; return fetchVNDBById<Staff>(`s${id}`, params)
     },
 
     tag: (id: number, params: VNDBQueryParams = {}) => {
-      params.size = "large"; return fetchVNDBById<Tag>(`g/${id}`, params)
+      params.size = "large"; return fetchVNDBById<Tag>(`g${id}`, params)
     },
 
     trait: (id: number, params: VNDBQueryParams = {}) => {
-      params.size = "large"; return fetchVNDBById<Trait>(`i/${id}`, params)
+      params.size = "large"; return fetchVNDBById<Trait>(`i${id}`, params)
     }
   },
 
@@ -242,31 +246,31 @@ export const api = {
 
     by_id: {
       vn: (id: number, params: VNDBQueryParams = {}) => {
-        params.size = "small"; return fetchVNDBById<VN_Small>(`v/${id}`, params, processSmallVNImages)
+        params.size = "small"; return fetchVNDBById<VN_Small>(`v${id}`, params, processSmallVNImages)
       },
 
       release: (id: number, params: VNDBQueryParams = {}) => {
-        params.size = "small"; return fetchVNDBById<Release_Small>(`r/${id}`, params)
+        params.size = "small"; return fetchVNDBById<Release_Small>(`r${id}`, params)
       },
 
       character: (id: number, params: VNDBQueryParams = {}) => {
-        params.size = "small"; return fetchVNDBById<Character_Small>(`c/${id}`, params, processSmallCharacterImages)
+        params.size = "small"; return fetchVNDBById<Character_Small>(`c${id}`, params, processSmallCharacterImages)
       },
       
       producer: (id: number, params: VNDBQueryParams = {}) => {
-        params.size = "small"; return fetchVNDBById<Producer_Small>(`p/${id}`, params)
+        params.size = "small"; return fetchVNDBById<Producer_Small>(`p${id}`, params)
       },
 
       staff: (id: number, params: VNDBQueryParams = {}) => {
-        params.size = "small"; return fetchVNDBById<Staff_Small>(`s/${id}`, params)
+        params.size = "small"; return fetchVNDBById<Staff_Small>(`s${id}`, params)
       },
 
       tag: (id: number, params: VNDBQueryParams = {}) => {
-        params.size = "small"; return fetchVNDBById<Tag_Small>(`g/${id}`, params)
+        params.size = "small"; return fetchVNDBById<Tag_Small>(`g${id}`, params)
       },
 
       trait: (id: number, params: VNDBQueryParams = {}) => {
-        params.size = "small"; return fetchVNDBById<Trait_Small>(`i/${id}`, params)
+        params.size = "small"; return fetchVNDBById<Trait_Small>(`i${id}`, params)
       }
     }
   },

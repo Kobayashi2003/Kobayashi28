@@ -1,61 +1,61 @@
 {
-    "version": "0.2.0",
-    "configurations": [
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "C Run in Linux",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceRoot}/Debug/${fileBasenameNoExtension}.o",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${fileDirname}",
+      "environment": [],
+      "externalConsole": false,
+      "internalConsoleOptions": "neverOpen",
+      "MIMode": "gdb",
+      "miDebuggerPath": "/usr/bin/gdb",
+      "miDebuggerArgs": "-q -ex quit; wait() { fg >/dev/null; }; /bin/gdb -q --interpreter=mi",
+      "setupCommands": [
         {
-            "name": "C Run in Linux",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "${workspaceRoot}/Debug/${fileBasenameNoExtension}.o",
-            "args": [],
-            "stopAtEntry": false,
-            "cwd": "${fileDirname}",
-            "environment": [],
-            "externalConsole": false,
-            "internalConsoleOptions": "neverOpen",
-            "MIMode": "gdb",
-            "miDebuggerPath": "/usr/bin/gdb",
-            "miDebuggerArgs": "-q -ex quit; wait() { fg >/dev/null; }; /bin/gdb -q --interpreter=mi",
-            "setupCommands": [
-                {
-                    "description": "Enable pretty-printing for gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                },
-                {
-                    "description": "Set disassembly flavor to Intel",
-                    "text": "-gdb-set disassembly-flavor intel",
-                    "ignoreFailures": true
-                }
-            ],
-            "preLaunchTask": "Compile_C_in_Linux"
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
         },
         {
-            "name": "C++ Run in Linux",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "${workspaceRoot}/Debug/${fileBasenameNoExtension}.o",
-            "args": [],
-            "stopAtEntry": false,
-            "cwd": "${fileDirname}",
-            "environment": [],
-            "externalConsole": false,
-            "internalConsoleOptions": "neverOpen",
-            "MIMode": "gdb",
-            "miDebuggerPath": "/usr/bin/gdb",
-            "miDebuggerArgs": "-q -ex quit; wait() { fg >/dev/null; }; /bin/gdb -q --interpreter=mi",
-            "setupCommands": [
-                {
-                    "description": "Enable pretty-printing for gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                },
-                {
-                    "description": "Set disassembly flavor to Intel",
-                    "text": "-gdb-set disassembly-flavor intel",
-                    "ignoreFailures": true
-                }
-            ],
-            "preLaunchTask": "Compile_C++_in_Linux"
+          "description": "Set disassembly flavor to Intel",
+          "text": "-gdb-set disassembly-flavor intel",
+          "ignoreFailures": true
         }
-    ]
+      ],
+      "preLaunchTask": "Compile_C_in_Linux"
+    },
+    {
+      "name": "C++ Run in Linux",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceRoot}/Debug/${fileBasenameNoExtension}.o",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${fileDirname}",
+      "environment": [],
+      "externalConsole": false,
+      "internalConsoleOptions": "neverOpen",
+      "MIMode": "gdb",
+      "miDebuggerPath": "/usr/bin/gdb",
+      "miDebuggerArgs": "-q -ex quit; wait() { fg >/dev/null; }; /bin/gdb -q --interpreter=mi",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        },
+        {
+          "description": "Set disassembly flavor to Intel",
+          "text": "-gdb-set disassembly-flavor intel",
+          "ignoreFailures": true
+        }
+      ],
+      "preLaunchTask": "Compile_C++_in_Linux"
+    }
+  ]
 }

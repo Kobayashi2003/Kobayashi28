@@ -10,16 +10,43 @@ import { PlatformsRow } from "./PlatformsRow"
 import { DevelopersRow } from "./DevelopersRow"
 import { RelationsRow } from "./RelationsRow"
 import { ExtlinksRow } from "../common/ExtlinksRow"
+import { Loading } from "@/components/common/Loading"
+import { Error } from "@/components/common/Error"
+import { NotFound } from "@/components/common/NotFound"
 
 import type { VN } from "@/lib/types"
 
 interface VNDetailsPanelProps {
-  vn: VN
+  vn: VN | null
   loading?: boolean
   error?: string | null
 }
 
 export function VNDetailsPanel({ vn, loading, error }: VNDetailsPanelProps) {
+
+  if (loading) {
+    return (
+      <div className="container mx-auto">
+        <Loading message="Loading..." />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto">
+        <Error message={`Error: ${error}`} />
+      </div>
+    )
+  }
+
+  if (!vn) {
+    return (
+      <div className="container mx-auto">
+        <NotFound message="No VN found" />
+      </div>
+    )
+  }
 
   // TITLE
   const mainTitle = vn.title
@@ -62,16 +89,8 @@ export function VNDetailsPanel({ vn, loading, error }: VNDetailsPanelProps) {
   }, [sexualLevel, violenceLevel])
 
   return (
-    <div>
-      {loading && (
-        <></>
-      )}
-      {error && (
-        <></>
-      )}
-      {!loading && !error && (
-        <></>
-      )}
+    <div className="container mx-auto">
+      {mainTitle}
     </div>
   )
 }

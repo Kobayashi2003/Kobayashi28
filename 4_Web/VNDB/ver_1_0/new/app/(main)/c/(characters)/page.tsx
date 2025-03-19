@@ -185,7 +185,7 @@ export default function CharacterSearchResults() {
               `grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4`
             }>
             {characters.map((character) => (
-              <Link key={`card-${character.id}`} href={`/c/${character.id.slice(1, -1)}`}>
+              <Link key={`card-${character.id}`} href={`/c/${character.id.slice(1)}`}>
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}

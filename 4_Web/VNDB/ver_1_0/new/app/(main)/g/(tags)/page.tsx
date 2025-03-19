@@ -116,7 +116,7 @@ export default function TagSearchResults() {
             transition={{ duration: 0.5, ease: "easeInOut" }}
             className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {tags.map((tag) => (
-              <Link key={`card-${tag.id}`} href={`/g/${tag.id.slice(0, -1)}`}>
+              <Link key={`card-${tag.id}`} href={`/g/${tag.id.slice(1)}`}>
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}

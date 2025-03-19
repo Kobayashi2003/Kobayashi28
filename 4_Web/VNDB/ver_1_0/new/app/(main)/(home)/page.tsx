@@ -290,7 +290,7 @@ export default function Home() {
             }
           >
             {vns.map((vn) => (
-              <Link key={`card-${vn.id}`} href={`/v/${vn.id.slice(1, -1)}`}>
+              <Link key={`card-${vn.id}`} href={`/v/${vn.id.slice(1)}`}>
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}

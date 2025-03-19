@@ -113,7 +113,7 @@ export default function ProducerSearchResults() {
             transition={{ duration: 0.5, ease: "easeInOut" }}
             className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {producers.map((producer) => (
-              <Link key={`card-${producer.id}`} href={`/p/${producer.id.slice(1, -1)}`}>
+              <Link key={`card-${producer.id}`} href={`/p/${producer.id.slice(1)}`}>
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}

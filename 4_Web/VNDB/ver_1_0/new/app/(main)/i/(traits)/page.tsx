@@ -113,7 +113,7 @@ export default function TraitSearchResults() {
             exit={{ filter: "blur(20px)", opacity: 0 }}
             className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {traits.map((trait) => (
-              <Link key={`card-${trait.id}`} href={`/i/${trait.id.slice(1, -1)}`}>
+              <Link key={`card-${trait.id}`} href={`/i/${trait.id.slice(1)}`}>
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}

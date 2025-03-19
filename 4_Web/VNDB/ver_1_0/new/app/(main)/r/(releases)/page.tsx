@@ -114,7 +114,7 @@ export default function ReleaseSearchResults() {
             transition={{ duration: 0.5, ease: "easeInOut" }}
             className="flex flex-col gap-2">
             {releases.map((release) => (
-              <Link key={`card-${release.id}`} href={`/r/${release.id.slice(1, -1)}`}>
+              <Link key={`card-${release.id}`} href={`/r/${release.id.slice(1)}`}>
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}

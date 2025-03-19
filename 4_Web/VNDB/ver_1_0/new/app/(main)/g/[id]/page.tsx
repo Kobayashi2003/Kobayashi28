@@ -3,34 +3,36 @@
 import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
 
-import type { Trait } from "@/lib/types"
+import type { Tag } from "@/lib/types"
 import { api } from "@/lib/api"
+import { error } from "console"
 
-export default function TraitPage() {
+export default function TagPage() {
   const params = useParams()
   const id = parseInt(params.id as string)
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [trait, setTrait] = useState<Trait | null>(null)
+  const [tag, setTag] = useState<Tag | null>(null)
 
   useEffect(() => {
-    const fetchTrait = async () => {
+    const fetchTag = async () => {
       try {
-        const trait = await api.by_id.trait(id)
-        setTrait(trait)
+        const tag = await api.by_id.tag(id)
+        setTag(tag)
       } catch (error) {
         setError(error as string)
       } finally {
         setLoading(false)
       }
     }
-    fetchTrait()
+    fetchTag()
   }, [])
 
   return (
     <div className="container mx-auto">
-      {JSON.stringify(trait)}
+      {JSON.stringify(tag)}
     </div>
   )
 }
+

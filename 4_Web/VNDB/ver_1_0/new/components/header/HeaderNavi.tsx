@@ -12,7 +12,7 @@ interface HeaderNaviProps {
 export function HeaderNavi({ className }: HeaderNaviProps) {
   const router = useRouter()
   const pathname = usePathname()
-  const isHomePage = pathname === "/home"
+  const isHomePage = pathname === "/"
 
   return (
     <div className={`flex flex-row justify-between items-center gap-1 ${className} select-none`}>
@@ -28,9 +28,9 @@ export function HeaderNavi({ className }: HeaderNaviProps) {
         </Button>
       )}
       <Link 
-        href="/home" 
+        href="/" 
         className="hover:opacity-80 transition-opacity"
-        onClick={() => isHomePage ? window.location.reload() : router.push("/home")}
+        onClick={() => isHomePage ? window.location.reload() : router.push("/")}
       >
         <h1 className="font-serif italic font-black text-xl text-white">VNDB</h1>
       </Link>

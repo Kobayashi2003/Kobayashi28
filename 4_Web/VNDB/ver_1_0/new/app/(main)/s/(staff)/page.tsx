@@ -113,7 +113,7 @@ export default function StaffSearchResults() {
             transition={{ duration: 0.5, ease: "easeInOut" }}
             className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {staff.map((staff, index) => (
-              <Link key={`card-${index}-${staff.id}`} href={`/s/${staff.id.slice(1, -1)}`}>
+              <Link key={`card-${index}-${staff.id}`} href={`/s/${staff.id.slice(1)}`}>
                 {GenStaffCard(staff)}
               </Link>
             ))}

@@ -3,34 +3,35 @@
 import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
 
-import type { Trait } from "@/lib/types"
+import type { Character } from "@/lib/types"
 import { api } from "@/lib/api"
 
-export default function TraitPage() {
+export default function CharacterPage() {
+
   const params = useParams()
   const id = parseInt(params.id as string)
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [trait, setTrait] = useState<Trait | null>(null)
+  const [character, setCharacter] = useState<Character | null>(null)
 
   useEffect(() => {
-    const fetchTrait = async () => {
+    const fetchCharacter = async () => {
       try {
-        const trait = await api.by_id.trait(id)
-        setTrait(trait)
+        const character = await api.by_id.character(id)
+        setCharacter(character)
       } catch (error) {
         setError(error as string)
       } finally {
         setLoading(false)
       }
     }
-    fetchTrait()
+    fetchCharacter()
   }, [])
 
   return (
     <div className="container mx-auto">
-      {JSON.stringify(trait)}
+      {JSON.stringify(character)}
     </div>
   )
 }
