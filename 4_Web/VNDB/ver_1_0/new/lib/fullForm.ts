@@ -80,4 +80,11 @@ export const FULL_FORM = {
     n3d: "Nintendo 3DS",
     web: "Web",
   },
+  "LENGTH": {
+    1: "Very Short",
+    2: "Short",
+    3: "Medium",
+    4: "Long",
+    5: "Very Long",
+  },
 } as const
