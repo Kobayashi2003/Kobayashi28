@@ -475,6 +475,16 @@ def get_vn_additional_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     if developer_id := params.get('developer_id'):
         filters.append(array_jsonb_exact_match(VN.developers, 'id', developer_id))
 
+    if str(params.get('ero')).lower() == 'false':
+        filters.append(and_(
+            ~exists(select(1).select_from(func.unnest(VN.tags).alias('tag')).where(text("tag->>'category' = 'ero'"))),
+            ~exists(select(1).select_from(func.unnest(VN.screenshots).alias('screenshot')).where(or_(
+                text("(screenshot->>'ero')::float > 0.5"), text("(screenshot->>'violence')::float > 0.5")
+            ))),
+            or_(VN.image.is_(None), ~VN.image.has_key('sexual'), text("(vns.image->>'sexual')::float <= 0.5")),
+            or_(VN.image.is_(None), ~VN.image.has_key('violence'), text("(vns.image->>'violence')::float <= 0.5"))
+        ))
+
     return filters
 
 def get_release_additional_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
@@ -486,6 +496,15 @@ def get_release_additional_filters(params: Dict[str, Any]) -> List[BinaryExpress
     if producer_id := params.get('producer_id'):
         filters.append(array_jsonb_exact_match(Release.producers, 'id', producer_id))
 
+    if str(params.get('ero')).lower() == 'false':
+        filters.append(and_(
+            Release.has_ero == False,
+            ~exists(select(1).select_from(func.unnest(Release.images).alias('image')).where(or_(
+                text("(image->>'sexual')::float > 0.5"), 
+                text("(image->>'violence')::float > 0.5")
+            )))
+        ))
+
     return filters
 
 def get_character_additional_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
@@ -493,6 +512,15 @@ def get_character_additional_filters(params: Dict[str, Any]) -> List[BinaryExpre
 
     if vn_id := params.get('vn_id'):
         filters.append(array_jsonb_exact_match(Character.vns, 'id', vn_id))
+
+    if str(params.get('ero')).lower() == 'false':
+        filters.append(and_(
+            ~exists(select(1).select_from(func.unnest(Character.traits).alias('trait')).where(or_(
+                text("trait->>'name' ILIKE '%sexual%'"), text("trait->>'group_name' ILIKE '%sexual%'")
+            ))),
+            or_(Character.image.is_(None), ~Character.image.has_key('sexual'), text("(characters.image->>'sexual')::float <= 0.5")),
+            or_(Character.image.is_(None), ~Character.image.has_key('violence'), text("(characters.image->>'violence')::float <= 0.5")),
+        ))
 
     return filters
 
@@ -506,10 +534,21 @@ def get_staff_additional_filters(params: Dict[str, Any]) -> List[BinaryExpressio
 
 def get_tag_additional_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     filters = []
+
+    if str(params.get('ero')).lower() == 'false':
+        filters.append(or_(Tag.category.is_(None), Tag.category != "ero"))
+
     return filters
 
 def get_trait_additional_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     filters = []
+
+    if str(params.get('ero')).lower() == 'false':
+        filters.append(and_(
+            or_(Trait.name.is_(None), ~Trait.name.ilike('%sexual%')),
+            or_(Trait.group_name.is_(None), ~Trait.group_name.ilike('%sexual%'))
+        ))
+
     return filters
 
 

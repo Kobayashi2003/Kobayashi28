@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react"
 import { useRouter, usePathname } from "next/navigation"
+import { useUserContext } from "@/context/UserContext"
 
 import { cn } from "@/lib/utils"
 import { NavBar } from "@/components/common/NavBar"
@@ -9,6 +10,7 @@ import { useHideOnScroll } from "@/hooks/useHideOnScroll"
 
 export default function UserLayout({ children }: { children: React.ReactNode }) {
 
+  const { user, isLoading } = useUserContext()
   const [mounted, setMounted] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
@@ -44,6 +46,12 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.push("/")
+    }
+  }, [isLoading, user, router])
 
   useEffect(() => {
     const width = navBarRef.current

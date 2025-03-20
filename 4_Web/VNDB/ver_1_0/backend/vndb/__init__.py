@@ -66,7 +66,7 @@ def create_app(config_class=Config):
 
     from .tasks.simple import simple_task
     from .tasks.backup import backup_database
-    from .tasks.random import random_fetch, random_update
+    from .tasks.random import random_fetch_task, random_update_task
 
     # ----------------------------------------
     # Blueprint Registration

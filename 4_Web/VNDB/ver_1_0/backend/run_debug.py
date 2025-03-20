@@ -24,7 +24,7 @@ def run_redis_server():
 def run_celery_worker(app_name):
     print(f"Starting Celery worker for {app_name}")
     celery_process = subprocess.Popen([
-        'celery', '-A', app_name, 'worker', '--pool=solo', '--loglevel=info',
+        'celery', '-A', f'celery_worker.{app_name}_celery', 'worker', '--pool=solo', '--loglevel=info',
     ], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
 
     def log_celery():

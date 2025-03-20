@@ -54,6 +54,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem("username", username)
       const userData = await api.user.get(username)
       setUser(userData)
+      window.location.reload()
     }
     catch (error) {
       console.error("Registration failed:", error)
@@ -68,6 +69,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem("username", username)
       const userData = await api.user.get(username)
       setUser(userData)
+      window.location.reload()
     }
     catch (error) {
       console.error("Login failed:", error)
@@ -80,6 +82,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem("access_token")
       localStorage.removeItem("username")
       setUser(null)
+      window.location.reload()
     } catch (error) {
       console.error("Logout failed:", error)
       throw error
