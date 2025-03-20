@@ -1,4 +1,3 @@
-import random
 from typing import Dict, List, Any
 
 from vndb.search import (
