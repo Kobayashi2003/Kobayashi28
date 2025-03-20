@@ -30,7 +30,8 @@ export function HeaderNavi({ className }: HeaderNaviProps) {
       <Link 
         href="/" 
         className="hover:opacity-80 transition-opacity"
-        onClick={() => isHomePage ? window.location.reload() : router.push("/")}
+        // onClick={() => isHomePage ? window.location.reload() : router.push("/")}
+        onClick={() => isHomePage ? router.replace("/") : router.push("/")}
       >
         <h1 className="font-serif italic font-black text-xl text-white">VNDB</h1>
       </Link>

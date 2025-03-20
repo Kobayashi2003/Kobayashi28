@@ -1,13 +1,13 @@
+import random
 from typing import Dict, List, Any
 
 from vndb.search import (
     search_remote, search_local,
-    convert_remote_to_local,
-    search_remote_and_update_database
+    convert_remote_to_local
 )
 from vndb.database import (
-    get, get_all, create, update, updatable,
-    delete, delete_all, exists, count_all 
+    get_all, create, update, updatable,
+    delete, delete_all, exists
 )
 from .common import (
     task_with_memoize, task_with_cache_clear,
@@ -15,56 +15,51 @@ from .common import (
 )
 
 @task_with_memoize(timeout=600)
-def get_resource_task(resource_type: str, resource_id: str) -> Dict[str, Any]:
-    result = get(resource_type, resource_id)
-    return format_results(result)
-
-@task_with_memoize(timeout=600)
-def get_resources_task(resource_type: str, page: int = None, limit: int = None, sort: str = 'id', reverse: bool = False, count: bool = True) -> Dict[str, Any]:
-    results = get_all(resource_type, page, limit, sort, reverse)
-    if not results:
-        return NOT_FOUND
-    total = count_all(resource_type)
-    more = (page * limit) < total if page and limit else False
-
-    results = format_results(results)
-    if count:
-        results['count'] = total
-    results['more'] = more
-    return results
-
-@task_with_memoize(timeout=600)
-def search_resource_task(resource_type: str, resource_id: str, response_size: str = 'small') -> Dict[str, Any]:
-
+def get_resource_task(resource_type: str, resource_id: str, response_size: str = 'small') -> Dict[str, Any]:
     results = search_local(resource_type, {'id': resource_id}, response_size)
-    if results and isinstance(results, dict) and results.get('results'):
-        results = format_results(results)
-        results['source'] = 'local'
-        return results
-
-    results = search_remote(resource_type, {'id': resource_id}, response_size)
-    if results and isinstance(results, dict) and results.get('results'):
-        results = format_results(results)
-        results['source'] = 'remote'
-        return results
-
-    return NOT_FOUND
-
-@task_with_memoize(timeout=600)
-def search_resources_task(resource_type: str, search_from: str, params: Dict[str, Any], response_size: str = 'small',
-                           page: int = None, limit: int = None, sort: str = 'id', reverse: bool = False, count: bool = True) -> Dict[str, Any]:
-    if search_from == 'local':
-        results = search_local(resource_type, params, response_size, page, limit, sort, reverse, count)
-    elif search_from == 'remote':
-        results = search_remote(resource_type, params, response_size, page, limit, sort, reverse, count)
-    else:
-        raise ValueError(f"Invalid search_from value: {search_from}. Only 'local' and 'remote' are supported.")
-    
     if not results or not isinstance(results, dict) or not results.get('results'):
         return NOT_FOUND
 
     results = format_results(results)
-    results['source'] = search_from
+    results['source'] = 'local'
+    return results
+
+@task_with_memoize(timeout=600)
+def get_resources_task(resource_type: str, args: Dict[str, Any], response_size: str = 'small',
+                       page: int = 1, limit: int = 20, sort: str = 'id', reverse: bool = False, count: bool = True) -> Dict[str, Any]:
+    results = search_local(resource_type, args, response_size, page, limit, sort, reverse, count)
+    if not results or not isinstance(results, dict) or not results.get('results'):
+        return NOT_FOUND
+
+    results = format_results(results)
+    results['source'] = 'local'
+    return results
+
+@task_with_memoize(timeout=600)
+def search_resource_task(resource_type: str, resource_id: str, response_size: str = 'small') -> Dict[str, Any]:
+    results = search_remote(resource_type, {'id': resource_id}, response_size)
+    if not results or not isinstance(results, dict) or not results.get('results'):
+        return NOT_FOUND
+
+    if response_size == 'large':
+        synchronize_resources_task.delay(resource_type, results['results'])
+
+    results = format_results(results)
+    results['source'] = 'remote'
+    return results
+
+@task_with_memoize(timeout=600)
+def search_resources_task(resource_type: str, params: Dict[str, Any], response_size: str = 'small',
+                           page: int = 1, limit: int = 20, sort: str = 'id', reverse: bool = False, count: bool = True) -> Dict[str, Any]:
+    results = search_remote(resource_type, params, response_size, page, limit, sort, reverse, count)
+    if not results or not isinstance(results, dict) or not results.get('results'):
+        return NOT_FOUND
+
+    if response_size == 'large':
+        synchronize_resources_task.delay(resource_type, results['results'])
+
+    results = format_results(results)
+    results['source'] = 'remote'
     return results
    
 @task_with_cache_clear
@@ -121,7 +116,7 @@ def edit_resources_task(resouce_type: str, update_datas: List[Dict[str, Any]]) -
 
 
 @task_with_cache_clear
-def update_resources_from_search_results_task(resource_type: str, results: List[Dict[str, Any]]) -> Dict[str, Dict[str, bool]]:
+def synchronize_resources_task(resource_type: str, results: List[Dict[str, Any]]) -> Dict[str, Dict[str, bool]]:
     created = {}
     updated = {}
     for result in results:
@@ -131,17 +126,3 @@ def update_resources_from_search_results_task(resource_type: str, results: List[
         elif updatable(resource_type, id):
             updated[id] = (update(resource_type, id, result) is not None)
     return {'created': created, 'updated': updated}
-
-@task_with_cache_clear
-def search_remote_and_update_database_task(
-    resource_type: str, params: Dict[str, Any], response_size: str = 'small',
-    page: int = None, limit: int = None, sort: str = 'id', reverse: bool = False, count: bool = True,
-    ignore_small_response: bool = False
-) -> Dict[str, Any]:
-
-    results = search_remote_and_update_database(resource_type, params, response_size, page, limit, sort, reverse, count, ignore_small_response)
-    if not results or not isinstance(results, dict) or not results.get('results'):
-        return NOT_FOUND
-    results = format_results(results)
-    results['source'] = 'remote'
-    return results

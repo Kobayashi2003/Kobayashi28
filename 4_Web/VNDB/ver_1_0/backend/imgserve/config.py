@@ -9,6 +9,7 @@ class Config:
     DEBUG = False
     USE_RELOADER = False
     SECRET_KEY = os.environ['SECRET_KEY']
+    APP_HOST = os.environ['IMGSERVE_HOST']
     APP_PORT = int(os.environ['IMGSERVE_PORT'])
 
     # Database configuration

@@ -174,20 +174,12 @@ class VNDBAPIWrapper:
 api = VNDBAPIWrapper()
 
 
-def memoize(timeout=3600):
+def memoize(timeout=60*60*24):
     try:
         from vndb import cache
         return cache.memoize(timeout=timeout)
     except ImportError:
         return lambda f: f
-
-def update_database(resource_type: str, results: List[Dict[str, Any]]) -> None:
-    try:
-        from vndb.tasks.resources import update_resources_from_search_results_task
-        task_id = update_resources_from_search_results_task.delay(resource_type, results)
-        print(f"Task {task_id} started for {resource_type}")
-    except ImportError:
-        return
 
 def unpaginated_search(search_function: Callable, **kwargs) -> Dict[str, Any]:
     results = []
@@ -542,16 +534,3 @@ def search_characters_by_resource_id_cache(*args, **kwargs): return search_chara
 
 @memoize(timeout=3600)
 def search_releases_by_resource_id_cache(*args, **kwargs): return search_releases_by_resource_id(*args, **kwargs)
-
-
-# Other functions
-def search_remote_and_update_database(
-        resource_type: str, params: Dict[str, Any], response_size: str = 'small',
-        page: int = 1, limit: int = 100, sort: str = 'id', reverse: bool = False, count: bool = True,
-        ignore_small_response: bool = False
-    ) -> Dict[str, Any]:
-
-    results = search(resource_type, params, response_size, page, limit, sort, reverse, count)
-    if response_size == "large" or not ignore_small_response:
-        update_database(resource_type, results['results'])
-    return results

@@ -37,10 +37,10 @@ def run_waitress(app_name):
     create_app = getattr(app_module, 'create_app')
     app = create_app()
     config = app.config
-    print(f"Starting Waitress server for {app_name}")
+    print(f"Starting Waitress server for {app_name} on {config['APP_HOST']}:{config['APP_PORT']}")
     serve(
         app, 
-        host='0.0.0.0', 
+        host=config['APP_HOST'], 
         port=config['APP_PORT'],
         threads=100,
         connection_limit=1000,

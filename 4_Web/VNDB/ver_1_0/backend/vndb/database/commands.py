@@ -93,7 +93,7 @@ def backup_db(filename):
     """Backup the database using pg_dump."""
 
     if not filename:
-        filename = datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S') + '.dump'
+        filename = 'vndb_' + datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S') + '.dump'
 
     db_url = urlparse(current_app.config['SQLALCHEMY_DATABASE_URI'])
 

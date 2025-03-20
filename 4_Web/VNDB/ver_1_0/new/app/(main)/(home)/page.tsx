@@ -70,7 +70,7 @@ export default function Home() {
   const updateSearchParams = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams)
     params.set(key, value)
-    router.push(`/home?${params.toString()}`)
+    router.push(`/?${params.toString()}`)
   }
 
   const updateMultipleSearchParams = (params: Record<string, string>) => {
@@ -78,7 +78,7 @@ export default function Home() {
     Object.entries(params).forEach(([key, value]) => {
       newParams.set(key, value)
     })
-    router.push(`/home?${newParams.toString()}`)
+    router.push(`/?${newParams.toString()}`)
   }
 
   const fetchVNs = async () => {
@@ -285,8 +285,8 @@ export default function Home() {
             exit={{ filter: "blur(20px)", opacity: 0 }}
             transition={{ duration: 0.5, ease: "easeInOut" }}
             className={cardType === "image" ?
-              "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4" :
-              "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"
+              "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4" :
+              "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
             }
           >
             {vns.map((vn) => (

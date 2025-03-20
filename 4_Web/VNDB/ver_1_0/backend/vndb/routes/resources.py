@@ -44,7 +44,7 @@ class BaseResourceBlueprint(ABC, metaclass=SingletonABCMeta):
         self.resource_bp.add_url_rule('', 'get_resources', self.get_resources, methods=['GET'])
         self.resource_bp.add_url_rule('/<string:id>', 'get_resource', self.get_resource, methods=['GET'])
         self.resource_bp.add_url_rule('', 'search_resources', self.search_resources, methods=['POST'])
-        self.resource_bp.add_url_rule('/<string:id>', 'search_resource_by_id', self.search_resource_by_id, methods=['POST'])
+        self.resource_bp.add_url_rule('/<string:id>', 'search_resource', self.search_resource, methods=['POST'])
         self.resource_bp.add_url_rule('', 'update_resources', self.update_resources, methods=['PUT'])
         self.resource_bp.add_url_rule('/<string:id>', 'update_resource', self.update_resource, methods=['PUT'])
         self.resource_bp.add_url_rule('', 'edit_resources', self.edit_resources, methods=['PATCH'])
@@ -95,23 +95,27 @@ class BaseResourceBlueprint(ABC, metaclass=SingletonABCMeta):
         return request.args.get('sync', 'true').lower() == 'true'
 
     def get_resources(self):
-        args = request.args
-        page = args.get('page', default=None, type=int)
-        limit = args.get('limit', default=None, type=int)
-        sort = args.get('sort', default='id', type=str)
-        reverse = args.get('reverse', default=False, type=bool)
-        count = args.get('count', default=True, type=bool)
+        args = request.args.to_dict()
+        response_size = args.pop('response_size', 'small')
+        page = args.pop('page', 1)
+        limit = args.pop('limit', 20)
+        sort = args.pop('sort', 'id')
+        reverse = args.pop('reverse', False)
+        count = args.pop('count', True)
         sync = self.get_sync_param()
+        args.pop('sync', None)
 
-        return execute_task(get_resources_task, sync, self.resource_type, page, limit, sort, reverse, count)
+        return execute_task(get_resources_task, sync, self.resource_type, args, response_size, page, limit, sort, reverse, count)
 
     def get_resource(self, id):
+        args = request.args.to_dict()
+        response_size = args.pop('response_size', 'small')
         sync = self.get_sync_param()
-        return execute_task(get_resource_task, sync, self.resource_type, id)
+        args.pop('sync', None)
+        return execute_task(get_resource_task, sync, self.resource_type, id, response_size)
 
     def search_resources(self):
         search_params = request.json
-        search_from = search_params.pop('search_from', 'local')
         response_size = search_params.pop('response_size', 'small')
         page = search_params.pop('page', 1)
         limit = search_params.pop('limit', 20)
@@ -120,11 +124,13 @@ class BaseResourceBlueprint(ABC, metaclass=SingletonABCMeta):
         count = search_params.pop('count', True)
         sync = self.get_sync_param()
 
-        return execute_task(search_resources_task, sync, self.resource_type, search_from, search_params, response_size, page, limit, sort, reverse, count)
+        return execute_task(search_resources_task, sync, self.resource_type, search_params, response_size, page, limit, sort, reverse, count)
 
-    def search_resource_by_id(self, id):
+    def search_resource(self, id):
+        search_params = request.json
+        response_size = search_params.pop('response_size', 'small')
         sync = self.get_sync_param()
-        return execute_task(search_resource_task, sync, self.resource_type, id)
+        return execute_task(search_resource_task, sync, self.resource_type, id, response_size)
 
     def update_resources(self):
         sync = self.get_sync_param()

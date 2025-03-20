@@ -60,6 +60,10 @@ def create_app(config_class=Config):
     app.register_blueprint(api_bp)
 
     # ---------------------------
+    # Register tasks
+    from .tasks import backup_database
+
+    # ---------------------------
     # Register CLI commands
     from .cli import register_commands
     register_commands(app)

@@ -63,6 +63,7 @@ def create_app(config_class=Config):
     # This section sets up the APScheduler for running scheduled tasks
     # ----------------------------------------
     scheduler = ExtAPScheduler(app)
+    from .tasks.backup import backup_database
 
     # ----------------------------------------
     # Blueprint Registration

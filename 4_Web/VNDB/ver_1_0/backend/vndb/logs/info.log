@@ -36373,3 +36373,6 @@ connection to server at "localhost" (127.0.0.1), port 5432 failed: Connection re
 2025-03-15 03:19:22,368 - logger - ERROR - 'Celery' object has no attribute '__iter__'
 2025-03-15 03:19:24,611 - logger - ERROR - 'Celery' object has no attribute '__iter__'
 2025-03-15 03:42:33,674 - logger - ERROR - __iter__
+2025-03-20 17:08:52,212 - logger - ERROR - 'APScheduler' object has no attribute '__iter__'
+2025-03-20 21:56:01,898 - logger - ERROR - 'APScheduler' object has no attribute '__iter__'
+2025-03-20 21:56:05,606 - logger - ERROR - 'APScheduler' object has no attribute '__iter__'

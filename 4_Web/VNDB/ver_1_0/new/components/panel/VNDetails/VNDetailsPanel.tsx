@@ -17,36 +17,10 @@ import { NotFound } from "@/components/common/NotFound"
 import type { VN } from "@/lib/types"
 
 interface VNDetailsPanelProps {
-  vn: VN | null
-  loading?: boolean
-  error?: string | null
+  vn: VN
 }
 
-export function VNDetailsPanel({ vn, loading, error }: VNDetailsPanelProps) {
-
-  if (loading) {
-    return (
-      <div className="container mx-auto">
-        <Loading message="Loading..." />
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="container mx-auto">
-        <Error message={`Error: ${error}`} />
-      </div>
-    )
-  }
-
-  if (!vn) {
-    return (
-      <div className="container mx-auto">
-        <NotFound message="No VN found" />
-      </div>
-    )
-  }
+export function VNDetailsPanel({ vn }: VNDetailsPanelProps) {
 
   // TITLE
   const mainTitle = vn.title

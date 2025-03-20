@@ -181,8 +181,8 @@ export default function VNSearchResults() {
             exit={{ filter: "blur(20px)", opacity: 0 }}
             transition={{ duration: 0.5, ease: "easeInOut" }}
             className={cardType === "image" ?
-              "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4" :
-              "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
+              "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4" :
+              "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
             }
           >
             {vns.map((vn) => (

@@ -10,6 +10,7 @@ class Config:
     DEBUG = False
     USE_RELOADER = False
     SECRET_KEY = os.environ['SECRET_KEY']
+    APP_HOST = os.environ['USERSERVE_HOST']
     APP_PORT = int(os.environ['USERSERVE_PORT'])
 
     JWT_SECRET_KEY = os.environ['JWT_SECRET_KEY']

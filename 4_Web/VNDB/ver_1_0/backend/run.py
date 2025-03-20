@@ -1,11 +1,8 @@
 import sys
 import signal
-import multiprocessing
-import subprocess
 import importlib
-from dotenv import load_dotenv
-
-load_dotenv()
+import subprocess
+import multiprocessing
 
 def run_redis_server():
     print("Starting Redis server")
@@ -37,7 +34,7 @@ def run_flask(app_name):
     app = create_app()
     config = app.config
     print(f"Starting Flask application for {app_name}")
-    app.run(host='0.0.0.0', port=config['APP_PORT'], debug=config['DEBUG'], use_reloader=config['USE_RELOADER'])
+    app.run(host=config['APP_HOST'], port=config['APP_PORT'], debug=config['DEBUG'], use_reloader=config['USE_RELOADER'])
 
 def terminate_processes(processes):
     for process in processes:
