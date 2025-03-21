@@ -21,7 +21,7 @@ interface FiltersButtonProps {
 
 interface FiltersDialogProps {
   SearchType: string
-  open: boolean 
+  open: boolean
   setOpen: (open: boolean) => void
   setSearchFilters: (filters: Record<string, string>) => void
 }
@@ -40,7 +40,7 @@ interface FilterField {
   selectField?: {
     default?: string
     options: {
-      value: string, 
+      value: string,
       label: string,
     }[]
   }
@@ -48,11 +48,6 @@ interface FilterField {
 
 const filterFields: Record<string, FilterField[]> = {
   vn: [
-    {
-      value: "search",
-      label: "Search",
-      type: "text",
-    },
     {
       value: "developer",
       label: "Developer",
@@ -63,20 +58,10 @@ const filterFields: Record<string, FilterField[]> = {
       label: "Language",
       type: "text",
     }
-  ], 
+  ],
   release: [
-    {
-      value: "search",
-      label: "Search",
-      type: "text",
-    }
   ],
   character: [
-    {
-      value: "search",
-      label: "Search",
-      type: "text",
-    },
     {
       value: "cup",
       label: "Cup Size",
@@ -100,41 +85,21 @@ const filterFields: Record<string, FilterField[]> = {
         default: "any",
         options: [
           { value: "any", label: "Any" },
-          { value: "m", label: "Male"},
-          { value: "f", label: "Female"},
-          { value: "b", label: "Both"},
-          { value: "n", label: "Sexless"},
+          { value: "m", label: "Male" },
+          { value: "f", label: "Female" },
+          { value: "b", label: "Both" },
+          { value: "n", label: "Sexless" },
         ],
       },
     }
   ],
   producer: [
-    {
-      value: "search",
-      label: "Search",
-      type: "text",
-    }
   ],
   staff: [
-    {
-      value: "search",
-      label: "Search",
-      type: "text",
-    }
   ],
   tag: [
-    {
-      value: "search",
-      label: "Search",
-      type: "text",
-    }
   ],
   trait: [
-    {
-      value: "search",
-      label: "Search",
-      type: "text",
-    }
   ]
 }
 
@@ -142,14 +107,14 @@ const filterFields: Record<string, FilterField[]> = {
 function SearchFiltersButton({ setOpen }: FiltersButtonProps) {
   return (
     <Button
-    variant="outline"
-    size="icon"
-    className="bg-[#0F2942]/80 hover:bg-[#0F2942] border-white/10 hover:border-white/20
-    text-white hover:text-white/80 text-base md:text-lg font-bold transition-all duration-300"
-    onClick={() => setOpen(true)}
-  >
-    <Settings2 className="h-4 w-4" />
-  </Button>
+      variant="outline"
+      size="icon"
+      className="bg-[#0F2942]/80 hover:bg-[#0F2942] border-white/10 hover:border-white/20
+      text-white hover:text-white/80 text-base md:text-lg font-bold transition-all duration-300"
+      onClick={() => setOpen(true)}
+    >
+      <Settings2 className="h-4 w-4" />
+    </Button>
   )
 }
 

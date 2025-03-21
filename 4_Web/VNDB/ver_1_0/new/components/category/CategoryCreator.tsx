@@ -5,13 +5,13 @@ import { Plus } from "lucide-react"
 
 interface CategoryCreatorProps {
   loading: boolean
-  name: string
-  setName: (name: string) => void
-  handleCreateCategory: () => void
+  newCategoryName: string
+  setNewCategoryName: (newCategoryName: string) => void
+  handleCreateCategory: (e: React.FormEvent) => void
   className?: string
 }
 
-export function CategoryCreator({ loading, name, setName, handleCreateCategory, className }: CategoryCreatorProps) {
+export function CategoryCreator({ loading, newCategoryName, setNewCategoryName, handleCreateCategory, className }: CategoryCreatorProps) {
   return (
     <form onSubmit={handleCreateCategory} className={cn(
       "bg-[#0F2942]/80 hover:bg-[#0F2942] flex flex-row gap-2 p-4",
@@ -20,8 +20,8 @@ export function CategoryCreator({ loading, name, setName, handleCreateCategory, 
       className
     )}>
       <Input
-        value={name}
-        onChange={(e) => setName(e.target.value)}
+        value={newCategoryName}
+        onChange={(e) => setNewCategoryName(e.target.value)}
         placeholder="New Category Name"
         className="bg-[#0F2942]/80 hover:bg-[#0F2942] border-white/10 hover:border-white/20 text-white placeholder:text-white/60"
       />

@@ -16,7 +16,7 @@ interface CategorySelecterProps {
   deleteMode: boolean
   setToDeleteId: (id: number) => void
   handleDeleteCategory: () => void
-  onChange: (value: number) => void
+  onChange: (value: number | undefined) => void
   className?: string
 }
 
@@ -28,11 +28,31 @@ export function CategorySelecter({ loading, categoryOptions, selectedValue, dele
       "transition-all duration-300",
       className
     )}>
+      {/* {selectedValue !== undefined && (
+        <Button
+          variant="outline"
+          onClick={() => onChange(undefined)}
+          className={cn(
+            "w-full",
+            "border-white/10 hover:border-white/20 bg-gray-800/60 hover:bg-gray-800/80",
+            "text-gray-500 hover:text-white/90 text-base md:text-lg font-bold",
+            "transition-all duration-300",
+          )}
+        >
+          -- Clear Selection --
+        </Button>
+      )} */}
       {categoryOptions.map(categoryOption => (
         <div key={categoryOption.key} className="flex flex-row gap-2">
           <Button
             variant="outline"
-            onClick={() => onChange(categoryOption.value)}
+            onClick={() => {
+              if (selectedValue === categoryOption.value) {
+                onChange(undefined)
+              } else {
+                onChange(categoryOption.value)
+              }
+            }}
             className={cn(
               "flex-1",
               "border-white/10 hover:border-white/20 hover:bg-white/20",
