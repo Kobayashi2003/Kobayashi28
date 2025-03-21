@@ -2,15 +2,18 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { useSearchParams, useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "motion/react"
 
 import { cn } from "@/lib/utils"
-import { CategoryTypeSelecter } from "@/components/user/CategoryTypeSelecter"
-import { CategorySelecter } from "@/components/user/CategorySelecter"
+import { ShowPanelButton } from "@/components/category/ShowPanelButton"
+import { CategoryTypeSelecter } from "@/components/category/CategoryTypeSelecter"
+import { CategorySelecter } from "@/components/category/CategorySelecter"
 import { DeleteButton } from "@/components/common/DeleteButton"
 import { DeleteModeButton } from "@/components/common/DeleteModeButton"
 import { ReloadButton } from "@/components/common/ReloadButton"
-import { CategoryCreator } from "@/components/user/CategoryCreator"
+import { CategoryCreator } from "@/components/category/CategoryCreator"
+import { CategorySearcher } from "@/components/category/CategorySearcher"
 import { PaginationButtons } from "@/components/common/PaginationButtons"
 import { Loading } from "@/components/common/Loading"
 import { Error } from "@/components/common/Error"
@@ -20,15 +23,28 @@ import { CardTypeSelecter } from "@/components/common/CardTypeSelecter"
 import { GenVNCard, GenCharacterCard, GenProducerCard, GenStaffCard } from "@/utils/genCard"
 
 import {
-  Category, Mark, VN_Small, Character_Small, Producer_Small, Staff_Small
+  Category, VN_Small, Character_Small, Producer_Small, Staff_Small
 } from "@/lib/types"
 import { api } from "@/lib/api"
 
 
-export default function UserCategoriesPage() {
+export default function CategoriesPage() {
+  const searchParams = useSearchParams()
+  const router = useRouter()
+
   const itemsPerPage = 24
 
+  const selectedType = searchParams.get("type") || "v"
+  const selectedCategoryId = searchParams.get("cid") ? parseInt(searchParams.get("cid") as string) : undefined
+  const query = searchParams.get("q") || ""
+  const currentPage = searchParams.get("page") ? parseInt(searchParams.get("page") as string) : 1
+  // TODO: Add sort and order to the search params
+  const sortBy = searchParams.get("sort") || "released"
+  const sortOrder = searchParams.get("order") || "desc"
+  
+  const isSearching = query !== ""
   const [mounted, setMounted] = useState(false)
+  const [open, setOpen] = useState(true)
 
   const [loadingCategories, setLoadingCategories] = useState(false)
   const [errorCategories, setErrorCategories] = useState<string>("")
@@ -41,21 +57,68 @@ export default function UserCategoriesPage() {
   const [producers, setProducers] = useState<Producer_Small[]>([])
   const [staff, setStaffs] = useState<Staff_Small[]>([])
 
-  const [selectedType, setSelectedType] = useState<string>("v")
-  const [selectedCategoryId, setSelectedCategoryId] = useState<number | undefined>(undefined)
-
-  const [name, setName] = useState<string>("")
+  const [queryTemp, setQueryTemp] = useState<string>("")
+  const [newCategoryName, setNewCategoryName] = useState<string>("")
   const [deleteCategoryMode, setDeleteCategoryMode] = useState<boolean>(false)
   const [toDeleteCategoryId, setToDeleteCategoryId] = useState<number | undefined>(undefined)
   const [deleteMarkMode, setDeleteMarkMode] = useState<boolean>(false)
 
-  const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(0)
   const [cardType, setCardType] = useState<"image" | "text">("image")
   const [sexualLevel, setSexualLevel] = useState<"safe" | "suggestive" | "explicit">("safe")
   const [violenceLevel, setViolenceLevel] = useState<"tame" | "violent" | "brutal">("tame")
 
+
+  const removeKeyFromSearchParams = (key: string) => {
+    const params = new URLSearchParams(searchParams)
+    params.delete(key)
+    router.push(`/u/c?${params.toString()}`)
+  }
+
+  const removeMultipleKeysFromSearchParams = (keys: string[]) => {
+    const params = new URLSearchParams(searchParams)
+    keys.forEach(key => params.delete(key))
+    router.push(`/u/c?${params.toString()}`)
+  }
+
+  const updateSearchParams = (key: string, value: string) => {
+    const params = new URLSearchParams(searchParams)
+    params.set(key, value)
+    router.push(`/u/c?${params.toString()}`)
+  }
+
+  const updateMultipleSearchParams = (params: Record<string, string>) => {
+    const newParams = new URLSearchParams(searchParams)
+    Object.entries(params).forEach(([key, value]) => {
+      newParams.set(key, value)
+    })
+    router.push(`/u/c?${newParams.toString()}`)
+  }
+
+
+  const setSelectedType = (value: string) => {
+    updateSearchParams("type", value)
+  }
+
+  const setSelectedCategoryId = (value: number | undefined) => {
+    if (value === undefined) {
+      removeKeyFromSearchParams("cid")
+    } else {
+      updateSearchParams("cid", value.toString())
+    }
+  }
+
+  const setCurrentPage = (value: number) => {
+    updateSearchParams("page", value.toString())
+  }
+
+  const setQuery = (value: string) => {
+    updateSearchParams("q", value)
+  }
+
+
   const fetchCategories = async () => {
+    if (!selectedType) return
     try {
       setLoadingCategories(true)
       const response = await api.category.get(selectedType)
@@ -69,14 +132,15 @@ export default function UserCategoriesPage() {
   }
 
   const fetchResources = async () => {
-    if (!selectedCategoryId) return
+    if (!selectedType || !selectedCategoryId) return
     try {
       setLoadingResources(true)
       const marksResponse = await api.category.getMarks(selectedType, selectedCategoryId)
+      if (marksResponse.results.length === 0) {
+        setLoadingResources(false)
+        return
+      }
       const markIds = marksResponse.results.map(mark => mark.id).join(",")
-
-      setTotalPages(Math.ceil(marksResponse.results.length / itemsPerPage))
-
       switch (selectedType) {
         case "v":
           const vnsResponse = await api.small.vn({
@@ -85,8 +149,10 @@ export default function UserCategoriesPage() {
             reverse: true,
             page: currentPage,
             limit: itemsPerPage,
+            search: query,
           })
           setVNs(vnsResponse.results)
+          setTotalPages(Math.ceil(vnsResponse.count / itemsPerPage))
           break
         case "c":
           const charactersResponse = await api.small.character({
@@ -94,8 +160,10 @@ export default function UserCategoriesPage() {
             sort: "name",
             page: currentPage,
             limit: itemsPerPage,
+            search: query,
           })
           setCharacters(charactersResponse.results)
+          setTotalPages(Math.ceil(charactersResponse.count / itemsPerPage))
           break
         case "p":
           const producersResponse = await api.small.producer({
@@ -103,8 +171,10 @@ export default function UserCategoriesPage() {
             sort: "name",
             page: currentPage,
             limit: itemsPerPage,
+            search: query,
           })
           setProducers(producersResponse.results)
+          setTotalPages(Math.ceil(producersResponse.count / itemsPerPage))
           break
         case "s":
           const staffsResponse = await api.small.staff({
@@ -112,8 +182,10 @@ export default function UserCategoriesPage() {
             sort: "name",
             page: currentPage,
             limit: itemsPerPage,
+            search: query,
           })
           setStaffs(staffsResponse.results)
+          setTotalPages(Math.ceil(staffsResponse.count / itemsPerPage))
           break
       }
     } catch (error) {
@@ -123,12 +195,24 @@ export default function UserCategoriesPage() {
     }
   }
 
-  const handleCreateCategory = async () => {
+
+  const handleSearch = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
+    const queryTempTrim = queryTemp.trim()
+    if (!queryTempTrim) {
+      removeKeyFromSearchParams("q")
+    } else {
+      updateMultipleSearchParams({ q: queryTempTrim, page: "1" })
+    }
+  }
+
+  const handleCreateCategory = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!selectedType || !newCategoryName) return
     try {
-      if (!selectedType || !name) return
       setLoadingCategories(true)
-      await api.category.create(selectedType, name)
-      setName("")
+      await api.category.create(selectedType, newCategoryName)
+      setNewCategoryName("")
       setSelectedCategoryId(undefined)
       fetchCategories()
     } catch (error) {
@@ -139,8 +223,8 @@ export default function UserCategoriesPage() {
   }
 
   const handleDeleteCategory = async () => {
+    if (!selectedType || !toDeleteCategoryId) return
     try {
-      if (!selectedType || !toDeleteCategoryId) return
       setLoadingCategories(true)
       await api.category.delete(selectedType, toDeleteCategoryId)
       setSelectedCategoryId(undefined)
@@ -153,8 +237,8 @@ export default function UserCategoriesPage() {
   }
 
   const handleDeleteMark = async (markId: number) => {
+    if (!selectedType || !selectedCategoryId) return
     try {
-      if (!selectedType || !selectedCategoryId) return
       setLoadingResources(true)
       await api.category.removeMark(selectedType, selectedCategoryId, markId)
       fetchResources()
@@ -165,9 +249,11 @@ export default function UserCategoriesPage() {
     }
   }
 
+
   useEffect(() => {
     setMounted(true)
   }, [])
+
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -183,13 +269,19 @@ export default function UserCategoriesPage() {
     return () => clearTimeout(timeout)
   }, [errorResources])
 
+
   useEffect(() => {
-    setSelectedCategoryId(undefined)
+    removeMultipleKeysFromSearchParams(["cid", "q", "page"])
+    setTotalPages(0)
+    setVNs([])
+    setCharacters([])
+    setProducers([])
+    setStaffs([])
     fetchCategories()
   }, [selectedType])
 
   useEffect(() => {
-    setCurrentPage(1)
+    removeMultipleKeysFromSearchParams(["q", "page"])
     setTotalPages(0)
     setVNs([])
     setCharacters([])
@@ -200,85 +292,134 @@ export default function UserCategoriesPage() {
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" })
+    setTotalPages(0)
     setVNs([])
     setCharacters([])
     setProducers([])
     setStaffs([])
     fetchResources()
-  }, [currentPage])
+  }, [currentPage, query])
+
 
   return (
     <div className="w-full min-h-screen flex flex-col md:flex-row gap-1">
-      {/* Category Pannel */}
-      <div className={cn(
-        "w-full md:fixed md:top-[10%] md:w-100 lg:w-120 xl:w-140 flex-col gap-2 transition-all duration-300",
-        !mounted && "opacity-0"
-      )}>
-        <div className="flex-1 flex flex-row gap-2 justify-between items-center">
-          <CategoryTypeSelecter
-            typeOptions={[
-              { key: "v", value: "v", label: "𝓥" },
-              { key: "c", value: "c", label: "𝓒" },
-              { key: "p", value: "p", label: "𝓟" },
-              { key: "s", value: "s", label: "𝓢" },
-            ]}
-            selectedValue={selectedType}
-            onChange={(value) => setSelectedType(value)}
-            size="icon"
-          />
-          <DeleteModeButton
-            deleteMode={deleteCategoryMode}
-            setDeleteMode={setDeleteCategoryMode}
-          />
-        </div>
-        {errorCategories && (
-          <div className="flex-1 flex flex-row gap-2 justify-center items-center">
-            {/* <p className="text-red-500/50">{errorCategories}</p> */}
-          </div>
+      <AnimatePresence mode="wait">
+        {/* Category Pannel */}
+        {open && (
+          <>
+            {/* Category Pannel */}
+            <motion.div
+              key="open"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.1 }}
+              className={cn(
+                "w-full md:fixed md:top-[10%] md:w-100 lg:w-120 xl:w-140 flex-col gap-2 transition-all duration-300",
+                !mounted && "opacity-0"
+              )}>
+              <div className="flex-1 flex flex-row gap-2 justify-between items-center">
+                <CategoryTypeSelecter
+                  typeOptions={[
+                    { key: "v", value: "v", label: "𝓥" },
+                    { key: "c", value: "c", label: "𝓒" },
+                    { key: "p", value: "p", label: "𝓟" },
+                    { key: "s", value: "s", label: "𝓢" },
+                  ]}
+                  selectedValue={selectedType}
+                  onChange={(value) => setSelectedType(value)}
+                  size="icon"
+                />
+                <div className="flex flex-row gap-2 justify-center items-center">
+                  <DeleteModeButton
+                    deleteMode={deleteCategoryMode}
+                    setDeleteMode={setDeleteCategoryMode}
+                  />
+                  <ShowPanelButton
+                    open={open}
+                    setOpen={setOpen}
+                  />
+                </div>
+              </div>
+              {errorCategories && (
+                <div className="flex-1 flex flex-row gap-2 justify-center items-center">
+                  {/* <p className="text-red-500/50">{errorCategories}</p> */}
+                </div>
+              )}
+              <div className="flex-1 flex flex-col gap-2 justify-between items-center">
+                <CategorySelecter
+                  loading={loadingCategories}
+                  categoryOptions={categories.map(category => ({
+                    key: `category-${category.id}`,
+                    value: category.id,
+                    label: category.category_name,
+                  }))}
+                  selectedValue={selectedCategoryId}
+                  deleteMode={deleteCategoryMode}
+                  setToDeleteId={setToDeleteCategoryId}
+                  handleDeleteCategory={handleDeleteCategory}
+                  onChange={(value) => setSelectedCategoryId(value)}
+                  className="w-full"
+                />
+                <CategoryCreator
+                  loading={loadingCategories}
+                  newCategoryName={newCategoryName}
+                  setNewCategoryName={setNewCategoryName}
+                  handleCreateCategory={handleCreateCategory}
+                  className="w-full"
+                />
+                <CategorySearcher
+                  loading={loadingCategories}
+                  isSearching={isSearching}
+                  query={queryTemp}
+                  setQuery={setQueryTemp}
+                  handleSearch={handleSearch}
+                  className={cn(
+                    "w-full",
+                    !selectedCategoryId && "opacity-0"
+                  )}
+                />
+              </div>
+            </motion.div>
+            {/* Placeholder */}
+            <motion.div
+              key="placeholder"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.1 }}
+              className="hidden h-full md:block md:w-100 lg:w-120 xl:w-140"
+            />
+          </>
         )}
-        <div className="flex-1 flex flex-col gap-2 justify-between items-center">
-          <CategorySelecter
-            loading={loadingCategories}
-            categoryOptions={categories.map(category => ({
-              key: `category-${category.id}`,
-              value: category.id,
-              label: category.category_name,
-            }))}
-            selectedValue={selectedCategoryId}
-            deleteMode={deleteCategoryMode}
-            setToDeleteId={setToDeleteCategoryId}
-            handleDeleteCategory={handleDeleteCategory}
-            onChange={(value) => setSelectedCategoryId(value)}
-            className="w-full"
-          />
-          <CategoryCreator
-            loading={loadingCategories}
-            name={name}
-            setName={setName}
-            handleCreateCategory={handleCreateCategory}
-            className="w-full"
-          />
-        </div>
-      </div>
-      {/* Placeholder */}
-      <div className="hidden h-full md:block md:w-100 lg:w-120 xl:w-140"></div>
+      </AnimatePresence>
+
       {/* Main Content */}
       <div className={cn(
-        "flex-1 container mx-auto md:mt-4 md:ml-4 flex flex-col gap-2 transition-all duration-300 justify-between items-center",
+        "flex-1 p-4 flex flex-col gap-2 transition-all duration-300 justify-between items-center",
         !mounted && "opacity-0"
       )}>
         {selectedCategoryId && (selectedType === "v" || selectedType === "c") && (
           <div className="w-full flex flex-row gap-2 justify-between items-center">
-            {/* Card Type Selector */}
             <div className="flex flex-wrap justify-start gap-2">
+              {/* Show Panel Button */}
+              {!open && (
+                <ShowPanelButton
+                  open={open}
+                  setOpen={setOpen}
+                />
+              )}
+              {/* Card Type Selector */}
               <CardTypeSelecter
                 selected={cardType}
                 onSelect={(value) => setCardType(value)}
               />
+              {/* Delete Mode Button */}
               <DeleteModeButton
                 deleteMode={deleteMarkMode}
                 setDeleteMode={setDeleteMarkMode}
               />
+              {/* Reload Button */}
               <ReloadButton
                 onClick={() => { fetchResources() }}
               />
@@ -329,10 +470,19 @@ export default function UserCategoriesPage() {
         )}
         {selectedCategoryId && (selectedType === "s" || selectedType === "p") && (
           <div className="w-full flex flex-row gap-2 justify-start items-center">
+            {/* Show Panel Button */}
+            {!open && (
+              <ShowPanelButton
+                open={open}
+                setOpen={setOpen}
+              />
+            )}
+            {/* Delete Mode Button */}
             <DeleteModeButton
               deleteMode={deleteMarkMode}
               setDeleteMode={setDeleteMarkMode}
             />
+            {/* Reload Button */}
             <ReloadButton
               onClick={() => { fetchResources() }}
             />
@@ -462,11 +612,13 @@ export default function UserCategoriesPage() {
         </ AnimatePresence>
         {/* Keep the footer at the bottom of the page */}
         <div className="flex-grow"></div>
-        <PaginationButtons
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-        />
+        {totalPages > 1 && (
+          <PaginationButtons
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        )}
       </div>
     </div>
   )
