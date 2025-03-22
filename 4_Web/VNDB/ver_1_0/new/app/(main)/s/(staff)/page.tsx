@@ -27,20 +27,33 @@ export default function StaffSearchResults() {
   const [totalPages, setTotalPages] = useState(0)
   const [staff, setStaff] = useState<Staff_Small[]>([])
 
+  const [abortController, setAbortController] = useState<AbortController | null>(null)
+
   useEffect(() => {
-    setLoading(true)
-    setError(null)
+    window.scrollTo({ top: 0, behavior: "smooth" })
     setStaff([])
     fetchStaff()
   }, [currentPage, searchParams])
 
+  useEffect(() => {
+    return () => {
+      abortController?.abort()
+    }
+  }, [abortController])
+
   const fetchStaff = async () => {
     try {
+      abortController?.abort()
+      const newController = new AbortController()
+      setAbortController(newController)
+
+      setLoading(true)
+      setError(null)
       const params: VNDBQueryParams = { page: currentPage, limit: itemsPerPage }
       for (const [key, value] of searchParams.entries()) {
         params[key as string] = value as string
       }
-      const response = await api.small.staff(params)
+      const response = await api.small.staff(params, newController.signal)
       setStaff(response.results)
       setTotalPages(Math.ceil(response.count / itemsPerPage) || 1)
     } catch (error) {

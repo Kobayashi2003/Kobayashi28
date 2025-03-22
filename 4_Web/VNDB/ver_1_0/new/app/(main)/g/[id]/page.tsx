@@ -11,14 +11,18 @@ export default function TagPage() {
   const params = useParams()
   const id = parseInt(params.id as string)
 
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [tag, setTag] = useState<Tag | null>(null)
 
+
   useEffect(() => {
+    const abortController = new AbortController()
     const fetchTag = async () => {
       try {
-        const tag = await api.by_id.tag(id)
+        setLoading(true)
+        setError(null)
+        const tag = await api.by_id.tag(id, abortController.signal)
         setTag(tag)
       } catch (error) {
         setError(error as string)
@@ -27,6 +31,7 @@ export default function TagPage() {
       }
     }
     fetchTag()
+    return () => abortController.abort()
   }, [])
 
   return (

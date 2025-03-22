@@ -15,14 +15,17 @@ export default function VNPage() {
   const params = useParams()
   const id = parseInt(params.id as string)
 
-  const [loadingVN, setLoadingVN] = useState(true)
+  const [loadingVN, setLoadingVN] = useState(false)
   const [errorVN, setErrorVN] = useState<string | null>(null)
   const [vn, setVN] = useState<VN | null>(null)
 
   useEffect(() => {
+    const abortController = new AbortController()
     const fetchVN = async () => {
       try {
-        const vn = await api.by_id.vn(id)
+        setLoadingVN(true)
+        setErrorVN(null)
+        const vn = await api.by_id.vn(id, abortController.signal)
         setVN(vn)
       } catch (error) {
         setErrorVN(error as string)
@@ -31,6 +34,7 @@ export default function VNPage() {
       }
     }
     fetchVN()
+    return () => abortController.abort()
   }, [])
 
   return (

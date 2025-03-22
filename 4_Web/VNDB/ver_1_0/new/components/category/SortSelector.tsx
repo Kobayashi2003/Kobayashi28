@@ -7,45 +7,39 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { SlidersHorizontal } from "lucide-react"
 
-
-interface SearchSortSelectorProps {
-  searchType: string
+interface SortSelectorProps {
+  type: string
   sortBy: string
   sortOrder: string
   setSortBy: (sortBy: string) => void
   setSortOrder: (sortOrder: string) => void
 }
 
-interface SortSelectorButtonProps {
+interface SelectorButtonProps {
   setOpen: (open: boolean) => void
 }
 
-interface SortSelectorDialogProps {
-  searchType: string
+interface SelectorPanelProps {
+  type: string
   open: boolean
   sortBy: string
-  sortOrder: string 
+  sortOrder: string
   setOpen: (open: boolean) => void
   setSortBy: (sortBy: string) => void
   setSortOrder: (sortOrder: string) => void
-}
-
+} 
 
 const sortByOptions: Record<string, {value: string, label: string, sortable?: boolean}[]> = {
-  vn: [
+  v: [
     {value: "id", label: "Id"},
     {value: "title", label: "Title"},
     {value: "released", label: "Release Date"},
     {value: "rating", label: "Bayesian Rating"},
-    {value: "average", label: "Raw Vote Average"},
+    {value: "average", label: "Raw Vote Average", sortable: false},
     {value: "votecount", label: "Vote Count"},
+    {value: "marked_at", label: "Marked At"},
   ],
-  release: [
-    {value: "id", label: "Id"},
-    {value: "title", label: "Title"},
-    {value: "released", label: "Release Date"},
-  ],
-  character: [
+  c: [
     {value: "id", label: "Id"},
     {value: "name", label: "Name"},
     {value: "birthday", label: "Birthday", sortable: false},
@@ -55,24 +49,17 @@ const sortByOptions: Record<string, {value: string, label: string, sortable?: bo
     {value: "bust", label: "Bust", sortable: false},
     {value: "waist", label: "Waist", sortable: false},
     {value: "hips", label: "Hips", sortable: false},
+    {value: "marked_at", label: "Marked At"},
   ],
-  producer: [
+  p: [
     {value: "id", label: "Id"},
     {value: "name", label: "Name"},
+    {value: "marked_at", label: "Marked At"},
   ],
-  staff: [
+  s: [
     {value: "id", label: "Id"},
     {value: "name", label: "Name"},
-  ],
-  tag: [
-    {value: "id", label: "Id"},
-    {value: "name", label: "Name"},
-  ],
-  trait: [
-    {value: "id", label: "Id"},
-    {value: "name", label: "Name"},
-    {value: "group_id", label: "Group Id", sortable: false},
-    {value: "group_name", label: "Group Name", sortable: false},
+    {value: "marked_at", label: "Marked At"},
   ]
 }
 
@@ -81,22 +68,21 @@ const sortOrderOptions: {value: string, label: string}[] = [
   {value: "desc", label: "Descending"},
 ]
 
-
-export function SortSelectorButton({ setOpen }: SortSelectorButtonProps) {
+function SortSelectorButton({ setOpen } : SelectorButtonProps) {
   return (
     <Button
       variant="outline"
       size="icon"
-      className="bg-[#0F2942]/80 hover:bg-[#0F2942] border-white/10 hover:border-white/20
-      text-white hover:text-white/80 text-base md:text-lg font-bold transition-all duration-300"
       onClick={() => setOpen(true)}
+      className="bg-[#0F2942]/80 hover:bg-[#0F2942] border-white/10 hover:border-white/20 
+      text-white hover:text-white/80 text-base md:text-lg font-bold font-serif italic transition-all duration-300"
     >
       <SlidersHorizontal className="h-4 w-4" />
     </Button>
   )
 }
 
-export function SortSelectorDialog({ searchType, open, setOpen, sortBy, setSortBy, sortOrder, setSortOrder }: SortSelectorDialogProps) {
+function SortSelectorPanel({ type, open, sortBy, sortOrder, setOpen, setSortBy, setSortOrder } : SelectorPanelProps ) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="bg-[#0F2942]/80 border-white/10">
@@ -108,7 +94,7 @@ export function SortSelectorDialog({ searchType, open, setOpen, sortBy, setSortB
           onValueChange={(value) => setSortBy(value)}
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
-            {sortByOptions[searchType].map((option) => (
+            {sortByOptions[type].map((option) => (
               <div key={`sortBy-option-${option.value}`} className={`flex flex-row items-center justify-between border-b sm:border-r border-white/10 ${option.sortable === false ? "pointer-events-none" : ""}`}>
                 <div className="h-full flex-grow min-w-0 flex flex-row items-center group truncate">
                   <RadioGroupItem 
@@ -153,20 +139,24 @@ export function SortSelectorDialog({ searchType, open, setOpen, sortBy, setSortB
   )
 }
 
-export function SearchSortSelector({ searchType, sortBy, sortOrder, setSortBy, setSortOrder }: SearchSortSelectorProps) {
+export function SortSelector({ type, sortBy, sortOrder, setSortBy, setSortOrder } : SortSelectorProps) {
+
   const [open, setOpen] = useState(false)
 
   return (
     <>
-      <SortSelectorButton setOpen={setOpen} />
-      <SortSelectorDialog 
-        searchType={searchType} 
-        open={open} 
-        setOpen={setOpen} 
-        sortBy={sortBy} 
-        setSortBy={setSortBy} 
-        sortOrder={sortOrder} 
-        setSortOrder={setSortOrder} />
+      <SortSelectorButton 
+        setOpen={setOpen}
+      />
+      <SortSelectorPanel 
+        type={type}
+        open={open}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        setOpen={setOpen}
+        setSortBy={setSortBy}
+        setSortOrder={setSortOrder}
+      />
     </>
   )
 }

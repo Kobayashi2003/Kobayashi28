@@ -11,14 +11,17 @@ export default function CharacterPage() {
   const params = useParams()
   const id = parseInt(params.id as string)
 
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [character, setCharacter] = useState<Character | null>(null)
 
   useEffect(() => {
+    const abortController = new AbortController()
     const fetchCharacter = async () => {
       try {
-        const character = await api.by_id.character(id)
+        setLoading(true)
+        setError(null)
+        const character = await api.by_id.character(id, abortController.signal)
         setCharacter(character)
       } catch (error) {
         setError(error as string)
@@ -27,6 +30,7 @@ export default function CharacterPage() {
       }
     }
     fetchCharacter()
+    return () => abortController.abort()
   }, [])
 
   return (

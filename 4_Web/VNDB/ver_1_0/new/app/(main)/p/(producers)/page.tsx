@@ -18,29 +18,42 @@ export default function ProducerSearchResults() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
+  const itemsPerPage = 24
+
   const currentPage = parseInt(searchParams.get("page") || "1")
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [totalPages, setTotalPages] = useState(0)
-  const itemsPerPage = 24
-
   const [producers, setProducers] = useState<Producer_Small[]>([])
 
+  const [abortController, setAbortController] = useState<AbortController | null>(null)
+
   useEffect(() => {
-    setLoading(true)
-    setError(null)
+    window.scrollTo({ top: 0, behavior: "smooth" })
     setProducers([])
     fetchProducers()
   }, [currentPage, searchParams])
 
+  useEffect(() => {
+    return () => {
+      abortController?.abort()
+    }
+  }, [abortController])
+
   const fetchProducers = async () => {
     try {
+      abortController?.abort()
+      const newController = new AbortController()
+      setAbortController(newController)
+
+      setLoading(true)
+      setError(null)
       const params: VNDBQueryParams = { page: currentPage, limit: itemsPerPage }
       for (const [key, value] of searchParams.entries()) {
         params[key as string] = value as string
       }
-      const response = await api.small.producer(params)
+      const response = await api.small.producer(params, newController.signal)
       setProducers(response.results)
       setTotalPages(Math.ceil(response.count / itemsPerPage) || 1)
     } catch (error) {

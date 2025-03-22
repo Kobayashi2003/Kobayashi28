@@ -11,7 +11,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const bgUrl = `url(${IMGSERVE_BASE_URL}/bg)`
 
   const { hidden } = useHideOnScroll({
-    scrollThreshold: 50,
+    scrollThreshold: 30,
     throttleTime: 100
   })
 
@@ -46,9 +46,10 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
           <div
             ref={headerRef}
             className={
-              `fixed top-0 left-0 right-0 z-50 bg-[#0A1929]/80 
-              backdrop-blur-sm transition-opacity duration-300
-              ${hidden ? "opacity-0" : "opacity-100"}`
+              `fixed top-0 left-0 right-0
+              bg-[#0A1929]/80 backdrop-blur-sm 
+              transition-opacity duration-300
+              ${hidden ? "opacity-0 z-[-1]" : "opacity-100 z-50"}`
             }
           >
             <HeaderBar />

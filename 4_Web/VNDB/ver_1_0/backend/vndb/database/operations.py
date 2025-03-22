@@ -1,3 +1,4 @@
+import re
 from typing import List, Dict, Any 
 from datetime import datetime, timezone, timedelta
 from functools import wraps
@@ -29,7 +30,27 @@ def db_transaction(func):
     return wrapper
 
 
+def formatId(type: str, id: str) -> str:
+    type_prefix = {
+        'vn': 'v',
+        'release': 'r',
+        'character': 'c',
+        'producer': 'p',
+        'staff': 's',
+        'tag': 'g',
+        'trait': 'i'
+    }[type]
+    id = str(id)
+    if re.match(r'^\d+$', id):
+        return f"{type_prefix}{id}"
+    if re.match(r'^[a-zA-Z]\d+$', id):
+        if id[:1] not in type_prefix:
+            raise ValueError(f"Invalid ID: {id}")
+        return id
+    raise ValueError(f"Invalid ID: {id}")
+
 def exists(type: str, id: str) -> bool:
+    id = formatId(type, id)
     model = MODEL_MAP[type]
     item = db.session.query(model).get(id)
     return item is not None and item.deleted_at is None
@@ -39,6 +60,7 @@ def count_all(type: str) -> int:
     return db.session.query(model).filter(model.deleted_at == None).count()
 
 def updatable(type: str, id: str, update_interval: timedelta = timedelta(minutes=10)) -> bool:
+    id = formatId(type, id)
     item = get(type, id)
     if not item:
         return True  # Allow update if item doesn't exist (it will be created)
@@ -50,6 +72,7 @@ def updatable(type: str, id: str, update_interval: timedelta = timedelta(minutes
 
 
 def get(type: str, id: str) -> ModelType | None:
+    id = formatId(type, id)
     model = MODEL_MAP[type]
     item = (
         db.session.query(model)
@@ -71,6 +94,7 @@ def get_all(type: str, page: int | None = None, limit: int | None = None, sort: 
     return query.all()
 
 def create(type: str, id: str, data: Dict[str, Any]) -> ModelType | None:
+    id = formatId(type, id)
     model = MODEL_MAP[type]
     data.pop('id', None)
     if exists(type, id):
@@ -83,6 +107,7 @@ def create(type: str, id: str, data: Dict[str, Any]) -> ModelType | None:
     return item
 
 def update(type: str, id: str, data: Dict[str, Any]) -> ModelType | None:
+    id = formatId(type, id)
     item = get(type, id)
     if not item:
         return None
@@ -93,6 +118,7 @@ def update(type: str, id: str, data: Dict[str, Any]) -> ModelType | None:
     return item
 
 def delete(type: str, id: str) -> ModelType | None:
+    id = formatId(type, id)
     item = get(type, id)
     if not item:
         return None 
@@ -113,6 +139,7 @@ def delete_all(type: str) -> int:
 
 
 def get_inactive(type: str, id: str) -> ModelType | None:
+    id = formatId(type, id)
     model = MODEL_MAP[type]
     item = (
         db.session.query(model)
@@ -134,6 +161,7 @@ def get_inactive_all(type: str, page: int | None = None, limit: int | None = Non
     return query.all()
 
 def recover(type: str, id: str) -> ModelType | None:
+    id = formatId(type, id)
     item = get_inactive(type, id)
     if not item:
         return None
@@ -152,6 +180,7 @@ def recover_all(type: str) -> int:
     return count
 
 def cleanup(type: str, id: str) -> ModelType | None:
+    id = formatId(type, id)
     item = get_inactive(type, id)
     if not item:
         return None

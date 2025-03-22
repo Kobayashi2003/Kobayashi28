@@ -44,6 +44,7 @@ export function ImageCard({ imageTitle, imageUrl, imageDims, textColor, classNam
             src={imageUrl} 
             alt={imageUrl} 
             fill 
+            loading="lazy"
             className={`object-contain transition-opacity duration-300 ease-in-out ${isLoading || isError ? "opacity-0" : "opacity-100"}`}
             onLoad={() => { setIsLoading(false); setIsError(false) }}
             onError={() => { setIsLoading(false); setIsError(true) }}

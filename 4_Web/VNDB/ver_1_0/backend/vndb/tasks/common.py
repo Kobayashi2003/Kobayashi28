@@ -1,6 +1,7 @@
 from typing import Any, Dict
 
 from functools import wraps
+from datetime import datetime, timedelta
 
 from vndb import celery, cache, db, scheduler
 from vndb.database import convert_model_to_dict
@@ -163,7 +164,21 @@ def test_task(func):
     Decorator for test tasks that should run every 10 seconds.
     """
     @wraps(func)
-    @scheduler.task(trigger='interval', id=f'test_{func.__name__}', seconds=10)
+    @scheduler.task(trigger='interval', id=f'test_{func.__name__}', seconds=10, max_instances=1)
+    def wrapper(*args, **kwargs):
+        return func(*args, **kwargs)
+    return wrapper
+
+def test_once_task(func):
+    """
+    Decorator for tasks that should run only once, 10 seconds after registration.
+    """
+    @wraps(func)
+    @scheduler.task(
+        trigger='date', 
+        id=f'test_once_{func.__name__}', 
+        run_date=datetime.now() + timedelta(seconds=10)
+    )
     def wrapper(*args, **kwargs):
         return func(*args, **kwargs)
     return wrapper

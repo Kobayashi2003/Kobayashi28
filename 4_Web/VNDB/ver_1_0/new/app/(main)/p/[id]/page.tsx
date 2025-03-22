@@ -10,14 +10,17 @@ export default function ProducerPage() {
   const params = useParams()
   const id = parseInt(params.id as string)
 
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [producer, setProducer] = useState<Producer | null>(null)
 
   useEffect(() => {
+    const abortController = new AbortController()
     const fetchProducer = async () => {
       try {
-        const producer = await api.by_id.producer(id)
+        setLoading(true)
+        setError(null)
+        const producer = await api.by_id.producer(id, abortController.signal)
         setProducer(producer)
       } catch (error) {
         setError(error as string)
@@ -26,6 +29,7 @@ export default function ProducerPage() {
       }
     }
     fetchProducer()
+    return () => abortController.abort()
   }, [])
 
   return (

@@ -11,6 +11,7 @@ import { CategoryTypeSelecter } from "@/components/category/CategoryTypeSelecter
 import { CategorySelecter } from "@/components/category/CategorySelecter"
 import { DeleteButton } from "@/components/common/DeleteButton"
 import { DeleteModeButton } from "@/components/common/DeleteModeButton"
+import { SortSelector } from "@/components/category/SortSelector"
 import { ReloadButton } from "@/components/common/ReloadButton"
 import { CategoryCreator } from "@/components/category/CategoryCreator"
 import { CategorySearcher } from "@/components/category/CategorySearcher"
@@ -38,10 +39,9 @@ export default function CategoriesPage() {
   const selectedCategoryId = searchParams.get("cid") ? parseInt(searchParams.get("cid") as string) : undefined
   const query = searchParams.get("q") || ""
   const currentPage = searchParams.get("page") ? parseInt(searchParams.get("page") as string) : 1
-  // TODO: Add sort and order to the search params
-  const sortBy = searchParams.get("sort") || "released"
-  const sortOrder = searchParams.get("order") || "desc"
-  
+  const sortBy = searchParams.get("sort") || "id"
+  const sortOrder = searchParams.get("order") || "asc"
+
   const isSearching = query !== ""
   const [mounted, setMounted] = useState(false)
   const [open, setOpen] = useState(true)
@@ -67,6 +67,9 @@ export default function CategoriesPage() {
   const [cardType, setCardType] = useState<"image" | "text">("image")
   const [sexualLevel, setSexualLevel] = useState<"safe" | "suggestive" | "explicit">("safe")
   const [violenceLevel, setViolenceLevel] = useState<"tame" | "violent" | "brutal">("tame")
+
+  const [categoriesAbortController, setCategoriesAbortController] = useState<AbortController>()
+  const [resourcesAbortController, setResourcesAbortController] = useState<AbortController>()
 
 
   const removeKeyFromSearchParams = (key: string) => {
@@ -116,12 +119,24 @@ export default function CategoriesPage() {
     updateSearchParams("q", value)
   }
 
+  const setSortBy = (value: string) => {
+    updateSearchParams("sort", value)
+  }
+
+  const setSortOrder = (value: string) => {
+    updateSearchParams("order", value)
+  }
+
 
   const fetchCategories = async () => {
     if (!selectedType) return
     try {
+      categoriesAbortController?.abort()
+      const newAbortController = new AbortController()
+      setCategoriesAbortController(newAbortController)
+
       setLoadingCategories(true)
-      const response = await api.category.get(selectedType)
+      const response = await api.category.get(selectedType, newAbortController.signal)
       const sortedCategories = response.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
       setCategories(sortedCategories)
     } catch (error) {
@@ -134,8 +149,12 @@ export default function CategoriesPage() {
   const fetchResources = async () => {
     if (!selectedType || !selectedCategoryId) return
     try {
+      resourcesAbortController?.abort()
+      const newAbortController = new AbortController()
+      setResourcesAbortController(newAbortController)
+
       setLoadingResources(true)
-      const marksResponse = await api.category.getMarks(selectedType, selectedCategoryId)
+      const marksResponse = await api.category.getMarks(selectedType, selectedCategoryId, newAbortController.signal)
       if (marksResponse.results.length === 0) {
         setLoadingResources(false)
         return
@@ -145,45 +164,48 @@ export default function CategoriesPage() {
         case "v":
           const vnsResponse = await api.small.vn({
             id: markIds,
-            sort: "released",
-            reverse: true,
+            sort: sortBy,
+            reverse: sortOrder === "desc",
             page: currentPage,
             limit: itemsPerPage,
             search: query,
-          })
+          }, newAbortController.signal)
           setVNs(vnsResponse.results)
           setTotalPages(Math.ceil(vnsResponse.count / itemsPerPage))
           break
         case "c":
           const charactersResponse = await api.small.character({
             id: markIds,
-            sort: "name",
+            sort: sortBy,
+            reverse: sortOrder === "desc",
             page: currentPage,
             limit: itemsPerPage,
             search: query,
-          })
+          }, newAbortController.signal)
           setCharacters(charactersResponse.results)
           setTotalPages(Math.ceil(charactersResponse.count / itemsPerPage))
           break
         case "p":
           const producersResponse = await api.small.producer({
             id: markIds,
-            sort: "name",
+            sort: sortBy,
+            reverse: sortOrder === "desc",
             page: currentPage,
             limit: itemsPerPage,
             search: query,
-          })
+          }, newAbortController.signal)
           setProducers(producersResponse.results)
           setTotalPages(Math.ceil(producersResponse.count / itemsPerPage))
           break
         case "s":
           const staffsResponse = await api.small.staff({
             id: markIds,
-            sort: "name",
+            sort: sortBy,
+            reverse: sortOrder === "desc",
             page: currentPage,
             limit: itemsPerPage,
             search: query,
-          })
+          }, newAbortController.signal)
           setStaffs(staffsResponse.results)
           setTotalPages(Math.ceil(staffsResponse.count / itemsPerPage))
           break
@@ -254,6 +276,13 @@ export default function CategoriesPage() {
     setMounted(true)
   }, [])
 
+  useEffect(() => {
+    return () => {
+      categoriesAbortController?.abort()
+      resourcesAbortController?.abort()
+    }
+  }, [categoriesAbortController, resourcesAbortController])
+
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -271,7 +300,7 @@ export default function CategoriesPage() {
 
 
   useEffect(() => {
-    removeMultipleKeysFromSearchParams(["cid", "q", "page"])
+    removeMultipleKeysFromSearchParams(["cid", "q", "page", "sort", "order"])
     setTotalPages(0)
     setVNs([])
     setCharacters([])
@@ -281,7 +310,7 @@ export default function CategoriesPage() {
   }, [selectedType])
 
   useEffect(() => {
-    removeMultipleKeysFromSearchParams(["q", "page"])
+    removeMultipleKeysFromSearchParams(["q", "page", "sort", "order"])
     setTotalPages(0)
     setVNs([])
     setCharacters([])
@@ -298,7 +327,7 @@ export default function CategoriesPage() {
     setProducers([])
     setStaffs([])
     fetchResources()
-  }, [currentPage, query])
+  }, [currentPage, query, sortBy, sortOrder])
 
 
   return (
@@ -409,6 +438,14 @@ export default function CategoriesPage() {
                   setOpen={setOpen}
                 />
               )}
+              {/* Sort Selecter Button */}
+              <SortSelector
+                type={selectedType}
+                sortBy={sortBy}
+                sortOrder={sortOrder}
+                setSortBy={setSortBy}
+                setSortOrder={setSortOrder}
+              />
               {/* Card Type Selector */}
               <CardTypeSelecter
                 selected={cardType}
@@ -477,6 +514,14 @@ export default function CategoriesPage() {
                 setOpen={setOpen}
               />
             )}
+            {/* Sort Selecter Button */}
+            <SortSelector
+              type={selectedType}
+              sortBy={sortBy}
+              sortOrder={sortOrder}
+              setSortBy={setSortBy}
+              setSortOrder={setSortOrder}
+            />
             {/* Delete Mode Button */}
             <DeleteModeButton
               deleteMode={deleteMarkMode}
@@ -535,7 +580,7 @@ export default function CategoriesPage() {
             </motion.div>
           ) : (
             <motion.div
-              key={`${selectedType}-${currentPage}-${cardType}`}
+              key={`${selectedType}-${currentPage}-${cardType}-${sortBy}-${sortOrder}`}
               initial={{ filter: "blur(20px)", opacity: 0 }}
               animate={{ filter: "blur(0px)", opacity: 1 }}
               exit={{ filter: "blur(20px)", opacity: 0 }}

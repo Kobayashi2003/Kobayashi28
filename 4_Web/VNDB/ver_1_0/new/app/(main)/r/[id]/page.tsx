@@ -10,14 +10,17 @@ export default function ReleasePage() {
   const params = useParams()
   const id = parseInt(params.id as string)
   
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [release, setRelease] = useState<Release | null>(null)
 
   useEffect(() => {
+    const abortController = new AbortController()
     const fetchRelease = async () => {
       try {
-        const release = await api.by_id.release(id)
+        setLoading(true)
+        setError(null)
+        const release = await api.by_id.release(id, abortController.signal)
         setRelease(release)
       } catch (error) {
         setError(error as string)
@@ -26,6 +29,7 @@ export default function ReleasePage() {
       }
     }
     fetchRelease()
+    return () => abortController.abort()
   }, [])
 
   return (

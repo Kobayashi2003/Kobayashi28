@@ -10,14 +10,17 @@ export default function StaffPage() {
   const params = useParams()
   const id = parseInt(params.id as string)
   
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [staff, setStaff] = useState<Staff | null>(null)
 
   useEffect(() => {
+    const abortController = new AbortController()
     const fetchStaff = async () => {
       try {
-        const staff = await api.by_id.staff(id)
+        setLoading(true)
+        setError(null)
+        const staff = await api.by_id.staff(id, abortController.signal)
         setStaff(staff)
       } catch (error) {
         setError(error as string)
@@ -26,6 +29,7 @@ export default function StaffPage() {
       }
     }
     fetchStaff()
+    return () => abortController.abort()
   }, [])
   
   return (

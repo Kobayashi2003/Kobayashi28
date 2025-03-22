@@ -39,12 +39,19 @@ export default function VNSearchResults() {
   const [totalPages, setTotalPages] = useState(0)
   const [vns, setVNs] = useState<VN_Small[]>([])
 
+  const [abortController, setAbortController] = useState<AbortController | null>(null)
+
   useEffect(() => {
-    setLoading(true)
-    setError(null)
+    window.scrollTo({ top: 0, behavior: "smooth" })
     setVNs([])
     fetchVNs()
   }, [currentPage, filteredParams])
+
+  useEffect(() => {
+    return () => {
+      abortController?.abort()
+    }
+  }, [abortController])
 
   const updateSearchParams = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams)
@@ -54,11 +61,17 @@ export default function VNSearchResults() {
 
   const fetchVNs = async () => {
     try {
+      abortController?.abort()
+      const newController = new AbortController()
+      setAbortController(newController)
+
+      setLoading(true)
+      setError(null)
       const params: VNDBQueryParams = { page: currentPage, limit: itemsPerPage }
       for (const [key, value] of searchParams.entries()) {
         params[key as string] = value as string
       }
-      const response = await api.small.vn(params)
+      const response = await api.small.vn(params, newController.signal)
       setVNs(response.results)
       setTotalPages(Math.ceil(response.count / itemsPerPage) || 1)
     } catch (error) {

@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from flask import current_app
 from .common import weekly_task
 
-@weekly_task
+@weekly_task()
 def backup_database():
     filename = 'vndb_' + datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S') + '.dump'
     backup_folder = current_app.config['BACKUP_FOLDER']

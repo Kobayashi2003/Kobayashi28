@@ -25,23 +25,35 @@ export default function TagSearchResults() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [totalPages, setTotalPages] = useState(0)
-
   const [tags, setTags] = useState<Tag_Small[]>([])
 
+  const [abortController, setAbortController] = useState<AbortController | null>(null)
+
   useEffect(() => {
-    setLoading(true)
-    setError(null)
+    window.scrollTo({ top: 0, behavior: "smooth" })
     setTags([])
     fetchTags()
   }, [currentPage, searchParams])
 
+  useEffect(() => {
+    return () => {
+      abortController?.abort()
+    }
+  }, [abortController])
+
   const fetchTags = async () => {
     try {
+      abortController?.abort()
+      const newController = new AbortController()
+      setAbortController(newController)
+
+      setLoading(true)
+      setError(null)
       const params: VNDBQueryParams = { page: currentPage, limit: itemsPerPage }
       for (const [key, value] of searchParams.entries()) {
         params[key as string] = value as string
       }
-      const response = await api.small.tag(params)
+      const response = await api.small.tag(params, newController.signal)
       setTags(response.results)
       setTotalPages(Math.ceil(response.count / itemsPerPage) || 1)
     } catch (error) {

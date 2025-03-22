@@ -11,7 +11,6 @@ import { useHideOnScroll } from "@/hooks/useHideOnScroll"
 export default function UserLayout({ children }: { children: React.ReactNode }) {
 
   const { user, isLoading } = useUserContext()
-  const [mounted, setMounted] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
   const options = [
@@ -36,7 +35,7 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
   ]
 
   const { hidden } = useHideOnScroll({
-    scrollThreshold: 50,
+    scrollThreshold: 30,
     throttleTime: 100
   })
 
@@ -44,12 +43,8 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
   const [navBarWidth, setNavBarWidth] = useState(0)
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  useEffect(() => {
     if (!isLoading && !user) {
-      // router.push("/")
+      router.push("/")
     }
   }, [isLoading, user, router])
 
@@ -72,10 +67,9 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
       <div
         ref={navBarRef}
         className={cn(
-          "fixed left-0 z-50 h-full",
+          "fixed left-0 h-full",
           "transition-opacity duration-500",
-          mounted ? "opacity-100" : "opacity-0",
-          hidden ? "opacity-0" : "opacity-100"
+          hidden ? "opacity-0 z-[-1]" : "opacity-100 z-50"
         )}
       >
         <NavBar

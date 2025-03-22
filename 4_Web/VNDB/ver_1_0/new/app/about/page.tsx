@@ -153,7 +153,7 @@ export default function VNDBBackground() {
         <div className="subtitle">Visual Novel Database -- By KOBAYASHI</div>
         <button 
           className="frosted-glass-button"
-          onClick={() => window.location.href = '/home'}
+          onClick={() => window.location.href = '/'}
         >
           Go To Home -&gt;
         </button>

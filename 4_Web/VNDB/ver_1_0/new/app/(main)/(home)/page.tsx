@@ -60,12 +60,19 @@ export default function Home() {
   const [totalPages, setTotalPages] = useState(0)
   const [vns, setVNs] = useState<VN_Small[]>([])
 
+  const [abortController, setAbortController] = useState<AbortController | null>(null)
+
   useEffect(() => {
-    setLoading(true)
-    setError(null)
+    window.scrollTo({ top: 0, behavior: "smooth" })
     setVNs([])
     fetchVNs()
   }, [selectedYear, selectedMonth, currentPage])
+
+  useEffect(() => {
+    return () => {
+      abortController?.abort()
+    }
+  }, [abortController])
 
   const updateSearchParams = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams)
@@ -83,6 +90,12 @@ export default function Home() {
 
   const fetchVNs = async () => {
     try {
+      abortController?.abort()
+      const newController = new AbortController()
+      setAbortController(newController)
+
+      setLoading(true)
+      setError(null)
       if (selectedYear === "00") {
         const response = await api.small.vn({
           olang: "ja",
@@ -90,7 +103,7 @@ export default function Home() {
           reverse: true,
           page: currentPage,
           limit: itemsPerPage,
-        })
+        }, newController.signal)
         setVNs(response.results)
         setTotalPages(Math.ceil(response.count / itemsPerPage) || 1)
       } else if (selectedYear !== "00" && selectedMonth === "00") {
@@ -107,7 +120,7 @@ export default function Home() {
           reverse: true,
           page: currentPage,
           limit: itemsPerPage,
-        })
+        }, newController.signal)
         setVNs(response.results)
         setTotalPages(Math.ceil(response.count / itemsPerPage) || 1)
       } else if (selectedYear !== "00" && selectedMonth !== "00") {
@@ -128,7 +141,7 @@ export default function Home() {
           reverse: true,
           page: currentPage,
           limit: itemsPerPage,
-        })
+        }, newController.signal)
         setVNs(response.results)
         setTotalPages(Math.ceil(response.count / itemsPerPage) || 1)
       }
