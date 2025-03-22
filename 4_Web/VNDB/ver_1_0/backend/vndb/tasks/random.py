@@ -2,9 +2,10 @@ import time
 import random
 from vndb.search import search_remote
 from vndb.database import MODEL_MAP, formatId, exists, create, update, updatable 
-from .common import hourly_task, test_task
+from .common import hourly_task, clear_caches 
 
 @hourly_task()
+@clear_caches
 def random_fetch_task():
 
     created = {}
@@ -12,7 +13,7 @@ def random_fetch_task():
 
     def random_fetch(type: str):
         count = search_remote(type, {}, 'small', 1, 1, 'id', False, True)['count']
-        ids = [formatId(type, id) for id in random.sample(range(1, count + 1), 10)]
+        ids = [formatId(type, id) for id in random.sample(range(1, count + 1), 5)]
         for id in ids:
             if not exists(type, id):
                 if remote_results := search_remote(type, {'id':id}, 'large')['results']:
@@ -35,13 +36,14 @@ def random_fetch_task():
     print({'created': created, 'updated': updated})
 
 @hourly_task()
+@clear_caches
 def random_update_task():
 
     updated = {}
 
     def random_update(type: str):
         model = MODEL_MAP[type]
-        ids = [vn.id for vn in model.query.filter(model.deleted_at == None).order_by(model.id).limit(10).all()]
+        ids = [vn.id for vn in model.query.filter(model.deleted_at == None).order_by(model.id).limit(5).all()]
         for id in ids:
             if updatable(type, id):
                 if remote_results := search_remote(type, {'id':id}, 'large')['results']:

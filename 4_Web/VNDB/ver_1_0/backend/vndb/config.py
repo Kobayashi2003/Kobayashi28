@@ -6,8 +6,8 @@ load_dotenv()
 class Config:
 
     # Flask configurations
-    DEBUG = False
-    USE_RELOADER = False
+    DEBUG = os.environ['DEBUG']
+    USE_RELOADER = os.environ['USE_RELOADER']
     SECRET_KEY = os.environ['SECRET_KEY']
     APP_HOST = os.environ['VNDB_HOST']
     APP_PORT = int(os.environ['VNDB_PORT'])
@@ -22,6 +22,7 @@ class Config:
     CACHE_DEFAULT_TIMEOUT = 300
 
     # Celery configuration
+    CELERY_DEFAULT_QUEUE = os.environ['VNDB_CELERY_DEFAULT_QUEUE']
     CELERY_BROKER_URL = os.environ['VNDB_CELERY_BROKER_URL']
     CELERY_RESULT_BACKEND = os.environ['VNDB_CELERY_RESULT_BACKEND']
     CELERY_ACCEPT_CONTENT = ['json']
@@ -29,7 +30,7 @@ class Config:
     CELERY_RESULT_SERIALIZER = 'json'
     CELERY_TIMEZONE = 'UTC'
     CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
-
+    FLOWER_PORT = os.environ['VNDB_FLOWER_PORT']
     # Scheduler configuration
     SCHEDULER_API_ENABLED = True
     SCHEDULER_TIMEZONE = "UTC"

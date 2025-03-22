@@ -7,8 +7,8 @@ load_dotenv()
 class Config:
 
     # Flask configurations
-    DEBUG = False
-    USE_RELOADER = False
+    DEBUG = os.environ['DEBUG']
+    USE_RELOADER = os.environ['USE_RELOADER']
     SECRET_KEY = os.environ['SECRET_KEY']
     APP_HOST = os.environ['USERSERVE_HOST']
     APP_PORT = int(os.environ['USERSERVE_PORT'])
