@@ -61,7 +61,7 @@ def create_app(config_class=Config):
 
     # ---------------------------
     # Register tasks
-    from .tasks import backup_database
+    from .schedule import backup_database_schedule
 
     # ---------------------------
     # Register CLI commands

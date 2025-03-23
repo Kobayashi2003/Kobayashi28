@@ -1,10 +1,22 @@
+import os
 import sys
 import time
 import signal
 import subprocess
 import threading
 import argparse
+import logging
 from typing import List
+
+os.makedirs('logs', exist_ok=True)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
+    filename='logs/run.log',
+    filemode='a'
+)
+logger = logging.getLogger(__name__)
 
 def run_redis_server():
     print("Starting Redis server")
@@ -16,6 +28,7 @@ def run_redis_server():
 
     def log_redis():
         for line in redis_process.stdout:
+            logger.info(f"[REDIS] {line.strip()}")
             print(f"[REDIS] {line.strip()}")
     
     threading.Thread(target=log_redis, daemon=True).start()
@@ -34,6 +47,7 @@ def run_celery_worker(app_name):
 
     def log_celery():
         for line in celery_process.stdout:
+            logger.info(f"[{app_name.upper()} CELERY] {line}")
             print(f"[{app_name.upper()} CELERY] {line}", end='')
 
     threading.Thread(target=log_celery, daemon=True).start()
@@ -52,6 +66,7 @@ def run_flower(app_name: str):
 
     def log_flower():
         for line in flower_process.stdout:
+            logger.info(f"[{app_name.upper()} FLOWER] {line}")
             print(f"[{app_name.upper()} FLOWER] {line}", end='')
 
     threading.Thread(target=log_flower, daemon=True).start()
@@ -72,6 +87,7 @@ def run_flask(app_name: str):
 
     def log_flask():
         for line in process.stdout:
+            logger.info(f"[{app_name.upper()} FLASK] {line}")
             print(f"[{app_name.upper()} FLASK] {line}", end='')
 
     threading.Thread(target=log_flask, daemon=True).start()
@@ -90,6 +106,7 @@ def run_flask_waitress(app_name: str):
 
     def log_waitress():
         for line in process.stdout:
+            logger.info(f"[{app_name.upper()} WAITRESS] {line}")
             print(f"[{app_name.upper()} WAITRESS] {line}", end='')
 
     threading.Thread(target=log_waitress, daemon=True).start()

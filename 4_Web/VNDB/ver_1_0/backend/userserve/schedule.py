@@ -34,7 +34,7 @@ def weekly_task(day_of_week=0, hour=0, minute=0):
 
 
 @daily_task(hour=0, minute=0)
-def backup_database():
+def backup_database_schedule():
     filename = 'userserve_' + datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S') + '.dump'
     backup_folder = current_app.config['BACKUP_FOLDER']
     backup_path = os.path.join(backup_folder, filename)

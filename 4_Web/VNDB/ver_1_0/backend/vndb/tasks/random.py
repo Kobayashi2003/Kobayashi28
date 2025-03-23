@@ -1,11 +1,10 @@
 import time
 import random
+from vndb import celery
 from vndb.search import search_remote
 from vndb.database import MODEL_MAP, formatId, exists, create, update, updatable 
-from .common import hourly_task, clear_caches 
 
-@hourly_task()
-@clear_caches
+@celery.task
 def random_fetch_task():
 
     created = {}
@@ -27,16 +26,17 @@ def random_fetch_task():
                     updated[id] = False
             else:
                 updated[id] = False
-            time.sleep(1)
+            time.sleep(10)
     
     for type in ['vn', 'release','character', 'producer', 'staff', 'tag', 'trait']:
         random_fetch(type)
         time.sleep(60)
     
-    print({'created': created, 'updated': updated})
+    results = {'created': created, 'updated': updated}
+    print(results)
+    return results
 
-@hourly_task()
-@clear_caches
+@celery.task
 def random_update_task():
 
     updated = {}
@@ -52,10 +52,12 @@ def random_update_task():
                     updated[id] = False
             else:
                 updated[id] = False
-            time.sleep(1)
+            time.sleep(10)
 
     for type in ['vn', 'release','character', 'producer', 'staff', 'tag', 'trait']:
         random_update(type)
         time.sleep(60)
 
-    print({'updated': updated})
+    results = {'updated': updated}
+    print(results)
+    return results

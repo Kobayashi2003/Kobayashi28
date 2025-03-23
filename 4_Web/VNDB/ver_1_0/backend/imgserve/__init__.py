@@ -57,13 +57,14 @@ def create_app(config_class=Config):
     # This section sets up Celery for asynchronous task processing
     # ----------------------------------------
     celery = ExtCelery(app)
+    from .tasks.backup import backup_database_task
 
     # ----------------------------------------
     # Scheduler Initialization
     # This section sets up the APScheduler for running scheduled tasks
     # ----------------------------------------
     scheduler = ExtAPScheduler(app)
-    from .tasks.backup import backup_database
+    from .schedule.backup import backup_database_schedule
 
     # ----------------------------------------
     # Blueprint Registration

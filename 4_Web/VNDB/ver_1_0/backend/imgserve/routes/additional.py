@@ -5,7 +5,8 @@ from flask import Blueprint, send_file, abort, current_app
 
 from imgserve.database import exists, create
 from imgserve.utils import get_image_path
-from imgserve.tasks import create_image_task
+from imgserve.tasks.images import create_image_task
+
 additional_bp = Blueprint('additional', __name__, url_prefix='/')
 
 @additional_bp.route('/bg', methods=['GET'])

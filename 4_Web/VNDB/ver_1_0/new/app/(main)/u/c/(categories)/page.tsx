@@ -136,6 +136,7 @@ export default function CategoriesPage() {
       setCategoriesAbortController(newAbortController)
 
       setLoadingCategories(true)
+      setErrorCategories("")
       const response = await api.category.get(selectedType, newAbortController.signal)
       const sortedCategories = response.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
       setCategories(sortedCategories)
@@ -154,6 +155,7 @@ export default function CategoriesPage() {
       setResourcesAbortController(newAbortController)
 
       setLoadingResources(true)
+      setErrorResources("")
       const marksResponse = await api.category.getMarks(selectedType, selectedCategoryId, newAbortController.signal)
       if (marksResponse.results.length === 0) {
         setLoadingResources(false)
@@ -233,6 +235,7 @@ export default function CategoriesPage() {
     if (!selectedType || !newCategoryName) return
     try {
       setLoadingCategories(true)
+      setErrorCategories("")
       await api.category.create(selectedType, newCategoryName)
       setNewCategoryName("")
       setSelectedCategoryId(undefined)
@@ -248,6 +251,7 @@ export default function CategoriesPage() {
     if (!selectedType || !toDeleteCategoryId) return
     try {
       setLoadingCategories(true)
+      setErrorCategories("")
       await api.category.delete(selectedType, toDeleteCategoryId)
       setSelectedCategoryId(undefined)
       fetchCategories()
@@ -262,6 +266,7 @@ export default function CategoriesPage() {
     if (!selectedType || !selectedCategoryId) return
     try {
       setLoadingResources(true)
+      setErrorResources("")
       await api.category.removeMark(selectedType, selectedCategoryId, markId)
       fetchResources()
     } catch (error) {

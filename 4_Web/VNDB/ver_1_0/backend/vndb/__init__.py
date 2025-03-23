@@ -58,15 +58,18 @@ def create_app(config_class=Config):
     # ----------------------------------------
     celery = ExtCelery(app)
 
+    from .tasks.backup import backup_database_task
+    from .tasks.random import random_fetch_task, random_update_task
+
     # ----------------------------------------
     # Scheduler Initialization
     # This section sets up the APScheduler for running scheduled tasks
     # ----------------------------------------
     scheduler = ExtAPScheduler(app)
 
-    from .tasks.simple import simple_task
-    from .tasks.backup import backup_database
-    from .tasks.random import random_fetch_task, random_update_task
+    from .schedule.simple import simple_schedule
+    from .schedule.backup import backup_database_schedule
+    from .schedule.random import random_fetch_schedule, random_update_schedule
 
     # ----------------------------------------
     # Blueprint Registration

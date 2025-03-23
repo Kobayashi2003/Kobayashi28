@@ -1,7 +1,7 @@
 import os
 from flask import Blueprint, send_file, abort, request
 from imgserve.database import exists, create
-from imgserve.tasks import (
+from imgserve.tasks.images import (
     create_image_task, update_image_task, delete_image_task, download_images_task
 )
 from imgserve.utils import get_image_path
