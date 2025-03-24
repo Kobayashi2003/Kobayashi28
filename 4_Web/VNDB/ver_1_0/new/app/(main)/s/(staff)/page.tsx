@@ -54,11 +54,14 @@ export default function StaffSearchResults() {
         params[key as string] = value as string
       }
       const response = await api.small.staff(params, newController.signal)
+      if (response.count === 1) {
+        router.push(`/s/${response.results[0].id.slice(1)}`);
+        return;
+      }
       setStaff(response.results)
       setTotalPages(Math.ceil(response.count / itemsPerPage) || 1)
     } catch (error) {
-      console.error("Failed to fetch staff:", error)
-      setError("Failed to fetch staff. Please try again.")
+      setError(`Failed to fetch staff: ${error as string}`)
     } finally {
       setLoading(false)
     }

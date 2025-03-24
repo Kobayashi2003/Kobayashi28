@@ -4,7 +4,6 @@ from operator import itemgetter
 from datetime import datetime, timezone
 
 from flask import current_app
-from sqlalchemy.exc import SQLAlchemyError
 
 from userserve import db
 from .models import User, CATEGORY_MODEL, CategoryType
@@ -14,8 +13,9 @@ def save_db_operation(func: Callable) -> Callable:
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
-        except SQLAlchemyError:
+        except Exception as e:
             db.session.rollback()
+            print(f"Error in {func.__name__}: {str(e)}")
             return None
     return wrapper
 

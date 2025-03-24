@@ -39,9 +39,10 @@ def create_app(config_class=Config, enable_scheduler=True):
     db = ExtSQLAchemy(app)
     migrate = Migrate(app, db)
     jwt = ExtJWT(app)
-    scheduler = None
     if enable_scheduler:
         scheduler = ExtAPScheduler(app)
+    else:
+        scheduler = None
 
     # ---------------------------
     # Generate random admin password

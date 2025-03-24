@@ -54,11 +54,14 @@ export default function TagSearchResults() {
         params[key as string] = value as string
       }
       const response = await api.small.tag(params, newController.signal)
+      if (response.count === 1) {
+        router.push(`/g/${response.results[0].id.slice(1)}`);
+        return;
+      }
       setTags(response.results)
       setTotalPages(Math.ceil(response.count / itemsPerPage) || 1)
     } catch (error) {
-      console.error("Failed to fetch tags:", error)
-      setError("Failed to fetch tags. Please try again.")
+      setError(`Failed to fetch tags: ${error as string}`)
     } finally {
       setLoading(false)
     }

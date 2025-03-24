@@ -1,6 +1,5 @@
 from typing import Callable
 from functools import wraps
-from sqlalchemy.exc import SQLAlchemyError
 from imgserve import db
 from .models import IMAGE_MODEL
 
@@ -11,7 +10,8 @@ def save_db_operation(func: Callable) -> Callable:
             return None
         try:
             return func(type, *args, **kwargs)
-        except SQLAlchemyError:
+        except Exception as e:
             db.session.rollback()
+            print(f"Error in {func.__name__}: {str(e)}")
             return None
     return wrapper

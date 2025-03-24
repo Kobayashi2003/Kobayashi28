@@ -4,7 +4,6 @@ from datetime import datetime, timezone, timedelta
 from functools import wraps
 
 from sqlalchemy import asc, desc
-from sqlalchemy.exc import SQLAlchemyError
 
 from vndb import db
 from .models import MODEL_MAP, ModelType 
@@ -20,13 +19,10 @@ def db_transaction(func):
                 return None
             db.session.commit()
             return result
-        except (SQLAlchemyError, ValueError) as e:
+        except Exception as e:
             db.session.rollback()
             print(f"Error in {func.__name__}: {str(e)}")
             return None
-        except Exception as e:
-            db.session.rollback()
-            raise e
     return wrapper
 
 

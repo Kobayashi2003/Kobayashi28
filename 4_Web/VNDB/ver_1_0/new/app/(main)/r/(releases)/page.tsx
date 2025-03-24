@@ -54,11 +54,14 @@ export default function ReleaseSearchResults() {
         params[key as string] = value as string
       }
       const response = await api.small.release(params, newController.signal)
+      if (response.count === 1) {
+        router.push(`/r/${response.results[0].id.slice(1)}`);
+        return;
+      }
       setReleases(response.results)
       setTotalPages(Math.ceil(response.count / itemsPerPage) || 1)
     } catch (error) {
-      console.error("Failed to fetch releases:", error)
-      setError("Failed to fetch releases. Please try again.")
+      setError(`Failed to fetch releases: ${error as string}`)
     } finally {
       setLoading(false)
     }

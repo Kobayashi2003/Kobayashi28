@@ -65,7 +65,7 @@ class ExtCelery(Extension):
             'accept_content': app.config['CELERY_ACCEPT_CONTENT'],
             'task_serializer': app.config['CELERY_TASK_SERIALIZER'],
             'result_serializer': app.config['CELERY_RESULT_SERIALIZER'],
-            'timezone': app.config['CELERY_TIMEZONE'],
+            # 'timezone': app.config['CELERY_TIMEZONE'],
             'broker_connection_retry_on_startup': app.config['CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP']
         })
         class ContextTask(celery.Task):

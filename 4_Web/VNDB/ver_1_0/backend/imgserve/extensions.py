@@ -65,7 +65,7 @@ class ExtCelery(Extension):
             'accept_content': app.config['CELERY_ACCEPT_CONTENT'],
             'task_serializer': app.config['CELERY_TASK_SERIALIZER'],
             'result_serializer': app.config['CELERY_RESULT_SERIALIZER'],
-            'timezone': app.config['CELERY_TIMEZONE'],
+            # 'timezone': app.config['CELERY_TIMEZONE'],
             'broker_connection_retry_on_startup': app.config['CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP']
         })
         class ContextTask(celery.Task):
@@ -77,6 +77,10 @@ class ExtCelery(Extension):
         return celery
 
 class ExtAPScheduler(Extension):
+    def __init__(self, app, enable_scheduler=True):
+        super().__init__(app)
+        self.enable_scheduler = enable_scheduler
+    
     def __getattr__(self, name):
         if name == 'task':
             return self.scheduled_task

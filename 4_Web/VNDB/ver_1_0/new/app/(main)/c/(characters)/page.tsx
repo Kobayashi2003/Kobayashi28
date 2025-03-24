@@ -72,11 +72,14 @@ export default function CharacterSearchResults() {
         params[key as string] = value as string
       }
       const response = await api.small.character(params, newController.signal)
+      if (response.count === 1) {
+        router.push(`/c/${response.results[0].id.slice(1)}`);
+        return;
+      }
       setCharacters(response.results)
       setTotalPages(Math.ceil(response.count / itemsPerPage) || 1)
     } catch (error) {
-      console.error("Failed to fetch characters:", error)
-      setError("Failed to fetch characters. Please try again.")
+      setError(`Failed to fetch characters: ${error as string}`)
     } finally {
       setLoading(false)
     }

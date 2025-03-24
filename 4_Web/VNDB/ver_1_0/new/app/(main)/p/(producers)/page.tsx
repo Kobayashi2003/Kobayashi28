@@ -54,11 +54,14 @@ export default function ProducerSearchResults() {
         params[key as string] = value as string
       }
       const response = await api.small.producer(params, newController.signal)
+      if (response.count === 1) {
+        router.push(`/p/${response.results[0].id.slice(1)}`);
+        return;
+      }
       setProducers(response.results)
       setTotalPages(Math.ceil(response.count / itemsPerPage) || 1)
     } catch (error) {
-      console.error("Failed to fetch producers:", error)
-      setError("Failed to fetch producers. Please try again.")
+      setError(`Failed to fetch producers: ${error as string}`)
     } finally {
       setLoading(false)
     }

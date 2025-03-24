@@ -28,13 +28,13 @@ class Config:
     CELERY_ACCEPT_CONTENT = ['json']
     CELERY_TASK_SERIALIZER = 'json'
     CELERY_RESULT_SERIALIZER = 'json'
-    CELERY_TIMEZONE = 'UTC'
+    # CELERY_TIMEZONE = 'UTC'
     CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
     FLOWER_PORT = os.environ['VNDB_FLOWER_PORT']
 
     # Scheduler configuration
     SCHEDULER_API_ENABLED = True
-    SCHEDULER_TIMEZONE = "UTC"
+    # SCHEDULER_TIMEZONE = "UTC"
 
     # Data folder configuration
     DATA_FOLDER = os.environ['DATA_FOLDER']

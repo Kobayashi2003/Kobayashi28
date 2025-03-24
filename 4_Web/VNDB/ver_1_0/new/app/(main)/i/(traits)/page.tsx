@@ -54,11 +54,14 @@ export default function TraitSearchResults() {
         params[key as string] = value as string
       }
       const response = await api.small.trait(params, newController.signal)
+      if (response.count === 1) {
+        router.push(`/i/${response.results[0].id.slice(1)}`);
+        return;
+      }
       setTraits(response.results)
       setTotalPages(Math.ceil(response.count / itemsPerPage) || 1)
     } catch (error) {
-      console.error("Failed to fetch traits:", error)
-      setError("Failed to fetch traits. Please try again.")
+      setError(`Failed to fetch traits: ${error as string}`)
     } finally {
       setLoading(false)
     }

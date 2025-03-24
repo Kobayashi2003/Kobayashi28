@@ -62,12 +62,13 @@ def create_app(config_class=Config, enable_scheduler=True):
     # Scheduler Initialization
     # This section sets up the APScheduler for running scheduled tasks
     # ----------------------------------------
-    scheduler = None
     if enable_scheduler:
         scheduler = ExtAPScheduler(app)
         from .schedule.simple import simple_schedule
         from .schedule.backup import backup_database_schedule
         from .schedule.random import random_fetch_schedule, random_update_schedule
+    else:
+        scheduler = None
 
     # ----------------------------------------
     # Blueprint Registration

@@ -6,13 +6,14 @@ import { ImageOff, RotateCw, RefreshCw } from "lucide-react"
 
 interface ImageCardProps {
   imageTitle?: string
+  imageSubtitle?: string
   imageUrl?: string  
   imageDims?: [number, number]
   textColor?: string
   className?: string
 }
 
-export function ImageCard({ imageTitle, imageUrl, imageDims, textColor, className }: ImageCardProps) {
+export function ImageCard({ imageTitle, imageSubtitle, imageUrl, imageDims, textColor, className }: ImageCardProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [isError, setIsError] = useState(false)
 
@@ -57,6 +58,9 @@ export function ImageCard({ imageTitle, imageUrl, imageDims, textColor, classNam
       </div>
       <div className="p-4 border-t border-white/10">
         <h2 className={`font-semibold truncate text-sm md:text-base ${textColor || "text-white"}`}>{imageTitle}</h2>
+        {imageSubtitle && (
+          <p className="text-xs md:text-sm text-gray-400">{imageSubtitle}</p>
+        )}
       </div>
     </div>
   )

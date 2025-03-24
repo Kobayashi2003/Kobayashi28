@@ -212,7 +212,8 @@ export default function CategoriesPage() {
           setTotalPages(Math.ceil(staffsResponse.count / itemsPerPage))
           break
       }
-    } catch (error) {
+    }  
+    catch (error) {
       setErrorResources(error as string)
     } finally {
       setLoadingResources(false)
