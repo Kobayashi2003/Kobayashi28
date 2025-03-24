@@ -37,7 +37,7 @@ const sortByOptions: Record<string, {value: string, label: string, sortable?: bo
     {value: "title", label: "Title"},
     {value: "released", label: "Release Date"},
     {value: "rating", label: "Bayesian Rating"},
-    {value: "average", label: "Raw Vote Average"},
+    {value: "average", label: "Raw Vote Average", sortable: false},
     {value: "votecount", label: "Vote Count"},
   ],
   release: [

@@ -3,6 +3,8 @@ import { TextCard } from "@/components/common/TextCard"
 
 import { VN_Small, Release_Small, Character_Small, Producer_Small, Staff_Small, Tag_Small, Trait_Small } from "@/lib/types"
 
+// TODO: I need a general function to generate cards
+
 export function GenVNCard(vn: VN_Small, sexualLevel: "safe" | "suggestive" | "explicit", violenceLevel: "tame" | "violent" | "brutal", cardType: "image" | "text") {
   if (cardType === "text") {
     return <TextCard title={vn.title} />

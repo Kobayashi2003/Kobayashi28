@@ -57,6 +57,16 @@ const filterFields: Record<string, FilterField[]> = {
       value: "lang",
       label: "Language",
       type: "text",
+    },
+    {
+      value: "olang",
+      label: "Original Language",
+      type: "text",
+    },
+    {
+      value: "platform",
+      label: "Platform",
+      type: "text",
     }
   ],
   release: [
