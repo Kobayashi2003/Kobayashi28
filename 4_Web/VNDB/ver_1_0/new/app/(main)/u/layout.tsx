@@ -80,7 +80,7 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
       </div>
       <div
         className={cn(
-          "transform-width duration-300",
+          // "transform-width duration-300",
           !hidden && "mr-4"
         )}
         style={{ height: "100%", width: `${!hidden ? navBarWidth : 0}px` }}

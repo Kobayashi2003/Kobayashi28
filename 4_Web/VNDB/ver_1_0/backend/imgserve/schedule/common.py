@@ -8,6 +8,15 @@ def test_task(func):
         return func(*args, **kwargs)
     return wrapper
 
+def hourly_task(minute=0):
+    def decorator(func):
+        @wraps(func)
+        @scheduler.task(trigger='cron', id=f'hourly_{func.__name__}', minute=minute)
+        def wrapper(*args, **kwargs):
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
+
 def daily_task(hour=0, minute=0):
     def decorator(func):
         @wraps(func)

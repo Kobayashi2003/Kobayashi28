@@ -6,7 +6,7 @@ from .extensions import (
     ExtSQLAchemy, ExtCache, ExtCelery, ExtAPScheduler
 )
 
-def create_app(config_class=Config):
+def create_app(config_class=Config, enable_scheduler=True):
     app = Flask(__name__)
 
     # ---------------------------
@@ -57,14 +57,16 @@ def create_app(config_class=Config):
     # This section sets up Celery for asynchronous task processing
     # ----------------------------------------
     celery = ExtCelery(app)
-    from .tasks.backup import backup_database_task
 
     # ----------------------------------------
     # Scheduler Initialization
     # This section sets up the APScheduler for running scheduled tasks
     # ----------------------------------------
-    scheduler = ExtAPScheduler(app)
-    from .schedule.backup import backup_database_schedule
+    scheduler = None
+    if enable_scheduler:
+        scheduler = ExtAPScheduler(app)
+        from .schedule.backup import backup_database_schedule
+        from .schedule.random import random_fetch_schedule, random_update_schedule
 
     # ----------------------------------------
     # Blueprint Registration

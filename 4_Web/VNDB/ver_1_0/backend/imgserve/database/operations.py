@@ -2,6 +2,7 @@ from imgserve import db
 from .models import IMAGE_MODEL, ImageType
 from .common import save_db_operation
 
+@save_db_operation
 def exists(type: str, id: str) -> bool:
     model = IMAGE_MODEL[type]
     image = model.query.get(id)

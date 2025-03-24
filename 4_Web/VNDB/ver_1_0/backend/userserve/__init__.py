@@ -9,7 +9,7 @@ from .extensions import (
 import secrets
 import string
 
-def create_app(config_class=Config):
+def create_app(config_class=Config, enable_scheduler=True):
     app = Flask(__name__)
 
     # ---------------------------
@@ -39,7 +39,9 @@ def create_app(config_class=Config):
     db = ExtSQLAchemy(app)
     migrate = Migrate(app, db)
     jwt = ExtJWT(app)
-    scheduler = ExtAPScheduler(app)
+    scheduler = None
+    if enable_scheduler:
+        scheduler = ExtAPScheduler(app)
 
     # ---------------------------
     # Generate random admin password

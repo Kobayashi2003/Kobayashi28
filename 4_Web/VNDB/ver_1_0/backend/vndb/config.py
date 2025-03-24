@@ -31,6 +31,7 @@ class Config:
     CELERY_TIMEZONE = 'UTC'
     CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
     FLOWER_PORT = os.environ['VNDB_FLOWER_PORT']
+
     # Scheduler configuration
     SCHEDULER_API_ENABLED = True
     SCHEDULER_TIMEZONE = "UTC"

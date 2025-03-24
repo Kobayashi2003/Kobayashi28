@@ -39,7 +39,7 @@ def run_celery_worker(app_name):
     celery_process = subprocess.Popen([
         'python', '-c',
         f"from {app_name} import create_app;"
-        f"app = create_app();"
+        f"app = create_app(enable_scheduler=False);"
         f"config = app.config;"
         f"celery = app.celery;"
         f"celery.Worker(pool='solo', loglevel='info', quiet=False).start();"
@@ -60,8 +60,8 @@ def run_flower(app_name: str):
     broker = config['CELERY_BROKER_URL']
     port = config['FLOWER_PORT']
     flower_process = subprocess.Popen([
-        # 'celery', f'--broker={broker}', 'flower', f"--port={port}"
-        'celery', '-A', f"celery_worker:{app_name}_celery", 'flower', f"--port={port}"
+        'celery', f'--broker={broker}', 'flower', f"--port={port}"
+        # 'celery', '-A', f"celery_worker:{app_name}_celery", 'flower', f"--port={port}"
     ], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
 
     def log_flower():
