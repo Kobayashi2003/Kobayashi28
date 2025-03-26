@@ -1,43 +1,24 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import Link from "next/link"
 import { useSearchParams, useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "motion/react"
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { CardTypeSelecter } from "@/components/common/CardTypeSelecter"
-import { LevelSelecter } from "@/components/common/LevelSelecter"
-import { PaginationButtons } from "@/components/common/PaginationButtons"
-import { Loading } from "@/components/common/Loading"
-import { Error } from "@/components/common/Error"
-import { NotFound } from "@/components/common/NotFound"
-import { ImageCard } from "@/components/common/ImageCard"
-import { TextCard } from "@/components/common/TextCard"
+
+import { SexualLevelSelector } from "@/components/selector/SexualLevelSelector"
+import { ViolenceLevelSelector } from "@/components/selector/ViolenceLevelSelector"
+import { CardTypeButton } from "@/components/button/CardTypeButton"
+import { PaginationButtons } from "@/components/button/PaginationButtons"
+
+import { Loading } from "@/components/status/Loading"
+import { Error } from "@/components/status/Error"
+import { NotFound } from "@/components/status/NotFound"
+
+import { VNsCardsGrid } from "@/components/card/CardsGrid"
 
 import { VN_Small } from "@/lib/types"
 import { api } from "@/lib/api"
-
-export function GenVNCard(vn: VN_Small, sexualLevel: "safe" | "suggestive" | "explicit", violenceLevel: "tame" | "violent" | "brutal", cardType: "image" | "text") {
-  if (cardType === "text") {
-    return <TextCard title={vn.title} subTitle={`Release Date: ${vn.released}`} />
-  }
-  const sexual = vn.image?.sexual || 0
-  const violence = vn.image?.violence || 0
-  if (sexualLevel === "safe" && sexual > 0.5 || violenceLevel === "tame" && violence > 0.5) {
-    if (sexual <= 1 && violence <= 1) {
-      const yellow = sexual > 1 && violence > 1 ? `text-yellow-800` : `text-yellow-400`
-      return <ImageCard imageTitle={vn.title} imageSubtitle={`Release Date: ${vn.released}`} imageUrl={""} imageDims={[0, 0]} textColor={yellow} />
-    }
-    const red = sexual > 1 && violence > 1 ? `text-red-800` : `text-red-400`
-    return <ImageCard imageTitle={vn.title} imageSubtitle={`Release Date: ${vn.released}`} imageUrl={""} imageDims={[0, 0]} textColor={red} />
-  }
-  if (sexualLevel === "suggestive" && sexual > 1 || violenceLevel === "violent" && violence > 1) {
-    const red = sexual > 1 && violence > 1 ? `text-red-800` : `text-red-400`
-    return <ImageCard imageTitle={vn.title} imageSubtitle={`Release Date: ${vn.released}`} imageUrl={""} imageDims={[0, 0]} textColor={red} />
-  }
-  return <ImageCard imageTitle={vn.title} imageSubtitle={`Release Date: ${vn.released}`} imageUrl={vn.image?.thumbnail || vn.image?.url} imageDims={vn.image?.thumbnail_dims || vn.image?.dims} />
-}
 
 export default function Home() {
   const router = useRouter()
@@ -73,28 +54,18 @@ export default function Home() {
   const selectedYear = searchParams.get("year") || `${new Date().getFullYear().toString()}`
   const selectedMonth = searchParams.get("month") || `${(new Date().getMonth() + 1).toString().padStart(2, '0')}`
 
-  const cardType = searchParams.get("card") as "image" | "text" || "image"
-  const sexualLevel = searchParams.get("sexual") as "safe" | "suggestive" | "explicit" || "safe"
-  const violenceLevel = searchParams.get("violence") as "tame" | "violent" | "brutal" || "tame"
-
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [notFound, setNotFound] = useState(false)
+
   const [totalPages, setTotalPages] = useState(0)
   const [vns, setVNs] = useState<VN_Small[]>([])
 
+  const [cardType, setCardType] = useState<"image" | "text">("image")
+  const [sexualLevel, setSexualLevel] = useState<"safe" | "suggestive" | "explicit">("safe")
+  const [violenceLevel, setViolenceLevel] = useState<"tame" | "violent" | "brutal">("tame")
+
   const [abortController, setAbortController] = useState<AbortController | null>(null)
-
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" })
-    setVNs([])
-    fetchVNs()
-  }, [selectedYear, selectedMonth, currentPage])
-
-  useEffect(() => {
-    return () => {
-      abortController?.abort()
-    }
-  }, [abortController])
 
   const updateSearchParams = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams)
@@ -118,6 +89,8 @@ export default function Home() {
 
       setLoading(true)
       setError(null)
+      setNotFound(false)
+
       if (selectedYear === "00") {
         const response = await api.small.vn({
           olang: "ja",
@@ -126,6 +99,9 @@ export default function Home() {
           page: currentPage,
           limit: itemsPerPage,
         }, newController.signal)
+        if (response.results.length === 0) {
+          setNotFound(true)
+        }
         setVNs(response.results)
         setTotalPages(Math.ceil(response.count / itemsPerPage) || 1)
       } else if (selectedYear !== "00" && selectedMonth === "00") {
@@ -143,6 +119,9 @@ export default function Home() {
           page: currentPage,
           limit: itemsPerPage,
         }, newController.signal)
+        if (response.results.length === 0) {
+          setNotFound(true)
+        }
         setVNs(response.results)
         setTotalPages(Math.ceil(response.count / itemsPerPage) || 1)
       } else if (selectedYear !== "00" && selectedMonth !== "00") {
@@ -164,6 +143,9 @@ export default function Home() {
           page: currentPage,
           limit: itemsPerPage,
         }, newController.signal)
+        if (response.results.length === 0) {
+          setNotFound(true)
+        }
         setVNs(response.results)
         setTotalPages(Math.ceil(response.count / itemsPerPage) || 1)
       }
@@ -183,30 +165,38 @@ export default function Home() {
     updateMultipleSearchParams({ month: value, page: "1" })
   }
 
-  const handleSexualLevelChange = (value: string) => {
-    updateSearchParams("sexual", value)
-  }
-
-  const handleViolenceLevelChange = (value: string) => {
-    updateSearchParams("violence", value)
-  }
-
   const handlePageChange = (page: number) => {
     updateSearchParams("page", page.toString())
   }
 
-  const handleCardTypeChange = (value: string) => {
-    updateSearchParams("card", value)
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" })
+    setVNs([])
+    fetchVNs()
+  }, [selectedYear, selectedMonth, currentPage])
+
+  useEffect(() => {
+    return () => {
+      abortController?.abort()
+    }
+  }, [abortController])
+
+  const fadeInAnimation = {
+    initial: { filter: "blur(20px)", opacity: 0 },
+    animate: { filter: "blur(0px)", opacity: 1 },
+    exit: { filter: "blur(20px)", opacity: 0 },
+    transition: { duration: 0.4, ease: "easeInOut" }
   }
+  const statusStyle = "flex-grow flex justify-center items-center"
 
   return (
     <main className="container mx-auto min-h-screen flex flex-col p-4 pb-8">
       <div className="overflow-x-auto flex flex-col sm:flex-row items-end sm:items-center justify-center sm:justify-between mb-4 gap-4">
         <div className="flex flex-wrap justify-end sm:justify-start gap-2">
           {/* Card Type Selector */}
-          <CardTypeSelecter
-            selected={cardType}
-            onSelect={handleCardTypeChange}
+          <CardTypeButton
+            cardType={cardType}
+            setCardType={setCardType}
           />
           <div className="flex flex-wrap justify-start gap-2">
             {/* Year Selector */}
@@ -233,116 +223,64 @@ export default function Home() {
             </Select>
           </div>
         </div>
-
         <div className="flex flex-wrap justify-end gap-2">
           {/* Sexual Level Selector */}
-          <LevelSelecter
-            levelOptions={[
-              { key: "sexual-level-safe", label: "Safe", labelSmall: "🟢SA", value: "safe",
-                activeColor: "text-[#88ccff]", defaultClassName: "hover:text-[#88ccff]/70" },
-              { key: "sexual-level-suggestive", label: "Suggestive", labelSmall: "🟡SU", value: "suggestive",
-                activeColor: "text-[#ffcc66]", defaultClassName: "hover:text-[#ffcc66]/70" },
-              { key: "sexual-level-explicit", label: "Explicit", labelSmall: "🔴EX", value: "explicit",
-                activeColor: "text-[#ff6666]", defaultClassName: "hover:text-[#ff6666]/70" },
-            ]}
-            selectedValue={sexualLevel}
-            onChange={handleSexualLevelChange}
-            className="font-serif italic"
+          <SexualLevelSelector
+            sexualLevel={sexualLevel}
+            setSexualLevel={(value: string) => setSexualLevel(value as "safe" | "suggestive" | "explicit")}
           />
           {/* Divider */}
-          <div className="w-px bg-gray-300 dark:bg-gray-700 hidden sm:block"></div>
+          <div className="w-px bg-gray-300 dark:bg-gray-700 hidden sm:block" />
           {/* Violence Level Selector */}
-          <LevelSelecter
-            levelOptions={[
-              { key: "violence-level-tame", label: "Tame", labelSmall: "🟢TA", value: "tame",
-                activeColor: "text-[#88ccff]", defaultClassName: "hover:text-[#88ccff]/70" },
-              { key: "violence-level-violent", label: "Violent", labelSmall: "🟡VI", value: "violent",
-                activeColor: "text-[#ffcc66]", defaultClassName: "hover:text-[#ffcc66]/70" },
-              { key: "violence-level-brutal", label: "Brutal", labelSmall: "🔴BR", value: "brutal",
-                activeColor: "text-[#ff6666]", defaultClassName: "hover:text-[#ff6666]/70" },
-            ]}
-            selectedValue={violenceLevel}
-            onChange={handleViolenceLevelChange}
-            className="font-serif italic"
+          <ViolenceLevelSelector
+            violenceLevel={violenceLevel}
+            setViolenceLevel={(value: string) => setViolenceLevel(value as "tame" | "violent" | "brutal")}
           />
         </div>
       </div>
-
       <AnimatePresence mode="wait">
         {/* Loading */}
         {loading && (
           <motion.div
             key="loading"
-            initial={{ filter: "blur(20px)", opacity: 0 }}
-            animate={{ filter: "blur(0px)", opacity: 1 }}
-            exit={{ filter: "blur(20px)", opacity: 0 }}
-            transition={{ duration: 0.4 }}
-            className="flex-grow flex justify-center items-center"
+            {...fadeInAnimation}
+            className={statusStyle}
           >
             <Loading message="Loading..." />
           </motion.div>
         )}
-
         {/* Error */}
         {error && (
           <motion.div
             key="error"
-            initial={{ filter: "blur(20px)", opacity: 0 }}
-            animate={{ filter: "blur(0px)", opacity: 1 }}
-            exit={{ filter: "blur(20px)", opacity: 0 }}
-            transition={{ duration: 0.4 }}
-            className="flex-grow flex justify-center items-center"
+            {...fadeInAnimation}
+            className={statusStyle}
           >
             <Error message={`Error: ${error}`} />
           </motion.div>
         )}
-
         {/* Not Found */}
-        {!loading && !error && vns.length === 0 && (
+        {notFound && (
           <motion.div
             key="notfound"
-            initial={{ filter: "blur(20px)", opacity: 0 }}
-            animate={{ filter: "blur(0px)", opacity: 1 }}
-            exit={{ filter: "blur(20px)", opacity: 0 }}
-            transition={{ duration: 0.4 }}
-            className="flex-grow flex justify-center items-center"
+            {...fadeInAnimation}
+            className={statusStyle}
           >
             <NotFound message="No VNs found" />
           </motion.div>
         )}
-
         {/* VN Cards */}
-        {vns.length > 0 && (
-          <motion.div
-            key={`cards-${currentPage}-${cardType}-${selectedYear}-${selectedMonth}`}
-            initial={{ filter: "blur(20px)", opacity: 0 }}
-            animate={{ filter: "blur(0px)", opacity: 1 }}
-            exit={{ filter: "blur(20px)", opacity: 0 }}
-            transition={{ duration: 0.5, ease: "easeInOut" }}
-            className={cardType === "image" ?
-              "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4" :
-              "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
-            }
-          >
-            {vns.map((vn) => (
-              <Link key={`card-${vn.id}`} href={`/v/${vn.id.slice(1)}`}>
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3, delay: 0.1 }}
-                >
-                  {GenVNCard(vn, sexualLevel, violenceLevel, cardType)}
-                </motion.div>
-              </Link>
-            ))}
-          </motion.div>
+        {!loading && !error && !notFound && (
+          <VNsCardsGrid
+            vns={vns}
+            cardType={cardType}
+            sexualLevel={sexualLevel}
+            violenceLevel={violenceLevel}
+          />
         )}
       </AnimatePresence>
-
       {/* Keep the footer at the bottom of the page */}
       <div className="flex-grow"></div>
-
       {/* Pagination */}
       {vns.length > 0 && (
         <div className="flex justify-center mt-4">

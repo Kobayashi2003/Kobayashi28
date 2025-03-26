@@ -342,6 +342,13 @@ export interface Mark {
 export interface VN_Small {
   id: string
   title: string
+  titles: Array<{
+    lang: string
+    title: string
+    latin?: string
+    official: boolean
+    main: boolean 
+  }>
   released: string
   image?: {
     url: string
@@ -356,6 +363,7 @@ export interface VN_Small {
 export interface Release_Small {
   id: string
   title: string
+  released: string
   vns: Array<{
     id: string
     rtype: string
@@ -388,16 +396,19 @@ export interface Character_Small {
 export interface Producer_Small {
   id: string
   name: string 
+  original?: string
 }
 
 export interface Staff_Small {
   id: string
   name: string
+  original?: string
 }
 
 export interface Tag_Small {
   id: string 
   name: string
+  category: string
 }
 
 export interface Trait_Small {

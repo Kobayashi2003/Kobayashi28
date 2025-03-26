@@ -46,9 +46,9 @@ export function SearchProvider({ children }: { children: React.ReactNode}) {
   }
   
   useEffect(() => {
-    const searchType = localStorage.getItem("searchType")
-    const sortBy = localStorage.getItem(`sortBy-${searchType}`)
-    const sortOrder = localStorage.getItem(`sortOrder-${searchType}`)
+    const searchType = localStorage.getItem("searchType") || "vn"
+    const sortBy = localStorage.getItem(`sortBy-${searchType}`) || "id"
+    const sortOrder = localStorage.getItem(`sortOrder-${searchType}`) || "asc"
     if (searchType) setSearchTypeTemp(searchType)
     if (sortBy) setSortByTemp(sortBy)
     if (sortOrder) setSortOrderTemp(sortOrder)

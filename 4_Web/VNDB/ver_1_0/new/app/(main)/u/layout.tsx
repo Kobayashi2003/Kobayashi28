@@ -44,7 +44,7 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
 
   useEffect(() => {
     if (!isLoading && !user) {
-      router.push("/")
+      // router.push("/")
     }
   }, [isLoading, user, router])
 

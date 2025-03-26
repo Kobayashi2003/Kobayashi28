@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { DeleteButton } from "@/components/common/DeleteButton"
+import { DeleteButton } from "@/components/button/DeleteButton"
 
 interface CategoryOption {
   key: string

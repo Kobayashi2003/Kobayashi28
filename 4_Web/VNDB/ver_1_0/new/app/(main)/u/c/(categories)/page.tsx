@@ -1,27 +1,32 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import Link from "next/link"
 import { useSearchParams, useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "motion/react"
 
 import { cn } from "@/lib/utils"
-import { ShowPanelButton } from "@/components/category/ShowPanelButton"
+
 import { CategoryTypeSelecter } from "@/components/category/CategoryTypeSelecter"
 import { CategorySelecter } from "@/components/category/CategorySelecter"
-import { DeleteButton } from "@/components/common/DeleteButton"
-import { DeleteModeButton } from "@/components/common/DeleteModeButton"
 import { SortSelector } from "@/components/category/SortSelector"
-import { ReloadButton } from "@/components/common/ReloadButton"
 import { CategoryCreator } from "@/components/category/CategoryCreator"
 import { CategorySearcher } from "@/components/category/CategorySearcher"
-import { PaginationButtons } from "@/components/common/PaginationButtons"
-import { Loading } from "@/components/common/Loading"
-import { Error } from "@/components/common/Error"
-import { NotFound } from "@/components/common/NotFound"
-import { LevelSelecter } from "@/components/common/LevelSelecter"
-import { CardTypeSelecter } from "@/components/common/CardTypeSelecter"
-import { GenVNCard, GenCharacterCard, GenProducerCard, GenStaffCard } from "@/utils/genCard"
+
+import { Loading } from "@/components/status/Loading"
+import { Error } from "@/components/status/Error"
+import { NotFound } from "@/components/status/NotFound"
+
+import { ShowPanelButton } from "@/components/button/ShowPanelButton"
+import { DeleteButton } from "@/components/button/DeleteButton"
+import { DeleteModeButton } from "@/components/button/DeleteModeButton"
+import { ReloadButton } from "@/components/button/ReloadButton"
+import { CardTypeButton } from "@/components/button/CardTypeButton"
+import { PaginationButtons } from "@/components/button/PaginationButtons"
+
+import { SexualLevelSelector } from "@/components/selector/SexualLevelSelector"
+import { ViolenceLevelSelector } from "@/components/selector/ViolenceLevelSelector"
+
+import { VNsCardsGrid, CharactersCardsGrid, ProducersCardsGrid, StaffCardsGrid } from "@/components/card/CardsGrid"
 
 import {
   Category, VN_Small, Character_Small, Producer_Small, Staff_Small
@@ -50,7 +55,9 @@ export default function CategoriesPage() {
   const [errorCategories, setErrorCategories] = useState<string>("")
   const [loadingResources, setLoadingResources] = useState(false)
   const [errorResources, setErrorResources] = useState<string>("")
+  const [notfoundResources, setNotfoundResources] = useState<boolean>(false)
 
+  const [currentPageItemsCount, setCurrentPageItemsCount] = useState(0)
   const [categories, setCategories] = useState<Category[]>([])
   const [vns, setVNs] = useState<VN_Small[]>([])
   const [characters, setCharacters] = useState<Character_Small[]>([])
@@ -156,9 +163,11 @@ export default function CategoriesPage() {
 
       setLoadingResources(true)
       setErrorResources("")
+      setNotfoundResources(false)
       const marksResponse = await api.category.getMarks(selectedType, selectedCategoryId, newAbortController.signal)
       if (marksResponse.results.length === 0) {
         setLoadingResources(false)
+        setNotfoundResources(true)
         return
       }
       const markIds = marksResponse.results.map(mark => mark.id).join(",")
@@ -174,6 +183,7 @@ export default function CategoriesPage() {
           }, newAbortController.signal)
           setVNs(vnsResponse.results)
           setTotalPages(Math.ceil(vnsResponse.count / itemsPerPage))
+          setCurrentPageItemsCount(vnsResponse.results.length)
           break
         case "c":
           const charactersResponse = await api.small.character({
@@ -186,6 +196,7 @@ export default function CategoriesPage() {
           }, newAbortController.signal)
           setCharacters(charactersResponse.results)
           setTotalPages(Math.ceil(charactersResponse.count / itemsPerPage))
+          setCurrentPageItemsCount(charactersResponse.results.length)
           break
         case "p":
           const producersResponse = await api.small.producer({
@@ -198,6 +209,7 @@ export default function CategoriesPage() {
           }, newAbortController.signal)
           setProducers(producersResponse.results)
           setTotalPages(Math.ceil(producersResponse.count / itemsPerPage))
+          setCurrentPageItemsCount(producersResponse.results.length)
           break
         case "s":
           const staffsResponse = await api.small.staff({
@@ -210,6 +222,7 @@ export default function CategoriesPage() {
           }, newAbortController.signal)
           setStaffs(staffsResponse.results)
           setTotalPages(Math.ceil(staffsResponse.count / itemsPerPage))
+          setCurrentPageItemsCount(staffsResponse.results.length)
           break
       }
     }  
@@ -263,13 +276,15 @@ export default function CategoriesPage() {
     }
   }
 
-  const handleDeleteMark = async (markId: number) => {
-    if (!selectedType || !selectedCategoryId) return
+  const handleDeleteMark = async (markId?: number) => {
+    if (!selectedType || !selectedCategoryId || !markId) return
     try {
-      setLoadingResources(true)
-      setErrorResources("")
-      await api.category.removeMark(selectedType, selectedCategoryId, markId)
-      fetchResources()
+      if (confirm(`Are you sure you want to delete ${markId}?`)) {
+        setLoadingResources(true)
+        setErrorResources("")
+        await api.category.removeMark(selectedType, selectedCategoryId, markId)
+        fetchResources()
+      }
     } catch (error) {
       setErrorResources(error as string)
     } finally {
@@ -336,6 +351,41 @@ export default function CategoriesPage() {
   }, [currentPage, query, sortBy, sortOrder])
 
 
+  const getItemId = (index: number) => {
+    if (selectedType === "v" && vns[index]) {
+      return vns[index].id;
+    } else if (selectedType === "c" && characters[index]) {
+      return characters[index].id;
+    } else if (selectedType === "p" && producers[index]) {
+      return producers[index].id;
+    } else if (selectedType === "s" && staff[index]) {
+      return staff[index].id;
+    }
+    return undefined;
+  }
+
+  const gridClassName = (cardType: "image" | "text") => {
+    return cardType === "image" ?
+      "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4" :
+      "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
+  }
+
+  const fadeInAnimation = {
+    initial: { filter: "blur(20px)", opacity: 0, scale: 0.95 },
+    animate: { filter: "blur(0px)", opacity: 1, scale: 1 },
+    exit: { filter: "blur(20px)", opacity: 0, scale: 0.95 },
+    transition: { duration: 0.5, ease: "easeInOut" }
+  }
+
+  const cardAnimation = {
+    initial: { opacity: 0, y: 20, scale: 0.98 },
+    animate: { opacity: 1, y: 0, scale: 1 },
+    exit: { opacity: 0, y: -20, scale: 0.98 },
+    transition: { duration: 0.3, delay: 0.1, ease: "easeInOut" }
+  }
+
+  const statusStyle = "flex-grow flex justify-center items-center"
+
   return (
     <div className="w-full min-h-screen flex flex-col md:flex-row gap-1">
       <AnimatePresence mode="wait">
@@ -373,6 +423,7 @@ export default function CategoriesPage() {
                   <ShowPanelButton
                     open={open}
                     setOpen={setOpen}
+                    direction="left"
                   />
                 </div>
               </div>
@@ -442,6 +493,7 @@ export default function CategoriesPage() {
                 <ShowPanelButton
                   open={open}
                   setOpen={setOpen}
+                  direction="left"
                 />
               )}
               {/* Sort Selecter Button */}
@@ -452,10 +504,10 @@ export default function CategoriesPage() {
                 setSortBy={setSortBy}
                 setSortOrder={setSortOrder}
               />
-              {/* Card Type Selector */}
-              <CardTypeSelecter
-                selected={cardType}
-                onSelect={(value) => setCardType(value)}
+              {/* Card Type Button */}
+              <CardTypeButton
+                cardType={cardType}
+                setCardType={(value) => setCardType(value as "image" | "text")}
               />
               {/* Delete Mode Button */}
               <DeleteModeButton
@@ -464,49 +516,19 @@ export default function CategoriesPage() {
               />
               {/* Reload Button */}
               <ReloadButton
-                onClick={() => { fetchResources() }}
+                handleReload={() => { fetchResources() }}
               />
             </div>
             <div className="flex flex-wrap justify-end gap-2">
-              {/* Sexual Level Selector */}
-              <LevelSelecter
-                levelOptions={[
-                  {
-                    key: "sexual-level-safe", label: "Safe", labelSmall: "🟢SA", value: "safe",
-                    activeColor: "text-[#88ccff]", defaultClassName: "hover:text-[#88ccff]/70"
-                  },
-                  {
-                    key: "sexual-level-suggestive", label: "Suggestive", labelSmall: "🟡SU", value: "suggestive",
-                    activeColor: "text-[#ffcc66]", defaultClassName: "hover:text-[#ffcc66]/70"
-                  },
-                  {
-                    key: "sexual-level-explicit", label: "Explicit", labelSmall: "🔴EX", value: "explicit",
-                    activeColor: "text-[#ff6666]", defaultClassName: "hover:text-[#ff6666]/70"
-                  },
-                ]}
-                selectedValue={sexualLevel}
-                onChange={(value) => setSexualLevel(value as "safe" | "suggestive" | "explicit")}
-                className="font-serif italic border-r pr-2"
+              <SexualLevelSelector
+                sexualLevel={sexualLevel}
+                setSexualLevel={(value) => setSexualLevel(value as "safe" | "suggestive" | "explicit")}
               />
-              {/* Violence Level Selector */}
-              <LevelSelecter
-                levelOptions={[
-                  {
-                    key: "violence-level-tame", label: "Tame", labelSmall: "🟢TA", value: "tame",
-                    activeColor: "text-[#88ccff]", defaultClassName: "hover:text-[#88ccff]/70"
-                  },
-                  {
-                    key: "violence-level-violent", label: "Violent", labelSmall: "🟡VI", value: "violent",
-                    activeColor: "text-[#ffcc66]", defaultClassName: "hover:text-[#ffcc66]/70"
-                  },
-                  {
-                    key: "violence-level-brutal", label: "Brutal", labelSmall: "🔴BR", value: "brutal",
-                    activeColor: "text-[#ff6666]", defaultClassName: "hover:text-[#ff6666]/70"
-                  },
-                ]}
-                selectedValue={violenceLevel}
-                onChange={(value) => setViolenceLevel(value as "tame" | "violent" | "brutal")}
-                className="font-serif italic border-r pr-2"
+              {/* Divider */}
+              <div className="w-px bg-gray-300 dark:bg-gray-700 hidden sm:block" />
+              <ViolenceLevelSelector
+                violenceLevel={violenceLevel}
+                setViolenceLevel={(value) => setViolenceLevel(value as "tame" | "violent" | "brutal")}
               />
             </div>
           </div>
@@ -518,6 +540,7 @@ export default function CategoriesPage() {
               <ShowPanelButton
                 open={open}
                 setOpen={setOpen}
+                direction="left"
               />
             )}
             {/* Sort Selecter Button */}
@@ -535,12 +558,12 @@ export default function CategoriesPage() {
             />
             {/* Reload Button */}
             <ReloadButton
-              onClick={() => { fetchResources() }}
+              handleReload={() => { fetchResources() }}
             />
           </div>
         )}
         <AnimatePresence mode="wait">
-          {!selectedCategoryId ? (
+          {!selectedCategoryId && (
             <motion.div
               key="notselected"
               initial={{ filter: "blur(20px)", opacity: 0 }}
@@ -551,114 +574,91 @@ export default function CategoriesPage() {
             >
               <p className="text-gray-500">Select a category to view resources</p>
             </motion.div>
-          ) : loadingResources ? (
+          )}
+          {loadingResources && (
             <motion.div
               key="loading"
-              initial={{ filter: "blur(20px)", opacity: 0 }}
-              animate={{ filter: "blur(0px)", opacity: 1 }}
-              exit={{ filter: "blur(20px)", opacity: 0 }}
-              transition={{ duration: 0.4 }}
-              className="flex-grow flex justify-center items-center"
+              {...fadeInAnimation}
+              className={statusStyle}
             >
               <Loading message="Loading..." />
             </motion.div>
-          ) : errorResources ? (
+          )}
+          {errorResources && (
             <motion.div
               key="error"
-              initial={{ filter: "blur(20px)", opacity: 0 }}
-              animate={{ filter: "blur(0px)", opacity: 1 }}
-              exit={{ filter: "blur(20px)", opacity: 0 }}
-              transition={{ duration: 0.4 }}
-              className="flex-grow flex justify-center items-center"
+              {...fadeInAnimation}
+              className={statusStyle}
             >
               <Error message={`Error: ${errorResources}`} />
             </motion.div>
-          ) : totalPages === 0 ? (
+          )}
+          {notfoundResources && (
             <motion.div
               key="notfound"
-              initial={{ filter: "blur(20px)", opacity: 0 }}
-              animate={{ filter: "blur(0px)", opacity: 1 }}
-              exit={{ filter: "blur(20px)", opacity: 0 }}
-              transition={{ duration: 0.4 }}
-              className="flex-grow flex justify-center items-center"
+              {...fadeInAnimation}
+              className={statusStyle}
             >
               <NotFound message="No resources found" />
             </motion.div>
-          ) : (
-            <motion.div
-              key={`${selectedType}-${currentPage}-${cardType}-${sortBy}-${sortOrder}`}
-              initial={{ filter: "blur(20px)", opacity: 0 }}
-              animate={{ filter: "blur(0px)", opacity: 1 }}
-              exit={{ filter: "blur(20px)", opacity: 0 }}
-              transition={{ duration: 0.5, ease: "easeInOut" }}
-              className={cn(
-                "w-full",
-                (selectedType === "v" || selectedType === "c") && cardType === "image" ?
-                  "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4" :
-                  "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
+          )}
+          {(!loadingResources && !errorResources && !notfoundResources) && (
+            <div className="relative">
+              {selectedType === "v" ? (
+                <VNsCardsGrid
+                  vns={vns}
+                  cardType={cardType}
+                  sexualLevel={sexualLevel}
+                  violenceLevel={violenceLevel}
+                />
+              ) : selectedType === "c" ? (
+                <CharactersCardsGrid
+                    characters={characters}
+                    cardType={cardType}
+                    sexualLevel={sexualLevel}
+                    violenceLevel={violenceLevel}
+                />
+              ) : selectedType === "p" ? (
+                <ProducersCardsGrid
+                  producers={producers}
+                />
+              ) : selectedType === "s" ? (
+                <StaffCardsGrid
+                  staff={staff}
+                />
+              ) : <></>}
+              {deleteMarkMode && (
+                <motion.div
+                  key={`delete-layer-${deleteMarkMode}-${currentPageItemsCount}`}
+                  {...fadeInAnimation}
+                  className={cn(
+                    "absolute inset-0 pointer-events-auto z-10",
+                    (selectedType === "v" || selectedType === "c") && gridClassName(cardType),
+                    (selectedType === "p" || selectedType === "s") && gridClassName("text")
+                  )}
+                >
+                  {Array.from({ length: currentPageItemsCount }).map((_, index) => (
+                    <div key={`delete-container-${index}`} className="relative">
+                      <motion.div
+                        key={`delete-ghost-card-${index}`}
+                        {...cardAnimation}
+                        className="bg-black/20 w-full h-full rounded-lg"
+                      >
+                      </motion.div>
+                      <DeleteButton
+                        handleDelete={() => { 
+                          const itemId = getItemId(index)
+                          if (itemId) {
+                            handleDeleteMark(parseInt(itemId.slice(1))) 
+                          }
+                        }}
+                        className="absolute top-2 right-2"
+                      />
+                    </div>
+                  ))}
+                </motion.div>
               )}
-            >
-              {selectedType === "v" && vns.map((vn) => (
-                <div key={`card-${vn.id}`} className="relative">
-                  <Link href={`/v/${vn.id.slice(1)}`}>
-                    {GenVNCard(vn, sexualLevel, violenceLevel, cardType)}
-                  </Link>
-                  {deleteMarkMode && (
-                    <div className="absolute top-0 right-0">
-                      <DeleteButton
-                        loading={loadingResources}
-                        onClick={() => { handleDeleteMark(parseInt(vn.id.slice(1))) }}
-                      />
-                    </div>
-                  )}
-                </div>
-              ))}
-              {selectedType === "c" && characters.map((character) => (
-                <div key={`card-${character.id}`} className="relative">
-                  <Link href={`/c/${character.id.slice(1)}`}>
-                    {GenCharacterCard(character, sexualLevel, violenceLevel, cardType)}
-                  </Link>
-                  {deleteMarkMode && (
-                    <div className="absolute top-0 right-0">
-                      <DeleteButton
-                        loading={loadingResources}
-                        onClick={() => { handleDeleteMark(parseInt(character.id.slice(1))) }}
-                      />
-                    </div>
-                  )}
-                </div>
-              ))}
-              {selectedType === "p" && producers.map((producer) => (
-                <div key={`card-${producer.id}`} className="relative">
-                  <Link href={`/p/${producer.id.slice(1)}`}>
-                    {GenProducerCard(producer)}
-                  </Link>
-                  {deleteMarkMode && (
-                    <div className="absolute top-0 right-0">
-                      <DeleteButton
-                        loading={loadingResources}
-                        onClick={() => { handleDeleteMark(parseInt(producer.id.slice(1))) }}
-                      />
-                    </div>
-                  )}
-                </div>
-              ))}
-              {selectedType === "s" && staff.map((staff) => (
-                <div key={`card-${staff.id}`} className="relative">
-                  <Link href={`/s/${staff.id.slice(1)}`}>
-                    {GenStaffCard(staff)}
-                  </Link>
-                  {deleteMarkMode && (
-                    <div className="absolute top-0 right-0">
-                      <DeleteButton
-                        loading={loadingResources}
-                        onClick={() => { handleDeleteMark(parseInt(staff.id.slice(1))) }}
-                      />
-                    </div>
-                  )}
-                </div>
-              ))}
-            </motion.div>
+            </div>
           )}
         </ AnimatePresence>
         {/* Keep the footer at the bottom of the page */}

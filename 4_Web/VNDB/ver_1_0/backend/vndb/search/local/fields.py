@@ -4,20 +4,20 @@ from vndb.database.models import VN, Tag, Producer, Staff, Character, Trait, Rel
 
 class LocalFields:
     VN = [column.key for column in VN.__table__.columns]
-    TAG = [column.key for column in Tag.__table__.columns]
+    RELEASE = [column.key for column in Release.__table__.columns]
+    CHARACTER = [column.key for column in Character.__table__.columns]
     PRODUCER = [column.key for column in Producer.__table__.columns]
     STAFF = [column.key for column in Staff.__table__.columns]
-    CHARACTER = [column.key for column in Character.__table__.columns]
+    TAG = [column.key for column in Tag.__table__.columns]
     TRAIT = [column.key for column in Trait.__table__.columns]
-    RELEASE = [column.key for column in Release.__table__.columns]
 
-    SMALL_VN = ['id', 'title', 'released', 'image']
-    SMALL_CHARACTER = ['id', 'name', 'original', 'image']
-    SMALL_PRODUCER = ['id', 'name']
-    SMALL_STAFF = ['id', 'name']
-    SMALL_TAG = ['id', 'name']
+    SMALL_VN = ['id', 'title', 'titles', 'released', 'image']
+    SMALL_RELEASE = ['id', 'title', 'released', 'vns', 'producers']
+    SMALL_CHARACTER = ['id', 'name', 'sex', 'original', 'vns', 'image']
+    SMALL_PRODUCER = ['id', 'name', 'original']
+    SMALL_STAFF = ['id', 'name', 'original']
+    SMALL_TAG = ['id', 'name', 'category']
     SMALL_TRAIT = ['id', 'name', 'group_id', 'group_name']
-    SMALL_RELEASE = ['id', 'title']
 
     @staticmethod
     def get_fields(model_name: str) -> list:

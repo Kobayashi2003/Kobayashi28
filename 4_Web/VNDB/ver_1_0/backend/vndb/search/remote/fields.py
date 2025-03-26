@@ -195,6 +195,11 @@ class VNDBFields:
 SMALL_FIELDS_VN: List[str] = [
     VNDBFields.VN.ID,
     VNDBFields.VN.TITLE,
+    VNDBFields.VN.TITLES.LANG,
+    VNDBFields.VN.TITLES.TITLE,
+    VNDBFields.VN.TITLES.LATIN,
+    VNDBFields.VN.TITLES.OFFICIAL,
+    VNDBFields.VN.TITLES.MAIN,
     VNDBFields.VN.RELEASED,
     VNDBFields.VN.IMAGE.URL,
     VNDBFields.VN.IMAGE.DIMS,
@@ -207,6 +212,7 @@ SMALL_FIELDS_VN: List[str] = [
 SMALL_FIELDS_RELEASE: List[str] = [
     VNDBFields.Release.ID,
     VNDBFields.Release.TITLE,
+    VNDBFields.Release.RELEASED,
     VNDBFields.Release.VNS.ID,
     VNDBFields.Release.VNS.RTYPE,
     VNDBFields.Release.PRODUCERS.ID,
@@ -231,16 +237,19 @@ SMALL_FIELDS_CHARACTER: List[str] = [
 SMALL_FIELDS_PRODUCER: List[str] = [
     VNDBFields.Producer.ID,
     VNDBFields.Producer.NAME,
+    VNDBFields.Producer.ORIGINAL,
 ]
 
 SMALL_FIELDS_STAFF: List[str] = [
     VNDBFields.Staff.ID,
     VNDBFields.Staff.NAME,
+    VNDBFields.Staff.ORIGINAL,
 ]
 
 SMALL_FIELDS_TAG: List[str] = [
     VNDBFields.Tag.ID,
     VNDBFields.Tag.NAME,
+    VNDBFields.Tag.CATEGORY,
 ]
 
 SMALL_FIELDS_TRAIT: List[str] = [

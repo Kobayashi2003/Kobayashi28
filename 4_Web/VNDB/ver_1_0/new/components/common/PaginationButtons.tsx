@@ -5,6 +5,8 @@ interface PaginationButtonsProps {
   totalPages: number,
   currentPage: number,
   onPageChange: (page: number) => void,
+  disabled?: boolean
+  className?: string
 }
 
 export function PaginationButtons({ currentPage, totalPages, onPageChange }: PaginationButtonsProps) {

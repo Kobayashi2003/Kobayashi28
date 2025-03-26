@@ -10,9 +10,9 @@ import { PlatformsRow } from "./PlatformsRow"
 import { DevelopersRow } from "./DevelopersRow"
 import { RelationsRow } from "./RelationsRow"
 import { ExtlinksRow } from "../common/ExtlinksRow"
-import { Loading } from "@/components/common/Loading"
-import { Error } from "@/components/common/Error"
-import { NotFound } from "@/components/common/NotFound"
+import { Loading } from "@/components/status/Loading"
+import { Error } from "@/components/status/Error"
+import { NotFound } from "@/components/status/NotFound"
 
 import type { VN } from "@/lib/types"
 

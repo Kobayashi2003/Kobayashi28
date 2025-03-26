@@ -87,4 +87,9 @@ export const FULL_FORM = {
     4: "Long",
     5: "Very Long",
   },
+  "TAG_CATEGORY": {
+    "cont": "Content",
+    "ero": "Sexual Content",
+    "tech": "Technical",
+  }
 } as const
