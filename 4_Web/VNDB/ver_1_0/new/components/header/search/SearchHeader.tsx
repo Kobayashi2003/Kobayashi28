@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import { useSearchContext } from "@/context/SearchContext"
 import { SearchTypeSelector } from "./SearchTypeSelector"
 import { SearchSortSelector } from "./SearchSortSelector"
-import { SearchBar } from "./SearchBar"
+// import { SearchBar } from "./SearchBar"
 import { SearchFilters } from "./SearchFilters"
 import { SearchSubmitButton } from "./SearchSubmitButton"
+
+import { SearchBar } from "@/components/input/SearchBar"
 
 interface SearchHeaderProps {
   className?: string
@@ -58,7 +60,8 @@ export function SearchHeader({ className }: SearchHeaderProps) {
       <SearchTypeSelector searchType={searchType} onSearchTypeChange={setSearchType} />
       <SearchSortSelector searchType={searchType} sortBy={sortBy} sortOrder={sortOrder} setSortBy={setSortBy} setSortOrder={setSortOrder} />
       <form onSubmit={handleSubmit}>
-        <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+        {/* <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} /> */}
+        <SearchBar input={searchQuery} setInput={setSearchQuery} placeholder="Search..." />
       </form>
       <SearchFilters SearchType={searchType} setSearchFilters={setSearchFilters} />
       <SearchSubmitButton isLoading={isLoading} handleSubmit={handleSubmit} />

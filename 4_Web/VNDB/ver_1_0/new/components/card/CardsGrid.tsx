@@ -89,17 +89,52 @@ export function GenImageCard({image, title, msgs, link, sexualLevel = "safe", vi
   const sexual = image?.sexual || 0
   const violence = image?.violence || 0
 
+  const alwaysShowImage = true
+  const alwaysAllowClick = true
+  const blurEffect = "blur-lg"
+  const blurHoverEffect = "hover:blur-xs"
+
+  const mildYellowFilter = sexual > 1 && violence > 1 ? 
+    `${blurEffect} ${blurHoverEffect} bg-yellow-800/30 hover:bg-yellow-800/50` : 
+    `${blurEffect} ${blurHoverEffect} bg-yellow-400/30 hover:bg-yellow-400/50`
+  const moderateYellowFilter = sexual > 1 && violence > 1 ? 
+    `${blurEffect} ${blurHoverEffect} bg-yellow-800/30 hover:bg-yellow-800/50` : 
+    `${blurEffect} ${blurHoverEffect} bg-yellow-400/30 hover:bg-yellow-400/50`
+  const moderateRedFilter = sexual > 1 && violence > 1 ? 
+    `${blurEffect} ${blurHoverEffect} bg-red-800/30 hover:bg-red-800/50` : 
+    `${blurEffect} ${blurHoverEffect} bg-red-400/30 hover:bg-red-400/50`
+  const severeRedFilter = sexual > 1 && violence > 1 ? 
+    `${blurEffect} ${blurHoverEffect} bg-red-800/30 hover:bg-red-800/50` : 
+    `${blurEffect} ${blurHoverEffect} bg-red-400/30 hover:bg-red-400/50`
+
+  const clickable = alwaysAllowClick ? "cursor-pointer" : "cursor-not-allowed pointer-events-none"
+
   if (sexualLevel === "safe" && sexual > 0.5 || violenceLevel === "tame" && violence > 0.5) {
     if (sexual <= 1 && violence <= 1) {
-      const yellow = sexual > 1 && violence > 1 ? `text-yellow-800` : `text-yellow-400`
-      return <ImageCard url={""} title={title} msgs={msgs} link={link} className={cn(className, yellow)} />
+      const warningFilter = sexual > 1 && violence > 1 ? mildYellowFilter : moderateYellowFilter
+      return <ImageCard 
+        url={alwaysShowImage ? image?.thumbnail || image?.url || "" : ""} 
+        title={title} msgs={msgs} 
+        link={alwaysAllowClick ? link : undefined} 
+        className={cn(className, clickable, warningFilter, "transition-all duration-300 ease-in-out")} 
+      />
     }
-    const red = sexual > 1 && violence > 1 ? `text-red-800` : `text-red-400`
-    return <ImageCard url={""} title={title} msgs={msgs} link={link} className={cn(className, red)} />
+    const cautionFilter = sexual > 1 && violence > 1 ? moderateRedFilter : severeRedFilter
+    return <ImageCard 
+      url={alwaysShowImage ? image?.thumbnail || image?.url || "" : ""} 
+      title={title} msgs={msgs} 
+      link={alwaysAllowClick ? link : undefined} 
+      className={cn(className, clickable, cautionFilter, "transition-all duration-300 ease-in-out")} 
+    />
   }
   if (sexualLevel === "suggestive" && sexual > 1 || violenceLevel === "violent" && violence > 1) {
-    const red = sexual > 1 && violence > 1 ? `text-red-800` : `text-red-400`
-    return <ImageCard url={""} title={title} msgs={msgs} link={link} className={cn(className, red)} />
+    const cautionFilter = sexual > 1 && violence > 1 ? moderateRedFilter : severeRedFilter
+    return <ImageCard 
+      url={alwaysShowImage ? image?.thumbnail || image?.url || "" : ""} 
+      title={title} msgs={msgs} 
+      link={alwaysAllowClick ? link : undefined} 
+      className={cn(className, clickable, cautionFilter, "transition-all duration-300 ease-in-out")} 
+    />
   }
   return <ImageCard url={image?.thumbnail || image?.url || ""} title={title} msgs={msgs} link={link} className={cn(className)} />
 }
@@ -131,7 +166,7 @@ const cardAnimation = {
 function BaseCardsGrid({ items, cardType = "text", sexualLevel = "safe", violenceLevel = "tame" }: BaseCardsGridProps) {
   return (
     <motion.div 
-      key={`grid-${cardType}`} 
+      key={`grid-${cardType}-${items.map(item => item.id).join("-")}`} 
       {...fadeInAnimation} 
       className={gridClassName(cardType)}
     >
@@ -140,7 +175,7 @@ function BaseCardsGrid({ items, cardType = "text", sexualLevel = "safe", violenc
           key={`card-${index}`} 
           {...cardAnimation}
         >
-          {cardType === "image" && item.image ? (
+          {cardType === "image" ? (
             <GenImageCard 
               image={item.image}
               title={item.title}

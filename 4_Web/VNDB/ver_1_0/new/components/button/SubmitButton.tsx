@@ -1,29 +1,27 @@
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Trash } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 
-interface DeleteModeButtonProps {
-  deleteMode: boolean
-  setDeleteMode: (deleteMode: boolean) => void
+interface SubmitButtonProps {
+  handleSubmit: () => void
   disabled?: boolean
   className?: string
 }
 
-export function DeleteModeButton({ deleteMode, setDeleteMode, disabled, className }: DeleteModeButtonProps) {
+export function SubmitButton({ handleSubmit, disabled, className }: SubmitButtonProps) {
 
   const buttonBgColor = "bg-[#0F2942]/80 hover:bg-[#0F2942]"
   const buttonFont = "font-bold"
   const buttonTextSize = "text-base md:text-lg"
-  const buttonTextColor = deleteMode ? "text-red-400 hover:text-red-500" : "text-white hover:text-red-400"
-  const buttonBorderColor = deleteMode ? "border-red-400/40 hover:border-red-400/60" : "border-white/10 hover:border-white/20"
+  const buttonTextColor = "text-white hover:text-white/80"
+  const buttonBorderColor = "border-white/10 hover:border-white/20"
   const buttonAnimation = "transition-all duration-300"
 
   return (
     <Button
-      key={`delete-mode-button`}
-      size="icon"
       variant="outline"
-      onClick={() => setDeleteMode(!deleteMode)}
+      size="icon"
+      onClick={handleSubmit}
       disabled={disabled}
       className={cn(
         "select-none",
@@ -36,7 +34,7 @@ export function DeleteModeButton({ deleteMode, setDeleteMode, disabled, classNam
         className
       )}
     >
-      <Trash className="w-4 h-4" />
+      {disabled ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
     </Button>
   )
 }

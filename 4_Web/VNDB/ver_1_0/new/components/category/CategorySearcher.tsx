@@ -1,7 +1,8 @@
 import { cn } from "@/lib/utils"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { ArrowRight, X } from "lucide-react"
+import { InputBar } from "../input/InputBar"
+import { SubmitButton } from "../button/SubmitButton"
+import { CancelButton } from "../button/CancelButton"
+
 
 interface CategorySearcherProps {
   loading: boolean
@@ -20,41 +21,22 @@ export function CategorySearcher({ loading, isSearching, query, setQuery, handle
       "transition-all duration-300",
       className
     )}>
-      <Input 
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
+      <InputBar
+        input={query}
+        setInput={setQuery}
         placeholder="Search in current category"
-        className="bg-[#0F2942]/80 hover:bg-[#0F2942] border-white/10 hover:border-white/20 text-white placeholder:text-white/60"
-      />
-      <Button
-        variant="outline"
-        size="icon"
         disabled={loading}
-        onClick={handleSearch}
-        className={cn(
-          "bg-[#0F2942]/80 hover:bg-[#0F2942] border-white/10 hover:border-white/20",
-          "text-white hover:text-white/80 font-bold text-base md:text-lg transition-all duration-300",
-          loading && "animate-pulse"
-        )}
-      >
-        <ArrowRight className="w-4 h-4" />
-      </Button>
+        className="w-full"
+      />
+      <SubmitButton
+        handleSubmit={handleSearch}
+        disabled={loading}
+      />
       {isSearching && (
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => {
-            setQuery("")
-            handleSearch()
-          }}
-          className={cn(
-            "bg-[#0F2942]/80 hover:bg-[#0F2942] border-red-500/20 hover:border-red-500/40",
-            "text-red-500 hover:text-red-600 font-bold text-base md:text-lg transition-all duration-300",
-            loading && "animate-pulse"
-          )}
-        >
-          <X className="w-4 h-4" />
-        </Button>
+        <CancelButton
+          handleCancel={() => { setQuery(""); handleSearch() }}
+          disabled={loading}
+        />
       )}
     </form>
   )

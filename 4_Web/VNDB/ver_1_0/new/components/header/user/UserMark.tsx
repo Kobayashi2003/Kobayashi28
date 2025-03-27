@@ -12,6 +12,8 @@ import { Star, StarIcon, Loader2, Trash } from "lucide-react"
 import { Category } from "@/lib/types"
 import { api } from "@/lib/api"
 
+import { MarkButton } from "@/components/button/MarkButton"
+
 interface UserMarkButtonProps {
   setOpen: (open: boolean) => void
 }
@@ -51,14 +53,15 @@ export function UserMarkButton({ setOpen }: UserMarkButtonProps) {
   }, [user, pathname])
 
   return (
-    <Button
-      onClick={() => setOpen(true)}
-      variant="ghost"
-      size="icon"
-      className="text-yellow-400 hover:text-yellow-100 hover:bg-white/10 transition-colors"
-    >
-      {isMarked ? <StarIcon className="w-4 h-4 fill-current" /> : <Star className="w-4 h-4" />}
-    </Button>
+    <MarkButton marked={isMarked} setMarked={() => setOpen(true)} disabled={false} className={""} />
+    // <Button
+    //   onClick={() => setOpen(true)}
+    //   variant="ghost"
+    //   size="icon"
+    //   className="text-yellow-400 hover:text-yellow-100 hover:bg-white/10 transition-colors"
+    // >
+    //   {isMarked ? <StarIcon className="w-4 h-4 fill-current" /> : <Star className="w-4 h-4" />}
+    // </Button>
   )
 }
 
@@ -76,7 +79,7 @@ export function UserMarkDialog({ open, setOpen }: UserMarkDialogProps) {
       const { type, id } = analyzePathname(pathname)
       if (type && id) {
         const fetchedCategories = await api.category.get(type)
-        const fetchedToggledCategoryIds = await api.mark.getCategories(type, id)
+        const fetchedToggledCategoryIds = await api.mark.getCategoriesByMark(type, id)
         // sort categories by updated_at and move toggled categories to the top
         const sortedCategories = fetchedCategories.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
         const toggledCategories = sortedCategories.filter((category) => fetchedToggledCategoryIds.categoryIds.includes(category.id))

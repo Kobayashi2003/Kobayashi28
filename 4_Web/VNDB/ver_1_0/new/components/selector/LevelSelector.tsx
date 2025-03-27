@@ -19,7 +19,7 @@ interface LevelSelectorProps {
 
 export function LevelSelectorButton({ levelOptions, selectedLevel, setSelectedLevel, className }: LevelSelectorProps) {
   const containerStyle = "flex flex-wrap gap-2 justify-center items-center"
-  const buttonBaseStyle = "transition-all duration-300"
+  const buttonBaseStyle = "text-xs sm:text-sm md:text-base transition-all duration-300"
 
   return (
     <div className={cn(containerStyle, className)}>

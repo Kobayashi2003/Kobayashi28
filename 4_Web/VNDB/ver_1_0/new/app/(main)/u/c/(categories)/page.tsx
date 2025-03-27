@@ -16,7 +16,7 @@ import { Loading } from "@/components/status/Loading"
 import { Error } from "@/components/status/Error"
 import { NotFound } from "@/components/status/NotFound"
 
-import { ShowPanelButton } from "@/components/button/ShowPanelButton"
+import { TogglePanelButton } from "@/components/button/TogglePanelButton"
 import { DeleteButton } from "@/components/button/DeleteButton"
 import { DeleteModeButton } from "@/components/button/DeleteModeButton"
 import { ReloadButton } from "@/components/button/ReloadButton"
@@ -244,8 +244,8 @@ export default function CategoriesPage() {
     }
   }
 
-  const handleCreateCategory = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleCreateCategory = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
     if (!selectedType || !newCategoryName) return
     try {
       setLoadingCategories(true)
@@ -420,7 +420,7 @@ export default function CategoriesPage() {
                     deleteMode={deleteCategoryMode}
                     setDeleteMode={setDeleteCategoryMode}
                   />
-                  <ShowPanelButton
+                  <TogglePanelButton
                     open={open}
                     setOpen={setOpen}
                     direction="left"
@@ -490,7 +490,7 @@ export default function CategoriesPage() {
             <div className="flex flex-wrap justify-start gap-2">
               {/* Show Panel Button */}
               {!open && (
-                <ShowPanelButton
+                <TogglePanelButton
                   open={open}
                   setOpen={setOpen}
                   direction="left"
@@ -537,7 +537,7 @@ export default function CategoriesPage() {
           <div className="w-full flex flex-row gap-2 justify-start items-center">
             {/* Show Panel Button */}
             {!open && (
-              <ShowPanelButton
+              <TogglePanelButton
                 open={open}
                 setOpen={setOpen}
                 direction="left"
@@ -603,7 +603,7 @@ export default function CategoriesPage() {
             </motion.div>
           )}
           {(!loadingResources && !errorResources && !notfoundResources) && (
-            <div className="relative">
+            <div className="relative w-full">
               {selectedType === "v" ? (
                 <VNsCardsGrid
                   vns={vns}
@@ -638,7 +638,7 @@ export default function CategoriesPage() {
                   )}
                 >
                   {Array.from({ length: currentPageItemsCount }).map((_, index) => (
-                    <div key={`delete-container-${index}`} className="relative">
+                    <div key={`delete-container-${index}`} className="relative w-full">
                       <motion.div
                         key={`delete-ghost-card-${index}`}
                         {...cardAnimation}

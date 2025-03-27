@@ -1,30 +1,29 @@
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Trash2 } from "lucide-react"
+import { LogOut } from "lucide-react"
 
-interface DeleteButtonProps {
-  handleDelete: () => void
+interface LogoutButtonProps {
+  handleLogout: () => void
   disabled?: boolean
   className?: string
 }
 
-export function DeleteButton({ handleDelete, disabled, className }: DeleteButtonProps) {
+export function LogoutButton({ handleLogout, disabled, className }: LogoutButtonProps) {
 
-  const buttonBgColor = "bg-transparent hover:bg-red-400/10"
+  const buttonBgColor = "bg-[#0F2942]/80 hover:bg-[#0F2942]"
   const buttonFont = "font-bold"
   const buttonTextSize = "text-base md:text-lg"
-  const buttonTextColor = "text-red-400 hover:text-white"
-  const buttonBorderColor = "border-red-400/40 hover:border-red-400/60"
+  const buttonTextColor = "text-white hover:text-red-500"
+  const buttonBorderColor = "border-white/10 hover:border-red-400/60"
   const buttonAnimation = "transition-all duration-300"
 
   return (
     <Button
       variant="outline"
       size="icon"
-      onClick={handleDelete}
+      onClick={handleLogout}
       disabled={disabled}
       className={cn(
-        "select-none",
         buttonBgColor,
         buttonFont,
         buttonTextSize,
@@ -34,7 +33,7 @@ export function DeleteButton({ handleDelete, disabled, className }: DeleteButton
         className
       )}
     >
-      <Trash2 className="w-4 h-4" />
+      <LogOut className="w-4 h-4" />
     </Button>
   )
 }

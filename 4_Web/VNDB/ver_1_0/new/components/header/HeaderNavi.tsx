@@ -2,8 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation"
 import Link from "next/link"
-import { Button } from "../ui/button"
-import { ArrowBigLeft } from "lucide-react"
+import { BackButton } from "@/components/button/BackButton"
 
 interface HeaderNaviProps {
   className?: string
@@ -17,15 +16,11 @@ export function HeaderNavi({ className }: HeaderNaviProps) {
   return (
     <div className={`flex flex-row justify-between items-center gap-1 ${className} select-none`}>
       {!isHomePage && (
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => router.back()}
+        <BackButton
+          handleBack={() => router.back()}
+          disabled={false}
           className="text-white hover:text-white/80 hover:bg-white/10"
-          aria-label="Go back"
-        >
-          <ArrowBigLeft className="h-5 w-5" />
-        </Button>
+        />
       )}
       <Link 
         href="/" 

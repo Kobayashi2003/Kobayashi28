@@ -360,11 +360,19 @@ export const api = {
 
   mark: {
     isMarked: async (type: string, markId: number, abortSignal?: AbortSignal) => {
-      return await fetchUserserve<{ isMarked: boolean }>(`${type}/m${markId}`, "GET", undefined, abortSignal)
+      return await fetchUserserve<{ isMarked: boolean }>(`${type}/m${markId}/is_marked`, "GET", undefined, abortSignal)
     },
 
-    getCategories: async (type: string, markId: number, abortSignal?: AbortSignal) => {
+    areMarked: async (type: string, markIds: number[], abortSignal?: AbortSignal) => {
+      return await fetchUserserve<{ isMarked: { [key: number]: boolean } }>(`${type}/m/is_marked`, "POST", { mark_ids: markIds }, abortSignal)
+    },
+
+    getCategoriesByMark: async (type: string, markId: number, abortSignal?: AbortSignal) => {
       return await fetchUserserve<{ categoryIds: number[] }>(`${type}/m${markId}/c`, "GET", undefined, abortSignal)
+    },
+
+    getCategoriesByMarks: async (type: string, markIds: number[], abortSignal?: AbortSignal) => {
+      return await fetchUserserve<{ categoryIds: { [key: number]: number[] } }>(`${type}/m/c`, "POST", { mark_ids: markIds }, abortSignal)
     }
   }
 }

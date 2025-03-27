@@ -53,8 +53,7 @@ export function CategorySelecter({ loading, categoryOptions, selectedValue, dele
           </Button>
           {deleteMode && (
             <DeleteButton
-              loading={loading}
-              onClick={() => {
+              handleDelete={() => {
                 setToDeleteId(categoryOption.value)
                 handleDeleteCategory()
               }}

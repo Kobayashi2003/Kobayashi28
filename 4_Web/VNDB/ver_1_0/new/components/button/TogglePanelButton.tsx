@@ -7,7 +7,7 @@ import {
   PanelBottomOpen, PanelBottomClose
 } from "lucide-react"
 
-interface ShowPanelButtonProps {
+interface TogglePanelButtonProps {
   open: boolean
   setOpen: (open: boolean) => void
   direction: "left" | "right" | "top" | "bottom"
@@ -15,7 +15,8 @@ interface ShowPanelButtonProps {
   className?: string
 }
 
-export function ShowPanelButton({ open, setOpen, direction, disabled, className }: ShowPanelButtonProps) {
+export function TogglePanelButton({ open, setOpen, direction, disabled, className }: TogglePanelButtonProps) {
+
   const buttonBgColor = "bg-[#0F2942]/80 hover:bg-[#0F2942]"
   const buttonFont = "font-bold font-serif italic"
   const buttonTextSize = "text-base md:text-lg"

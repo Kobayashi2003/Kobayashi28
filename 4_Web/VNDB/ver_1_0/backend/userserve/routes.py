@@ -199,11 +199,22 @@ def get_marks_route(type, category_id):
     return jsonify(marks), 200
 
 
-@api_bp.route('/<string:type>/m<int:mark_id>', methods=['GET'])
+@api_bp.route('/<string:type>/m<int:mark_id>/is_marked', methods=['GET'])
 @jwt_required()
-def is_marked_route(type, mark_id):
+def check_if_mark_exists_route(type, mark_id):
     user_id = get_jwt_identity()
     isMarked = is_marked(user_id, type, mark_id)
+    return jsonify(isMarked=isMarked), 200
+
+@api_bp.route('/<string:type>/m/is_marked', methods=['POST'])
+@jwt_required()
+def check_if_marks_exist_route(type):
+    user_id = get_jwt_identity()
+    data = request.json
+    markIds = data['mark_ids']
+    isMarked = {}
+    for mark_id in markIds:
+        isMarked[mark_id] = is_marked(user_id, type, mark_id)
     return jsonify(isMarked=isMarked), 200
 
 @api_bp.route('/<string:type>/m<int:mark_id>/c', methods=['GET'])
@@ -211,4 +222,15 @@ def is_marked_route(type, mark_id):
 def get_categories_by_mark_route(type, mark_id):
     user_id = get_jwt_identity()
     categoryIds = get_categories_by_mark(user_id, type, mark_id)
+    return jsonify(categoryIds=categoryIds), 200
+
+@api_bp.route('/<string:type>/m/c', methods=['POST'])
+@jwt_required()
+def get_categories_by_marks_route(type):
+    user_id = get_jwt_identity()
+    data = request.json
+    markIds = data['mark_ids']
+    categoryIds = {}
+    for mark_id in markIds:
+        categoryIds[mark_id] = get_categories_by_mark(user_id, type, mark_id)
     return jsonify(categoryIds=categoryIds), 200
