@@ -87,6 +87,22 @@ export const FULL_FORM = {
     4: "Long",
     5: "Very Long",
   },
+  "DEVSTATUS": {
+    0: "Finished",
+    1: "In Development",
+    2: "Cancelled",
+  },
+  "CHARACTER_ROLE": {
+    "main": "Protagonist",
+    "primary": "Main Character",
+    "side": "Side Character",
+    "appears": "Appears",
+  },
+  "PRODUCER_TYPE": {
+    "co": "Company",
+    "in": "Individual",
+    "ng": "Amateur Group",
+  },
   "TAG_CATEGORY": {
     "cont": "Content",
     "ero": "Sexual Content",

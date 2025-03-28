@@ -31,6 +31,7 @@ export function TogglePanelButton({ open, setOpen, direction, disabled, classNam
       onClick={() => setOpen(!open)}
       disabled={disabled}
       className={cn(
+        "select-none",
         buttonBgColor,
         buttonFont,
         buttonTextSize,

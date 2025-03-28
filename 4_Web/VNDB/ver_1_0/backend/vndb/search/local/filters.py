@@ -475,7 +475,7 @@ def get_vn_additional_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     if developer_id := params.get('developer_id'):
         filters.append(array_jsonb_exact_match(VN.developers, 'id', developer_id))
 
-    if str(params.get('ero')).lower() == 'false':
+    if str(params.get('ero')).lower() == 'false' or str(params.get('ero')) == '0':
         filters.append(and_(
             ~exists(select(1).select_from(func.unnest(VN.tags).alias('tag')).where(text("tag->>'category' = 'ero'"))),
             ~exists(select(1).select_from(func.unnest(VN.screenshots).alias('screenshot')).where(or_(
@@ -496,7 +496,7 @@ def get_release_additional_filters(params: Dict[str, Any]) -> List[BinaryExpress
     if producer_id := params.get('producer_id'):
         filters.append(array_jsonb_exact_match(Release.producers, 'id', producer_id))
 
-    if str(params.get('ero')).lower() == 'false':
+    if str(params.get('ero')).lower() == 'false' or str(params.get('ero')) == '0':
         filters.append(and_(
             Release.has_ero == False,
             ~exists(select(1).select_from(func.unnest(Release.images).alias('image')).where(or_(
@@ -513,7 +513,7 @@ def get_character_additional_filters(params: Dict[str, Any]) -> List[BinaryExpre
     if vn_id := params.get('vn_id'):
         filters.append(array_jsonb_exact_match(Character.vns, 'id', vn_id))
 
-    if str(params.get('ero')).lower() == 'false':
+    if str(params.get('ero')).lower() == 'false' or str(params.get('ero')) == '0':
         filters.append(and_(
             ~exists(select(1).select_from(func.unnest(Character.traits).alias('trait')).where(or_(
                 text("trait->>'name' ILIKE '%sexual%'"), text("trait->>'group_name' ILIKE '%sexual%'")
@@ -535,7 +535,7 @@ def get_staff_additional_filters(params: Dict[str, Any]) -> List[BinaryExpressio
 def get_tag_additional_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     filters = []
 
-    if str(params.get('ero')).lower() == 'false':
+    if str(params.get('ero')).lower() == 'false' or str(params.get('ero')) == '0':
         filters.append(or_(Tag.category.is_(None), Tag.category != "ero"))
 
     return filters
@@ -543,7 +543,7 @@ def get_tag_additional_filters(params: Dict[str, Any]) -> List[BinaryExpression]
 def get_trait_additional_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     filters = []
 
-    if str(params.get('ero')).lower() == 'false':
+    if str(params.get('ero')).lower() == 'false' or str(params.get('ero')) == '0':
         filters.append(and_(
             or_(Trait.name.is_(None), ~Trait.name.ilike('%sexual%')),
             or_(Trait.group_name.is_(None), ~Trait.group_name.ilike('%sexual%'))
@@ -594,9 +594,9 @@ def get_vn_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
 
     if 'has_description' in params:
         has_description = params['has_description']
-        if str(has_description).lower() == 'true':
+        if str(has_description).lower() == 'true' or str(has_description) == '1':
             filters.append(VN.description.isnot(None))
-        elif str(has_description).lower() == 'false':
+        elif str(has_description).lower() == 'false' or str(has_description) == '0':
             filters.append(VN.description.is_(None))
         else:
             raise ValueError(f"Invalid value for has_description: {has_description}. Use 'true' or 'false'.")
@@ -606,9 +606,9 @@ def get_vn_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
 
     if 'has_screenshot' in params:
         has_screenshot = params['has_screenshot']
-        if str(has_screenshot).lower() == 'true':
+        if str(has_screenshot).lower() == 'true' or str(has_screenshot) == '1':
             filters.append(and_(VN.screenshots.isnot(None), func.array_length(VN.screenshots, 1) > 0))
-        elif str(has_screenshot).lower() == 'false':
+        elif str(has_screenshot).lower() == 'false' or str(has_screenshot) == '0':
             filters.append(or_(VN.screenshots.is_(None), func.array_length(VN.screenshots, 1) == 0))
         else:
             raise ValueError(f"Invalid value for has_screenshot: {has_screenshot}. Use 'true' or 'false'.")
@@ -732,45 +732,45 @@ def get_release_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
 
     if 'patch' in params:
         patch = params['patch']
-        if str(patch).lower() == 'true':
+        if str(patch).lower() == 'true' or str(patch) == '1':
             filters.append(Release.patch == True)
-        elif str(patch).lower() == 'false':
+        elif str(patch).lower() == 'false' or str(patch) == '0':
             filters.append(Release.patch == False)
         else:
             raise ValueError(f"Invalid value for patch: {patch}. Use 'true' or 'false'.")
 
     if 'freeware' in params:
         freeware = params['freeware']
-        if str(freeware).lower() == 'true':
+        if str(freeware).lower() == 'true' or str(freeware) == '1':
             filters.append(Release.freeware == True)
-        elif str(freeware).lower() == 'false':
+        elif str(freeware).lower() == 'false' or str(freeware) == '0':
             filters.append(Release.freeware == False)
         else:
             raise ValueError(f"Invalid value for freeware: {freeware}. Use 'true' or 'false'.")
 
     if 'uncensored' in params:
         uncensored = params['uncensored']
-        if str(uncensored).lower() == 'true':
+        if str(uncensored).lower() == 'true' or str(uncensored) == '1':
             filters.append(Release.uncensored == True)
-        elif str(uncensored).lower() == 'false':
+        elif str(uncensored).lower() == 'false' or str(uncensored) == '0':
             filters.append(Release.uncensored == False)
         else:
             raise ValueError(f"Invalid value for uncensored: {uncensored}. Use 'true' or 'false'.")
 
     if 'official' in params:
         official = params['official']
-        if str(official).lower() == 'true':
+        if str(official).lower() == 'true' or str(official) == '1':
             filters.append(Release.official == True)
-        elif str(official).lower() == 'false':
+        elif str(official).lower() == 'false' or str(official) == '0':
             filters.append(Release.official == False)
         else:
             raise ValueError(f"Invalid value for official: {official}. Use 'true' or 'false'.")
 
     if 'has_ero' in params:
         has_ero = params['has_ero']
-        if str(has_ero).lower() == 'true':
+        if str(has_ero).lower() == 'true' or str(has_ero) == '1':
             filters.append(Release.has_ero == True)
-        elif str(has_ero).lower() == 'false':
+        elif str(has_ero).lower() == 'false' or str(has_ero) == '0':
             filters.append(Release.has_ero == False)
         else:
             raise ValueError(f"Invalid value for has_ero: {has_ero}. Use 'true' or 'false'.")
@@ -971,9 +971,9 @@ def get_staff_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     
     if 'ismain' in params:
         ismain = params['ismain']
-        if str(ismain).lower() == 'true':
+        if str(ismain).lower() == 'true' or str(ismain) == '1':
             filters.append(Staff.ismain == True)
-        elif str(ismain).lower() == 'false':
+        elif str(ismain).lower() == 'false' or str(ismain) == '0':
             filters.append(Staff.ismain == False)
         else:
             raise ValueError(f"Invalid value for ismain: {ismain}. Use 'true' or 'false'.")

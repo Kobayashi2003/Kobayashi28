@@ -120,12 +120,12 @@ class VNDBAPIWrapper:
             "count": count
         }
 
-        # # Export payload to current directory for debugging
-        # import os, json
-        # current_dir = os.path.dirname(os.path.abspath(__file__))
-        # debug_file_path = os.path.join(current_dir, "../payload.json")
-        # with open(debug_file_path, 'w') as f:
-        #     json.dump(payload, f, indent=2)
+        # Export payload to current directory for debugging
+        import os, json
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        debug_file_path = os.path.join(current_dir, "../payload.json")
+        with open(debug_file_path, 'w') as f:
+            json.dump(payload, f, indent=2)
         
         response = self.client.post(url, json=payload)
         response.raise_for_status()

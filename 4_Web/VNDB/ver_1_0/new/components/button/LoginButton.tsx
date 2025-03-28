@@ -24,6 +24,7 @@ export function LoginButton({ handleLogin, disabled, className }: LoginButtonPro
       onClick={handleLogin}
       disabled={disabled}
       className={cn(
+        "select-none",
         buttonBgColor,
         buttonFont,
         buttonTextSize,

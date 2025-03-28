@@ -448,18 +448,18 @@ export default function CategoriesPage() {
                   className="w-full"
                 />
                 <CategoryCreator
-                  loading={loadingCategories}
                   newCategoryName={newCategoryName}
                   setNewCategoryName={setNewCategoryName}
                   handleCreateCategory={handleCreateCategory}
+                  disabled={loadingCategories || loadingResources}
                   className="w-full"
                 />
                 <CategorySearcher
-                  loading={loadingCategories}
                   isSearching={isSearching}
                   query={queryTemp}
                   setQuery={setQueryTemp}
                   handleSearch={handleSearch}
+                  disabled={loadingCategories || loadingResources}
                   className={cn(
                     "w-full",
                     !selectedCategoryId && "opacity-0"

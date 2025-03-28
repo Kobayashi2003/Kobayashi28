@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { Settings2 } from "lucide-react"
 
+import { FiltersDialog } from "@/components/dialog/FitlersDialog"
 
 interface SearchFiltersProps {
   SearchType: string
@@ -138,6 +139,10 @@ function SearchFiltersDialog({ SearchType, open, setOpen, setSearchFilters }: Fi
     )
     setSearchFilters(filteredParams)
   }, [params, setSearchFilters])
+
+  return (
+    <FiltersDialog type={SearchType} open={open} setOpen={setOpen} setParams={setSearchFilters} />
+  )
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

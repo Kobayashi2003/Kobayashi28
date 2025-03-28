@@ -20,7 +20,13 @@ export function BackButton({ handleBack, disabled, className }: BackButtonProps)
       size="icon"
       onClick={handleBack}
       disabled={disabled}
-      className={cn(buttonBgColor, buttonTextColor, buttonAnimation, className)}
+      className={cn(
+        "select-none",
+        buttonBgColor,
+        buttonTextColor,
+        buttonAnimation,
+        className
+      )}
     >
       <ArrowBigLeft className="h-5 w-5" />
     </Button>

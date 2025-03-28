@@ -24,6 +24,7 @@ export function LogoutButton({ handleLogout, disabled, className }: LogoutButton
       onClick={handleLogout}
       disabled={disabled}
       className={cn(
+        "select-none",
         buttonBgColor,
         buttonFont,
         buttonTextSize,

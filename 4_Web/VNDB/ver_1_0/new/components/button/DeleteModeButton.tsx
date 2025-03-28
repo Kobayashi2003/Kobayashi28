@@ -20,9 +20,8 @@ export function DeleteModeButton({ deleteMode, setDeleteMode, disabled, classNam
 
   return (
     <Button
-      key={`delete-mode-button`}
-      size="icon"
       variant="outline"
+      size="icon"
       onClick={() => setDeleteMode(!deleteMode)}
       disabled={disabled}
       className={cn(

@@ -1,4 +1,5 @@
-from typing import Dict, Any
+import re
+from typing import Dict, Any, List
 from enum import Enum, auto
 
 
@@ -184,23 +185,21 @@ def parse_logical_expression(expression: str, field: str) -> Dict[str, Any]:
 
     return result
 
-def parse_int(value: str | None) -> int | None:
-    """
-    Parse a string value to an integer, returning None if parsing fails.
-    
-    Args:
-        value (str | None): The string value to parse.
-    
-    Returns:
-        int | None: The parsed integer value, or None if parsing fails.
-    """
-    if value is None:
-        return None
-    try:
-        return int(value)
-    except ValueError:
-        return None
+def parse_int(value: str | None, comparable: bool = False) -> str | None:
+    pattern = r'^(>=|<=|>|<|=)?(\d+)$' if comparable else r'^(\d+)$'
+    match = re.match(pattern, value)
+    if match:
+        return value
+    return None 
 
+def parse_birthday(value: str) -> List[int]:
+    pattern = r'^(\d{1,2})-(\d{1,2})$'
+    match = re.match(pattern, value)
+    if match:
+        month, day = map(int, match.groups())
+        if 1 <= month <= 12 and 1 <= day <= 31:
+            return [month, day]
+    raise ValueError(f"Invalid birthday format: {value}. Use 'MM-DD' format (e.g., '12-25').")
 
 def get_vn_additional_filters(params: Dict[str, Any]) -> Dict[str, Any]:
     filters = []
@@ -294,17 +293,25 @@ def get_vn_filters(params: Dict[str, Any]) -> Dict[str, Any]:
             if parsed:
                 filters.append({field: parsed})
     
-    # Handle numeric fields
-    numeric_fields = ['length', 'devstatus']
-    for field in numeric_fields:
-        if value := parse_int(params.get(field)):
-            filters.append({field: value})
+    # Handle uncomparable numeric fields
+    uncomparable_numeric_fields = ['devstatus']
+    for field in uncomparable_numeric_fields:
+        if value := params.get(field):
+            if parsed := parse_int(value):
+                filters.append({field: parsed})
+
+    # Handle comparable numeric fields
+    comparable_numeric_fields = ['length']
+    for field in comparable_numeric_fields:
+        if value := params.get(field):
+            if parsed := parse_int(value, True):
+                filters.append({field: parsed})
     
     # Handle boolean fields
     boolean_fields = ['has_description', 'has_anime', 'has_screenshot', 'has_review']
     for field in boolean_fields:
         if value := params.get(field):
-            filters.append({field: str(value).lower() == 'true'})
+            filters.append({field: str(value).lower() == 'true' or str(value) == '1'})
     
     filters.extend(get_vn_additional_filters(params))
 
@@ -353,11 +360,19 @@ def get_release_filters(params: Dict[str, Any]) -> Dict[str, Any]:
             except ValueError:
                 pass  # Invalid format, skip this filter
 
-    # Handle numeric fields
-    numeric_fields = ['minage', 'voiced']
-    for field in numeric_fields:
-        if value := parse_int(params.get(field)):
-            filters.append({field: value})
+    # Handle uncomparable numeric fields
+    uncomparable_numeric_fields = ['voiced']
+    for field in uncomparable_numeric_fields:
+        if value := params.get(field):
+            if parsed := parse_int(value):
+                filters.append({field: parsed})
+
+    # Handle comparable numeric fields
+    comparable_numeric_fields = ['minage']
+    for field in comparable_numeric_fields:
+        if value := params.get(field):
+            if parsed := parse_int(value, True):
+                filters.append({field: parsed})
 
     # Handle string fields
     string_fields = ['engine', 'rtype']
@@ -369,7 +384,7 @@ def get_release_filters(params: Dict[str, Any]) -> Dict[str, Any]:
     boolean_fields = ['patch', 'freeware', 'uncensored', 'official', 'has_ero']
     for field in boolean_fields:
         if value := params.get(field):
-            filters.append({field: str(value).lower() == 'true'})
+            filters.append({field: str(value).lower() == 'true' or str(value) == '1'})
 
     # Handle nested fields
     nested_fields = ['vn', 'producer']
@@ -404,8 +419,11 @@ def get_character_filters(params: Dict[str, Any]) -> Dict[str, Any]:
     
     if search := params.get('search'):
         filters.append({"search": search})
+
+    if birthday := params.get('birthday'):
+        filters.append({"birthday": parse_birthday(birthday)})
     
-    multi_value_fields = ['role', 'trait', 'dtrait', 'birthday']
+    multi_value_fields = ['role', 'trait', 'dtrait']
     for field in multi_value_fields:
         if value := params.get(field):
             parsed = parse_logical_expression(value, field)
@@ -425,10 +443,11 @@ def get_character_filters(params: Dict[str, Any]) -> Dict[str, Any]:
         if value := params.get(field):
             filters.append({field: value})
     
-    numeric_fields = ['height', 'weight', 'bust', 'waist', 'hips', 'age']
-    for field in numeric_fields:
-        if value := parse_int(params.get(field)):
-            filters.append({field: value})
+    comparable_numeric_fields = ['height', 'weight', 'bust', 'waist', 'hips', 'age']
+    for field in comparable_numeric_fields:
+        if value := params.get(field):
+            if parsed := parse_int(value, True):
+                filters.append({field: parsed})
     
     filters.extend(get_character_additional_filters(params))
 
@@ -492,7 +511,7 @@ def get_staff_filters(params: Dict[str, Any]) -> Dict[str, Any]:
         filters.append({"gender": gender})
     
     if ismain := params.get('ismain'):
-        filters.append({"ismain": str(ismain).lower() == 'true'})
+        filters.append({"ismain": str(ismain).lower() == 'true' or str(ismain) == '1'})
 
     if extlink := params.get('extlink'):
         filters.append({"extlink": extlink})

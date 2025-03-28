@@ -1,36 +1,84 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+- app/
+  - (main)/
+    - (home)/page.tsx
+    - [type]/
+      - [id]/page.tsx
+      - page.tsx
+    - user/
+      - categories/page.tsx
+      - info/page.tsx
+      - layout.tsx
+    - about/page.tsx
+  - layout.tsx
+  - favicon.ico
+  - globals.css
+  - icons.css
 
-## Getting Started
+- components
+  - button/
+    - AddButton.tsx
+    - BackButton.tsx
+    - CancelButton.tsx
+    - CardTypeButton.tsx
+    - DeleteButton.tsx
+    - DeleteModeButton.tsx
+    - GhostButton.tsx
+    - LetterButton.tsx
+    - LoginButton.tsx
+    - LogoutButton.tsx
+    - MarkButton.tsx (TODO)
+    - PaginationButtons.tsx
+    - RegisterButton.tsx
+    - ReloadButton.tsx
+    - SubmitButton.tsx
+    - TogglePanelButton.tsx
+  - card/
+    - CardsGrid.tsx
+    - ImageCard.tsx
+    - TextCard.tsx
+  - category/
+  - dialog/
+    - ConfirmDialog.tsx
+    - LoginDialog.tsx
+    - MarkDialog.tsx (TODO)
+    - RegisterDialog.tsx
+  - header/
+    - Header.tsx
+    - SearchHeader.tsx
+    - UserHeader.tsx
+  - input/
+    - InputBar.tsx
+    - SearchBar.tsx
+  - panel/
+  - selector/
+    - LevelSelector.tsx
+    - SexualLevelSelector.tsx
+    - ViolenceLevelSelector.tsx
+  - status/
+    - Error.tsx
+    - Loading.tsx
+    - NotFound.tsx
+  - ui/...
 
-First, run the development server:
+- context/
+  - UserContext.tsx
+  - SearchContext.tsx
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- hooks/
+  - useHideOnScroll.tsx
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- lib/
+  - api.ts
+  - constants.ts
+  - fullForm.ts
+  - icons.ts
+  - types.ts
+  - utils.ts
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- public/
+  - icons.png
+  - icons.svg
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+.env.local
+middleware.ts
+next.config.ts

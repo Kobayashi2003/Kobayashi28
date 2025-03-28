@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { cn } from "@/lib/utils"
 import { HeaderNavi } from "./HeaderNavi"
-import { UserHeader } from "./user/UserHeader"
+import { UserHeader } from "./UserHeader"
 import { SearchHeader } from "./search/SearchHeader"
 
 interface HeaderBarProps {

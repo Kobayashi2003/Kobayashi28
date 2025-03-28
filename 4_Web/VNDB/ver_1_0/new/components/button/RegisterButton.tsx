@@ -24,6 +24,7 @@ export function RegisterButton({ handleRegister, disabled, className }: Register
       onClick={handleRegister}
       disabled={disabled}
       className={cn(
+        "select-none",
         buttonBgColor,
         buttonFont,
         buttonTextSize,

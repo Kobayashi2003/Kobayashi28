@@ -1,0 +1,13 @@
+{
+  "filters": [
+    "id",
+    "=",
+    "1480"
+  ],
+  "fields": "id,title,alttitle,aliases,olang,devstatus,released,languages,platforms,length,length_minutes,length_votes,description,average,rating,votecount,titles.lang,titles.title,titles.latin,titles.official,titles.main,image.id,image.url,image.dims,image.sexual,image.violence,image.thumbnail,image.thumbnail_dims,screenshots.url,screenshots.dims,screenshots.sexual,screenshots.violence,screenshots.thumbnail,screenshots.thumbnail_dims,screenshots.release.id,screenshots.release.title,relations.relation,relations.relation_official,relations.id,relations.title,tags.rating,tags.spoiler,tags.lie,tags.id,tags.name,tags.category,developers.id,developers.name,developers.original,staff.eid,staff.role,staff.note,staff.id,staff.name,staff.original,editions.eid,editions.lang,editions.name,editions.official,va.note,va.staff.id,va.staff.name,va.staff.original,va.character.id,va.character.name,va.character.original,extlinks.url,extlinks.label,extlinks.name,extlinks.id",
+  "sort": "id",
+  "reverse": false,
+  "results": 100,
+  "page": 1,
+  "count": true
+}

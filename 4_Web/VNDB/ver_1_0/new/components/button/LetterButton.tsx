@@ -24,6 +24,7 @@ export function LetterButton({ letter, onClick, disabled, className }: LetterBut
       onClick={onClick}
       disabled={disabled}
       className={cn(
+        "select-none",
         buttonBgColor,
         buttonFont,
         buttonTextSize,
