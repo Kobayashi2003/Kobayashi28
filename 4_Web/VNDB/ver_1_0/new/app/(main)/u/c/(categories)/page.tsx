@@ -20,7 +20,7 @@ import { TogglePanelButton } from "@/components/button/TogglePanelButton"
 import { DeleteButton } from "@/components/button/DeleteButton"
 import { DeleteModeButton } from "@/components/button/DeleteModeButton"
 import { ReloadButton } from "@/components/button/ReloadButton"
-import { CardTypeButton } from "@/components/button/CardTypeButton"
+import { CardTypeSwitch } from "@/components/selector/CardTypeSwtich"
 import { PaginationButtons } from "@/components/button/PaginationButtons"
 
 import { SexualLevelSelector } from "@/components/selector/SexualLevelSelector"
@@ -505,7 +505,7 @@ export default function CategoriesPage() {
                 setSortOrder={setSortOrder}
               />
               {/* Card Type Button */}
-              <CardTypeButton
+              <CardTypeSwitch
                 cardType={cardType}
                 setCardType={(value) => setCardType(value as "image" | "text")}
               />

@@ -1,9 +1,9 @@
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { IconButton } from "@/components/button/IconButton"
 import { Trash2 } from "lucide-react"
 
 interface DeleteButtonProps {
-  handleDelete: () => void
+  handleDelete?: () => void
   disabled?: boolean
   className?: string
 }
@@ -11,30 +11,21 @@ interface DeleteButtonProps {
 export function DeleteButton({ handleDelete, disabled, className }: DeleteButtonProps) {
 
   const buttonBgColor = "bg-transparent hover:bg-red-400/10"
-  const buttonFont = "font-bold"
-  const buttonTextSize = "text-base md:text-lg"
   const buttonTextColor = "text-red-400 hover:text-white"
   const buttonBorderColor = "border-red-400/40 hover:border-red-400/60"
-  const buttonAnimation = "transition-all duration-300"
 
   return (
-    <Button
+    <IconButton
+      icon={<Trash2 className="w-4 h-4" />}
       variant="outline"
-      size="icon"
       onClick={handleDelete}
       disabled={disabled}
-      className={cn(
-        "select-none",
-        buttonBgColor,
-        buttonFont,
-        buttonTextSize,
-        buttonTextColor,
-        buttonBorderColor,
-        buttonAnimation,
-        className
+      className={cn( 
+        buttonBgColor, 
+        buttonTextColor, 
+        buttonBorderColor, 
+        className 
       )}
-    >
-      <Trash2 className="w-4 h-4" />
-    </Button>
+    />
   )
 }

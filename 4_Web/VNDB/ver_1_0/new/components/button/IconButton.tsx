@@ -4,13 +4,15 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 interface IconButtonProps {
   icon: React.ReactNode
+  variant?: "default" | "outline" | "ghost" | "link" | "destructive" | "secondary" | null
   tooltip?: string
-  onClick: () => void
+  tooltipPosition?: "top" | "bottom" | "left" | "right"
+  onClick?: () => void
   disabled?: boolean
   className?: string
 }
 
-export function IconButton({ icon, tooltip, onClick, disabled, className }: IconButtonProps) {
+export function IconButton({ icon, variant, tooltip, tooltipPosition, onClick, disabled, className }: IconButtonProps) {
 
   const buttonBgColor = "bg-transparent hover:bg-white/10"
   const buttonFont = "font-bold"
@@ -19,16 +21,16 @@ export function IconButton({ icon, tooltip, onClick, disabled, className }: Icon
   const buttonBorderColor = "border-white/10 hover:border-white/20"
   const buttonAnimation = "transition-all duration-300"
 
-  const tooltipBgColor = "bg-black/80"
-  const tooltipTextColor = "text-white"
-  const tooltipFontSize = "text-sm md:text-base"
+  const tooltipBgColor = "bg-black/50"
+  const tooltipTextColor = "text-white/80"
+  const tooltipFontSize = "text-xs sm:text-sm md:text-base"
 
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
-            variant="outline"
+            variant={variant}
             size="icon"
             onClick={onClick}
             disabled={disabled}
@@ -47,6 +49,7 @@ export function IconButton({ icon, tooltip, onClick, disabled, className }: Icon
           </Button>
         </TooltipTrigger>
         <TooltipContent
+          side={tooltipPosition}
           className={cn(
             tooltipBgColor,
             tooltipTextColor,

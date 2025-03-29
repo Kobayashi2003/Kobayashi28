@@ -10,7 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 
-import { FULL_FORM } from "@/lib/fullForm"
+import { ENUMS } from "@/lib/enums"
 
 interface BaseField {
   value: string
@@ -46,20 +46,131 @@ interface DateField extends BaseField {
 
 
 const DATE_FORMAT_REGEX: Record<string, RegExp> = {
-  'yyyy-mm-dd': /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/,
-  'yyyy-mm': /^\d{4}-(0[1-9]|1[0-2])$/,
-  'yyyy': /^\d{4}$/,
-  'mm-dd': /^(0[1-9]|1[0-2])-(0[1-9]|[12][0-2]|3[01])$/,
-  'mm': /^(0[1-9]|1[0-2])$/
+  // YYYY-MM-DD format
+  // Year: 1900-2099
+  // Month: 01-12
+  // Day: 01-31 (simplified, not checking specific month's max days)
+  'yyyy-mm-dd': /^(19|20)\d{2}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/,
+
+  // YYYY-MM format
+  // Year: 1900-2099
+  // Month: 01-12
+  'yyyy-mm': /^(19|20)\d{2}-(0[1-9]|1[0-2])$/,
+
+  // YYYY format
+  // Year: 1900-2099
+  'yyyy': /^(19|20)\d{2}$/,
+
+  // MM-DD format
+  // Month: 01-12
+  // Day: 01-31 (simplified, not checking specific month's max days)
+  'mm-dd': /^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/,
+
+  // MM format
+  // Month: 01-12
+  'mm': /^(0[1-9]|1[0-2])$/,
 }
 
-const OPERATORS = ["=", "<", ">", "<=", ">="]
+const OPERATORS = ["=", "<", ">", "<=", ">=", "!="]
 
 const isValidNumberInput = (input: string, integer?: boolean): boolean =>
   input === "" ? true : integer ? /^\d+$/.test(input) : /^\d*\.?\d+$/.test(input)
 
 const isValidDateInput = (input: string): boolean =>
-  input === "" ? true : /[\d-]*/.test(input)
+  input === "" ? true : /^[\d-]*$/.test(input)
+
+const isValidNumber = (input: string, comparable?: boolean, integer?: boolean): boolean => {
+  if (comparable) {
+    return integer ?
+      /^(=|<|>|<=|>=|!=)?\d+$/.test(input.replace(/\s/g, '')) :
+      /^(=|<|>|<=|>=|!=)?\d*\.?\d+$/.test(input.replace(/\s/g, ''))
+  }
+  return integer ?
+    /^\d+$/.test(input.replace(/\s/g, '')) :
+    /^\d*\.?\d+$/.test(input.replace(/\s/g, ''))
+}
+
+const isValidDate = (input: string, format: string, comparable?: boolean): boolean => {
+
+  if (comparable) {
+    const operatorMatch = input.replace(/\s/g, '').match(/^(=|<|>|<=|>=|!=)(.*)$/);
+    if (!operatorMatch) {
+      return isValidDate(input, format, false)
+    }
+    const [, operator, dateValue] = operatorMatch;
+    if (!dateValue.trim()) {
+      return false
+    }
+    return isValidDate(dateValue.trim(), format, false);
+  }
+
+  const nextYear = new Date().getFullYear() + 1
+
+  if (format.toLowerCase() === 'yyyy-mm-dd') {
+    if (!DATE_FORMAT_REGEX['yyyy-mm-dd'].test(input)) {
+      return false
+    }
+    const [year, month, day] = input.replace(/\s/g, '').split('-').map(Number)
+    if (year < 1900 || year > nextYear || month < 1 || month > 12 || day < 1 || day > 31) {
+      return false
+    }
+    const lastDayOfMonth = new Date(year, month, 0).getDate()
+    if (day > lastDayOfMonth) {
+      return false
+    }
+    return true
+  }
+
+  if (format.toLowerCase() === 'yyyy-mm') {
+    if (!DATE_FORMAT_REGEX['yyyy-mm'].test(input)) {
+      return false
+    }
+    const [year, month] = input.replace(/\s/g, '').split('-').map(Number)
+    if (year < 1900 || year > nextYear || month < 1 || month > 12) {
+      return false
+    }
+    return true
+  }
+  
+  if (format.toLowerCase() === 'yyyy') {
+    if (!DATE_FORMAT_REGEX['yyyy'].test(input)) {
+      return false
+    }
+    const year = Number(input.replace(/\s/g, ''))
+    if (year < 1900 || year > nextYear) {
+      return false
+    }
+    return true
+  }
+
+  if (format.toLowerCase() === 'mm-dd') {
+    if (!DATE_FORMAT_REGEX['mm-dd'].test(input)) {
+      return false
+    }
+    const [month, day] = input.replace(/\s/g, '').split('-').map(Number)
+    if (month < 1 || month > 12 || day < 1 || day > 31) {
+      return false
+    }
+    const lastDayOfMonth = new Date(2000, month, 0).getDate()
+    if (day > lastDayOfMonth) {
+      return false
+    }
+    return true
+  }
+
+  if (format.toLowerCase() === 'mm') {
+    if (!DATE_FORMAT_REGEX['mm'].test(input)) {
+      return false
+    }
+    const month = Number(input.replace(/\s/g, ''))
+    if (month < 1 || month > 12) {
+      return false
+    }
+    return true
+  }
+
+  return false
+}
 
 
 function TextFilter({ filter, value, onChange }: { 
@@ -208,6 +319,11 @@ function DateFilter({ filter, value, onChange }: {
   value: string, 
   onChange: (field: string, value: string) => void 
 }) {
+
+  const isCurrentInputValid = value === "" || filter.avaliableFormats.some(format => 
+    isValidDate(value, format, false)
+  )
+
   return (
     <div className="flex flex-col gap-2">
       <Label 
@@ -225,7 +341,13 @@ function DateFilter({ filter, value, onChange }: {
           }
         }}
         placeholder={filter.placeholder}
-        className="bg-[#0A1929] border-white/10 hover:border-white/20 text-white placeholder:text-white/50"
+        className={cn(
+          "text-white placeholder:text-white/50",
+          isCurrentInputValid ? "bg-[#0A1929]" : "bg-red-500/10",
+          isCurrentInputValid ? "border-white/10" : "border-red-500",
+          isCurrentInputValid ? "hover:border-white/20" : "hover:border-red-500",
+          "transition-all duration-300"
+        )}
       />
     </div>
   )
@@ -236,6 +358,11 @@ function DateFilterComparable({ filter, value, onChange }: {
   value: { operator: string, date: string }, 
   onChange: (field: string, value: { operator: string, date: string }) => void 
 }) {
+
+  const isCurrentInputValid = value.date === "" || filter.avaliableFormats.some(format => 
+    isValidDate(value.date, format, true)
+  )
+
   return (
     <div className="flex flex-col gap-2">
       <Label
@@ -273,12 +400,19 @@ function DateFilterComparable({ filter, value, onChange }: {
             }
           }}
           placeholder={filter.placeholder}
-          className="bg-[#0A1929] border-white/10 hover:border-white/20 text-white placeholder:text-white/50"
+          className={cn(
+            "text-white placeholder:text-white/50",
+            isCurrentInputValid ? "bg-[#0A1929]" : "bg-red-500/10",
+            isCurrentInputValid ? "border-white/10" : "border-red-500",
+            isCurrentInputValid ? "hover:border-white/20" : "hover:border-red-500",
+            "transition-all duration-300"
+          )}
         />
       </div>
     </div>
   )
 }
+
 
 const searchFilters: Record<string, {
   text?: TextField[]
@@ -309,7 +443,7 @@ const searchFilters: Record<string, {
         value: "lang", label: "Language", default: "any",
         options: [
           { value: "any", label: "Any" },
-          ...Object.entries(FULL_FORM.LANGUAGE).map(([key, value]) => ({
+          ...Object.entries(ENUMS.LANGUAGE).map(([key, value]) => ({
             value: key, label: value
           }))
         ]
@@ -318,7 +452,7 @@ const searchFilters: Record<string, {
         value: "olang", label: "Original Language", default: "ja",
         options: [
           { value: "any", label: "Any" },
-          ...Object.entries(FULL_FORM.LANGUAGE).map(([key, value]) => ({
+          ...Object.entries(ENUMS.LANGUAGE).map(([key, value]) => ({
             value: key, label: value
           }))
         ]
@@ -327,7 +461,7 @@ const searchFilters: Record<string, {
         value: "platform", label: "Platform", default: "any",
         options: [
           { value: "any", label: "Any" },
-          ...Object.entries(FULL_FORM.PLATFORM).map(([key, value]) => ({
+          ...Object.entries(ENUMS.PLATFORM).map(([key, value]) => ({
             value: key, label: value
           }))
         ]
@@ -336,7 +470,7 @@ const searchFilters: Record<string, {
         value: "length", label: "Length", default: "any",
         options: [
           { value: "any", label: "Any" },
-          ...Object.entries(FULL_FORM.LENGTH).map(([key, value]) => ({
+          ...Object.entries(ENUMS.LENGTH).map(([key, value]) => ({
             value: key, label: value
           }))
         ]
@@ -345,7 +479,7 @@ const searchFilters: Record<string, {
         value: "devstatus", label: "Development Status", default: "any",
         options: [
           { value: "any", label: "Any" },
-          ...Object.entries(FULL_FORM.DEVSTATUS).map(([key, value]) => ({
+          ...Object.entries(ENUMS.DEVSTATUS).map(([key, value]) => ({
             value: key, label: value
           }))
         ]
@@ -392,6 +526,10 @@ const searchFilters: Record<string, {
   },
   release: {
     text: [
+      { value: "engine", label: "Engine" },
+      { value: "extlink", label: "External Link" },
+      { value: "vn", label: "Visual Novel" },
+      { value: "producer", label: "Producer" },
     ],
     number: [
       {
@@ -404,7 +542,7 @@ const searchFilters: Record<string, {
         value: "lang", label: "Language", default: "any",
         options: [
           { value: "any", label: "Any" },
-          ...Object.entries(FULL_FORM.LANGUAGE).map(([key, value]) => ({
+          ...Object.entries(ENUMS.LANGUAGE).map(([key, value]) => ({
             value: key, label: value
           }))
         ]
@@ -413,9 +551,73 @@ const searchFilters: Record<string, {
         value: "platform", label: "Platform", default: "any",
         options: [
           { value: "any", label: "Any" },
-          ...Object.entries(FULL_FORM.PLATFORM).map(([key, value]) => ({
+          ...Object.entries(ENUMS.PLATFORM).map(([key, value]) => ({
             value: key, label: value
           }))
+        ]
+      },
+      {
+        value: "medium", label: "Medium", default: "any",
+        options: [
+          { value: "any", label: "Any" },
+          ...Object.entries(ENUMS.MEDIUM).map(([key, value]) => ({
+            value: key, label: value
+          }))
+        ]
+      },
+      {
+        value: "voiced", label: "Voiced", default: "any",
+        options: [
+          { value: "any", label: "Any" },
+          ...Object.entries(ENUMS.VOICED).map(([key, value]) => ({
+            value: key, label: value
+          }))
+        ]
+      },
+      {
+        value: "rtype", label: "Release Type", default: "any",
+        options: [
+          { value: "any", label: "Any" },
+        ]
+      },
+      {
+        value: "patch", label: "Patch", default: "any",
+        options: [
+          { value: "any", label: "Any" },
+          { value: "1", label: "Yes" },
+          { value: "0", label: "No" },
+        ]
+      },
+      {
+        value: "freeware", label: "Freeware", default: "any",
+        options: [
+          { value: "any", label: "Any" },
+          { value: "1", label: "Yes" },
+          { value: "0", label: "No" },
+        ]
+      },
+      {
+        value: "uncensored", label: "Uncensored", default: "any",
+        options: [
+          { value: "any", label: "Any" },
+          { value: "1", label: "Yes" },
+          { value: "0", label: "No" },
+        ]
+      },
+      {
+        value: "official", label: "Official", default: "any",
+        options: [
+          { value: "any", label: "Any" },
+          { value: "1", label: "Yes" },
+          { value: "0", label: "No" },
+        ]
+      },
+      {
+        value: "has_ero", label: "Has Ero", default: "any",
+        options: [
+          { value: "any", label: "Any" },
+          { value: "1", label: "Yes" },
+          { value: "0", label: "No" },
         ]
       }
     ],
@@ -462,7 +664,7 @@ const searchFilters: Record<string, {
         value: "role", label: "Role", default: "any",
         options: [
           { value: "any", label: "Any" },
-          ...Object.entries(FULL_FORM.CHARACTER_ROLE).map(([key, value]) => ({
+          ...Object.entries(ENUMS.CHARACTER_ROLE).map(([key, value]) => ({
             value: key, label: value
           }))
         ]
@@ -521,14 +723,12 @@ const searchFilters: Record<string, {
     text: [
       { value: "extlink", label: "External Link" },
     ],
-    number: [
-    ],
     select: [
       {
         value: "lang", label: "Language", default: "any",
         options: [
           { value: "any", label: "Any" },
-          ...Object.entries(FULL_FORM.LANGUAGE).map(([key, value]) => ({
+          ...Object.entries(ENUMS.LANGUAGE).map(([key, value]) => ({
             value: key, label: value
           }))
         ]
@@ -537,7 +737,7 @@ const searchFilters: Record<string, {
         value: "type", label: "Type", default: "any",
         options: [
           { value: "any", label: "Any" },
-          ...Object.entries(FULL_FORM.PRODUCER_TYPE).map(([key, value]) => ({
+          ...Object.entries(ENUMS.TYPE).map(([key, value]) => ({
             value: key, label: value
           }))
         ]
@@ -546,26 +746,52 @@ const searchFilters: Record<string, {
   },
   staff: {
     text: [
-
-    ],
-    number: [
-
+      { value: "extlink", label: "External Link" },
     ],
     select: [
-
+      {
+        value: "lang", label: "Language", default: "any",
+        options: [
+          { value: "any", label: "Any" },
+          ...Object.entries(ENUMS.LANGUAGE).map(([key, value]) => ({
+            value: key, label: value
+          }))
+        ]
+      },
+      {
+        value: "gender", label: "Gender", default: "any",
+        options: [
+          { value: "any", label: "Any" },
+          { value: "m", label: "Male" },
+          { value: "f", label: "Female" },
+        ]
+      },
+      {
+        value: "role", label: "Role", default: "any",
+        options: [
+          { value: "any", label: "Any" },
+          ...Object.entries(ENUMS.STAFF_ROLE).map(([key, value]) => ({
+            value: key, label: value
+          }))
+        ]
+      },
+      {
+        value: "ismain", label: "Is Main", default: "any",
+        options: [
+          { value: "any", label: "Any" },
+          { value: "1", label: "Yes" },
+          { value: "0", label: "No" },
+        ]
+      }
     ]
   },
   tag: {
-    text: [
-    ],
-    number: [
-    ],
     select: [
       {
         value: "category", label: "Category", default: "any",
         options: [
           { value: "any", label: "Any" },
-          ...Object.entries(FULL_FORM.TAG_CATEGORY).map(([key, value]) => ({
+          ...Object.entries(ENUMS.CATEGORY).map(([key, value]) => ({
             value: key, label: value
           }))
         ]
@@ -573,12 +799,6 @@ const searchFilters: Record<string, {
     ]
   },
   trait: {
-    text: [
-    ],
-    number: [
-    ],
-    select: [
-    ]
   }
 }
 
@@ -587,7 +807,7 @@ interface FiltersDialogProps {
   open: boolean
   setOpen: (open: boolean) => void
   type: string
-  setParams: (params: Record<string, string>) => void
+  setFilters: (params: Record<string, string>) => void
   className?: string
 }
 
@@ -600,9 +820,9 @@ interface FilterState {
   dateComparable: Record<string, string>
 }
 
-export function FiltersDialog({ open, setOpen, type, setParams, className }: FiltersDialogProps) {
+export function FiltersDialog({ open, setOpen, type, setFilters, className }: FiltersDialogProps) {
 
-  const [filters, setFilters] = useState<FilterState>({
+  const [filtersTemp, setFiltersTemp] = useState<FilterState>({
     text: {},
     number: {},
     numberComparable: {},
@@ -613,13 +833,13 @@ export function FiltersDialog({ open, setOpen, type, setParams, className }: Fil
 
   const handleFilterChange = {
     text: (field: string, value: string) => 
-      setFilters(prev => ({ ...prev, text: { ...prev.text, [field]: value || "" } })),
+      setFiltersTemp(prev => ({ ...prev, text: { ...prev.text, [field]: value || "" } })),
     
     number: (field: string, value: string) => 
-      setFilters(prev => ({ ...prev, number: { ...prev.number, [field]: value || "" } })),
+      setFiltersTemp(prev => ({ ...prev, number: { ...prev.number, [field]: value || "" } })),
     
     numberComparable: (field: string, value: { operator: string, number: string }) => 
-      setFilters(prev => ({ 
+      setFiltersTemp(prev => ({ 
         ...prev, 
         numberComparable: { 
           ...prev.numberComparable, 
@@ -628,13 +848,13 @@ export function FiltersDialog({ open, setOpen, type, setParams, className }: Fil
       })),
     
     select: (field: string, value: string) => 
-      setFilters(prev => ({ ...prev, select: { ...prev.select, [field]: value || "any" } })),
+      setFiltersTemp(prev => ({ ...prev, select: { ...prev.select, [field]: value || "any" } })),
     
     date: (field: string, value: string) => 
-      setFilters(prev => ({ ...prev, date: { ...prev.date, [field]: value || "" } })),
+      setFiltersTemp(prev => ({ ...prev, date: { ...prev.date, [field]: value || "" } })),
     
     dateComparable: (field: string, value: { operator: string, date: string }) => 
-      setFilters(prev => ({ 
+      setFiltersTemp(prev => ({ 
         ...prev, 
         dateComparable: { 
           ...prev.dateComparable, 
@@ -646,22 +866,22 @@ export function FiltersDialog({ open, setOpen, type, setParams, className }: Fil
   const handleApplyFilters = () => {
     const trimmedFilters = {
       text: Object.fromEntries(
-        Object.entries(filters.text).map(([key, value]) => [key, value.trim()])
+        Object.entries(filtersTemp.text).map(([key, value]) => [key, value.trim()])
       ),
       number: Object.fromEntries(
-        Object.entries(filters.number).map(([key, value]) => [key, value.trim()])
+        Object.entries(filtersTemp.number).map(([key, value]) => [key, value.trim()])
       ),
       numberComparable: Object.fromEntries(
-        Object.entries(filters.numberComparable).map(([key, value]) => [key, value.trim()])
+        Object.entries(filtersTemp.numberComparable).map(([key, value]) => [key, value.trim()])
       ),
       select: Object.fromEntries(
-        Object.entries(filters.select).map(([key, value]) => [key, value.trim()])
+        Object.entries(filtersTemp.select).map(([key, value]) => [key, value.trim()])
       ),
       date: Object.fromEntries(
-        Object.entries(filters.date).map(([key, value]) => [key, value.trim()])
+        Object.entries(filtersTemp.date).map(([key, value]) => [key, value.trim()])
       ),
       dateComparable: Object.fromEntries(
-        Object.entries(filters.dateComparable).map(([key, value]) => [key, value.trim()])
+        Object.entries(filtersTemp.dateComparable).map(([key, value]) => [key, value.trim()])
       )
     }
 
@@ -676,43 +896,33 @@ export function FiltersDialog({ open, setOpen, type, setParams, className }: Fil
     // Validate and filter number inputs
     const validNumberFilters = Object.entries(trimmedFilters.number)
       .filter(([key, value]) => {
-        if (value === "") return false
         const field = searchFilters[type]?.number?.find(f => f.value === key)
-        return field?.integer 
-          ? /^\d+$/.test(value)
-          : /^\d*\.?\d+$/.test(value)
+        if (!field) return false
+        return isValidNumber(value, field.comparable, field.integer)
       })
 
     // Validate and filter comparable number inputs
     const validNumberFiltersComparable = Object.entries(trimmedFilters.numberComparable)
       .filter(([key, value]) => {
-        const parts = value.split(" ")
-        if (parts.length !== 2) return false
-        const [operator, number] = parts
-        if (!OPERATORS.includes(operator) || number === "") return false
-        
         const field = searchFilters[type]?.number?.find(f => f.value === key)
-        return field?.integer 
-          ? /^\d+$/.test(number)
-          : /^\d*\.?\d+$/.test(number)
+        if (!field) return false
+        return isValidNumber(value, field.comparable, field.integer)
       })
 
     // Validate and filter select inputs
     const validSelectFilters = Object.entries(trimmedFilters.select)
-      .filter(([key, value]) => {
+      .filter(([_, value]) => {
         return value !== "any"
       })
 
     // Validate and filter date inputs
     const validDateFilters = Object.entries(trimmedFilters.date)
       .filter(([key, value]) => {
-        if (value === "") return false
         const field = searchFilters[type]?.date?.find(f => f.value === key)
         const availableFormats = field?.avaliableFormats
         if (!availableFormats) return false
-
         return availableFormats.some(format => 
-          DATE_FORMAT_REGEX[format.toLowerCase()].test(value)
+          isValidDate(value, format)
         )
       })
       .map(([key, value]) => {
@@ -723,22 +933,21 @@ export function FiltersDialog({ open, setOpen, type, setParams, className }: Fil
     // Validate and filter comparable date inputs
     const validDateFiltersComparable = Object.entries(trimmedFilters.dateComparable)
       .filter(([key, value]) => {
-        const parts = value.split(" ")
-        if (parts.length !== 2) return false
-        const [operator, date] = parts
-        if (!OPERATORS.includes(operator) || date === "") return false
-
         const field = searchFilters[type]?.date?.find(f => f.value === key)
         const availableFormats = field?.avaliableFormats
         if (!availableFormats) return false
-
         return availableFormats.some(format => 
-          DATE_FORMAT_REGEX[format.toLowerCase()].test(date)
+          isValidDate(value, format, true)
         )
       })
+      .map(([key, value]) => {
+        const field = searchFilters[type]?.date?.find(f => f.value === key)
+        return field?.formatter ? [key, field.formatter(value)] : [key, value]
+      })
+
 
     // Combine all valid filters
-    const filteredParams: Record<string, string> = Object.fromEntries([
+    const filteredFilters: Record<string, string> = Object.fromEntries([
       ...validTextFilters,
       ...validNumberFilters,
       ...validNumberFiltersComparable,
@@ -747,7 +956,7 @@ export function FiltersDialog({ open, setOpen, type, setParams, className }: Fil
       ...validDateFiltersComparable
     ])
 
-    setParams(filteredParams)
+    setFilters(filteredFilters)
     setOpen(false)
   }
 
@@ -782,7 +991,7 @@ export function FiltersDialog({ open, setOpen, type, setParams, className }: Fil
           .map(f => [f.value, "= "])
       )
     }
-    setFilters(initialFilters)
+    setFiltersTemp(initialFilters)
   }
 
   useEffect(() => {
@@ -796,11 +1005,11 @@ export function FiltersDialog({ open, setOpen, type, setParams, className }: Fil
         <TextFilter 
           key={filter.value} 
           filter={filter}
-          value={filters.text[filter.value] || ""} 
+          value={filtersTemp.text[filter.value] || ""} 
           onChange={handleFilterChange.text} 
         />
       ))
-    ), [type, filters.text]),
+    ), [type, filtersTemp.text]),
 
     number: useMemo(() => (
       searchFilters[type]?.number?.map((filter) => (
@@ -809,8 +1018,8 @@ export function FiltersDialog({ open, setOpen, type, setParams, className }: Fil
             key={filter.value} 
             filter={filter}
             value={{
-              operator: filters.numberComparable[filter.value]?.split(" ")[0] || "=",
-              number: filters.numberComparable[filter.value]?.split(" ")[1] || ""
+              operator: filtersTemp.numberComparable[filter.value]?.split(" ")[0] || "=",
+              number: filtersTemp.numberComparable[filter.value]?.split(" ")[1] || ""
             }}
             onChange={handleFilterChange.numberComparable} 
           />
@@ -818,34 +1027,34 @@ export function FiltersDialog({ open, setOpen, type, setParams, className }: Fil
           <NumberFilter 
             key={filter.value} 
             filter={filter}
-            value={filters.number[filter.value] || ""} 
+            value={filtersTemp.number[filter.value] || ""} 
             onChange={handleFilterChange.number} 
           />
         )
       ))
-    ), [type, filters.number, filters.numberComparable]),
+    ), [type, filtersTemp.number, filtersTemp.numberComparable]),
 
     select: useMemo(() => (
       searchFilters[type]?.select?.map((filter) => (
         <SelectFilter 
           key={filter.value} 
           filter={filter}
-          value={filters.select[filter.value] || filter.default || "any"} 
+          value={filtersTemp.select[filter.value] || filter.default || "any"} 
           onChange={handleFilterChange.select} 
         />
       ))
-    ), [type, filters.select]),
+    ), [type, filtersTemp.select]),
 
     date: useMemo(() => (
       searchFilters[type]?.date?.filter(f => !f.comparable).map((filter) => (
         <DateFilter 
           key={filter.value} 
           filter={filter}
-          value={filters.date[filter.value] || ""} 
+          value={filtersTemp.date[filter.value] || ""} 
           onChange={handleFilterChange.date} 
         />
       ))
-    ), [type, filters.date]),
+    ), [type, filtersTemp.date]),
 
     dateComparable: useMemo(() => (
       searchFilters[type]?.date?.filter(f => f.comparable).map((filter) => (
@@ -853,13 +1062,13 @@ export function FiltersDialog({ open, setOpen, type, setParams, className }: Fil
           key={filter.value} 
           filter={filter}
           value={{
-            operator: filters.dateComparable[filter.value]?.split(" ")[0] || "=",
-            date: filters.dateComparable[filter.value]?.split(" ")[1] || ""
+            operator: filtersTemp.dateComparable[filter.value]?.split(" ")[0] || "=",
+            date: filtersTemp.dateComparable[filter.value]?.split(" ")[1] || ""
           }}
           onChange={handleFilterChange.dateComparable} 
         />
       ))
-    ), [type, filters.dateComparable])
+    ), [type, filtersTemp.dateComparable])
   }
 
   return (
@@ -886,10 +1095,12 @@ export function FiltersDialog({ open, setOpen, type, setParams, className }: Fil
             </div>
           </ScrollArea>
           <div className="flex flex-row gap-2">
-            <Button type="button" onClick={handleClearFilters} className="flex-1 bg-[#1A3A5A] hover:bg-[#254B75] text-white font-bold transition-all duration-300">
+            <Button type="button" onClick={handleClearFilters} 
+              className="flex-1 bg-[#1A3A5A] hover:bg-[#254B75] text-white font-bold transition-all duration-300">
               Clear All Filters
             </Button>
-            <Button type="submit" className="flex-1 bg-[#1A3A5A] hover:bg-[#254B75] text-white font-bold transition-all duration-300">
+            <Button type="submit" 
+              className="flex-1 bg-[#1A3A5A] hover:bg-[#254B75] text-white font-bold transition-all duration-300">
               Apply Filters
             </Button>
           </div>

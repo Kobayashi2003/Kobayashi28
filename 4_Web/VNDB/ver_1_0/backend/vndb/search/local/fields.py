@@ -23,6 +23,41 @@ class LocalFields:
     def get_fields(model_name: str) -> list:
         return getattr(LocalFields, model_name.upper(), [])
 
+SORTABLE_FIELDS = {
+    'vn': [
+        'id', 'title', 'released', 'length_minutes', 
+        'length_votes', 'average', 'rating', 'votecount', 
+    ],
+    'release': [
+        'id', 'title', 'released', 'minage',
+    ],
+    'character': [
+        'id', 'name', 'original', 'height', 
+        'weight', 'bust', 'waist', 'hips', 
+        'age', 'birthday',
+    ],
+    'producer': [
+        'id', 'name', 'original',
+    ],
+    'staff': [
+        'id', 'name', 'original',
+    ],
+    'tag': [
+        'id', 'name', 'vn_count',
+    ],
+    'trait': [
+        'id', 'name', 'group_id', 'group_name',
+        'char_count',
+    ]
+}
+
+def validate_sort(search_type: str, sort: str) -> str:
+    if search_type not in SORTABLE_FIELDS:
+        raise ValueError(f"Invalid search_type: {search_type}")
+    if sort not in SORTABLE_FIELDS[search_type]:
+        raise ValueError(f"Invalid sort: {sort} for search_type: {search_type}")
+    return sort
+
 def get_local_fields(search_type: str, response_size: str = 'small') -> List[str]:
     """
     Get the appropriate fields for a local database search based on the search type and response size.

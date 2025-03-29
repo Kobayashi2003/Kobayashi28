@@ -50,6 +50,9 @@ export function MarkDialog({ open, setOpen, className }: MarkDialogProps) {
           setError(null)
           setNotFound(false)
           const fetchedCategories = await api.category.get(type)
+          if (fetchedCategories.length === 0) {
+            setNotFound(true)
+          }
           const fetchedToggledCategoryIds = await api.mark.getCategoriesByMark(type, id)
           // sort categories by updated_at and move toggled categories to the top
           const sortedCategories = fetchedCategories.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
@@ -61,9 +64,6 @@ export function MarkDialog({ open, setOpen, className }: MarkDialogProps) {
           setError(error as string)
         } finally {
           setLoading(false)
-          if (categories.length === 0) {
-            setNotFound(true)
-          }
         }
       }
     }
@@ -143,31 +143,40 @@ export function MarkDialog({ open, setOpen, className }: MarkDialogProps) {
         <DialogHeader>
           <DialogTitle className="text-xl text-white">Mark Resource</DialogTitle>
         </DialogHeader>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-1">
-          {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-          {error && <p className="text-red-500">{error}</p>}
-          {notFound && <p className="text-yellow-500">No categories found</p>}
-          {(error || notFound) && <button onClick={fetchCategories}><RefreshCw className="w-4 h-4" /></button>}
-          {!loading && !error && !notFound && categories.map((category, index) => (
-            <div key={`mark-dialog-category-${index}`} className={cn(
-              "flex flex-row justify-between items-center",
-              "border-b sm:border-r border-white/10",
-            )}>
-              <CheckBox 
-                id={category.id.toString()}
-                label={category.category_name}
-                checked={toggledCategoryIds.includes(category.id)}
-                onChange={() => handleToggleCategory(category.id)}
-                disabled={loading}
-                className="truncate h-full w-full"
-              />
-              <DeleteButton
-                handleDelete={() => handleDeleteCategory(category.id)}
-                disabled={loading}
-              />
-            </div>
-          ))}
-        </div>
+        {loading || error || notFound && (
+          <div className="flex flex-col justify-center items-center gap-4">
+            {loading && <Loader2 className="w-10 h-10 animate-spin" />}
+            {error && <p className="text-red-500/80 font-bold">{error}</p>}
+            {notFound && <p className="text-yellow-500/80 font-bold">No categories found</p>}
+            {(error || notFound) && (
+              <button onClick={fetchCategories}>
+                <RefreshCw className="w-10 h-10 hover:animate-spin" />
+              </button>)}
+          </div>
+        )}
+        {!loading && !error && !notFound && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-1">
+            {categories.map((category, index) => (
+              <div key={`mark-dialog-category-${index}`} className={cn(
+                "flex flex-row justify-between items-center",
+                "border-b sm:border-r border-white/10",
+              )}>
+                <CheckBox
+                  id={category.id.toString()}
+                  label={category.category_name}
+                  checked={toggledCategoryIds.includes(category.id)}
+                  onChange={() => handleToggleCategory(category.id)}
+                  disabled={loading}
+                  className="truncate h-full w-full"
+                />
+                <DeleteButton
+                  handleDelete={() => handleDeleteCategory(category.id)}
+                  disabled={loading}
+                />
+              </div>
+            ))}
+          </div>
+        )}
         <CategoryCreator
           newCategoryName={newCategoryName}
           setNewCategoryName={setNewCategoryName}

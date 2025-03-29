@@ -268,6 +268,23 @@ FIELDS_STAFF: List[str] = VNDBFields.Staff.ALL
 FIELDS_TRAIT: List[str] = VNDBFields.Trait.ALL
 FIELDS_RELEASE: List[str] = VNDBFields.Release.ALL
 
+SORTABLE_FIELDS = {
+    'vn': ['id', 'title', 'released', 'rating', 'votecount', 'searchrank'],
+    'release': ['id', 'title', 'released', 'searchrank'],
+    'character': ['id', 'name', 'searchrank'],
+    'producer': ['id', 'name', 'searchrank'],
+    'staff': ['id', 'name', 'searchrank'],
+    'tag': ['id', 'name', 'vn_count', 'searchrank'],
+    'trait': ['id', 'name', 'char_count', 'searchrank']
+}
+
+
+def validate_sort(search_type: str, sort: str) -> str:
+    if search_type not in SORTABLE_FIELDS:
+        raise ValueError(f"Invalid search_type: {search_type}")
+    if sort not in SORTABLE_FIELDS[search_type]:
+        raise ValueError(f"Invalid sort: {sort} for search_type: {search_type}")
+    return sort
 
 def get_remote_fields(search_type: str, response_size: str = 'small') -> List[str]:
 

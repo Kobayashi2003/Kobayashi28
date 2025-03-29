@@ -6,7 +6,7 @@ import { useUserContext } from "@/context/UserContext"
 
 import { cn } from "@/lib/utils"
 import { NavBar } from "@/components/common/NavBar"
-import { useHideOnScroll } from "@/hooks/useHideOnScroll"
+import { useOnScroll } from "@/hooks/useOnScroll"
 
 export default function UserLayout({ children }: { children: React.ReactNode }) {
 
@@ -34,9 +34,10 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
     }
   ]
 
-  const { hidden } = useHideOnScroll({
+  const { trigger } = useOnScroll({
     scrollThreshold: 30,
-    throttleTime: 100
+    throttleTime: 150,
+    debounceTime: 200
   })
 
   const navBarRef = useRef<HTMLDivElement>(null)
@@ -69,7 +70,7 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
         className={cn(
           "fixed left-0 h-full",
           "transition-opacity duration-500",
-          hidden ? "opacity-0 z-[-1]" : "opacity-100 z-50"
+          trigger ? "opacity-0 z-[-1]" : "opacity-100 z-50"
         )}
       >
         <NavBar
@@ -81,9 +82,9 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
       <div
         className={cn(
           // "transform-width duration-300",
-          !hidden && "mr-4"
+          !trigger && "mr-4"
         )}
-        style={{ height: "100%", width: `${!hidden ? navBarWidth : 0}px` }}
+        style={{ height: "100%", width: `${!trigger ? navBarWidth : 0}px` }}
       />
       {children}
     </div>

@@ -4,7 +4,7 @@ from sqlalchemy import asc, desc
 
 from vndb.database.models import MODEL_MAP
 
-from .fields import get_local_fields
+from .fields import get_local_fields, validate_sort
 from .filters import get_local_filters
 
 def search(resource_type: str, params: Dict[str, Any], 
@@ -28,6 +28,7 @@ def search(resource_type: str, params: Dict[str, Any],
     more = (page * limit) < total
 
     order_func = desc if reverse else asc
+    sort = validate_sort(resource_type, sort)
     query = query.order_by(order_func(getattr(model, sort)))
 
     page = max(1, page or 1)
@@ -77,6 +78,7 @@ def search_resources_by_vnid(vnid: str, related_resource_type: str, response_siz
     query = query.filter(model.id.in_(related_resource_ids))
 
     order_func = desc if reverse else asc
+    sort = validate_sort(related_resource_type, sort)
     query = query.order_by(order_func(getattr(model, sort)))
 
     page = max(1, page)
@@ -120,6 +122,7 @@ def search_resources_by_charid(charid: str, related_resource_type: str, response
     query = query.filter(model.id.in_(related_resource_ids))
 
     order_func = desc if reverse else asc
+    sort = validate_sort(related_resource_type, sort)
     query = query.order_by(order_func(getattr(model, sort)))
 
     page = max(1, page)
@@ -163,6 +166,7 @@ def search_resources_by_release_id(release_id: str, related_resource_type: str, 
     query = query.filter(model.id.in_(related_resource_ids))
 
     order_func = desc if reverse else asc
+    sort = validate_sort(related_resource_type, sort)
     query = query.order_by(order_func(getattr(model, sort)))
 
     page = max(1, page)

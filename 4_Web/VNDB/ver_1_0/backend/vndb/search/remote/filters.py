@@ -186,20 +186,22 @@ def parse_logical_expression(expression: str, field: str) -> Dict[str, Any]:
     return result
 
 def parse_int(value: str | None, comparable: bool = False) -> str | None:
-    pattern = r'^(>=|<=|>|<|=)?(\d+)$' if comparable else r'^(\d+)$'
+    value = value.replace(" ", "")
+    pattern = r'^(>=|<=|>|<|=|!=)?(\d+)$' if comparable else r'^(\d+)$'
     match = re.match(pattern, value)
     if match:
         return value
     return None 
 
 def parse_birthday(value: str) -> List[int]:
+    value = value.replace(" ", "")
     pattern = r'^(\d{1,2})-(\d{1,2})$'
     match = re.match(pattern, value)
     if match:
         month, day = map(int, match.groups())
         if 1 <= month <= 12 and 1 <= day <= 31:
             return [month, day]
-    raise ValueError(f"Invalid birthday format: {value}. Use 'MM-DD' format (e.g., '12-25').")
+    return None
 
 def get_vn_additional_filters(params: Dict[str, Any]) -> Dict[str, Any]:
     filters = []
@@ -281,16 +283,14 @@ def get_vn_filters(params: Dict[str, Any]) -> Dict[str, Any]:
     multi_value_fields = ['lang', 'platform', 'released', 'tag', 'dtag', 'olang']
     for field in multi_value_fields:
         if value := params.get(field):
-            parsed = parse_logical_expression(value, field)
-            if parsed:
+            if parsed := parse_logical_expression(value, field):
                 filters.append(parsed)
     
     # Handle nested fields
     nested_fields = ['character', 'staff', 'developer', 'release']
     for field in nested_fields:
         if value := params.get(field):
-            parsed = parse_logical_expression(value, 'search')
-            if parsed:
+            if parsed := parse_logical_expression(value, 'search'):
                 filters.append({field: parsed})
     
     # Handle uncomparable numeric fields
@@ -343,8 +343,7 @@ def get_release_filters(params: Dict[str, Any]) -> Dict[str, Any]:
     multi_value_fields = ['lang', 'platform', 'medium']
     for field in multi_value_fields:
         if value := params.get(field):
-            parsed = parse_logical_expression(value, field)
-            if parsed:
+            if parsed := parse_logical_expression(value, field):
                 filters.append(parsed)
 
     # Handle date field
@@ -390,8 +389,7 @@ def get_release_filters(params: Dict[str, Any]) -> Dict[str, Any]:
     nested_fields = ['vn', 'producer']
     for field in nested_fields:
         if value := params.get(field):
-            parsed = parse_logical_expression(value, 'search')
-            if parsed:
+            if parsed := parse_logical_expression(value, 'search'):
                 filters.append({field: parsed}) 
 
     # Handle extlink field
@@ -421,21 +419,20 @@ def get_character_filters(params: Dict[str, Any]) -> Dict[str, Any]:
         filters.append({"search": search})
 
     if birthday := params.get('birthday'):
-        filters.append({"birthday": parse_birthday(birthday)})
+        if parsed := parse_birthday(birthday):
+            filters.append({"birthday": parsed})
     
     multi_value_fields = ['role', 'trait', 'dtrait']
     for field in multi_value_fields:
         if value := params.get(field):
-            parsed = parse_logical_expression(value, field)
-            if parsed:
+            if parsed := parse_logical_expression(value, field):
                 filters.append(parsed)
     
     # Handle nested fields
     nested_fields = ['seiyuu', 'vn']
     for field in nested_fields:
         if value := params.get(field):
-            parsed = parse_logical_expression(value, 'search')
-            if parsed:
+            if parsed := parse_logical_expression(value, 'search'):
                 filters.append({field: parsed})
     
     single_value_fields = ['blood_type', 'sex', 'sex_spoil', 'gender', 'gender_spoil', 'cup']
@@ -474,8 +471,7 @@ def get_producer_filters(params: Dict[str, Any]) -> Dict[str, Any]:
     multi_value_fields = ['lang', 'type']
     for field in multi_value_fields:
         if value := params.get(field):
-            parsed = parse_logical_expression(value, field)
-            if parsed:
+            if parsed := parse_logical_expression(value, field):
                 filters.append(parsed)
     
     filters.extend(get_producer_additional_filters(params))
@@ -503,8 +499,7 @@ def get_staff_filters(params: Dict[str, Any]) -> Dict[str, Any]:
     multi_value_fields = ['lang', 'role']
     for field in multi_value_fields:
         if value := params.get(field):
-            parsed = parse_logical_expression(value, field)
-            if parsed:
+            if parsed := parse_logical_expression(value, field):
                 filters.append(parsed)
     
     if gender := params.get('gender'):
@@ -539,8 +534,7 @@ def get_tag_filters(params: Dict[str, Any]) -> Dict[str, Any]:
         filters.append({"search": search})
     
     if category := params.get('category'):
-        parsed = parse_logical_expression(category, 'category')
-        if parsed:
+        if parsed := parse_logical_expression(category, 'category'):
             filters.append(parsed)
     
     filters.extend(get_tag_additional_filters(params))

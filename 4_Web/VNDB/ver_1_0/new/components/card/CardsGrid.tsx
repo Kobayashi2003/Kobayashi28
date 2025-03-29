@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils"
 import { ImageCard } from "./ImageCard"
 import { TextCard } from "./TextCard"
 
-import { FULL_FORM } from "@/lib/fullForm"
+import { ENUMS } from "@/lib/enums"
 
 import { 
   VN_Small, Release_Small, Character_Small, Producer_Small, Staff_Small, Tag_Small, Trait_Small
@@ -256,7 +256,7 @@ export function TagsCardsGrid({ tags }: TagCardsGridProps) {
   const items: GridItem[] = tags.map(tag => ({
     id: tag.id,
     title: tag.name,
-    msgs: [FULL_FORM.TAG_CATEGORY[tag.category as keyof typeof FULL_FORM.TAG_CATEGORY]],
+    msgs: [ENUMS.CATEGORY[tag.category as keyof typeof ENUMS.CATEGORY]],
     link: `/t/${tag.id.slice(1)}`
   }))
   return <BaseCardsGrid items={items} />

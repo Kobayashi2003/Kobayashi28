@@ -131,7 +131,7 @@ def process_multi_value_expression(expression: str, value_processor: Callable[[s
     return parse_sub_expression(expression)
 
 def create_comparison_filter(field: Any, value: str, value_parser: Callable[[str], Any]) -> BinaryExpression:
-    pattern = r'^(>=|<=|>|<|=)?(.+)$'
+    pattern = r'^(>=|<=|>|<|=|!=)?(.+)$'
     match = re.match(pattern, value.strip())
     if not match:
         raise ValueError(f"Invalid comparison format: {value}")
@@ -144,7 +144,8 @@ def create_comparison_filter(field: Any, value: str, value_parser: Callable[[str
         '<=': lambda f, v: f <= v,
         '>': lambda f, v: f > v,
         '<': lambda f, v: f < v,
-        '=': lambda f, v: f == v
+        '=': lambda f, v: f == v,
+        '!=': lambda f, v: f != v
     }
     
     parsed_value = value_parser(actual_value)
@@ -223,7 +224,7 @@ def create_released_comparison_filter(value: str, model) -> BinaryExpression:
     :param model: The SQLAlchemy model (VN or Release) to use for the filter
     :return: An SQLAlchemy filter expression
     """
-    pattern = r'^(>=|<=|>|<|=)?(.+)$'
+    pattern = r'^(>=|<=|>|<|=|!=)?(.+)$'
     match = re.match(pattern, value.strip())
     if not match:
         raise ValueError(f"Invalid release date comparison format: {value}. Use format like '>=2022-01-01'.")
@@ -238,7 +239,8 @@ def create_released_comparison_filter(value: str, model) -> BinaryExpression:
         '<=': lambda field, date: and_(field != 'TBA', field.isnot(None), field <= date),
         '>': lambda field, date: and_(field != 'TBA', field.isnot(None), field > date),
         '<': lambda field, date: and_(field != 'TBA', field.isnot(None), field < date),
-        '=': lambda field, date: and_(field != 'TBA', field.isnot(None), field == date)
+        '=': lambda field, date: and_(field != 'TBA', field.isnot(None), field == date),
+        '!=': lambda field, date: and_(field != 'TBA', field.isnot(None), field != date)
     }
     
     return operators[operator](model.released, normalized_date)
@@ -250,7 +252,7 @@ def create_resolution_comparison_filter(value: str) -> BinaryExpression:
     :param value: The resolution value to compare against in the format "OPERATORWIDTHxHEIGHT"
     :return: An SQLAlchemy filter expression
     """
-    pattern = r'^(>=|<=|>|<|=)?(.+)$'
+    pattern = r'^(>=|<=|>|<|=|!=)?(.+)$'
     match = re.match(pattern, value.strip())
     if not match:
         raise ValueError(f"Invalid resolution comparison format: {value}. Use format like '>=640x480'.")
@@ -281,7 +283,8 @@ def create_resolution_comparison_filter(value: str) -> BinaryExpression:
             extracted_width < w,
             and_(extracted_width == w, extracted_height < h)
         ),
-        '=': lambda w, h: and_(extracted_width == w, extracted_height == h)
+        '=': lambda w, h: and_(extracted_width == w, extracted_height == h),
+        '!=': lambda w, h: or_(extracted_width != w, extracted_height != h)
     }
 
     return and_(
@@ -297,7 +300,7 @@ def create_resolution_aspect_comparison_filter(value: str) -> BinaryExpression:
     :param value: The resolution value to compare against in the format "OPERATORWIDTHxHEIGHT"
     :return: An SQLAlchemy filter expression
     """
-    pattern = r'^(>=|<=|>|<|=)?(.+)$'
+    pattern = r'^(>=|<=|>|<|=|!=)?(.+)$'
     match = re.match(pattern, value.strip())
     if not match:
         raise ValueError(f"Invalid resolution comparison format: {value}. Use format like '>=640x480'.")
@@ -350,7 +353,8 @@ def create_resolution_aspect_comparison_filter(value: str) -> BinaryExpression:
             ),
             aspect_ratio_match
         ),
-        '=': lambda w, h: and_(extracted_width == w, extracted_height == h, aspect_ratio_match)
+        '=': lambda w, h: and_(extracted_width == w, extracted_height == h, aspect_ratio_match),
+        '!=': lambda w, h: or_(extracted_width != w, extracted_height != h, ~aspect_ratio_match)
     }
     
     return and_(
@@ -367,7 +371,7 @@ def create_birthday_comparison_filter(value: str) -> BinaryExpression:
     :return: An SQLAlchemy filter expression
     """
 
-    pattern = r'^(>=|<=|>|<|=)?(.+)$'
+    pattern = r'^(>=|<=|>|<|=|!=)?(.+)$'
     match = re.match(pattern, value.strip())
     if not match:
         raise ValueError(f"Invalid birthday comparison format: {value}. Use format like '>=12-25'.")
@@ -398,7 +402,8 @@ def create_birthday_comparison_filter(value: str) -> BinaryExpression:
             extracted_month < m,
             and_(extracted_month == m, extracted_day < d)
         ),
-        '=': lambda m, d: and_(extracted_month == m, extracted_day == d)
+        '=': lambda m, d: and_(extracted_month == m, extracted_day == d),
+        '!=': lambda m, d: or_(extracted_month != m, extracted_day != d)
     }
     
     return and_(
@@ -414,7 +419,7 @@ def create_cup_comparison_filter(value: str) -> BinaryExpression:
     :param model: The SQLAlchemy model (Character) to use for the filter
     :return: An SQLAlchemy filter expression
     """
-    pattern = r'^(>=|<=|>|<|=)?(.+)$'
+    pattern = r'^(>=|<=|>|<|=|!=)?(.+)$'
     match = re.match(pattern, value.strip())
     if not match:
         raise ValueError(f"Invalid cup size comparison format: {value}. Use format like '>=B'.")
@@ -429,8 +434,9 @@ def create_cup_comparison_filter(value: str) -> BinaryExpression:
             '>=': lambda field, size: field.isnot(None),
             '<=': lambda field, size: field == 'AAA',
             '>': lambda field, size: and_(field.isnot(None), field != 'AAA'),
-            '<': lambda field, size: false(),  # No cup size smaller than AAA
-            '=': lambda field, size: field == 'AAA'
+            '<': lambda field, size: False,  # No cup size smaller than AAA
+            '=': lambda field, size: field == 'AAA',
+            '!=': lambda field, size: field != 'AAA'
         }
     elif cup_size == 'AA':
         operators = {
@@ -438,7 +444,8 @@ def create_cup_comparison_filter(value: str) -> BinaryExpression:
             '<=': lambda field, size: or_(field == 'AAA', field == 'AA'),
             '>': lambda field, size: and_(field.isnot(None), field != 'AAA', field != 'AA'),
             '<': lambda field, size: field == 'AAA',
-            '=': lambda field, size: field == 'AA'
+            '=': lambda field, size: field == 'AA',
+            '!=': lambda field, size: field != 'AA'
         }
     elif cup_size == 'A':
         operators = {
@@ -446,16 +453,18 @@ def create_cup_comparison_filter(value: str) -> BinaryExpression:
             '<=': lambda field, size: or_(field == 'AAA', field == 'AA', field == 'A'),
             '>': lambda field, size: and_(field.isnot(None), field != 'AAA', field != 'AA', field != 'A'),
             '<': lambda field, size: or_(field == 'AAA', field == 'AA'),
-            '=': lambda field, size: field == 'A'
+            '=': lambda field, size: field == 'A',
+            '!=': lambda field, size: field != 'A'
         }
     else:
         operators = {
-                '>=': lambda field, size: and_(field.isnot(None), field >= size),
-                '<=': lambda field, size: and_(field.isnot(None), field <= size),
-                '>': lambda field, size: and_(field.isnot(None), field > size),
-                '<': lambda field, size: and_(field.isnot(None), field < size),
-                '=': lambda field, size: field == size
-            }
+            '>=': lambda field, size: and_(field.isnot(None), field >= size),
+            '<=': lambda field, size: and_(field.isnot(None), field <= size),
+            '>': lambda field, size: and_(field.isnot(None), field > size),
+            '<': lambda field, size: and_(field.isnot(None), field < size),
+            '=': lambda field, size: field == size,
+            '!=': lambda field, size: field != size
+        }
     
     return operators[operator](Character.cup, cup_size)
 

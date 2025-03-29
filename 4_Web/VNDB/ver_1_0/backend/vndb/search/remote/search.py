@@ -4,7 +4,7 @@ from typing import Dict, List, Any, Callable
 from enum import Enum
 
 from .filters import VNDBFilters, FilterType, get_remote_filters
-from .fields import get_remote_fields
+from .fields import get_remote_fields, validate_sort
 
 
 VNDB_API_URL = "https://api.vndb.org/kana"
@@ -259,6 +259,7 @@ def search(resource_type: str, params: Dict[str, Any], response_size: str = 'sma
 
     filters = get_remote_filters(resource_type, params)
     fields = get_remote_fields(resource_type, response_size)
+    sort = validate_sort(resource_type, sort)
 
     if not filters:
         filters = {"search":""}
@@ -416,7 +417,7 @@ def search_releases_by_resource_id(resource_type: str, resource_id: str, respons
     }.get(resource_type)
 
     release_fields = get_remote_fields("release", response_size)
-
+    sort = validate_sort(resource_type, sort)
     payload = {
         "filters": filters,
         "fields": ",".join(release_fields),
@@ -445,7 +446,7 @@ def search_characters_by_resource_id(resource_type: str, resource_id: str, respo
     }.get(resource_type)
 
     character_fields = get_remote_fields("character", response_size)
-
+    sort = validate_sort(resource_type, sort)
     payload = {
         "filters": filters,
         "fields": ",".join(character_fields),
@@ -477,6 +478,7 @@ def search_vns_by_resource_id(resource_type: str, resource_id: str, response_siz
     }.get(resource_type)
 
     vn_fields = get_remote_fields("vn", response_size)
+    sort = validate_sort(resource_type, sort)
 
     payload = {
         "filters": filters,

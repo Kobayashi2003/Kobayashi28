@@ -1,9 +1,9 @@
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { IconButton } from "./IconButton"
 import { LogOut } from "lucide-react"
 
 interface LogoutButtonProps {
-  handleLogout: () => void
+  handleLogout?: () => void
   disabled?: boolean
   className?: string
 }
@@ -11,30 +11,22 @@ interface LogoutButtonProps {
 export function LogoutButton({ handleLogout, disabled, className }: LogoutButtonProps) {
 
   const buttonBgColor = "bg-[#0F2942]/80 hover:bg-[#0F2942]"
-  const buttonFont = "font-bold"
-  const buttonTextSize = "text-base md:text-lg"
   const buttonTextColor = "text-white hover:text-red-500"
   const buttonBorderColor = "border-white/10 hover:border-red-400/60"
-  const buttonAnimation = "transition-all duration-300"
 
   return (
-    <Button
+    <IconButton
+      icon={<LogOut className="w-4 h-4" />}
       variant="outline"
-      size="icon"
+      tooltip="Logout"
       onClick={handleLogout}
       disabled={disabled}
       className={cn(
-        "select-none",
         buttonBgColor,
-        buttonFont,
-        buttonTextSize,
         buttonTextColor,
         buttonBorderColor,
-        buttonAnimation,
         className
       )}
-    >
-      <LogOut className="w-4 h-4" />
-    </Button>
+    />
   )
 }

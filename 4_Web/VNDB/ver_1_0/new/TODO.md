@@ -1,2 +1,5 @@
-- 完成GenImageCard与GenTextCard
-- 对于用户的搜索filters的输入，我需要让用户输入的内容为标准的输入，例如lang与olang，我要让用户知道自己能够输入什么
+- bar的防抖
+- HeaderNavi
+- NaviBar
+- MarkDialog
+- MarkButton

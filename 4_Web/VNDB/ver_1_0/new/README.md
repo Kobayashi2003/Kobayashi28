@@ -23,10 +23,12 @@
     - DeleteButton.tsx
     - DeleteModeButton.tsx
     - GhostButton.tsx
+    - IconButton.tsx
     - LetterButton.tsx
     - LoginButton.tsx
     - LogoutButton.tsx
     - MarkButton.tsx (TODO)
+    - OrderButton.tsx
     - PaginationButtons.tsx
     - RegisterButton.tsx
     - ReloadButton.tsx
@@ -39,9 +41,11 @@
   - category/
   - dialog/
     - ConfirmDialog.tsx
+    - FiltersDialog.tsx
     - LoginDialog.tsx
     - MarkDialog.tsx (TODO)
     - RegisterDialog.tsx
+    - SortByDialog.tsx
   - header/
     - Header.tsx
     - SearchHeader.tsx
@@ -70,7 +74,7 @@
 - lib/
   - api.ts
   - constants.ts
-  - fullForm.ts
+  - enums.ts
   - icons.ts
   - types.ts
   - utils.ts

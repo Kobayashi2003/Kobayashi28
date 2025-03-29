@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { RefreshCw } from "lucide-react"
 
 interface ReloadButtonProps {
-  handleReload: () => void
+  handleReload?: () => void
   disabled?: boolean
   className?: string
 }

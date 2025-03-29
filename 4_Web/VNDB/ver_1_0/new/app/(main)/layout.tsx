@@ -1,7 +1,7 @@
 "use client"
 
 import { useRef, useEffect, useState } from "react"
-import { useHideOnScroll } from "@/hooks/useHideOnScroll"
+import { useOnScroll } from "@/hooks/useOnScroll"
 import { HeaderBar } from "@/components/header/HeaderBar"
 import { UserProvider } from "@/context/UserContext"
 import { SearchProvider } from "@/context/SearchContext"
@@ -10,9 +10,10 @@ import { IMGSERVE_BASE_URL } from "@/lib/constants"
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const bgUrl = `url(${IMGSERVE_BASE_URL}/bg)`
 
-  const { hidden } = useHideOnScroll({
+  const { trigger } = useOnScroll({
     scrollThreshold: 30,
-    throttleTime: 100
+    throttleTime: 150,
+    debounceTime: 200
   })
 
   const headerRef = useRef<HTMLDivElement>(null)
@@ -49,7 +50,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
               `fixed top-0 left-0 right-0
               bg-[#0A1929]/80 backdrop-blur-sm 
               transition-opacity duration-300
-              ${hidden ? "opacity-0 z-[-1]" : "opacity-100 z-50"}`
+              ${trigger ? "opacity-0 z-[-1]" : "opacity-100 z-50"}`
             }
           >
             <HeaderBar />

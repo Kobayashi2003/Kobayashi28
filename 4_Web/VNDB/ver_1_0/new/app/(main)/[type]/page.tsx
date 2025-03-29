@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "motion/react"
 
 import { SexualLevelSelector } from "@/components/selector/SexualLevelSelector"
 import { ViolenceLevelSelector } from "@/components/selector/ViolenceLevelSelector"
-import { CardTypeButton } from "@/components/button/CardTypeButton"
+import { CardTypeSwitch } from "@/components/selector/CardTypeSwtich"
 import { PaginationButtons } from "@/components/button/PaginationButtons"
 
 import { Loading } from "@/components/status/Loading"
@@ -201,7 +201,7 @@ export default function SearchResults() {
       {(type === "v" || type === "c") && (
         <div className="flex flex-wrap overflow-x-auto items-center justify-between mb-4">
           {/* Card Type Selector */}
-          <CardTypeButton
+          <CardTypeSwitch
             cardType={cardType}
             setCardType={setCardType}
           />

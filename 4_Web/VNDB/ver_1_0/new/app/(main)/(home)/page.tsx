@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 import { SexualLevelSelector } from "@/components/selector/SexualLevelSelector"
 import { ViolenceLevelSelector } from "@/components/selector/ViolenceLevelSelector"
-import { CardTypeButton } from "@/components/button/CardTypeButton"
+import { CardTypeSwitch } from "@/components/selector/CardTypeSwtich"
 import { PaginationButtons } from "@/components/button/PaginationButtons"
 
 import { Loading } from "@/components/status/Loading"
@@ -194,7 +194,7 @@ export default function Home() {
       <div className="overflow-x-auto flex flex-col sm:flex-row items-end sm:items-center justify-center sm:justify-between mb-4 gap-4">
         <div className="flex flex-wrap justify-end sm:justify-start gap-2">
           {/* Card Type Selector */}
-          <CardTypeButton
+          <CardTypeSwitch
             cardType={cardType}
             setCardType={setCardType}
           />
