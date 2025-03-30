@@ -420,7 +420,7 @@ const searchFilters: Record<string, {
   select?: SelectField[]
   date?: DateField[]
 }> = {
-  vn: {
+  v: {
     text: [
       { value: "tag", label: "Tag" },
       { value: "release", label: "Release" },
@@ -524,7 +524,7 @@ const searchFilters: Record<string, {
       },
     ]
   },
-  release: {
+  r: {
     text: [
       { value: "engine", label: "Engine" },
       { value: "extlink", label: "External Link" },
@@ -628,7 +628,7 @@ const searchFilters: Record<string, {
       },
     ]
   },
-  character: {
+  c: {
     text: [
       { value: "seiyuu", label: "Seiyuu" },
       { value: "vn", label: "Visual Novel" },
@@ -719,7 +719,7 @@ const searchFilters: Record<string, {
       },
     ]
   },
-  producer: {
+  p: {
     text: [
       { value: "extlink", label: "External Link" },
     ],
@@ -744,7 +744,7 @@ const searchFilters: Record<string, {
       }
     ]
   },
-  staff: {
+  s: {
     text: [
       { value: "extlink", label: "External Link" },
     ],
@@ -785,7 +785,7 @@ const searchFilters: Record<string, {
       }
     ]
   },
-  tag: {
+  g: {
     select: [
       {
         value: "category", label: "Category", default: "any",
@@ -798,7 +798,7 @@ const searchFilters: Record<string, {
       }
     ]
   },
-  trait: {
+  i: {
   }
 }
 

@@ -25,7 +25,7 @@ export function useSearchContext() {
 
 export function SearchProvider({ children }: { children: React.ReactNode}) {
   const [searchFrom, setSearchFromTemp] = useState<string>("both")
-  const [searchType, setSearchTypeTemp] = useState<string>("vn")
+  const [searchType, setSearchTypeTemp] = useState<string>("v")
   const [sortBy, setSortByTemp] = useState<string>("id")
   const [sortOrder, setSortOrderTemp] = useState<string>("asc")
 
@@ -46,14 +46,16 @@ export function SearchProvider({ children }: { children: React.ReactNode}) {
 
   const setSortOrder = (order: string) => {
     setSortOrderTemp(order)
-    localStorage.setItem(`sortOrder-${searchType}-${searchFrom}`, order)
+    // localStorage.setItem(`sortOrder-${searchType}-${searchFrom}`, order)
+    localStorage.setItem(`sortOrder`, order)
   }
 
   useEffect(() => {
     const searchFrom = localStorage.getItem("searchFrom") || "both"
-    const searchType = localStorage.getItem("searchType") || "vn"
+    const searchType = localStorage.getItem("searchType") || "v"
     const sortBy = localStorage.getItem(`sortBy-${searchType}-${searchFrom}`) || "id"
-    const sortOrder = localStorage.getItem(`sortOrder-${searchType}-${searchFrom}`) || "asc"
+    // const sortOrder = localStorage.getItem(`sortOrder-${searchType}-${searchFrom}`) || "asc"
+    const sortOrder = localStorage.getItem(`sortOrder`) || "asc"
     setSearchFromTemp(searchFrom)
     setSearchTypeTemp(searchType)
     setSortByTemp(sortBy)
@@ -62,7 +64,8 @@ export function SearchProvider({ children }: { children: React.ReactNode}) {
   
   useEffect(() => {
     const sortBy = localStorage.getItem(`sortBy-${searchType}-${searchFrom}`) || "id"
-    const sortOrder = localStorage.getItem(`sortOrder-${searchType}-${searchFrom}`) || "asc"
+    // const sortOrder = localStorage.getItem(`sortOrder-${searchType}-${searchFrom}`) || "asc"
+    const sortOrder = localStorage.getItem(`sortOrder`) || "asc"
     setSortByTemp(sortBy)
     setSortOrderTemp(sortOrder)
   }, [searchFrom, searchType])

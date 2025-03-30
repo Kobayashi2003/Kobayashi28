@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
+import { useRouter, usePathname } from "next/navigation"
 import { useSearchContext } from "@/context/SearchContext"
 
 import { cn } from "@/lib/utils"
@@ -10,7 +10,7 @@ import { FromSwitch } from "@/components/selector/FromSwitch"
 import { TypeSelector1 } from "@/components/selector/TypeSelector1"
 import { OrderSwitch } from "@/components/selector/OrderSwitch"
 import { FilterButton } from "@/components/button/FilterButton"
-import { SettingsButton } from "@/components/button/SettingsButton"
+import { Settings2Button } from "@/components/button/Settings2Button"
 import { SubmitButton } from "@/components/button/SubmitButton"
 import { FiltersDialog } from "@/components/dialog/FiltersDialog"
 import { SortByDialog } from "@/components/dialog/SortByDialog"
@@ -20,24 +20,18 @@ interface SearchHeaderProps {
   className?: string
 }
 
-const TypeMap = {
-  "vn": "v",
-  "release": "r",
-  "character": "c",
-  "producer": "p",
-  "staff": "s",
-  "tag": "g",
-  "trait": "i",
-}
-
 export function SearchHeader({ className }: SearchHeaderProps) {
+
+  const pathname = usePathname()
+  const isSearching = (
+    pathname.match(/^\/[vrcpsgi](\?|$)/) !== null
+  )
 
   const { searchFrom, searchType, sortBy, sortOrder,
     setSearchFrom, setSearchType, setSortBy, setSortOrder } = useSearchContext()
 
   const router = useRouter()
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   const [searchQuery, setSearchQuery] = useState("")
   const [filtersParams, setFiltersParams] = useState<Record<string, string>>({})
@@ -53,9 +47,13 @@ export function SearchHeader({ className }: SearchHeaderProps) {
     if (searchQuery !== "") searchParams.set("search", searchQuery)
     if (sortBy !== "") searchParams.set("sort", sortBy)
     if (sortOrder !== "") searchParams.set("reverse", (sortOrder === "desc") ? "True" : "False")
-    router.push(`/${TypeMap[searchType as keyof typeof TypeMap]}?${searchParams.toString()}`)
+    router.push(`/${searchType}?${searchParams.toString()}`)
     setLoading(false)
   }
+
+  // useEffect(() => {
+  //   if (isSearching) handleSubmit()
+  // }, [sortBy, sortOrder])
 
   return (
     <div className={cn("flex flex-row justify-center items-center gap-2", className)}>
@@ -87,17 +85,13 @@ export function SearchHeader({ className }: SearchHeaderProps) {
       />
       <OrderSwitch
         order={sortOrder}
-        setOrder={(order) => {
-          setSortOrder(order)
-          handleSubmit()
-        }}
+        setOrder={setSortOrder}
         disabled={loading}
       />
-      <SettingsButton
+      <Settings2Button
         onClick={() => setSortByDialogOpen(true)}
         disabled={loading}
       />
-
       <FiltersDialog
         open={filtersDialogOpen}
         setOpen={setFiltersDialogOpen}
@@ -110,10 +104,7 @@ export function SearchHeader({ className }: SearchHeaderProps) {
         type={searchType}
         from={searchFrom}
         sortBy={sortBy}
-        setSortBy={(sortBy: string) => {
-          setSortBy(sortBy)
-          handleSubmit()
-        }}
+        setSortBy={setSortBy}
       />
     </div>
   )

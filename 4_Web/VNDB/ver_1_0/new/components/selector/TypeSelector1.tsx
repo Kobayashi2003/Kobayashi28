@@ -8,13 +8,13 @@ interface TypeSelector1Props {
 }
 
 const typeOptions = [
-  { value: "vn", label: "Visual Novels", letter: "V" },
-  { value: "release", label: "Releases", letter: "R" },
-  { value: "character", label: "Characters", letter: "C" },
-  { value: "producer", label: "Producers", letter: "P" },
-  { value: "staff", label: "Staff", letter: "S" },
-  { value: "tag", label: "Tags", letter: "G" },
-  { value: "trait", label: "Traits", letter: "I" },
+  { value: "v", label: "Visual Novels", letter: "V" },
+  { value: "r", label: "Releases", letter: "R" },
+  { value: "c", label: "Characters", letter: "C" },
+  { value: "p", label: "Producers", letter: "P" },
+  { value: "s", label: "Staff", letter: "S" },
+  { value: "g", label: "Tags", letter: "G" },
+  { value: "i", label: "Traits", letter: "I" },
 ]
 
 export function TypeSelector1({ selected, onSelect, disabled, className }: TypeSelector1Props) {

@@ -25,29 +25,29 @@ class LocalFields:
 
 SORTABLE_FIELDS = {
     'vn': [
-        'id', 'title', 'released', 'length_minutes', 
-        'length_votes', 'average', 'rating', 'votecount', 
+        'id', 'title', 'released', 'length_minutes', 'length_votes',
+        'average', 'rating', 'votecount', 'created_at', 'updated_at',
     ],
     'release': [
-        'id', 'title', 'released', 'minage',
+        'id', 'title', 'released', 'minage', 'created_at', 'updated_at',
     ],
     'character': [
-        'id', 'name', 'original', 'height', 
-        'weight', 'bust', 'waist', 'hips', 
-        'age', 'birthday',
+        'id', 'name', 'original', 'height', 'weight', 
+        'bust', 'waist', 'hips', 'age', 'birthday',
+        'created_at', 'updated_at',
     ],
     'producer': [
-        'id', 'name', 'original',
+        'id', 'name', 'original', 'created_at', 'updated_at',
     ],
     'staff': [
-        'id', 'name', 'original',
+        'id', 'name', 'original', 'created_at', 'updated_at',
     ],
     'tag': [
-        'id', 'name', 'vn_count',
+        'id', 'name', 'vn_count', 'created_at', 'updated_at',
     ],
     'trait': [
-        'id', 'name', 'group_id', 'group_name',
-        'char_count',
+        'id', 'name', 'group_id', 'group_name', 'char_count',
+        'created_at', 'updated_at',
     ]
 }
 

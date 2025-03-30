@@ -468,6 +468,19 @@ def create_cup_comparison_filter(value: str) -> BinaryExpression:
     
     return operators[operator](Character.cup, cup_size)
 
+def create_sex_match_filter(value: str, spoil: bool = False) -> BinaryExpression:
+    """
+    Create a filter for matching character sex values.
+    
+    :param value: The sex value to match
+    :param spoil: Whether match spoil_sex or normal_sex
+    :return: An SQLAlchemy filter expression
+    """
+    index = 1 if spoil else 0
+    return and_(
+        Character.sex.isnot(None),
+        func.array_position(Character.sex, value) == index + 1
+    )
 
 def get_vn_additional_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     filters = []
@@ -828,21 +841,16 @@ def get_character_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
         filters.append(Character.blood_type == blood_type)
     
     if sex := params.get('sex'):
-        # filters.append(array_string_match(Character.sex, sex))
-        # TODO
-        ...
+        filters.append(create_sex_match_filter(sex))
     
-    if sex_spoiler := params.get('sex_spoiler'):
-        # TODO
-        ...
+    if sex_spoil := params.get('sex_spoil'):
+        filters.append(create_sex_match_filter(sex_spoil, spoil=True))
 
     if gender := params.get('gender'):
-        # TODO
-        ...
+        filters.append(create_sex_match_filter(gender))
 
-    if gender_sex := params.get('gender_sex'):
-        # TODO
-        ...
+    if gender_spoil := params.get('gender_spoil'):
+        filters.append(create_sex_match_filter(gender_spoil, spoil=True))
     
     if height := params.get('height'):
         filters.append(create_comparison_filter(Character.height, height, int))

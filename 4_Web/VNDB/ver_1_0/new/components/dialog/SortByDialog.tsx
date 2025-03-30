@@ -8,7 +8,7 @@ const sortByOptions: Record<string, {
   remote?: { value: string, label: string }[],
   local?: { value: string, label: string }[],
 }> = {
-  vn: {
+  v: {
     both: [
       { value: "id", label: "Id" },
       { value: "title", label: "Title" },
@@ -23,9 +23,11 @@ const sortByOptions: Record<string, {
       { value: "average", label: "Raw Vote Average" },
       { value: "length_minutes", label: "Length (Minutes)" },
       { value: "length_votes", label: "Length (Votes)" },
+      { value: "created_at", label: "Created At" },
+      { value: "updated_at", label: "Updated At" },
     ],
   },
-  release: {
+  r: {
     both: [
       { value: "id", label: "Id" },
       { value: "title", label: "Title" },
@@ -36,9 +38,11 @@ const sortByOptions: Record<string, {
     ],
     local: [
       { value: "minage", label: "Minimum Age" },
+      { value: "created_at", label: "Created At" },
+      { value: "updated_at", label: "Updated At" },
     ],
   },
-  character: {
+  c: {
     both: [
       { value: "id", label: "Id" },
       { value: "name", label: "Name" },
@@ -55,9 +59,11 @@ const sortByOptions: Record<string, {
       { value: "hips", label: "Hips" },
       { value: "age", label: "Age" },
       { value: "birthday", label: "Birthday" },
+      { value: "created_at", label: "Created At" },
+      { value: "updated_at", label: "Updated At" },
     ],
   },
-  producer: {
+  p: {
     both: [
       { value: "id", label: "Id" },
       { value: "name", label: "Name" },
@@ -67,9 +73,11 @@ const sortByOptions: Record<string, {
     ],
     local: [
       { value: "original", label: "Original Name" },
+      { value: "created_at", label: "Created At" },
+      { value: "updated_at", label: "Updated At" },
     ],
   },
-  staff: {
+  s: {
     both: [
       { value: "id", label: "Id" },
       { value: "name", label: "Name" },
@@ -79,9 +87,11 @@ const sortByOptions: Record<string, {
     ],
     local: [
       { value: "original", label: "Original Name" },
+      { value: "created_at", label: "Created At" },
+      { value: "updated_at", label: "Updated At" },
     ],
   },
-  tag: {
+  g: {
     both: [
       { value: "id", label: "Id" },
       { value: "name", label: "Name" },
@@ -90,8 +100,12 @@ const sortByOptions: Record<string, {
     remote: [
       { value: "searchrank", label: "Search Rank" },
     ],
+    local: [
+      { value: "created_at", label: "Created At" },
+      { value: "updated_at", label: "Updated At" },
+    ],
   },
-  trait: {
+  i: {
     both: [
       { value: "id", label: "Id" },
       { value: "name", label: "Name" },
@@ -103,6 +117,8 @@ const sortByOptions: Record<string, {
     local: [
       { value: "group_id", label: "Group Id" },
       { value: "group_name", label: "Group Name" },
+      { value: "created_at", label: "Created At" },
+      { value: "updated_at", label: "Updated At" },
     ],
   }
 }
@@ -120,9 +136,9 @@ interface SortByDialogProps {
 export function SortByDialog({ open, setOpen, type, from, sortBy, setSortBy, className }: SortByDialogProps) {
 
   const showSortByOptions = {
-    both: sortByOptions[type].both || [],
-    remote: [...(sortByOptions[type].both || []), ...(sortByOptions[type].remote || [])],
-    local: [...(sortByOptions[type].both || []), ...(sortByOptions[type].local || [])],
+    both: sortByOptions[type]?.both || [],
+    remote: [...(sortByOptions[type]?.both || []), ...(sortByOptions[type]?.remote || [])],
+    local: [...(sortByOptions[type]?.both || []), ...(sortByOptions[type]?.local || [])],
   }[from]
 
   const handleSortByChange = (value: string) => {

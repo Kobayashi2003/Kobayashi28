@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react"
 
 import { cn } from "@/lib/utils"
+import { Image } from "@/components/image/Image"
 import { Row } from "../common/Row"
-import { Image2 } from "../common/Image2"
 import { TitlesRow } from "./TitlesRow"
 import { PlatformsRow } from "./PlatformsRow"
 import { DevelopersRow } from "./DevelopersRow"
@@ -65,6 +65,9 @@ export function VNDetailsPanel({ vn }: VNDetailsPanelProps) {
   return (
     <div className="container mx-auto">
       {mainTitle}
+      <div className="w-50">
+        <Image url={image_url || ""} thumbnail={image_thumbnail} image_dims={image_dims} thumbnail_dims={image_thumbnail_dims} />
+      </div>
     </div>
   )
 }

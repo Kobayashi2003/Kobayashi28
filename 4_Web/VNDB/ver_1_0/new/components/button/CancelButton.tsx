@@ -18,7 +18,6 @@ export function CancelButton({ handleCancel, disabled, className }: CancelButton
     <IconButton
       icon={<X className="w-4 h-4" />}
       variant="outline"
-      tooltip="Cancel"
       onClick={handleCancel}
       disabled={disabled}
       className={cn(

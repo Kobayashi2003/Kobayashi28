@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { TypeSelector2 } from "@/components/selector/TypeSelector2"
 
 interface TypeOption {
   key: string
@@ -16,6 +17,16 @@ interface CategoryTypeSelecterProps {
 }
 
 export function CategoryTypeSelecter({ typeOptions, selectedValue, onChange, size, className }: CategoryTypeSelecterProps) {
+
+  return (
+    <TypeSelector2
+      selected={selectedValue}
+      onSelect={onChange}
+      // disabled={disabled}
+      className={className}
+    />
+  )
+
   return (
     <div className={cn(
       "flex flex-row flex-wrap gap-2",

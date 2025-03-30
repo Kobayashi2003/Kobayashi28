@@ -21,9 +21,12 @@ class User(db.Model):
 
     # Relationships
     vn_categories = relationship("VNCategory", back_populates="user", cascade="all, delete-orphan")
+    release_categories = relationship("ReleaseCategory", back_populates="user", cascade="all, delete-orphan")
     character_categories = relationship("CharacterCategory", back_populates="user", cascade="all, delete-orphan")
     producer_categories = relationship("ProducerCategory", back_populates="user", cascade="all, delete-orphan")
     staff_categories = relationship("StaffCategory", back_populates="user", cascade="all, delete-orphan")
+    tag_categories = relationship("TagCategory", back_populates="user", cascade="all, delete-orphan")
+    trait_categories = relationship("TraitCategory", back_populates="user", cascade="all, delete-orphan")
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -95,6 +98,16 @@ class VNCategory(Category):
 
     user = relationship("User", back_populates="vn_categories")
 
+class ReleaseCategory(Category):
+
+    __tablename__ = 'release_categories'
+
+    @property
+    def type(self):
+        return 'release'
+
+    user = relationship("User", back_populates="release_categories")
+
 class CharacterCategory(Category):
 
     __tablename__ = 'character_categories'
@@ -125,24 +138,52 @@ class StaffCategory(Category):
 
     user = relationship("User", back_populates="staff_categories")
 
+class TagCategory(Category):
+
+    __tablename__ = 'tag_categories'
+
+    @property
+    def type(self):
+        return 'tag'
+
+    user = relationship("User", back_populates="tag_categories")
+
+class TraitCategory(Category):
+
+    __tablename__ = 'trait_categories'
+
+    @property
+    def type(self):
+        return 'trait'
+
+    user = relationship("User", back_populates="trait_categories")
 
 CategoryType = Union[VNCategory, CharacterCategory, ProducerCategory, StaffCategory]
 
 CATEGORY_MODEL = {
     'v': VNCategory,
+    'r': ReleaseCategory,
     'c': CharacterCategory,
     'p': ProducerCategory,
-    's': StaffCategory
+    's': StaffCategory,
+    'g': TagCategory,
+    'i': TraitCategory
 }
 
-ModelType = Union[User, VNCategory, CharacterCategory, ProducerCategory, StaffCategory]
+ModelType = Union[
+    User, VNCategory, ReleaseCategory, CharacterCategory, 
+    ProducerCategory, StaffCategory, TagCategory, TraitCategory
+]
 
 MODEL_MAP = {
     'user': User,
     'vn': VNCategory,
+    'release': ReleaseCategory,
     'character': CharacterCategory,
     'producer': ProducerCategory,
-    'staff': StaffCategory
+    'staff': StaffCategory,
+    'tag': TagCategory,
+    'trait': TraitCategory
 }
 
 def create_default_categories(mapper, connection, target):
