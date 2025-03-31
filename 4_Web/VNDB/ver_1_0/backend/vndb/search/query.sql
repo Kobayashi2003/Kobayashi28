@@ -1,4 +1,4 @@
 SELECT vns.id, vns.title, vns.titles, vns.released, vns.image 
 FROM vns 
-WHERE vns.deleted_at IS NULL AND (vns.id = 'v35899' OR vns.id = 'v11069' OR vns.id = 'v6747' OR vns.id = 'v27462' OR vns.id = 'v21414' OR vns.id = 'v15166' OR vns.id = 'v211' OR vns.id = 'v57' OR vns.id = 'v566' OR vns.id = 'v10304' OR vns.id = 'v80' OR vns.id = 'v28893' OR vns.id = 'v12480' OR vns.id = 'v50416' OR vns.id = 'v19953' OR vns.id = 'v30616' OR vns.id = 'v18' OR vns.id = 'v20' OR vns.id = 'v22152' OR vns.id = 'v11000' OR vns.id = 'v8301' OR vns.id = 'v7772' OR vns.id = 'v5549' OR vns.id = 'v6710' OR vns.id = 'v7230' OR vns.id = 'v547' OR vns.id = 'v1338') ORDER BY vns.id ASC
+WHERE vns.deleted_at IS NULL AND (vns.id = 'v16459' OR vns.id = 'v28304' OR vns.id = 'v15869' OR vns.id = 'v18458') ORDER BY vns.id ASC
  LIMIT 24 OFFSET 0

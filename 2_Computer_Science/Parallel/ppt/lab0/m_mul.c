@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include "mkl.h"
 
 int main()
@@ -9,6 +10,8 @@ int main()
     double *A, *B, *C;
     int m, n, k, i, j;
     double alpha, beta;
+    clock_t start_time, end_time;
+    double elapsed_time;
 
     printf ("\n This example computes real matrix C=alpha*A*B+beta*C using \n"
             " Intel(R) MKL function dgemm, where A, B, and  C are matrices and \n"
@@ -46,9 +49,12 @@ int main()
     }
 
     printf (" Computing matrix product using Intel(R) MKL dgemm function via CBLAS interface \n\n");
+    start_time = clock();
     cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, 
                 m, n, k, alpha, A, k, B, n, beta, C, n);
-    printf ("\n Computations completed.\n\n");
+    end_time = clock();
+    elapsed_time = ((double)(end_time - start_time)) / CLOCKS_PER_SEC * 1000;
+    printf ("\n Computations completed in %.2f milliseconds.\n\n", elapsed_time);
 
     printf (" Top left corner of matrix A: \n");
     for (i=0; i<min(m,6); i++) {
