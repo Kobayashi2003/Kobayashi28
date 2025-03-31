@@ -14,10 +14,11 @@ interface LevelSelectorProps {
   levelOptions: levelOption[]
   selectedLevel: string
   setSelectedLevel: (value: string) => void
+  disabled?: boolean
   className?: string
 }
 
-export function LevelSelectorButton({ levelOptions, selectedLevel, setSelectedLevel, className }: LevelSelectorProps) {
+export function LevelSelectorButton({ levelOptions, selectedLevel, setSelectedLevel, disabled, className }: LevelSelectorProps) {
   const containerStyle = "flex flex-wrap gap-2 justify-center items-center"
   const buttonBaseStyle = "text-xs sm:text-sm md:text-base transition-all duration-300"
 
@@ -27,6 +28,7 @@ export function LevelSelectorButton({ levelOptions, selectedLevel, setSelectedLe
         <button
           key={option.key}
           onClick={() => setSelectedLevel(option.value)}
+          disabled={disabled}
           className={cn(
             buttonBaseStyle,
             selectedLevel === option.value

@@ -1,12 +1,44 @@
 {
   "filters": [
-    "search",
-    "=",
-    ""
+    "and",
+    [
+      "or",
+      [
+        "and",
+        [
+          "released",
+          ">=",
+          "2025-03-01"
+        ],
+        [
+          "released",
+          "<=",
+          "2025-03-31"
+        ]
+      ],
+      [
+        "and",
+        [
+          "released",
+          ">=",
+          "2025-03-01"
+        ],
+        [
+          "released",
+          "<",
+          "2025-04-01"
+        ]
+      ]
+    ],
+    [
+      "olang",
+      "=",
+      "ja"
+    ]
   ],
   "fields": "id,title,titles.lang,titles.title,titles.latin,titles.official,titles.main,released,image.url,image.dims,image.thumbnail,image.thumbnail_dims,image.sexual,image.violence",
-  "sort": "id",
-  "reverse": false,
+  "sort": "released",
+  "reverse": true,
   "results": 24,
   "page": 1,
   "count": true

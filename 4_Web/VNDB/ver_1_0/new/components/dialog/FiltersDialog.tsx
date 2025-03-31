@@ -31,6 +31,7 @@ interface NumberField extends BaseField {
 
 interface SelectField extends BaseField {
   default?: string
+  comparable?: boolean
   options: {
     value: string
     label: string
@@ -131,7 +132,7 @@ const isValidDate = (input: string, format: string, comparable?: boolean): boole
     }
     return true
   }
-  
+
   if (format.toLowerCase() === 'yyyy') {
     if (!DATE_FORMAT_REGEX['yyyy'].test(input)) {
       return false
@@ -172,11 +173,25 @@ const isValidDate = (input: string, format: string, comparable?: boolean): boole
   return false
 }
 
+const isValidSelect = (value: string, comparable?: boolean): boolean => {
+  if (comparable) {
+    const operatorMatch = value.match(/^(=|<|>|<=|>=|!=)(.*)$/)
+    if (!operatorMatch) {
+      return isValidSelect(value, false)
+    }
+    const [, operator, selectValue] = operatorMatch
+    if (!selectValue.trim()) {
+      return false
+    }
+    return isValidSelect(selectValue.trim(), false)
+  }
+  return value.toLowerCase() !== "any"
+}
 
-function TextFilter({ filter, value, onChange }: { 
-  filter: TextField, 
-  value: string, 
-  onChange: (field: string, value: string) => void 
+function TextFilter({ filter, value, onChange }: {
+  filter: TextField,
+  value: string,
+  onChange: (field: string, value: string) => void
 }) {
   return (
     <div className="flex flex-col gap-2">
@@ -197,10 +212,10 @@ function TextFilter({ filter, value, onChange }: {
   )
 }
 
-function NumberFilter({ filter, value, onChange }: { 
-  filter: NumberField, 
-  value: string, 
-  onChange: (field: string, value: string) => void 
+function NumberFilter({ filter, value, onChange }: {
+  filter: NumberField,
+  value: string,
+  onChange: (field: string, value: string) => void
 }) {
   return (
     <div className="flex flex-col gap-2">
@@ -225,10 +240,10 @@ function NumberFilter({ filter, value, onChange }: {
   )
 }
 
-function NumberFilterComparable({ filter, value, onChange }: { 
-  filter: NumberField, 
-  value: { operator: string, number: string }, 
-  onChange: (field: string, value: { operator: string, number: string }) => void 
+function NumberFilterComparable({ filter, value, onChange }: {
+  filter: NumberField,
+  value: { operator: string, number: string },
+  onChange: (field: string, value: { operator: string, number: string }) => void
 }) {
   return (
     <div className="flex flex-col gap-2">
@@ -274,10 +289,10 @@ function NumberFilterComparable({ filter, value, onChange }: {
   )
 }
 
-function SelectFilter({ filter, value, onChange }: { 
-  filter: SelectField, 
-  value: string, 
-  onChange: (field: string, value: string) => void 
+function SelectFilter({ filter, value, onChange }: {
+  filter: SelectField,
+  value: string,
+  onChange: (field: string, value: string) => void
 }) {
   return (
     <div className="flex flex-col gap-2">
@@ -314,20 +329,80 @@ function SelectFilter({ filter, value, onChange }: {
   )
 }
 
-function DateFilter({ filter, value, onChange }: { 
-  filter: DateField, 
-  value: string, 
-  onChange: (field: string, value: string) => void 
+function SelectFilterComparable({ filter, value, onChange }: {
+  filter: SelectField,
+  value: { operator: string, value: string },
+  onChange: (field: string, value: { operator: string, value: string }) => void
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <Label
+        htmlFor={`select-filter-${filter.value}`}
+        className="text-white/80 font-bold text-sm md:text-base"
+      >
+        {filter.label}
+      </Label>
+      <div className="flex flex-row gap-2">
+        <Select
+          value={value.operator}
+          onValueChange={(v) => onChange(filter.value, { operator: v, value: value.value })}
+        >
+          <SelectTrigger className="bg-[#0A1929] border-white/10 hover:border-white/20 text-white">
+            <SelectValue placeholder="Operator" />
+          </SelectTrigger>
+          <SelectContent className="bg-[#0A1929] border-white/10 hover:border-white/20 text-white">
+            {OPERATORS.map((operator) => (
+              <SelectItem
+                key={`select-number-filter-${filter.value}-${operator}`}
+                value={operator}
+                className="text-white/80 data-[state=checked]:bg-white/10"
+              >
+                <span className="w-5 inline-block text-center">{operator}</span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
+          value={value.value}
+          onValueChange={(v) => onChange(filter.value, { operator: value.operator, value: v })}
+        >
+          <SelectTrigger
+            id={`select-filter-${filter.value}`}
+            className="w-full bg-[#0A1929] border-white/10 hover:border-white/20 text-white"
+          >
+            <SelectValue placeholder={filter.default} />
+          </SelectTrigger>
+          <SelectContent className="bg-[#0A1929] border-white/10 hover:border-white/20 text-white">
+            {filter.options.map((option) => (
+              <SelectItem
+                key={`select-filter-${filter.value}-${option.value}`}
+                value={option.value}
+                className="text-white/80 data-[state=checked]:bg-white/10"
+              >
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
+  )
+}
+
+function DateFilter({ filter, value, onChange }: {
+  filter: DateField,
+  value: string,
+  onChange: (field: string, value: string) => void
 }) {
 
-  const isCurrentInputValid = value === "" || filter.avaliableFormats.some(format => 
+  const isCurrentInputValid = value === "" || filter.avaliableFormats.some(format =>
     isValidDate(value, format, false)
   )
 
   return (
     <div className="flex flex-col gap-2">
-      <Label 
-        htmlFor={`date-filter-${filter.value}`} 
+      <Label
+        htmlFor={`date-filter-${filter.value}`}
         className="text-white/80 font-bold text-sm md:text-base"
       >
         {filter.label}
@@ -353,13 +428,13 @@ function DateFilter({ filter, value, onChange }: {
   )
 }
 
-function DateFilterComparable({ filter, value, onChange }: { 
-  filter: DateField, 
-  value: { operator: string, date: string }, 
-  onChange: (field: string, value: { operator: string, date: string }) => void 
+function DateFilterComparable({ filter, value, onChange }: {
+  filter: DateField,
+  value: { operator: string, date: string },
+  onChange: (field: string, value: { operator: string, date: string }) => void
 }) {
 
-  const isCurrentInputValid = value.date === "" || filter.avaliableFormats.some(format => 
+  const isCurrentInputValid = value.date === "" || filter.avaliableFormats.some(format =>
     isValidDate(value.date, format, true)
   )
 
@@ -423,6 +498,7 @@ const searchFilters: Record<string, {
   v: {
     text: [
       { value: "tag", label: "Tag" },
+      { value: "dtag", label: "Directed Tag" },
       { value: "release", label: "Release" },
       { value: "character", label: "Character" },
       { value: "staff", label: "Staff" },
@@ -630,6 +706,8 @@ const searchFilters: Record<string, {
   },
   c: {
     text: [
+      { value: "trait", label: "Trait" },
+      { value: "dtrait", label: "Directed Trait" },
       { value: "seiyuu", label: "Seiyuu" },
       { value: "vn", label: "Visual Novel" },
     ],
@@ -700,7 +778,7 @@ const searchFilters: Record<string, {
         ]
       },
       {
-        value: "cup", label: "Cup Size", default: "any",
+        value: "cup", label: "Cup Size", default: "any", comparable: true,
         options: [
           { value: "any", label: "Any" },
           { value: "AAA", label: "AAA" },
@@ -816,6 +894,7 @@ interface FilterState {
   number: Record<string, string>
   numberComparable: Record<string, string>
   select: Record<string, string>
+  selectComparable: Record<string, string>
   date: Record<string, string>
   dateComparable: Record<string, string>
 }
@@ -827,39 +906,49 @@ export function FiltersDialog({ open, setOpen, type, setFilters, className }: Fi
     number: {},
     numberComparable: {},
     select: {},
+    selectComparable: {},
     date: {},
     dateComparable: {}
   })
 
   const handleFilterChange = {
-    text: (field: string, value: string) => 
+    text: (field: string, value: string) =>
       setFiltersTemp(prev => ({ ...prev, text: { ...prev.text, [field]: value || "" } })),
-    
-    number: (field: string, value: string) => 
+
+    number: (field: string, value: string) =>
       setFiltersTemp(prev => ({ ...prev, number: { ...prev.number, [field]: value || "" } })),
-    
-    numberComparable: (field: string, value: { operator: string, number: string }) => 
-      setFiltersTemp(prev => ({ 
-        ...prev, 
-        numberComparable: { 
-          ...prev.numberComparable, 
-          [field]: `${value.operator} ${value.number || ""}` 
-        } 
+
+    numberComparable: (field: string, value: { operator: string, number: string }) =>
+      setFiltersTemp(prev => ({
+        ...prev,
+        numberComparable: {
+          ...prev.numberComparable,
+          [field]: `${value.operator} ${value.number || ""}`
+        }
       })),
-    
-    select: (field: string, value: string) => 
+
+    select: (field: string, value: string) =>
       setFiltersTemp(prev => ({ ...prev, select: { ...prev.select, [field]: value || "any" } })),
-    
-    date: (field: string, value: string) => 
+
+    selectComparable: (field: string, value: { operator: string, value: string }) =>
+      setFiltersTemp(prev => ({
+        ...prev,
+        selectComparable: {
+          ...prev.selectComparable,
+          [field]: `${value.operator} ${value.value || ""}`
+        }
+      })),
+
+    date: (field: string, value: string) =>
       setFiltersTemp(prev => ({ ...prev, date: { ...prev.date, [field]: value || "" } })),
-    
-    dateComparable: (field: string, value: { operator: string, date: string }) => 
-      setFiltersTemp(prev => ({ 
-        ...prev, 
-        dateComparable: { 
-          ...prev.dateComparable, 
-          [field]: `${value.operator} ${value.date || ""}` 
-        } 
+
+    dateComparable: (field: string, value: { operator: string, date: string }) =>
+      setFiltersTemp(prev => ({
+        ...prev,
+        dateComparable: {
+          ...prev.dateComparable,
+          [field]: `${value.operator} ${value.date || ""}`
+        }
       }))
   }
 
@@ -876,6 +965,9 @@ export function FiltersDialog({ open, setOpen, type, setFilters, className }: Fi
       ),
       select: Object.fromEntries(
         Object.entries(filtersTemp.select).map(([key, value]) => [key, value.trim()])
+      ),
+      selectComparable: Object.fromEntries(
+        Object.entries(filtersTemp.selectComparable).map(([key, value]) => [key, value.trim()])
       ),
       date: Object.fromEntries(
         Object.entries(filtersTemp.date).map(([key, value]) => [key, value.trim()])
@@ -911,8 +1003,18 @@ export function FiltersDialog({ open, setOpen, type, setFilters, className }: Fi
 
     // Validate and filter select inputs
     const validSelectFilters = Object.entries(trimmedFilters.select)
-      .filter(([_, value]) => {
-        return value !== "any"
+      .filter(([key, value]) => {
+        const field = searchFilters[type]?.select?.find(f => f.value === key)
+        if (!field) return false
+        return isValidSelect(value, field.comparable)
+      })
+
+    // Validate and filter comparable select inputs
+    const validSelectFiltersComparable = Object.entries(trimmedFilters.selectComparable)
+      .filter(([key, value]) => {
+        const field = searchFilters[type]?.select?.find(f => f.value === key)
+        if (!field) return false
+        return isValidSelect(value, field.comparable)
       })
 
     // Validate and filter date inputs
@@ -921,7 +1023,7 @@ export function FiltersDialog({ open, setOpen, type, setFilters, className }: Fi
         const field = searchFilters[type]?.date?.find(f => f.value === key)
         const availableFormats = field?.avaliableFormats
         if (!availableFormats) return false
-        return availableFormats.some(format => 
+        return availableFormats.some(format =>
           isValidDate(value, format)
         )
       })
@@ -936,7 +1038,7 @@ export function FiltersDialog({ open, setOpen, type, setFilters, className }: Fi
         const field = searchFilters[type]?.date?.find(f => f.value === key)
         const availableFormats = field?.avaliableFormats
         if (!availableFormats) return false
-        return availableFormats.some(format => 
+        return availableFormats.some(format =>
           isValidDate(value, format, true)
         )
       })
@@ -952,6 +1054,7 @@ export function FiltersDialog({ open, setOpen, type, setFilters, className }: Fi
       ...validNumberFilters,
       ...validNumberFiltersComparable,
       ...validSelectFilters,
+      ...validSelectFiltersComparable,
       ...validDateFilters,
       ...validDateFiltersComparable
     ])
@@ -978,7 +1081,13 @@ export function FiltersDialog({ open, setOpen, type, setFilters, className }: Fi
       ),
       select: Object.fromEntries(
         (searchFilters[type]?.select || [])
+          .filter(f => !f.comparable)
           .map(f => [f.value, f.default || "any"])
+      ),
+      selectComparable: Object.fromEntries(
+        (searchFilters[type]?.select || [])
+          .filter(f => f.comparable)
+          .map(f => [f.value, "= any"])
       ),
       date: Object.fromEntries(
         (searchFilters[type]?.date || [])
@@ -1002,11 +1111,11 @@ export function FiltersDialog({ open, setOpen, type, setFilters, className }: Fi
   const filterElements = {
     text: useMemo(() => (
       searchFilters[type]?.text?.map((filter) => (
-        <TextFilter 
-          key={filter.value} 
+        <TextFilter
+          key={filter.value}
           filter={filter}
-          value={filtersTemp.text[filter.value] || ""} 
-          onChange={handleFilterChange.text} 
+          value={filtersTemp.text[filter.value] || ""}
+          onChange={handleFilterChange.text}
         />
       ))
     ), [type, filtersTemp.text]),
@@ -1014,21 +1123,21 @@ export function FiltersDialog({ open, setOpen, type, setFilters, className }: Fi
     number: useMemo(() => (
       searchFilters[type]?.number?.map((filter) => (
         filter.comparable ? (
-          <NumberFilterComparable 
-            key={filter.value} 
+          <NumberFilterComparable
+            key={filter.value}
             filter={filter}
             value={{
               operator: filtersTemp.numberComparable[filter.value]?.split(" ")[0] || "=",
               number: filtersTemp.numberComparable[filter.value]?.split(" ")[1] || ""
             }}
-            onChange={handleFilterChange.numberComparable} 
+            onChange={handleFilterChange.numberComparable}
           />
         ) : (
-          <NumberFilter 
-            key={filter.value} 
+          <NumberFilter
+            key={filter.value}
             filter={filter}
-            value={filtersTemp.number[filter.value] || ""} 
-            onChange={handleFilterChange.number} 
+            value={filtersTemp.number[filter.value] || ""}
+            onChange={handleFilterChange.number}
           />
         )
       ))
@@ -1036,36 +1145,48 @@ export function FiltersDialog({ open, setOpen, type, setFilters, className }: Fi
 
     select: useMemo(() => (
       searchFilters[type]?.select?.map((filter) => (
-        <SelectFilter 
-          key={filter.value} 
-          filter={filter}
-          value={filtersTemp.select[filter.value] || filter.default || "any"} 
-          onChange={handleFilterChange.select} 
-        />
+        filter.comparable ? (
+          <SelectFilterComparable
+            key={filter.value}
+            filter={filter}
+            value={{
+              operator: filtersTemp.selectComparable[filter.value]?.split(" ")[0] || "=",
+              value: filtersTemp.selectComparable[filter.value]?.split(" ")[1] || ""
+            }}
+            onChange={handleFilterChange.selectComparable}
+          />
+        ) : (
+          <SelectFilter
+            key={filter.value}
+            filter={filter}
+            value={filtersTemp.select[filter.value] || filter.default || "any"}
+            onChange={handleFilterChange.select}
+          />
+        )
       ))
-    ), [type, filtersTemp.select]),
+    ), [type, filtersTemp.select, filtersTemp.selectComparable]),
 
     date: useMemo(() => (
       searchFilters[type]?.date?.filter(f => !f.comparable).map((filter) => (
-        <DateFilter 
-          key={filter.value} 
+        <DateFilter
+          key={filter.value}
           filter={filter}
-          value={filtersTemp.date[filter.value] || ""} 
-          onChange={handleFilterChange.date} 
+          value={filtersTemp.date[filter.value] || ""}
+          onChange={handleFilterChange.date}
         />
       ))
     ), [type, filtersTemp.date]),
 
     dateComparable: useMemo(() => (
       searchFilters[type]?.date?.filter(f => f.comparable).map((filter) => (
-        <DateFilterComparable 
-          key={filter.value} 
+        <DateFilterComparable
+          key={filter.value}
           filter={filter}
           value={{
             operator: filtersTemp.dateComparable[filter.value]?.split(" ")[0] || "=",
             date: filtersTemp.dateComparable[filter.value]?.split(" ")[1] || ""
           }}
-          onChange={handleFilterChange.dateComparable} 
+          onChange={handleFilterChange.dateComparable}
         />
       ))
     ), [type, filtersTemp.dateComparable])
@@ -1095,11 +1216,11 @@ export function FiltersDialog({ open, setOpen, type, setFilters, className }: Fi
             </div>
           </ScrollArea>
           <div className="flex flex-row gap-2">
-            <Button type="button" onClick={handleClearFilters} 
+            <Button type="button" onClick={handleClearFilters}
               className="flex-1 bg-[#1A3A5A] hover:bg-[#254B75] text-white font-bold transition-all duration-300">
               Clear All Filters
             </Button>
-            <Button type="submit" 
+            <Button type="submit"
               className="flex-1 bg-[#1A3A5A] hover:bg-[#254B75] text-white font-bold transition-all duration-300">
               Apply Filters
             </Button>

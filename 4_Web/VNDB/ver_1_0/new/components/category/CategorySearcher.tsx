@@ -1,3 +1,6 @@
+"use client"
+
+import { useState } from "react"
 import { cn } from "@/lib/utils"
 import { InputBar } from "../input/InputBar"
 import { SubmitButton } from "../button/SubmitButton"
@@ -6,14 +9,14 @@ import { CancelButton } from "../button/CancelButton"
 
 interface CategorySearcherProps {
   isSearching: boolean
-  query: string
-  setQuery: (query: string) => void
-  handleSearch: (e?: React.FormEvent) => void
+  handleSearch: (input: string) => void
   disabled?: boolean
   className?: string
 }
 
-export function CategorySearcher({ isSearching, query, setQuery, handleSearch, disabled, className }: CategorySearcherProps) {
+export function CategorySearcher({ isSearching, handleSearch, disabled, className }: CategorySearcherProps) {
+
+  const [input, setInput] = useState("")
 
   const containerFlex = "flex flex-row justify-between items-center gap-2"
   const containerBgColor = "bg-[#0F2942]/80 hover:bg-[#0F2942]"
@@ -21,7 +24,10 @@ export function CategorySearcher({ isSearching, query, setQuery, handleSearch, d
   const containerTransition = "transition-all duration-300"
 
   return (
-    <form onSubmit={handleSearch} className={cn(
+    <form onSubmit={(e) => {
+      e.preventDefault()
+      handleSearch(input.trim())
+    }} className={cn(
       "p-4",
       containerFlex,
       containerBgColor,
@@ -30,19 +36,24 @@ export function CategorySearcher({ isSearching, query, setQuery, handleSearch, d
       className
     )}>
       <InputBar
-        input={query}
-        setInput={setQuery}
+        input={input}
+        setInput={setInput}
         placeholder="Search in current category"
         disabled={disabled}
         className="w-full"
       />
       <SubmitButton
-        handleSubmit={handleSearch}
+        handleSubmit={() => {
+          handleSearch(input.trim())
+        }}
         disabled={disabled}
       />
       {isSearching && (
         <CancelButton
-          handleCancel={() => { setQuery(""); handleSearch() }}
+          handleCancel={() => {
+            setInput("")
+            handleSearch("")
+          }}
           disabled={disabled}
         />
       )}

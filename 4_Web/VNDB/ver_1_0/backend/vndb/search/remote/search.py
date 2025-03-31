@@ -95,8 +95,12 @@ class VNDBAPIWrapper:
 
         # Special handling for array type filters
         if filter_def.filter_type == FilterType.ARRAY and not isinstance(filter_value, list):
-            filter_value = [filter_value, 0, 0]
-
+            if key == 'tag' or key == 'dtag':
+                ...
+            elif key == 'trait' or key == 'dtrait':
+                ...
+            else:
+                filter_value = [filter_value]
         # Special handling for boolean type filters
         if filter_def.filter_type == FilterType.BOOLEAN:
             operator = '=' if filter_value else '!='
@@ -124,8 +128,11 @@ class VNDBAPIWrapper:
         import os, json
         current_dir = os.path.dirname(os.path.abspath(__file__))
         debug_file_path = os.path.join(current_dir, "../payload.json")
-        with open(debug_file_path, 'w') as f:
-            json.dump(payload, f, indent=2)
+        try:
+            with open(debug_file_path, 'w') as f:
+                json.dump(payload, f, indent=2)
+        except Exception as e:
+            print(f"Failed to export payload: {e}")
         
         response = self.client.post(url, json=payload)
         response.raise_for_status()

@@ -4,10 +4,11 @@ import re
 import uuid
 from datetime import datetime
 
-from sqlalchemy import or_, and_, text, false, exists, select, func, Integer, Float
+from sqlalchemy import or_, and_, text, exists, select, func, Integer, Float, String
 from sqlalchemy.sql.expression import BinaryExpression
 
 from vndb.database.models import VN, Tag, Producer, Staff, Character, Trait, Release
+from vndb.database.operations import formatId
 
 def generate_unique_param_name(prefix: str) -> str:
     return f"{prefix}_{uuid.uuid4().hex[:8]}"
@@ -45,90 +46,75 @@ def array_string_match(column: Any, value: str) -> BinaryExpression:
         .where(text(f"array_item ILIKE :{param_value}"))
     ).params({param_value: f"%{value}%"})
 
-# def process_multi_value_expression(expression: str, value_processor: Callable[[str], BinaryExpression]) -> BinaryExpression:
-#     """
-#     Process a multi-value expression with OR/AND logic.
+def normalize_expression(expression: str) -> str:
+    """
+    Normalize the expression by removing spaces around operators while preserving spaces within terms.
     
-#     :param expression: The input expression (e.g., "value1,value2+value3")
-#     :param value_processor: A function that takes a string value and returns a SQLAlchemy filter condition
-#     :return: A single SQLAlchemy filter condition (OR of all processed conditions)
-#     """
-#     or_expressions = re.split(r'\s*,\s*', expression.strip())
-#     or_conditions = []
+    Args:
+        expression (str): The tag expression with potential spaces around operators.
     
-#     for or_expr in or_expressions:
-#         if '+' in or_expr:
-#             and_values = re.split(r'\s*\+\s*', or_expr)
-#             and_conditions = [value_processor(value.strip()) for value in and_values]
-#             or_conditions.append(and_(*and_conditions))
-#         else:
-#             or_conditions.append(value_processor(or_expr.strip()))
-    
-#     return or_(*or_conditions)
+    Returns:
+        str: Normalized expression with spaces removed around operators.
+    """
+    normalized = re.sub(r'\s*\+\s*', '+', expression)
+    normalized = re.sub(r'\s*,\s*', ',', normalized)
+    normalized = re.sub(r'\s*\(\s+', '(', normalized)
+    normalized = re.sub(r'\s+\)\s*', ')', normalized)
+    return normalized
 
 def process_multi_value_expression(expression: str, value_processor: Callable[[str], BinaryExpression]) -> BinaryExpression:
     """
-    Process a multi-value expression with OR/AND logic and parentheses.
+    Process a multi-value expression with OR/AND logic and parentheses using two stacks.
     
     :param expression: The input expression (e.g., "value1,value2+(value3,value4)")
     :param value_processor: A function that takes a string value and returns a SQLAlchemy filter condition
     :return: A single SQLAlchemy filter condition
     """
+    expression = normalize_expression(expression)
 
-    def evaluate_stack(stack: list) -> BinaryExpression:
-        while len(stack) > 1:
-            left = stack.pop(0)
-            op = stack.pop(0)
-            right = stack.pop(0)
+    def evaluate(ops: list, vals: list) -> None:
+        if len(ops) > 0 and len(vals) >= 2:
+            op = ops.pop()
+            right = vals.pop()
+            left = vals.pop()
+            
             if op == ',':
-                stack.insert(0, or_(left, right))
+                vals.append(or_(left, right))
             elif op == '+':
-                stack.insert(0, and_(left, right))
-        return stack[0]
+                vals.append(and_(left, right))
 
-    def process_simple_expression(expr: str, processor: Callable[[str], BinaryExpression]) -> BinaryExpression:
-        if '+' in expr:
-            and_values = re.split(r'\s*\+\s*', expr)
-            return and_(*[processor(value.strip()) for value in and_values])
+    ops = []
+    vals = []
+    current = ""
+    
+    for char in expression:
+        if char == '(':
+            ops.append(char)
+        elif char == ')':
+            if current:
+                vals.append(value_processor(current.strip()))
+                current = ""
+            while ops and ops[-1] != '(':
+                evaluate(ops, vals)
+            if ops and ops[-1] == '(':
+                ops.pop()
+        elif char in '+,':
+            if current:
+                vals.append(value_processor(current.strip()))
+                current = ""
+            while ops and ops[-1] != '(' and char == ',' and ops[-1] == '+':
+                evaluate(ops, vals)
+            ops.append(char)
         else:
-            return processor(expr.strip())
-
-    def parse_sub_expression(expr: str) -> BinaryExpression:
-        if '(' not in expr and ')' not in expr:
-            return process_simple_expression(expr, value_processor)
-        
-        stack = []
-        current_expr = ""
-        depth = 0
-        
-        for char in expr:
-            if char == '(':
-                if depth > 0:
-                    current_expr += char
-                depth += 1
-            elif char == ')':
-                depth -= 1
-                if depth == 0:
-                    stack.append(parse_sub_expression(current_expr))
-                    current_expr = ""
-                else:
-                    current_expr += char
-            elif depth > 0:
-                current_expr += char
-            elif char in ',+':
-                if current_expr:
-                    stack.append(process_simple_expression(current_expr, value_processor))
-                stack.append(char)
-                current_expr = ""
-            else:
-                current_expr += char
-        
-        if current_expr:
-            stack.append(process_simple_expression(current_expr, value_processor))
-        
-        return evaluate_stack(stack)
-
-    return parse_sub_expression(expression)
+            current += char
+    
+    if current:
+        vals.append(value_processor(current.strip()))
+    
+    while ops:
+        evaluate(ops, vals)
+    
+    return vals[0] if vals else None
 
 def create_comparison_filter(field: Any, value: str, value_parser: Callable[[str], Any]) -> BinaryExpression:
     pattern = r'^(>=|<=|>|<|=|!=)?(.+)$'
@@ -479,7 +465,7 @@ def create_sex_match_filter(value: str, spoil: bool = False) -> BinaryExpression
     index = 1 if spoil else 0
     return and_(
         Character.sex.isnot(None),
-        func.array_position(Character.sex, value) == index + 1
+        Character.sex[index].cast(String) == value
     )
 
 def get_vn_additional_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
@@ -578,7 +564,7 @@ def get_vn_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     filters = []
 
     if ids := params.get('id'):
-        filters.append(process_multi_value_expression(ids, lambda id : VN.id == id))
+        filters.append(process_multi_value_expression(ids, lambda id : VN.id == formatId('vn', id)))
 
     if search := params.get('search'):
         def process_vn(vn_value):
@@ -642,6 +628,8 @@ def get_vn_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
         filters.append(VN.devstatus == devstatus)
 
     if tags := params.get('tag'):
+        # TODO: there is no good way to get the parent of a tag, need to wait for the official api update
+        # currently this filter works as the same as dtags
         def process_tag(tag_value):
             return or_(
                 array_jsonb_exact_match(VN.tags, 'id', tag_value),
@@ -649,8 +637,13 @@ def get_vn_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
             )
         filters.append(process_multi_value_expression(tags, process_tag))
 
-    if dtags := params.get('dtag'): #TODO
-        raise ValueError("The 'dtags' search field is not available for local searches.")
+    if dtags := params.get('dtag'):
+        def process_dtag(dtag_value):
+            return or_(
+                array_jsonb_exact_match(VN.tags, 'id', dtag_value),
+                array_jsonb_match(VN.tags, 'name', dtag_value)
+            )
+        filters.append(process_multi_value_expression(dtags, process_dtag))
 
     if anime_id := params.get('anime_id'): #TODO
         raise ValueError("The 'anime_id' search field is not available for local searches.")
@@ -701,7 +694,7 @@ def get_release_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     filters = []
 
     if ids := params.get('id'):
-        filters.append(process_multi_value_expression(ids, lambda id : Release.id == id))
+        filters.append(process_multi_value_expression(ids, lambda id : Release.id == formatId('release', id)))
 
     if search := params.get('search'):
         def process_release(release_value):
@@ -822,7 +815,7 @@ def get_character_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     filters = []
 
     if ids := params.get('id'):
-        filters.append(process_multi_value_expression(ids, lambda id : Character.id == id))
+        filters.append(process_multi_value_expression(ids, lambda id : Character.id == formatId('character', id)))
 
     if search := params.get('search'):
         def process_character(character_value):
@@ -888,8 +881,13 @@ def get_character_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
             )
         filters.append(process_multi_value_expression(traits, process_trait))
 
-    if dtraits := params.get('dtrait'): #TODO
-        raise ValueError("The 'dtraits' search field is not available for local searches.")
+    if dtraits := params.get('dtrait'):
+        def process_dtrait(dtrait_value):
+            return or_(
+                array_jsonb_exact_match(Character.traits, 'id', dtrait_value),
+                array_jsonb_match(Character.traits, 'name', dtrait_value)
+            )
+        filters.append(process_multi_value_expression(dtraits, process_dtrait))
 
     if birthday := params.get('birthday'):
         filters.append(create_birthday_comparison_filter(birthday))
@@ -919,7 +917,7 @@ def get_producer_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     filters = []
 
     if ids := params.get('id'):
-        filters.append(process_multi_value_expression(ids, lambda id : Producer.id == id))
+        filters.append(process_multi_value_expression(ids, lambda id : Producer.id == formatId('producer', id)))
 
     if search := params.get('search'):
         def process_producer(producer_value):
@@ -953,7 +951,7 @@ def get_staff_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     filters = []
 
     if ids := params.get('id'):
-        filters.append(process_multi_value_expression(ids, lambda id : Staff.id == id))
+        filters.append(process_multi_value_expression(ids, lambda id : Staff.id == formatId('staff', id)))
 
     if aids := params.get('aid'):
         filters.append(process_multi_value_expression(aids, lambda aid : Staff.aid == aid))
@@ -1003,7 +1001,7 @@ def get_tag_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     filters = []
 
     if ids := params.get('id'):
-        filters.append(process_multi_value_expression(ids, lambda id : Tag.id == id))
+        filters.append(process_multi_value_expression(ids, lambda id : Tag.id == formatId('tag', id)))
 
     if search := params.get('search'):
         def process_tag(tag_value):
@@ -1025,7 +1023,7 @@ def get_trait_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     filters = []
     
     if ids := params.get('id'):
-        filters.append(process_multi_value_expression(ids, lambda id : Trait.id == id))
+        filters.append(process_multi_value_expression(ids, lambda id : Trait.id == formatId('trait', id)))
 
     if traits := params.get('search'):
         def process_trait(trait_value):

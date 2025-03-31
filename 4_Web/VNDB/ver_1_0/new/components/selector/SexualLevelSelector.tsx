@@ -49,15 +49,17 @@ const sexualLevelSelectOptions = [
 interface SexualLevelSelectorProps {
   sexualLevel: string
   setSexualLevel: (value: string) => void
+  disabled?: boolean
 }
 
-export function SexualLevelSelector({ sexualLevel, setSexualLevel }: SexualLevelSelectorProps) {
+export function SexualLevelSelector({ sexualLevel, setSexualLevel, disabled }: SexualLevelSelectorProps) {
   return (
     <>
       <LevelSelectorButton
         levelOptions={sexualLevelButtonOptions}
         selectedLevel={sexualLevel}
         setSelectedLevel={setSexualLevel}
+        disabled={disabled}
         className={cn(
           "hidden sm:flex",
           "font-serif italic",
@@ -68,6 +70,7 @@ export function SexualLevelSelector({ sexualLevel, setSexualLevel }: SexualLevel
         levelOptions={sexualLevelSelectOptions}
         selectedLevel={sexualLevel}
         setSelectedLevel={setSexualLevel}
+        disabled={disabled}
         className={cn(
           "sm:hidden",
         )}

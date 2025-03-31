@@ -20,7 +20,7 @@ const typeOptions = [
 
 export function TypeSelector2({ selected, onSelect, disabled, className }: TypeSelector2Props) {
   return (
-    <div className={(cn("flex flex-row flex-wrap gap-1", className))}>
+    <div className={cn("grid grid-cols-4 sm:grid-cols-7 gap-2", className)}>
       {typeOptions.map((typeOption) => (
         <LetterButton
           key={typeOption.value}

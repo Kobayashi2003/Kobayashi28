@@ -1,4 +1,5 @@
 import re
+import httpx
 from typing import Dict, Any, List
 from enum import Enum, auto
 
@@ -122,68 +123,210 @@ class VNDBFilters:
     }
 
 
+def normalize_expression(expression: str) -> str:
+    """
+    Normalize the expression by removing spaces around operators while preserving spaces within terms.
+        
+    Args:
+        expression (str): The tag expression with potential spaces around operators.
+            
+    Returns:
+        str: Normalized expression with spaces removed around operators.
+    """
+    # Replace spaces around operators
+    normalized = re.sub(r'\s*\+\s*', '+', expression)  # Remove spaces around '+'
+    normalized = re.sub(r'\s*,\s*', ',', normalized)   # Remove spaces around ','
+    normalized = re.sub(r'\s*\(\s+', '(', normalized)     # Remove spaces around '('
+    normalized = re.sub(r'\s+\)\s*', ')', normalized)     # Remove spaces around ')'
+        
+    return normalized
+
 def parse_logical_expression(expression: str, field: str) -> Dict[str, Any]:
     """
-    Parse a logical expression and return a nested dictionary structure.
-    
-    Args:
-        expression (str): The logical expression to parse.
-        field (str): The field name to use in the resulting structure.
-    
-    Returns:
-        Dict[str, Any]: A nested dictionary representing the parsed logical expression.
+    Parse logical expression using two stacks.
+    Operators: OR (',', lower precedence) and AND ('+', higher precedence)
     """
-    def parse_sub_expression(subexpr: str) -> Dict[str, Any]:
-        if ',' in subexpr:
-            return {"or": [{field: term.strip()} for term in subexpr.split(',')]}
-        elif '+' in subexpr:
-            return {"and": [{field: term.strip()} for term in subexpr.split('+')]}
-        else:
-            return {field: subexpr.strip()}
+    expression = normalize_expression(expression)
 
-    expression = expression.strip()
-    if not expression:
-        return {}
+    def or_operation(left: Dict[str, Any], right: Dict[str, Any]) -> Dict[str, Any]:
+        """Merge OR operations"""
+        if isinstance(left, dict) and "or" in left:
+            if isinstance(right, dict) and "or" in right:
+                return {"or": left["or"] + right["or"]}
+            left["or"].append(right)
+            return left
+        elif isinstance(right, dict) and "or" in right:
+            right["or"].insert(0, left)
+            return right
+        return {"or": [left, right]}
 
-    if '(' not in expression:
-        return parse_sub_expression(expression)
+    def and_operation(left: Dict[str, Any], right: Dict[str, Any]) -> Dict[str, Any]:
+        """Merge AND operations"""
+        if isinstance(left, dict) and "and" in left:
+            if isinstance(right, dict) and "and" in right:
+                return {"and": left["and"] + right["and"]}
+            left["and"].append(right)
+            return left
+        elif isinstance(right, dict) and "and" in right:
+            right["and"].insert(0, left)
+            return right
+        return {"and": [left, right]}
 
-    result = {}
-    current_op = None
-    stack = []
-    current_expr = ""
+    def evaluate(ops: list, vals: list) -> None:
+        if len(ops) > 0 and len(vals) >= 2:
+            op = ops.pop()
+            right = vals.pop()
+            left = vals.pop()
+            
+            if op == "or":
+                vals.append(or_operation(left, right))
+            elif op == "and":
+                vals.append(and_operation(left, right))
 
+    ops = []
+    vals = []
+    current = ""
+    
     for char in expression:
         if char == '(':
-            stack.append((current_op, result))
-            current_op = None
-            result = {}
-            current_expr = ""
+            ops.append(char)
         elif char == ')':
-            if current_expr:
-                sub_result = parse_sub_expression(current_expr)
-                result = sub_result if not result else {current_op or "and": [result, sub_result]}
-            prev_op, prev_result = stack.pop()
-            if not prev_result:
-                prev_result = result
-            else:
-                prev_result = {prev_op or "and": [prev_result, result]}
-            result = prev_result
-            current_expr = ""
-        elif char in ('+', ','):
-            if current_expr:
-                sub_result = parse_sub_expression(current_expr)
-                result = sub_result if not result else {current_op or "and": [result, sub_result]}
-                current_expr = ""
-            current_op = "and" if char == '+' else "or"
+            if current:
+                vals.append({field: current.strip()})
+                current = ""
+            while ops and ops[-1] != '(':
+                evaluate(ops, vals)
+            if ops and ops[-1] == '(':
+                ops.pop()
+        elif char in '+,':
+            if current:
+                vals.append({field: current.strip()})
+                current = ""
+            while ops and ops[-1] != '(' and char == ',' and ops[-1] == '+':
+                evaluate(ops, vals)
+            ops.append('and' if char == '+' else 'or')
         else:
-            current_expr += char
+            current += char
+    
+    if current:
+        vals.append({field: current.strip()})
+    
+    while ops:
+        evaluate(ops, vals)
+    
+    return vals[0] if vals else {}
 
-    if current_expr:
-        sub_result = parse_sub_expression(current_expr)
-        result = sub_result if not result else {current_op or "and": [result, sub_result]}
+def parse_tag_expression(expression: str, directly: bool = False) -> Dict[str, Any]:
+    expression = normalize_expression(expression)
+    url = "https://api.vndb.org/kana/tag"
+    client = httpx.Client()
 
-    return result
+    def get_tag_ids(tag: str) -> List[str]:
+        """Get tag IDs from tag name using unpaginated search"""
+        results = []
+        page =1 
+        more = True
+        while more:
+            payload = {
+                "filters": ["search", "=", tag],
+                "fields": "id",
+                "page": page,
+                "results": 100
+            }
+            response = client.post(url, json=payload)
+            results.extend(response.json().get('results', []))
+            more = response.json().get('more', False)
+            page += 1
+        return [result['id'] for result in results]
+
+    def process_tags(expr: str) -> str:
+        """Extract and process tags from expression"""
+        # Store positions of brackets for reconstruction
+        brackets = []
+        current_pos = 0
+        while current_pos < len(expr):
+            if expr[current_pos] in '()':
+                brackets.append((current_pos, expr[current_pos]))
+            current_pos += 1
+
+        # Split by operators and process each tag
+        tags = re.split(r'[+,()]', expr)
+        tags = [tag.strip() for tag in tags if tag.strip()]
+        
+        # Create mapping of original tags to their IDs
+        tag_map = {}
+        for tag in tags:
+            if tag not in tag_map:
+                ids = get_tag_ids(tag)
+                if ids:
+                    # If multiple IDs found, combine them with OR
+                    tag_map[tag] = f"({','.join(ids)})" if len(ids) > 1 else ids[0]
+                else:
+                    tag_map[tag] = "t0"  # Placeholder for non-existent tag
+
+        # Reconstruct expression with IDs
+        new_expr = expr
+        for tag, tag_ids in tag_map.items():
+            new_expr = re.sub(r'\b' + re.escape(tag) + r'\b', tag_ids, new_expr)
+
+        return new_expr
+
+    new_expression = process_tags(expression.strip())
+
+    field = 'dtag' if directly else 'tag'
+    return parse_logical_expression(new_expression, field)
+
+def parse_trait_expression(expression: str, directly: bool = False) -> Dict[str, Any]:
+    expression = normalize_expression(expression)
+    url = "https://api.vndb.org/kana/trait"
+    client = httpx.Client()
+
+    # def get_trait_ids(trait: str) -> List[str]:
+    #     """Get trait IDs from trait name using unpaginated search"""
+    #     results = []
+    #     page = 1
+    #     more = True
+    #     while more:
+    #         payload = {
+    #             "filters": ["search", "=", trait],
+    #             "fields": "id",
+    #             "page": page,
+    #             "results": 100
+    #         }
+    #         response = client.post(url, json=payload)
+    #         results.extend(response.json().get('results', []))
+    #         more = response.json().get('more', False)
+    #         page += 1
+    #     return [result['id'] for result in results]
+
+    def get_trait_ids(trait: str) -> List[str]:
+        # Recently, there is no way to get trait ids from trait name and trait group name at the same time.
+        # So, we don't process the trait here.
+        return [trait]
+
+    def process_traits(expr: str) -> str:
+        # Split by operators and process each trait
+        traits = re.split(r'[+,()]', expr)
+        traits = [trait.strip() for trait in traits if trait.strip()]
+        
+        # Create mapping of original traits to their IDs
+        trait_map = {}
+        for trait in traits:
+            if trait not in trait_map:
+                ids = get_trait_ids(trait)
+                trait_map[trait] = f"({','.join(ids)})" if len(ids) > 1 else ids[0] if ids else "i0"
+
+        # Reconstruct expression with IDs
+        new_expr = expr
+        for trait, trait_ids in trait_map.items():
+            new_expr = re.sub(r'\b' + re.escape(trait) + r'\b', trait_ids, new_expr)
+
+        return new_expr
+
+    new_expression = process_traits(expression.strip())
+
+    field = 'dtrait' if directly else 'trait'
+    return parse_logical_expression(new_expression, field)
 
 def parse_int(value: str | None, comparable: bool = False) -> str | None:
     value = value.replace(" ", "")
@@ -202,6 +345,7 @@ def parse_birthday(value: str) -> List[int]:
         if 1 <= month <= 12 and 1 <= day <= 31:
             return [month, day]
     return None
+
 
 def get_vn_additional_filters(params: Dict[str, Any]) -> Dict[str, Any]:
     filters = []
@@ -275,12 +419,17 @@ def get_vn_filters(params: Dict[str, Any]) -> Dict[str, Any]:
     if id := params.get('id'):
         filters.append(parse_logical_expression(id, 'id'))
 
-    # Handle simple search parameter
     if search := params.get('search'):
         filters.append({"search": search})
+
+    if tag := params.get('tag'):
+        filters.append(parse_tag_expression(tag))
+
+    if dtag := params.get('dtag'):
+        filters.append(parse_tag_expression(dtag, directly=True))
     
     # Handle fields that may contain multiple values
-    multi_value_fields = ['lang', 'platform', 'released', 'tag', 'dtag', 'olang']
+    multi_value_fields = ['lang', 'platform', 'released', 'olang']
     for field in multi_value_fields:
         if value := params.get(field):
             if parsed := parse_logical_expression(value, field):
@@ -422,7 +571,13 @@ def get_character_filters(params: Dict[str, Any]) -> Dict[str, Any]:
         if parsed := parse_birthday(birthday):
             filters.append({"birthday": parsed})
     
-    multi_value_fields = ['role', 'trait', 'dtrait']
+    if trait := params.get('trait'):
+        filters.append(parse_trait_expression(trait))
+
+    if dtrait := params.get('dtrait'):
+        filters.append(parse_trait_expression(dtrait, directly=True))
+
+    multi_value_fields = ['role']
     for field in multi_value_fields:
         if value := params.get(field):
             if parsed := parse_logical_expression(value, field):
@@ -602,8 +757,7 @@ if __name__ == '__main__':
         search_type='vn',
         params={
             'search': 'ai kiss',
-            'id': 'v1,v2',
-            'tag': 't1+t2',
-            'developer': 'p1,p2'
+            'id': '((v1,v2)+(v6,v7,v8))',
+            'tag': 'Gang Rape + Unavoidable Rape',
         }
     ))

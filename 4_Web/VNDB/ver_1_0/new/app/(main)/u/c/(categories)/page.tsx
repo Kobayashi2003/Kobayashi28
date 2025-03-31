@@ -6,12 +6,9 @@ import { motion, AnimatePresence } from "motion/react"
 
 import { cn } from "@/lib/utils"
 
-import { CategoryTypeSelecter } from "@/components/category/CategoryTypeSelecter"
-import { CategorySelecter } from "@/components/category/CategorySelecter"
-import { SortSelector } from "@/components/category/SortSelector"
-import { CategoryCreator } from "@/components/category/CategoryCreator"
-import { CategorySearcher } from "@/components/category/CategorySearcher"
+// import { SortSelector } from "@/components/category/SortSelector"
 
+import { CategoryControlPanel } from "@/components/category/CategoryControlPanel"
 import { Loading } from "@/components/status/Loading"
 import { Error } from "@/components/status/Error"
 import { NotFound } from "@/components/status/NotFound"
@@ -20,12 +17,13 @@ import { TogglePanelButton } from "@/components/button/TogglePanelButton"
 import { DeleteButton } from "@/components/button/DeleteButton"
 import { DeleteModeButton } from "@/components/button/DeleteModeButton"
 import { ReloadButton } from "@/components/button/ReloadButton"
-import { CardTypeSwitch } from "@/components/selector/CardTypeSwtich"
 import { PaginationButtons } from "@/components/button/PaginationButtons"
-
+import { Settings2Button } from "@/components/button/Settings2Button"
+import { CardTypeSwitch } from "@/components/selector/CardTypeSwtich"
+import { OrderSwitch } from "@/components/selector/OrderSwitch"
 import { SexualLevelSelector } from "@/components/selector/SexualLevelSelector"
 import { ViolenceLevelSelector } from "@/components/selector/ViolenceLevelSelector"
-
+import { SortByDialog } from "@/components/dialog/SortByDialog"
 import { VNsCardsGrid, CharactersCardsGrid, ProducersCardsGrid, StaffCardsGrid } from "@/components/card/CardsGrid"
 
 import {
@@ -48,8 +46,8 @@ export default function CategoriesPage() {
   const sortOrder = searchParams.get("order") || "asc"
 
   const isSearching = query !== ""
-  const [mounted, setMounted] = useState(false)
   const [open, setOpen] = useState(true)
+  const [sortByDialogOpen, setSortByDialogOpen] = useState(false)
 
   const [loadingCategories, setLoadingCategories] = useState(false)
   const [errorCategories, setErrorCategories] = useState<string>("")
@@ -64,10 +62,7 @@ export default function CategoriesPage() {
   const [producers, setProducers] = useState<Producer_Small[]>([])
   const [staff, setStaffs] = useState<Staff_Small[]>([])
 
-  const [queryTemp, setQueryTemp] = useState<string>("")
-  const [newCategoryName, setNewCategoryName] = useState<string>("")
   const [deleteCategoryMode, setDeleteCategoryMode] = useState<boolean>(false)
-  const [toDeleteCategoryId, setToDeleteCategoryId] = useState<number | undefined>(undefined)
   const [deleteMarkMode, setDeleteMarkMode] = useState<boolean>(false)
 
   const [totalPages, setTotalPages] = useState(0)
@@ -122,10 +117,6 @@ export default function CategoriesPage() {
     updateSearchParams("page", value.toString())
   }
 
-  const setQuery = (value: string) => {
-    updateSearchParams("q", value)
-  }
-
   const setSortBy = (value: string) => {
     updateSearchParams("sort", value)
   }
@@ -174,6 +165,7 @@ export default function CategoriesPage() {
       switch (selectedType) {
         case "v":
           const vnsResponse = await api.small.vn({
+            from: "local",
             id: markIds,
             sort: sortBy,
             reverse: sortOrder === "desc",
@@ -225,7 +217,7 @@ export default function CategoriesPage() {
           setCurrentPageItemsCount(staffsResponse.results.length)
           break
       }
-    }  
+    }
     catch (error) {
       setErrorResources(error as string)
     } finally {
@@ -234,24 +226,20 @@ export default function CategoriesPage() {
   }
 
 
-  const handleSearch = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault()
-    const queryTempTrim = queryTemp.trim()
-    if (!queryTempTrim) {
+  const handleSearch = async (query: string) => {
+    if (!query) {
       removeKeyFromSearchParams("q")
     } else {
-      updateMultipleSearchParams({ q: queryTempTrim, page: "1" })
+      updateMultipleSearchParams({ q: query, page: "1" })
     }
   }
 
-  const handleCreateCategory = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault()
+  const handleCreateCategory = async (newCategoryName: string) => {
     if (!selectedType || !newCategoryName) return
     try {
       setLoadingCategories(true)
       setErrorCategories("")
       await api.category.create(selectedType, newCategoryName)
-      setNewCategoryName("")
       setSelectedCategoryId(undefined)
       fetchCategories()
     } catch (error) {
@@ -261,12 +249,12 @@ export default function CategoriesPage() {
     }
   }
 
-  const handleDeleteCategory = async () => {
-    if (!selectedType || !toDeleteCategoryId) return
+  const handleDeleteCategory = async (categoryId: number) => {
+    if (!selectedType || !categoryId) return
     try {
       setLoadingCategories(true)
       setErrorCategories("")
-      await api.category.delete(selectedType, toDeleteCategoryId)
+      await api.category.delete(selectedType, categoryId)
       setSelectedCategoryId(undefined)
       fetchCategories()
     } catch (error) {
@@ -291,11 +279,6 @@ export default function CategoriesPage() {
       setLoadingResources(false)
     }
   }
-
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   useEffect(() => {
     return () => {
@@ -388,178 +371,95 @@ export default function CategoriesPage() {
 
   return (
     <div className="w-full min-h-screen flex flex-col md:flex-row gap-1">
-      <AnimatePresence mode="wait">
-        {/* Category Pannel */}
-        {open && (
-          <>
-            {/* Category Pannel */}
-            <motion.div
-              key="open"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.1 }}
-              className={cn(
-                "w-full md:fixed md:top-[10%] md:w-100 lg:w-120 xl:w-140 flex-col gap-2 transition-all duration-300",
-                !mounted && "opacity-0"
-              )}>
-              <div className="flex-1 flex flex-row gap-2 justify-between items-center">
-                <CategoryTypeSelecter
-                  typeOptions={[
-                    { key: "v", value: "v", label: "𝓥" },
-                    { key: "c", value: "c", label: "𝓒" },
-                    { key: "p", value: "p", label: "𝓟" },
-                    { key: "s", value: "s", label: "𝓢" },
-                  ]}
-                  selectedValue={selectedType}
-                  onChange={(value) => setSelectedType(value)}
-                  size="icon"
-                />
-                <div className="flex flex-row gap-2 justify-center items-center">
-                  <DeleteModeButton
-                    deleteMode={deleteCategoryMode}
-                    setDeleteMode={setDeleteCategoryMode}
-                  />
-                  <TogglePanelButton
-                    open={open}
-                    setOpen={setOpen}
-                    direction="left"
-                  />
-                </div>
-              </div>
-              {errorCategories && (
-                <div className="flex-1 flex flex-row gap-2 justify-center items-center">
-                  {/* <p className="text-red-500/50">{errorCategories}</p> */}
-                </div>
-              )}
-              <div className="flex-1 flex flex-col gap-2 justify-between items-center">
-                <CategorySelecter
-                  loading={loadingCategories}
-                  categoryOptions={categories.map(category => ({
-                    key: `category-${category.id}`,
-                    value: category.id,
-                    label: category.category_name,
-                  }))}
-                  selectedValue={selectedCategoryId}
-                  deleteMode={deleteCategoryMode}
-                  setToDeleteId={setToDeleteCategoryId}
-                  handleDeleteCategory={handleDeleteCategory}
-                  onChange={(value) => setSelectedCategoryId(value)}
-                  className="w-full"
-                />
-                <CategoryCreator
-                  newCategoryName={newCategoryName}
-                  setNewCategoryName={setNewCategoryName}
-                  handleCreateCategory={handleCreateCategory}
-                  disabled={loadingCategories || loadingResources}
-                  className="w-full"
-                />
-                <CategorySearcher
-                  isSearching={isSearching}
-                  query={queryTemp}
-                  setQuery={setQueryTemp}
-                  handleSearch={handleSearch}
-                  disabled={loadingCategories || loadingResources}
-                  className={cn(
-                    "w-full",
-                    !selectedCategoryId && "opacity-0"
-                  )}
-                />
-              </div>
-            </motion.div>
-            {/* Placeholder */}
-            <motion.div
-              key="placeholder"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.1 }}
-              className="hidden h-full md:block md:w-100 lg:w-120 xl:w-140"
-            />
-          </>
-        )}
-      </AnimatePresence>
+      {/* Control Panel */}
+      <CategoryControlPanel
+        open={open}
+        type={selectedType}
+        categoryOptions={categories.map(category => ({
+          value: category.id,
+          label: category.category_name,
+        }))}
+        selectedCategoryId={selectedCategoryId}
+        deleteMode={deleteCategoryMode}
+        isSearching={isSearching}
+        setOpen={setOpen}
+        setType={setSelectedType}
+        setSelectedCategoryId={setSelectedCategoryId}
+        setDeleteMode={setDeleteCategoryMode}
+        handleDeleteCategory={handleDeleteCategory}
+        handleCreateCategory={handleCreateCategory}
+        handleSearch={handleSearch}
+        disabled={loadingCategories || loadingResources}
+        className={"z-10 md:fixed md:top-[10%]"}
+      />
+      {/* Placeholder for Control Panel */}
+      <div className={cn("max-md:hidden h-full md:w-100 lg:w-120 xl:w-140", !open && "hidden")} />
 
       {/* Main Content */}
-      <div className={cn(
-        "flex-1 p-4 flex flex-col gap-2 transition-all duration-300 justify-between items-center",
-        !mounted && "opacity-0"
-      )}>
-        {selectedCategoryId && (selectedType === "v" || selectedType === "c") && (
-          <div className="w-full flex flex-row gap-2 justify-between items-center">
+      <div className="flex-1 p-4 flex flex-col gap-2 transition-all duration-300 justify-between items-center">
+        {selectedCategoryId && (
+          <div className={cn(
+            "w-full flex flex-row gap-2",
+            selectedType === "v" && "justify-between",
+            selectedType === "c" && "justify-between",
+            selectedType === "p" && "justify-start",
+            selectedType === "s" && "justify-start",
+          )}>
             <div className="flex flex-wrap justify-start gap-2">
-              {/* Show Panel Button */}
-              {!open && (
-                <TogglePanelButton
-                  open={open}
-                  setOpen={setOpen}
-                  direction="left"
-                />
-              )}
-              {/* Sort Selecter Button */}
-              <SortSelector
+              {/* Sort By Dialog Button */}
+              <Settings2Button
+                onClick={() => setSortByDialogOpen(true)}
+                disabled={loadingResources}
+              />
+              {/* Sort By Dialog */}
+              <SortByDialog
+                open={sortByDialogOpen}
+                setOpen={setSortByDialogOpen}
                 type={selectedType}
+                from={"local"}
                 sortBy={sortBy}
-                sortOrder={sortOrder}
                 setSortBy={setSortBy}
-                setSortOrder={setSortOrder}
+              />
+              {/* Order Switch Button */}
+              <OrderSwitch
+                order={sortOrder}
+                setOrder={setSortOrder}
+                disabled={loadingResources}
               />
               {/* Card Type Button */}
               <CardTypeSwitch
                 cardType={cardType}
                 setCardType={(value) => setCardType(value as "image" | "text")}
+                disabled={loadingResources}
               />
               {/* Delete Mode Button */}
               <DeleteModeButton
                 deleteMode={deleteMarkMode}
                 setDeleteMode={setDeleteMarkMode}
+                disabled={loadingResources}
               />
               {/* Reload Button */}
               <ReloadButton
                 handleReload={() => { fetchResources() }}
+                disabled={loadingResources}
               />
             </div>
-            <div className="flex flex-wrap justify-end gap-2">
-              <SexualLevelSelector
-                sexualLevel={sexualLevel}
-                setSexualLevel={(value) => setSexualLevel(value as "safe" | "suggestive" | "explicit")}
-              />
-              {/* Divider */}
-              <div className="w-px bg-gray-300 dark:bg-gray-700 hidden sm:block" />
-              <ViolenceLevelSelector
-                violenceLevel={violenceLevel}
-                setViolenceLevel={(value) => setViolenceLevel(value as "tame" | "violent" | "brutal")}
-              />
-            </div>
-          </div>
-        )}
-        {selectedCategoryId && (selectedType === "s" || selectedType === "p") && (
-          <div className="w-full flex flex-row gap-2 justify-start items-center">
-            {/* Show Panel Button */}
-            {!open && (
-              <TogglePanelButton
-                open={open}
-                setOpen={setOpen}
-                direction="left"
-              />
+            {selectedType === "v" || selectedType === "c" && (
+              <div className="flex flex-wrap justify-end gap-2">
+                <SexualLevelSelector
+                  sexualLevel={sexualLevel}
+                  setSexualLevel={(value) => setSexualLevel(value as "safe" | "suggestive" | "explicit")}
+                  disabled={loadingResources}
+                />
+                {/* Divider */}
+                <div className="w-px bg-gray-300 dark:bg-gray-700 hidden sm:block" />
+                <ViolenceLevelSelector
+                  violenceLevel={violenceLevel}
+                  setViolenceLevel={(value) => setViolenceLevel(value as "tame" | "violent" | "brutal")}
+                  disabled={loadingResources}
+                />
+              </div>
             )}
-            {/* Sort Selecter Button */}
-            <SortSelector
-              type={selectedType}
-              sortBy={sortBy}
-              sortOrder={sortOrder}
-              setSortBy={setSortBy}
-              setSortOrder={setSortOrder}
-            />
-            {/* Delete Mode Button */}
-            <DeleteModeButton
-              deleteMode={deleteMarkMode}
-              setDeleteMode={setDeleteMarkMode}
-            />
-            {/* Reload Button */}
-            <ReloadButton
-              handleReload={() => { fetchResources() }}
-            />
           </div>
         )}
         <AnimatePresence mode="wait">
@@ -613,10 +513,10 @@ export default function CategoriesPage() {
                 />
               ) : selectedType === "c" ? (
                 <CharactersCardsGrid
-                    characters={characters}
-                    cardType={cardType}
-                    sexualLevel={sexualLevel}
-                    violenceLevel={violenceLevel}
+                  characters={characters}
+                  cardType={cardType}
+                  sexualLevel={sexualLevel}
+                  violenceLevel={violenceLevel}
                 />
               ) : selectedType === "p" ? (
                 <ProducersCardsGrid
@@ -646,10 +546,10 @@ export default function CategoriesPage() {
                       >
                       </motion.div>
                       <DeleteButton
-                        handleDelete={() => { 
+                        handleDelete={() => {
                           const itemId = getItemId(index)
                           if (itemId) {
-                            handleDeleteMark(parseInt(itemId.slice(1))) 
+                            handleDeleteMark(parseInt(itemId.slice(1)))
                           }
                         }}
                         className="absolute top-2 right-2"

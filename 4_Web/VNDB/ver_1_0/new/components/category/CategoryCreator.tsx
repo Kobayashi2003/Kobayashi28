@@ -1,16 +1,19 @@
+"use client"
+
+import { useState } from "react"
 import { cn } from "@/lib/utils"
 import { InputBar } from "@/components/input/InputBar"
 import { AddButton } from "@/components/button/AddButton"
 
 interface CategoryCreatorProps {
-  newCategoryName: string
-  setNewCategoryName: (newCategoryName: string) => void
-  handleCreateCategory: () => void
+  handleCreateCategory: (input: string) => void
   disabled?: boolean
   className?: string
 }
 
-export function CategoryCreator({ newCategoryName, setNewCategoryName, handleCreateCategory, disabled, className }: CategoryCreatorProps) {
+export function CategoryCreator({ handleCreateCategory, disabled, className }: CategoryCreatorProps) {
+
+  const [input, setInput] = useState("")
 
   const containerFlex = "flex flex-row justify-between items-center gap-2"
   const containerBgColor = "bg-[#0F2942]/80 hover:bg-[#0F2942]"
@@ -18,7 +21,12 @@ export function CategoryCreator({ newCategoryName, setNewCategoryName, handleCre
   const containerTransition = "transition-all duration-300"
 
   return (
-    <form onSubmit={handleCreateCategory} className={cn(
+    <form onSubmit={(e) => {
+      e.preventDefault()
+      if (input.trim() === "") return
+      handleCreateCategory(input.trim())
+      setInput("")
+    }} className={cn(
       "p-4",
       containerFlex,
       containerBgColor,
@@ -27,14 +35,18 @@ export function CategoryCreator({ newCategoryName, setNewCategoryName, handleCre
       className
     )}>
       <InputBar
-        input={newCategoryName}
-        setInput={setNewCategoryName}
+        input={input}
+        setInput={setInput}
         placeholder="New Category Name"
         disabled={disabled}
         className="w-full"
       />
       <AddButton
-        handleAdd={() => { setNewCategoryName(""); handleCreateCategory() }}
+        handleAdd={() => { 
+          if (input.trim() === "") return
+          handleCreateCategory(input.trim())
+          setInput("")
+        }}
         disabled={disabled}
       />
     </form>

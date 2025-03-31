@@ -18,18 +18,18 @@ if __name__ == '__main__':
     with open(payload_file_path, 'r') as f:
         payload = json.load(f)
     
-    payload['filters'] = and_filters(
-        or_filters(
-            ["platform", "=", "psp"],
-            ["platform", "=", "ps2"],
-            ["platform", "=", "ps3"],
-            ["platform", "=", "ps4"],
-            ["platform", "=", "ps5"],
-            ["platform", "=", "psv"],
-        ),
-        payload['filters']
-    )
-    payload['fields'] = "id,title,titles.title,titles.main,titles.official,platforms"
+    # payload['filters'] = and_filters(
+    #     or_filters(
+    #         ["platform", "=", "psp"],
+    #         ["platform", "=", "ps2"],
+    #         ["platform", "=", "ps3"],
+    #         ["platform", "=", "ps4"],
+    #         ["platform", "=", "ps5"],
+    #         ["platform", "=", "psv"],
+    #     ),
+    #     payload['filters']
+    # )
+    # payload['fields'] = "id,title,titles.title,titles.main,titles.official,platforms"
 
     response = httpx.post(
         "https://api.vndb.org/kana/vn",

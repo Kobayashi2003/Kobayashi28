@@ -35,6 +35,16 @@ def search(resource_type: str, params: Dict[str, Any],
     limit = min(max(1, limit or 20), 100)
     query = query.offset((page - 1) * limit).limit(limit)
 
+    # Export sql query to current directory for debugging
+    import os
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    debug_file_path = os.path.join(current_dir, "../query.sql")
+    try:
+        with open(debug_file_path, 'w') as f:
+            f.write(str(query.statement.compile(compile_kwargs={"literal_binds": True})))
+    except Exception as e:
+        print(f"Failed to export SQL query: {e}")
+
     results = [dict(zip(fields, result)) for result in query.all()]
 
     return {'results': results, 'more': more, 'count': total} if count else {'results': results, 'more': more}

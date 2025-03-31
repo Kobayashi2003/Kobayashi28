@@ -53,7 +53,7 @@ export function SearchHeader({ className }: SearchHeaderProps) {
 
   // useEffect(() => {
   //   if (isSearching) handleSubmit()
-  // }, [sortBy, sortOrder])
+  // }, [sortOrder])
 
   return (
     <div className={cn("flex flex-row justify-center items-center gap-2", className)}>
