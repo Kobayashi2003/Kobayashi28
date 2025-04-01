@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any
 
 from functools import wraps
 
@@ -7,7 +7,7 @@ from vndb.database import convert_model_to_dict
 
 NOT_FOUND = {'status': 'NOT_FOUND', 'result': None}
 
-def format_results(results: Any) -> Dict[str, Any]:
+def format_results(results: Any) -> dict[str, Any]:
     if isinstance(results, db.Model):
         return {'status': 'SUCCESS','results': convert_model_to_dict(results)}
     elif isinstance(results, list) and all(isinstance(item, db.Model) for item in results):

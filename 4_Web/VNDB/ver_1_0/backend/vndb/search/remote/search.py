@@ -1,9 +1,8 @@
-import re
 import httpx
-from typing import Dict, List, Any, Callable
+from typing import Any, Callable
 from enum import Enum
 
-from .filters import VNDBFilters, FilterType, get_remote_filters
+from .filters import get_remote_filters
 from .fields import get_remote_fields, validate_sort
 
 
@@ -25,97 +24,12 @@ class VNDBAPIWrapper:
         if api_token:
             self.client.headers.update({"Authorization": f"Token {api_token}"})
 
-    def _build_filters(self, filters: Dict[str, Any], filter_set: Dict[str, Any]) -> List[Any]:
-        """
-        Recursively build VNDB filters from a dictionary of filter conditions.
-
-        Args:
-            filters (Dict[str, Any]): The filter conditions to process.
-            filter_set (Dict[str, Any]): The set of valid filters for the current domain.
-
-        Returns:
-            List[Any]: A list representing the VNDB filter structure.
-        """
-        result = []
-        for key, value in filters.items():
-            if key in ["and", "or"]:
-                # Handle logical operators by recursively processing their contents
-                result.append([key] + [self._build_filters(item, filter_set) for item in value])
-            else:
-                # Process individual filter conditions
-                result.append(self._build_filter(key, value, filter_set))
-        
-        # If there's only one filter, return it directly; otherwise, wrap in an "and" operation
-        return result[0] if len(result) == 1 else ["and"] + result
-
-    def _build_filter(self, key: str, value: Any, filter_set: Dict[str, Any]) -> List[Any]:
-        """
-        Build a single VNDB filter condition.
-
-        Args:
-            key (str): The filter key.
-            value (Any): The filter value or nested filter structure.
-            filter_set (Dict[str, Any]): The set of valid filters for the current domain.
-
-        Returns:
-            List[Any]: A list representing a single VNDB filter condition.
-
-        Raises:
-            ValueError: If the filter key is unknown.
-        """
-        if key not in filter_set:
-            raise ValueError(f"Unknown filter: {key}")
-
-        filter_def = filter_set[key]
-        
-        # Handle nested filters with associated domains
-        if isinstance(value, dict) and filter_def.filter_type == FilterType.NESTED:
-            if filter_def.associated_domain:
-                # Use the associated domain's filter set for nested filters
-                associated_filter_set = getattr(VNDBFilters, filter_def.associated_domain)
-                nested_filters = self._build_filters(value, associated_filter_set)
-            else:
-                # Use the current filter set if no associated domain is specified
-                nested_filters = self._build_filters(value, filter_set)
-            return [key, "=", nested_filters]
-        
-        # Extract operator and value from tuple, or use default equality operator
-        if isinstance(value, tuple):
-            operator, filter_value = value
-        else:
-            operator, filter_value = '=', value
-
-        if 'o' in filter_def.flags:
-            pattern = r'^(>=|<=|>|<|=)(.+)$'
-            match = re.match(pattern, value.strip())
-            if match:
-                operator, filter_value = match.groups()
-            else:
-                operator, filter_value = '=', value
-
-        # Special handling for array type filters
-        if filter_def.filter_type == FilterType.ARRAY and not isinstance(filter_value, list):
-            if key == 'tag' or key == 'dtag':
-                ...
-            elif key == 'trait' or key == 'dtrait':
-                ...
-            else:
-                filter_value = [filter_value]
-        # Special handling for boolean type filters
-        if filter_def.filter_type == FilterType.BOOLEAN:
-            operator = '=' if filter_value else '!='
-            filter_value = 1
-
-        return [key, operator, filter_value]
-
-    def query(self, endpoint: VNDBEndpoint, filters: Dict[str, Any], fields: List[str], 
-              sort: str = "id", reverse: bool = False, results: int = 10, page: int = 1, count: bool = True) -> Dict[str, Any]:
+    def query(self, endpoint: VNDBEndpoint, filters: list, fields: list[str], 
+              sort: str = "id", reverse: bool = False, results: int = 10, page: int = 1, count: bool = True) -> dict[str, Any]:
         url = f"{VNDB_API_URL}/{endpoint.value}"
         
-        filter_set = getattr(VNDBFilters, endpoint.name)
-        
         payload = {
-            "filters": self._build_filters(filters, filter_set),
+            "filters": filters,
             "fields": ",".join(fields),
             "sort": sort,
             "reverse": reverse,
@@ -123,43 +37,56 @@ class VNDBAPIWrapper:
             "page": page,
             "count": count
         }
-
-        # Export payload to current directory for debugging
-        import os, json
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        debug_file_path = os.path.join(current_dir, "../payload.json")
-        try:
-            with open(debug_file_path, 'w') as f:
-                json.dump(payload, f, indent=2)
-        except Exception as e:
-            print(f"Failed to export payload: {e}")
         
         response = self.client.post(url, json=payload)
+
+        # TODO:DEBUG
+        from vndb.logger import add_log_entry
+        if response.status_code != 200:
+            level = "error"
+            message = f"Error querying {endpoint.value}"
+            details = {
+                "from": "remote",
+                "url": url,
+                "payload": payload,
+                "status_code": response.status_code,
+                "response": response.json()
+            }
+        else:
+            level = "info"
+            message = f"Successfully queried {endpoint.value}"
+            details = {
+                "from": "remote",
+                "url": url,
+                "payload": payload,
+            }
+        add_log_entry(level, message, details)
+
         response.raise_for_status()
         return response.json()
 
-    def get_vn(self, filters: Dict[str, Any], fields: List[str], **kwargs) -> Dict[str, Any]:
+    def get_vn(self, filters: dict[str, Any], fields: list[str], **kwargs) -> dict[str, Any]:
         return self.query(VNDBEndpoint.VN, filters, fields, **kwargs)
 
-    def get_character(self, filters: Dict[str, Any], fields: List[str], **kwargs) ->   Dict[str, Any]:
+    def get_character(self, filters: dict[str, Any], fields: list[str], **kwargs) ->   dict[str, Any]:
         return self.query(VNDBEndpoint.CHARACTER, filters, fields, **kwargs)
 
-    def get_producer(self, filters: Dict[str, Any], fields: List[str], **kwargs) -> Dict[str, Any]:
+    def get_producer(self, filters: dict[str, Any], fields: list[str], **kwargs) -> dict[str, Any]:
         return self.query(VNDBEndpoint.PRODUCER, filters, fields, **kwargs)
 
-    def get_staff(self, filters: Dict[str, Any], fields: List[str], **kwargs) -> Dict[str, Any]:
+    def get_staff(self, filters: dict[str, Any], fields: list[str], **kwargs) -> dict[str, Any]:
         return self.query(VNDBEndpoint.STAFF, filters, fields, **kwargs)
 
-    def get_tag(self, filters: Dict[str, Any], fields: List[str], **kwargs) -> Dict[str, Any]:
+    def get_tag(self, filters: dict[str, Any], fields: list[str], **kwargs) -> dict[str, Any]:
         return self.query(VNDBEndpoint.TAG, filters, fields, **kwargs)
 
-    def get_trait(self, filters: Dict[str, Any], fields: List[str], **kwargs) -> Dict[str, Any]:
+    def get_trait(self, filters: dict[str, Any], fields: list[str], **kwargs) -> dict[str, Any]:
         return self.query(VNDBEndpoint.TRAIT, filters, fields, **kwargs)
 
-    def get_release(self, filters: Dict[str, Any], fields: List[str], **kwargs) -> Dict[str, Any]:
+    def get_release(self, filters: dict[str, Any], fields: list[str], **kwargs) -> dict[str, Any]:
         return self.query(VNDBEndpoint.RELEASE, filters, fields, **kwargs)
 
-    def update_user_list(self, vn_id: str, data: Dict[str, Any]) -> None:
+    def update_user_list(self, vn_id: str, data: dict[str, Any]) -> None:
         url = f"{VNDB_API_URL}/ulist/{vn_id}"
         response = self.client.patch(url, json=data)
         response.raise_for_status()
@@ -179,7 +106,7 @@ class VNDBAPIWrapper:
         response = self.client.delete(url)
         response.raise_for_status()
 
-    def get_auth_info(self) -> Dict[str, Any]:
+    def get_auth_info(self) -> dict[str, Any]:
         url = f"{VNDB_API_URL}/authinfo"
         response = self.client.get(url)
         response.raise_for_status()
@@ -195,7 +122,7 @@ def memoize(timeout=60*60*24):
     except ImportError:
         return lambda f: f
 
-def unpaginated_search(search_function: Callable, **kwargs) -> Dict[str, Any]:
+def unpaginated_search(search_function: Callable, **kwargs) -> dict[str, Any]:
     results = []
     page = 1
     more = True
@@ -207,7 +134,7 @@ def unpaginated_search(search_function: Callable, **kwargs) -> Dict[str, Any]:
     
     return {'results': results, 'total': len(results), 'count': len(results)}
 
-def paginated_results(results: Dict[str, Any], sort: str = 'id', reverse: bool = False, limit: int = 10, page: int = 1, count: bool = True) -> Dict[str, Any]:
+def paginated_results(results: dict[str, Any], sort: str = 'id', reverse: bool = False, limit: int = 10, page: int = 1, count: bool = True) -> dict[str, Any]:
     if not results or 'results' not in results:
         return {'results': [], 'count': 0} if count else {'results': []}
     
@@ -226,30 +153,30 @@ def paginated_results(results: Dict[str, Any], sort: str = 'id', reverse: bool =
     return results
 
 
-def search_vn(filters: Dict[str, Any], fields: List[str], page: int = 1, **kwargs) -> Dict[str, Any]:
+def search_vn(filters: dict[str, Any], fields: list[str], page: int = 1, **kwargs) -> dict[str, Any]:
     return api.get_vn(filters, fields, page=page, **kwargs)
 
-def search_character(filters: Dict[str, Any], fields: List[str], page: int = 1, **kwargs) -> Dict[str, Any]:
+def search_character(filters: dict[str, Any], fields: list[str], page: int = 1, **kwargs) -> dict[str, Any]:
     return api.get_character(filters, fields, page=page, **kwargs)
 
-def search_tag(filters: Dict[str, Any], fields: List[str], page: int = 1, **kwargs) -> Dict[str, Any]:
+def search_tag(filters: dict[str, Any], fields: list[str], page: int = 1, **kwargs) -> dict[str, Any]:
     return api.get_tag(filters, fields, page=page, **kwargs)
 
-def search_producer(filters: Dict[str, Any], fields: List[str], page: int = 1, **kwargs) -> Dict[str, Any]:
+def search_producer(filters: dict[str, Any], fields: list[str], page: int = 1, **kwargs) -> dict[str, Any]:
     return api.get_producer(filters, fields, page=page, **kwargs)
 
-def search_staff(filters: Dict[str, Any], fields: List[str], page: int = 1, **kwargs) -> Dict[str, Any]:
+def search_staff(filters: dict[str, Any], fields: list[str], page: int = 1, **kwargs) -> dict[str, Any]:
     return api.get_staff(filters, fields, page=page, **kwargs)
 
-def search_trait(filters: Dict[str, Any], fields: List[str], page: int = 1, **kwargs) -> Dict[str, Any]:
+def search_trait(filters: dict[str, Any], fields: list[str], page: int = 1, **kwargs) -> dict[str, Any]:
     return api.get_trait(filters, fields, page=page, **kwargs)
 
-def search_release(filters: Dict[str, Any], fields: List[str], page: int = 1, **kwargs) -> Dict[str, Any]:
+def search_release(filters: dict[str, Any], fields: list[str], page: int = 1, **kwargs) -> dict[str, Any]:
     return api.get_release(filters, fields, page=page, **kwargs)
 
-def search(resource_type: str, params: Dict[str, Any], response_size: str = 'small',
+def search(resource_type: str, params: dict[str, Any], response_size: str = 'small',
            page: int = 1, limit: int = 100, 
-           sort: str = 'id', reverse: bool = False, count: bool = True) -> Dict[str, Any]:
+           sort: str = 'id', reverse: bool = False, count: bool = True) -> dict[str, Any]:
 
     search_functions = {
         'vn': search_vn,
@@ -327,7 +254,7 @@ def search(resource_type: str, params: Dict[str, Any], response_size: str = 'sma
     return results
 
 
-def search_resources_by_release_id(release_id: str, related_resource_type: str, response_size: str = "small") -> Dict[str, Any]:
+def search_resources_by_release_id(release_id: str, related_resource_type: str, response_size: str = "small") -> dict[str, Any]:
     url = "https://api.vndb.org/kana/release"
 
     related_resource_fields = get_remote_fields(related_resource_type, response_size)
@@ -355,7 +282,7 @@ def search_resources_by_release_id(release_id: str, related_resource_type: str, 
 
     return {'results': results}
 
-def search_resources_by_charid(charid: str, related_resource_type: str, response_size: str = "small") -> Dict[str, Any]:
+def search_resources_by_charid(charid: str, related_resource_type: str, response_size: str = "small") -> dict[str, Any]:
     url = "https://api.vndb.org/kana/character"
 
     related_resource_fields = get_remote_fields(related_resource_type, response_size)
@@ -382,7 +309,7 @@ def search_resources_by_charid(charid: str, related_resource_type: str, response
 
     return {'results': results}
 
-def search_resources_by_vnid(vnid: str, related_resource_type: str, response_size: str = "small") -> Dict[str, Any]:
+def search_resources_by_vnid(vnid: str, related_resource_type: str, response_size: str = "small") -> dict[str, Any]:
     url = "https://api.vndb.org/kana/vn"
 
     related_resource_fields = get_remote_fields(related_resource_type, response_size)
@@ -415,7 +342,7 @@ def search_resources_by_vnid(vnid: str, related_resource_type: str, response_siz
     return {'results': results}
 
 def search_releases_by_resource_id(resource_type: str, resource_id: str, response_size: str = 'small',
-                                   sort: str = 'id', reverse: bool = False, limit: int = 10, page: int = 1, count: bool = True) -> Dict[str, Any]:
+                                   sort: str = 'id', reverse: bool = False, limit: int = 10, page: int = 1, count: bool = True) -> dict[str, Any]:
     url = "https://api.vndb.org/kana/release"
 
     filters = {
@@ -443,7 +370,7 @@ def search_releases_by_resource_id(resource_type: str, resource_id: str, respons
     return results
 
 def search_characters_by_resource_id(resource_type: str, resource_id: str, response_size: str = 'small', 
-                                      sort: str = 'id', reverse: bool = False, limit: int = 10, page: int = 1, count: bool = True) -> Dict[str, Any]:
+                                      sort: str = 'id', reverse: bool = False, limit: int = 10, page: int = 1, count: bool = True) -> dict[str, Any]:
     url = "https://api.vndb.org/kana/character"
 
     filters = {
@@ -472,7 +399,7 @@ def search_characters_by_resource_id(resource_type: str, resource_id: str, respo
     return results
 
 def search_vns_by_resource_id(resource_type: str, resource_id: str, response_size: str = 'small',
-                              sort: str = 'id', reverse: bool = False, limit: int = 10, page: int = 1, count: bool = True) -> Dict[str, Any]:
+                              sort: str = 'id', reverse: bool = False, limit: int = 10, page: int = 1, count: bool = True) -> dict[str, Any]:
     url = "https://api.vndb.org/kana/vn"
 
     filters = {
@@ -528,17 +455,17 @@ def search_resources_by_charid_cache(*args, **kwargs): return search_resources_b
 def search_resources_by_release_id_cache(*args, **kwargs): return search_resources_by_release_id(*args, **kwargs)
 
 def search_resources_by_vnid_paginated(vnid: str, related_resource_type: str, response_size: str = "small", 
-                                       sort: str = 'id', reverse: bool = False, limit: int = 10, page: int = 1, count: bool = True) -> Dict[str, Any]:
+                                       sort: str = 'id', reverse: bool = False, limit: int = 10, page: int = 1, count: bool = True) -> dict[str, Any]:
     return paginated_results(search_resources_by_vnid_cache(vnid, related_resource_type, response_size),
                              sort, reverse, limit, page, count)
 
 def search_resources_by_charid_paginated(charid: str, related_resource_type: str, response_size: str = "small", 
-                                         sort: str = 'id', reverse: bool = False, limit: int = 10, page: int = 1, count: bool = True) -> Dict[str, Any]:
+                                         sort: str = 'id', reverse: bool = False, limit: int = 10, page: int = 1, count: bool = True) -> dict[str, Any]:
     return paginated_results(search_resources_by_charid_cache(charid, related_resource_type, response_size), 
                              sort, reverse, limit, page, count)
 
 def search_resources_by_release_id_paginated(release_id: str, related_resource_type: str, response_size: str = "small",
-                                             sort: str = 'id', reverse: bool = False, limit: int = 10, page: int = 1, count: bool = True) -> Dict[str, Any]:
+                                             sort: str = 'id', reverse: bool = False, limit: int = 10, page: int = 1, count: bool = True) -> dict[str, Any]:
     return paginated_results(search_resources_by_release_id_cache(release_id, related_resource_type, response_size),
                              sort, reverse, limit, page, count)
 

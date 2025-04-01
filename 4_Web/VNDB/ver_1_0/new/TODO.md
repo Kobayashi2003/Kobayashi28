@@ -3,6 +3,5 @@
 - NaviBar
 - MarkDialog
 - MarkButton
-- LOCAL SEARCH CHARACTER SEX FILTER
 - MenuButton
 - MenuDialog

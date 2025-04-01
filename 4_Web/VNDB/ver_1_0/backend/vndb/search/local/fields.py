@@ -1,5 +1,3 @@
-from typing import List
-
 from vndb.database.models import VN, Tag, Producer, Staff, Character, Trait, Release
 
 class LocalFields:
@@ -58,7 +56,7 @@ def validate_sort(search_type: str, sort: str) -> str:
         raise ValueError(f"Invalid sort: {sort} for search_type: {search_type}")
     return sort
 
-def get_local_fields(search_type: str, response_size: str = 'small') -> List[str]:
+def get_local_fields(search_type: str, response_size: str = 'small') -> list[str]:
     """
     Get the appropriate fields for a local database search based on the search type and response size.
 
@@ -67,7 +65,7 @@ def get_local_fields(search_type: str, response_size: str = 'small') -> List[str
         response_size (str): The desired size of the response ('small' or 'large'). Defaults to 'small'.
 
     Returns:
-        List[str]: A list of field names to be used in the database query.
+        list[str]: A list of field names to be used in the database query.
 
     Raises:
         ValueError: If an invalid search_type or response_size is provided.

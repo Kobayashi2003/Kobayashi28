@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useSearchParams, useRouter, useParams } from "next/navigation"
+import { useSearchParams, useParams } from "next/navigation"
+import { useUrlParams } from "@/hooks/useUrlParams"
 import { motion, AnimatePresence } from "motion/react"
 
 import { SexualLevelSelector } from "@/components/selector/SexualLevelSelector"
@@ -25,70 +26,49 @@ import type {
 import { api } from "@/lib/api"
 
 export default function SearchResults() {
-  const router = useRouter()
   const params = useParams()
   const searchParams = useSearchParams()
+  const { updateKey } = useUrlParams()
 
   const type = params.type as "c" | "v" | "p" | "s" | "g" | "i" | "r"
 
   const itemsPerPage = 24
   const currentPage = parseInt(searchParams.get("page") || "1")
 
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [notFound, setNotFound] = useState(false)
+  const [resourceState, setResourceState] = useState({
+    loading: true,
+    error: null as string | null,
+    notFound: false
+  })
+
+  const [resourceData, setResourceData] = useState({
+    vns: [] as VN_Small[],
+    characters: [] as Character_Small[],
+    producers: [] as Producer_Small[],
+    staff: [] as Staff_Small[],
+    tags: [] as Tag_Small[],
+    traits: [] as Trait_Small[],
+    releases: [] as Release_Small[]
+  })
+
   const [totalPages, setTotalPages] = useState(0)
 
-  const [vns, setVNs] = useState<VN_Small[]>([])
-  const [characters, setCharacters] = useState<Character_Small[]>([])
-  const [producers, setProducers] = useState<Producer_Small[]>([])
-  const [staff, setStaff] = useState<Staff_Small[]>([])
-  const [tags, setTags] = useState<Tag_Small[]>([])
-  const [traits, setTraits] = useState<Trait_Small[]>([])
-  const [releases, setReleases] = useState<Release_Small[]>([])
-
-  // CardType, SexualLevel, ViolenceLevel just works in VNs and Characters Pages
   const [cardType, setCardType] = useState<"image" | "text">("image")
   const [sexualLevel, setSexualLevel] = useState<"safe" | "suggestive" | "explicit">("safe")
   const [violenceLevel, setViolenceLevel] = useState<"tame" | "violent" | "brutal">("tame")
 
   const [abortController, setAbortController] = useState<AbortController | null>(null)
 
-
-  const removeKeyFromSearchParams = (key: string) => {
-    const params = new URLSearchParams(searchParams)
-    params.delete(key)
-    router.push(`/${type}?${params.toString()}`)
-  }
-
-  const removeMultipleKeysFromSearchParams = (keys: string[]) => {
-    const params = new URLSearchParams(searchParams)
-    keys.forEach(key => params.delete(key))
-    router.push(`/${type}?${params.toString()}`)
-  }
-
-  const updateSearchParams = (key: string, value: string) => {
-    const params = new URLSearchParams(searchParams)
-    params.set(key, value)
-    router.push(`/${type}?${params.toString()}`)
-  }
-
-  const updateMultipleSearchParams = (params: Record<string, string>) => {
-    const newParams = new URLSearchParams(searchParams)
-    Object.entries(params).forEach(([key, value]) => {
-      newParams.set(key, value)
-    })
-    router.push(`/${type}?${newParams.toString()}`)
-  }
-
   const clearItems = () => {
-    setVNs([])
-    setReleases([])
-    setCharacters([])
-    setProducers([])
-    setStaff([])
-    setTags([])
-    setTraits([])
+    setResourceData({
+      vns: [],
+      releases: [],
+      characters: [],
+      producers: [],
+      staff: [],
+      tags: [],
+      traits: []
+    })
   }
 
   const fetchItems = async () => {
@@ -97,82 +77,67 @@ export default function SearchResults() {
       const newController = new AbortController()
       setAbortController(newController)
 
-      setLoading(true)
-      setError(null)
-      setNotFound(false)
+      const requestFunction = {
+        v: api.small.vn,
+        r: api.small.release,
+        c: api.small.character,
+        p: api.small.producer,
+        s: api.small.staff,
+        g: api.small.tag,
+        i: api.small.trait
+      }
+
+      const requestResource = {
+        v: "vns",
+        r: "releases",
+        c: "characters",
+        p: "producers",
+        s: "staff",
+        g: "tags",
+        i: "traits"
+      }
+
+      setResourceState({
+        loading: true,
+        error: null,
+        notFound: false
+      })
 
       const params: VNDBQueryParams = { page: currentPage, limit: itemsPerPage }
       for (const [key, value] of searchParams.entries()) {
-        params[key as string] = value as string
+        params[key as keyof VNDBQueryParams] = value as string
       }
 
-      switch (type) {
-        case "v":
-          const vnsResponse = await api.small.vn(params, newController.signal)
-          if (vnsResponse.results.length === 0) {
-            setNotFound(true)
-          }
-          setVNs(vnsResponse.results)
-          setTotalPages(Math.ceil(vnsResponse.count / itemsPerPage))
-          break;
-        case "r":
-          const releasesResponse = await api.small.release(params, newController.signal)
-          if (releasesResponse.results.length === 0) {
-            setNotFound(true)
-          }
-          setReleases(releasesResponse.results)
-          setTotalPages(Math.ceil(releasesResponse.count / itemsPerPage))
-          break;
-        case "c":
-          const charactersResponse = await api.small.character(params, newController.signal)
-          if (charactersResponse.results.length === 0) {
-            setNotFound(true)
-          }
-          setCharacters(charactersResponse.results)
-          setTotalPages(Math.ceil(charactersResponse.count / itemsPerPage))
-          break;
-        case "p":
-          const producersResponse = await api.small.producer(params, newController.signal)
-          if (producersResponse.results.length === 0) {
-            setNotFound(true)
-          }
-          setProducers(producersResponse.results)
-          setTotalPages(Math.ceil(producersResponse.count / itemsPerPage))
-          break;
-        case "s":
-          const staffResponse = await api.small.staff(params, newController.signal)
-          if (staffResponse.results.length === 0) {
-            setNotFound(true)
-          }
-          setStaff(staffResponse.results)
-          setTotalPages(Math.ceil(staffResponse.count / itemsPerPage))
-          break;
-        case "g":
-          const tagsResponse = await api.small.tag(params, newController.signal)
-          if (tagsResponse.results.length === 0) {
-            setNotFound(true)
-          }
-          setTags(tagsResponse.results)
-          setTotalPages(Math.ceil(tagsResponse.count / itemsPerPage))
-          break;
-        case "i":
-          const traitsResponse = await api.small.trait(params, newController.signal)
-          if (traitsResponse.results.length === 0) {
-            setNotFound(true)
-          }
-          setTraits(traitsResponse.results)
-          setTotalPages(Math.ceil(traitsResponse.count / itemsPerPage))
-          break;
+      const response = await requestFunction[type as keyof typeof requestFunction](params, newController.signal)
+      setResourceData({
+        ...resourceData,
+        [requestResource[type as keyof typeof requestResource]]: response.results
+      })
+      setTotalPages(Math.ceil(response.count / itemsPerPage))
+      if (response.results.length === 0) {
+        setResourceState({
+          loading: false,
+          error: null,
+          notFound: true
+        })
+      } else {
+        setResourceState({
+          loading: false,
+          error: null,
+          notFound: false
+        })
       }
     } catch (error) {
-      setError(error as string)
-    } finally {
-      setLoading(false)
+      setResourceState({
+        loading: false,
+        error: error as string,
+        notFound: false
+      })
     }
   }
   
   const handlePageChange = (page: number) => {
-    updateSearchParams("page", page.toString())
+    updateKey("page", page.toString())
   }
 
   useEffect(() => {
@@ -223,7 +188,7 @@ export default function SearchResults() {
       )}
       <AnimatePresence mode="wait">
         {/* Loading */}
-        {loading && (
+        {resourceState.loading && (
           <motion.div
             key="loading"
             {...fadeInAnimation}
@@ -233,17 +198,17 @@ export default function SearchResults() {
           </motion.div>
         )}
         {/* Error */}
-        {error && (
+        {resourceState.error && (
           <motion.div
             key="error"
             {...fadeInAnimation}
             className={statusStyle}
           >
-            <Error message={`Error: ${error}`} />
+            <Error message={`Error: ${resourceState.error}`} />
           </motion.div>
         )}
         {/* Not Found */}
-        {notFound && (
+        {resourceState.notFound && (
           <motion.div
             key="notfound"
             {...fadeInAnimation}
@@ -253,28 +218,28 @@ export default function SearchResults() {
           </motion.div>
         )}
         {/* Cards */}
-        {!loading && !error && !notFound && (
+        {!resourceState.loading && !resourceState.error && !resourceState.notFound && (
           <motion.div>
             {type === "v" && (
-              <VNsCardsGrid vns={vns} cardType={cardType} sexualLevel={sexualLevel} violenceLevel={violenceLevel} />
+              <VNsCardsGrid vns={resourceData.vns} cardType={cardType} sexualLevel={sexualLevel} violenceLevel={violenceLevel} />
             )}
             {type === "c" && (
-              <CharactersCardsGrid characters={characters} cardType={cardType} sexualLevel={sexualLevel} violenceLevel={violenceLevel} />
+              <CharactersCardsGrid characters={resourceData.characters} cardType={cardType} sexualLevel={sexualLevel} violenceLevel={violenceLevel} />
             )}
             {type === "r" && (
-              <ReleasesCardsGrid releases={releases} />
+              <ReleasesCardsGrid releases={resourceData.releases} />
             )}
             {type === "p" && (
-              <ProducersCardsGrid producers={producers} />
+              <ProducersCardsGrid producers={resourceData.producers} />
             )}
             {type === "s" && (
-              <StaffCardsGrid staff={staff} />
+              <StaffCardsGrid staff={resourceData.staff} />
             )}
             {type === "g" && (
-              <TagsCardsGrid tags={tags} />
+              <TagsCardsGrid tags={resourceData.tags} />
             )}
             {type === "i" && (
-              <TraitsCardsGrid traits={traits} />
+              <TraitsCardsGrid traits={resourceData.traits} />
             )}
           </motion.div>
         )}

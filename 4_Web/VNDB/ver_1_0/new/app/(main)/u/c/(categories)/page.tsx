@@ -1,19 +1,17 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useSearchParams, useRouter } from "next/navigation"
+import { useSearchParams } from "next/navigation"
+import { useUrlParams } from "@/hooks/useUrlParams"
 import { motion, AnimatePresence } from "motion/react"
 
 import { cn } from "@/lib/utils"
-
-// import { SortSelector } from "@/components/category/SortSelector"
 
 import { CategoryControlPanel } from "@/components/category/CategoryControlPanel"
 import { Loading } from "@/components/status/Loading"
 import { Error } from "@/components/status/Error"
 import { NotFound } from "@/components/status/NotFound"
 
-import { TogglePanelButton } from "@/components/button/TogglePanelButton"
 import { DeleteButton } from "@/components/button/DeleteButton"
 import { DeleteModeButton } from "@/components/button/DeleteModeButton"
 import { ReloadButton } from "@/components/button/ReloadButton"
@@ -27,14 +25,15 @@ import { SortByDialog } from "@/components/dialog/SortByDialog"
 import { VNsCardsGrid, CharactersCardsGrid, ProducersCardsGrid, StaffCardsGrid } from "@/components/card/CardsGrid"
 
 import {
-  Category, VN_Small, Character_Small, Producer_Small, Staff_Small
+  VN_Small, Character_Small, Producer_Small, Staff_Small, 
+  Tag_Small, Trait_Small, Release_Small, Category
 } from "@/lib/types"
 import { api } from "@/lib/api"
 
 
 export default function CategoriesPage() {
   const searchParams = useSearchParams()
-  const router = useRouter()
+  const { removeKey, removeMultipleKeys, updateKey, updateMultipleKeys } = useUrlParams()
 
   const itemsPerPage = 24
 
@@ -48,6 +47,26 @@ export default function CategoriesPage() {
   const isSearching = query !== ""
   const [open, setOpen] = useState(true)
   const [sortByDialogOpen, setSortByDialogOpen] = useState(false)
+
+  const [categoryState, setCategoryState] = useState({
+    loading: false,
+    error: null as string | null,
+    notFound: false
+  })
+  const [resourceState, setResourceState] = useState({
+    loading: false,
+    error: null as string | null,
+    notFound: false
+  })
+  const [resourceData, setResourceData] = useState({
+    vns: [] as VN_Small[],
+    releases: [] as Release_Small[],
+    characters: [] as Character_Small[],
+    producers: [] as Producer_Small[],
+    staff: [] as Staff_Small[],
+    tags: [] as Tag_Small[],
+    traits: [] as Trait_Small[]
+  })
 
   const [loadingCategories, setLoadingCategories] = useState(false)
   const [errorCategories, setErrorCategories] = useState<string>("")
@@ -73,56 +92,28 @@ export default function CategoriesPage() {
   const [categoriesAbortController, setCategoriesAbortController] = useState<AbortController>()
   const [resourcesAbortController, setResourcesAbortController] = useState<AbortController>()
 
-
-  const removeKeyFromSearchParams = (key: string) => {
-    const params = new URLSearchParams(searchParams)
-    params.delete(key)
-    router.push(`/u/c?${params.toString()}`)
-  }
-
-  const removeMultipleKeysFromSearchParams = (keys: string[]) => {
-    const params = new URLSearchParams(searchParams)
-    keys.forEach(key => params.delete(key))
-    router.push(`/u/c?${params.toString()}`)
-  }
-
-  const updateSearchParams = (key: string, value: string) => {
-    const params = new URLSearchParams(searchParams)
-    params.set(key, value)
-    router.push(`/u/c?${params.toString()}`)
-  }
-
-  const updateMultipleSearchParams = (params: Record<string, string>) => {
-    const newParams = new URLSearchParams(searchParams)
-    Object.entries(params).forEach(([key, value]) => {
-      newParams.set(key, value)
-    })
-    router.push(`/u/c?${newParams.toString()}`)
-  }
-
-
   const setSelectedType = (value: string) => {
-    updateSearchParams("type", value)
+    updateKey("type", value)
   }
 
   const setSelectedCategoryId = (value: number | undefined) => {
     if (value === undefined) {
-      removeKeyFromSearchParams("cid")
+      removeKey("cid")
     } else {
-      updateSearchParams("cid", value.toString())
+      updateKey("cid", value.toString())
     }
   }
 
   const setCurrentPage = (value: number) => {
-    updateSearchParams("page", value.toString())
+    updateKey("page", value.toString())
   }
 
   const setSortBy = (value: string) => {
-    updateSearchParams("sort", value)
+    updateKey("sort", value)
   }
 
   const setSortOrder = (value: string) => {
-    updateSearchParams("order", value)
+    updateKey("order", value)
   }
 
 
@@ -228,9 +219,9 @@ export default function CategoriesPage() {
 
   const handleSearch = async (query: string) => {
     if (!query) {
-      removeKeyFromSearchParams("q")
+      removeKey("q")
     } else {
-      updateMultipleSearchParams({ q: query, page: "1" })
+      updateMultipleKeys({ q: query, page: "1" })
     }
   }
 
@@ -304,7 +295,7 @@ export default function CategoriesPage() {
 
 
   useEffect(() => {
-    removeMultipleKeysFromSearchParams(["cid", "q", "page", "sort", "order"])
+    removeMultipleKeys(["cid", "q", "page", "sort", "order"])
     setTotalPages(0)
     setVNs([])
     setCharacters([])
@@ -314,7 +305,7 @@ export default function CategoriesPage() {
   }, [selectedType])
 
   useEffect(() => {
-    removeMultipleKeysFromSearchParams(["q", "page", "sort", "order"])
+    removeMultipleKeys(["q", "page", "sort", "order"])
     setTotalPages(0)
     setVNs([])
     setCharacters([])

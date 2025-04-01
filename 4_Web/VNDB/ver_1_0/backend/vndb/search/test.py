@@ -1,5 +1,3 @@
-from remote.search import search
-
 def and_filters(*filters):
     return ["and", *filters]
 

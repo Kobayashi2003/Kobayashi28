@@ -1,6 +1,3 @@
-from typing import List
-
-
 class FieldMeta(type):
 
     def __new__(mcs, name, bases, attrs):
@@ -192,7 +189,7 @@ class VNDBFields:
                    'GROUP_ID', 'GROUP_NAME', 'CHAR_COUNT']
 
 
-SMALL_FIELDS_VN: List[str] = [
+SMALL_FIELDS_VN: list[str] = [
     VNDBFields.VN.ID,
     VNDBFields.VN.TITLE,
     VNDBFields.VN.TITLES.LANG,
@@ -209,7 +206,7 @@ SMALL_FIELDS_VN: List[str] = [
     VNDBFields.VN.IMAGE.VIOLENCE
 ]
 
-SMALL_FIELDS_RELEASE: List[str] = [
+SMALL_FIELDS_RELEASE: list[str] = [
     VNDBFields.Release.ID,
     VNDBFields.Release.TITLE,
     VNDBFields.Release.RELEASED,
@@ -220,7 +217,7 @@ SMALL_FIELDS_RELEASE: List[str] = [
     VNDBFields.Release.PRODUCERS.PUBLISHER,
 ]
 
-SMALL_FIELDS_CHARACTER: List[str] = [
+SMALL_FIELDS_CHARACTER: list[str] = [
     VNDBFields.Character.ID,
     VNDBFields.Character.NAME,
     VNDBFields.Character.ORIGINAL,
@@ -234,25 +231,25 @@ SMALL_FIELDS_CHARACTER: List[str] = [
     VNDBFields.Character.IMAGE.VIOLENCE,
 ]
 
-SMALL_FIELDS_PRODUCER: List[str] = [
+SMALL_FIELDS_PRODUCER: list[str] = [
     VNDBFields.Producer.ID,
     VNDBFields.Producer.NAME,
     VNDBFields.Producer.ORIGINAL,
 ]
 
-SMALL_FIELDS_STAFF: List[str] = [
+SMALL_FIELDS_STAFF: list[str] = [
     VNDBFields.Staff.ID,
     VNDBFields.Staff.NAME,
     VNDBFields.Staff.ORIGINAL,
 ]
 
-SMALL_FIELDS_TAG: List[str] = [
+SMALL_FIELDS_TAG: list[str] = [
     VNDBFields.Tag.ID,
     VNDBFields.Tag.NAME,
     VNDBFields.Tag.CATEGORY,
 ]
 
-SMALL_FIELDS_TRAIT: List[str] = [
+SMALL_FIELDS_TRAIT: list[str] = [
     VNDBFields.Trait.ID,
     VNDBFields.Trait.NAME,
     VNDBFields.Trait.GROUP_ID,
@@ -260,13 +257,13 @@ SMALL_FIELDS_TRAIT: List[str] = [
 ]
 
 
-FIELDS_VN: List[str] = VNDBFields.VN.ALL
-FIELDS_CHARACTER: List[str] = VNDBFields.Character.ALL
-FIELDS_TAG: List[str] = VNDBFields.Tag.ALL
-FIELDS_PRODUCER: List[str] = VNDBFields.Producer.ALL
-FIELDS_STAFF: List[str] = VNDBFields.Staff.ALL
-FIELDS_TRAIT: List[str] = VNDBFields.Trait.ALL
-FIELDS_RELEASE: List[str] = VNDBFields.Release.ALL
+FIELDS_VN: list[str] = VNDBFields.VN.ALL
+FIELDS_CHARACTER: list[str] = VNDBFields.Character.ALL
+FIELDS_TAG: list[str] = VNDBFields.Tag.ALL
+FIELDS_PRODUCER: list[str] = VNDBFields.Producer.ALL
+FIELDS_STAFF: list[str] = VNDBFields.Staff.ALL
+FIELDS_TRAIT: list[str] = VNDBFields.Trait.ALL
+FIELDS_RELEASE: list[str] = VNDBFields.Release.ALL
 
 SORTABLE_FIELDS = {
     'vn': ['id', 'title', 'released', 'rating', 'votecount', 'searchrank'],
@@ -286,7 +283,7 @@ def validate_sort(search_type: str, sort: str) -> str:
         raise ValueError(f"Invalid sort: {sort} for search_type: {search_type}")
     return sort
 
-def get_remote_fields(search_type: str, response_size: str = 'small') -> List[str]:
+def get_remote_fields(search_type: str, response_size: str = 'small') -> list[str]:
 
     """
     Get the appropriate fields for a remote VNDB API search based on the search type and response size.
@@ -296,7 +293,7 @@ def get_remote_fields(search_type: str, response_size: str = 'small') -> List[st
         response_size (str): The desired size of the response ('small' or 'large'). Defaults to 'small'.
 
     Returns:
-        List[str]: A list of field names to be used in the API request.
+        list[str]: A list of field names to be used in the API request.
 
     Raises:
         ValueError: If an invalid search_type is provided.

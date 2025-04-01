@@ -29,4 +29,19 @@ def setup_logger(name, log_file, level=logging.INFO):
 
     return logger
 
+def add_log_entry(level, message, details=None):
+    """Function to add a log entry to the database"""
+    from vndb import db
+    from vndb.database.models import LogEntry
+    import uuid
+
+    log_entry = LogEntry(
+        id=str(uuid.uuid4()),
+        level=level,
+        message=message,
+        details=details
+    )
+    db.session.add(log_entry)
+    db.session.commit()
+
 logger = setup_logger('logger', 'vndb/logs/info.log')

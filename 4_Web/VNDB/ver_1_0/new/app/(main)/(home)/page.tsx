@@ -1,7 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useSearchParams, useRouter } from "next/navigation"
+import { useSearchParams } from "next/navigation"
+import { useUrlParams } from "@/hooks/useUrlParams"
 import { motion, AnimatePresence } from "motion/react"
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -21,8 +22,8 @@ import { VN_Small } from "@/lib/types"
 import { api } from "@/lib/api"
 
 export default function Home() {
-  const router = useRouter()
   const searchParams = useSearchParams()
+  const { updateKey, updateMultipleKeys } = useUrlParams()
 
   const itemsPerPage = 24
 
@@ -54,9 +55,11 @@ export default function Home() {
   const selectedYear = searchParams.get("year") || `${new Date().getFullYear().toString()}`
   const selectedMonth = searchParams.get("month") || `${(new Date().getMonth() + 1).toString().padStart(2, '0')}`
 
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [notFound, setNotFound] = useState(false)
+  const [vnsState, setVnsState] = useState({
+    loading: false,
+    error: null as string | null,
+    notFound: false
+  })
 
   const [totalPages, setTotalPages] = useState(0)
   const [vns, setVNs] = useState<VN_Small[]>([])
@@ -67,43 +70,21 @@ export default function Home() {
 
   const [abortController, setAbortController] = useState<AbortController | null>(null)
 
-  const updateSearchParams = (key: string, value: string) => {
-    const params = new URLSearchParams(searchParams)
-    params.set(key, value)
-    router.push(`/?${params.toString()}`)
-  }
-
-  const updateMultipleSearchParams = (params: Record<string, string>) => {
-    const newParams = new URLSearchParams(searchParams)
-    Object.entries(params).forEach(([key, value]) => {
-      newParams.set(key, value)
-    })
-    router.push(`/?${newParams.toString()}`)
-  }
-
   const fetchVNs = async () => {
     try {
       abortController?.abort()
       const newController = new AbortController()
       setAbortController(newController)
 
-      setLoading(true)
-      setError(null)
-      setNotFound(false)
+      setVnsState({
+        loading: true,
+        error: null,
+        notFound: false
+      })
 
+      let released = ""
       if (selectedYear === "00") {
-        const response = await api.small.vn({
-          olang: "ja",
-          sort: "released",
-          reverse: true,
-          page: currentPage,
-          limit: itemsPerPage,
-        }, newController.signal)
-        if (response.results.length === 0) {
-          setNotFound(true)
-        }
-        setVNs(response.results)
-        setTotalPages(Math.ceil(response.count / itemsPerPage) || 1)
+        released = ""
       } else if (selectedYear !== "00" && selectedMonth === "00") {
         const startYearStr1 = `${selectedYear}-01-01`
         const endYearStr1 = `${selectedYear}-12-31`
@@ -111,19 +92,7 @@ export default function Home() {
         const startYearStr2 = `${selectedYear}`
         const endYearStr2 = `${String(Number.parseInt(selectedYear) + 1)}`
 
-        const response = await api.small.vn({
-          released: `(>=${startYearStr1}+<=${endYearStr1}),(>=${startYearStr2}+<${endYearStr2})`,
-          olang: "ja",
-          sort: "released",
-          reverse: true,
-          page: currentPage,
-          limit: itemsPerPage,
-        }, newController.signal)
-        if (response.results.length === 0) {
-          setNotFound(true)
-        }
-        setVNs(response.results)
-        setTotalPages(Math.ceil(response.count / itemsPerPage) || 1)
+        released = `(>=${startYearStr1}+<=${endYearStr1}),(>=${startYearStr2}+<${endYearStr2})`
       } else if (selectedYear !== "00" && selectedMonth !== "00") {
         const startDateStr1 = `${selectedYear}-${selectedMonth}-01`
         const startDateStr2 = `${selectedYear}-${selectedMonth}-01`
@@ -135,38 +104,52 @@ export default function Home() {
         const nextMonthYear = Number.parseInt(selectedMonth) === 12 ? String(Number.parseInt(selectedYear) + 1) : selectedYear
         const endDateStr2 = `${nextMonthYear}-${nextMonth}-01`
 
-        const response = await api.small.vn({
-          released: `(>=${startDateStr1}+<=${endDateStr1}),(>=${startDateStr2}+<${endDateStr2})`,
-          olang: "ja",
-          sort: "released",
-          reverse: true,
-          page: currentPage,
-          limit: itemsPerPage,
-        }, newController.signal)
-        if (response.results.length === 0) {
-          setNotFound(true)
-        }
-        setVNs(response.results)
-        setTotalPages(Math.ceil(response.count / itemsPerPage) || 1)
+        released = `(>=${startDateStr1}+<=${endDateStr1}),(>=${startDateStr2}+<${endDateStr2})`
+      }
+
+      const response = await api.small.vn({
+        released: released,
+        olang: "ja",
+        sort: "released",
+        reverse: true,
+        page: currentPage,
+        limit: itemsPerPage,
+      }, newController.signal)
+
+      setVNs(response.results)
+      setTotalPages(Math.ceil(response.count / itemsPerPage) || 1)
+      if (response.results.length === 0) {
+        setVnsState({
+          loading: false,
+          error: null,
+          notFound: true
+        })
+      } else {
+        setVnsState({
+          loading: false,
+          error: null,
+          notFound: false
+        })
       }
     } catch (error) {
-      console.error("Failed to fetch VNs:", error)
-      setError("Failed to fetch VNs. Please try again.")
-    } finally {
-      setLoading(false)
+      setVnsState({
+        loading: false,
+        error: "Failed to fetch VNs. Please try again.",
+        notFound: false
+      })
     }
   }
 
   const handleYearChange = (value: string) => {
-    updateMultipleSearchParams({ year: value, page: "1" })
+    updateMultipleKeys({ year: value, page: "1" })
   }
 
   const handleMonthChange = (value: string) => {
-    updateMultipleSearchParams({ month: value, page: "1" })
+    updateMultipleKeys({ month: value, page: "1" })
   }
 
   const handlePageChange = (page: number) => {
-    updateSearchParams("page", page.toString())
+    updateKey("page", page.toString())
   }
 
   useEffect(() => {
@@ -240,7 +223,7 @@ export default function Home() {
       </div>
       <AnimatePresence mode="wait">
         {/* Loading */}
-        {loading && (
+        {vnsState.loading && (
           <motion.div
             key="loading"
             {...fadeInAnimation}
@@ -250,17 +233,17 @@ export default function Home() {
           </motion.div>
         )}
         {/* Error */}
-        {error && (
+        {vnsState.error && (
           <motion.div
             key="error"
             {...fadeInAnimation}
             className={statusStyle}
           >
-            <Error message={`Error: ${error}`} />
+            <Error message={`Error: ${vnsState.error}`} />
           </motion.div>
         )}
         {/* Not Found */}
-        {notFound && (
+        {vnsState.notFound && (
           <motion.div
             key="notfound"
             {...fadeInAnimation}
@@ -270,7 +253,7 @@ export default function Home() {
           </motion.div>
         )}
         {/* VN Cards */}
-        {!loading && !error && !notFound && (
+        {!vnsState.loading && !vnsState.error && !vnsState.notFound && (
           <VNsCardsGrid
             vns={vns}
             cardType={cardType}

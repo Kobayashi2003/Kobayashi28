@@ -1,5 +1,5 @@
 import re
-from typing import List, Dict, Any 
+from typing import Any 
 from datetime import datetime, timezone, timedelta
 from functools import wraps
 
@@ -78,7 +78,7 @@ def get(type: str, id: str) -> ModelType | None:
     )
     return item
 
-def get_all(type: str, page: int | None = None, limit: int | None = None, sort: str = 'id', reverse: bool = False) -> List[ModelType]:
+def get_all(type: str, page: int | None = None, limit: int | None = None, sort: str = 'id', reverse: bool = False) -> list[ModelType]:
     model = MODEL_MAP[type]
     query = db.session.query(model).filter(model.deleted_at == None)
     order_func = desc if reverse else asc
@@ -89,7 +89,7 @@ def get_all(type: str, page: int | None = None, limit: int | None = None, sort: 
         query = query.offset((page - 1) * limit).limit(limit)
     return query.all()
 
-def create(type: str, id: str, data: Dict[str, Any]) -> ModelType | None:
+def create(type: str, id: str, data: dict[str, Any]) -> ModelType | None:
     id = formatId(type, id)
     model = MODEL_MAP[type]
     data.pop('id', None)
@@ -102,7 +102,7 @@ def create(type: str, id: str, data: Dict[str, Any]) -> ModelType | None:
     db.session.flush()
     return item
 
-def update(type: str, id: str, data: Dict[str, Any]) -> ModelType | None:
+def update(type: str, id: str, data: dict[str, Any]) -> ModelType | None:
     id = formatId(type, id)
     item = get(type, id)
     if not item:
@@ -145,7 +145,7 @@ def get_inactive(type: str, id: str) -> ModelType | None:
     )
     return item
 
-def get_inactive_all(type: str, page: int | None = None, limit: int | None = None, sort: str = 'id', reverse: bool = False) -> List[ModelType]:
+def get_inactive_all(type: str, page: int | None = None, limit: int | None = None, sort: str = 'id', reverse: bool = False) -> list[ModelType]:
     model = MODEL_MAP[type]
     query = db.session.query(model).filter(model.deleted_at != None)
     order_func = desc if reverse else asc
@@ -197,7 +197,7 @@ def cleanup_all(type: str) -> int:
 def get_save(*args, **kwargs) -> ModelType | None: return get(*args, **kwargs)
 
 @db_transaction
-def get_all_save(*args, **kwargs) -> List[ModelType]: return get_all(*args, **kwargs)
+def get_all_save(*args, **kwargs) -> list[ModelType]: return get_all(*args, **kwargs)
 
 @db_transaction
 def create_save(*args, **kwargs) -> ModelType | None: return create(*args, **kwargs)
@@ -216,7 +216,7 @@ def delete_all_save(*args, **kwargs) -> int: return delete_all(*args, **kwargs)
 def get_inactive_save(*args, **kwargs) -> ModelType | None: return get_inactive(*args, **kwargs)
 
 @db_transaction
-def get_inactive_all_save(*args, **kwargs) -> List[ModelType]: return get_inactive_all(*args, **kwargs)
+def get_inactive_all_save(*args, **kwargs) -> list[ModelType]: return get_inactive_all(*args, **kwargs)
 
 @db_transaction
 def recover_save(*args, **kwargs) -> ModelType | None: return recover(*args, **kwargs)
@@ -228,4 +228,4 @@ def recover_all_save(*args, **kwargs) -> int: return recover_all(*args, **kwargs
 def cleanup_save(*args, **kwargs) -> int: return cleanup(*args, **kwargs)
 
 @db_transaction
-def cleanup_all_save(*args, **kwargs) -> Dict[str, int]: return cleanup_all(*args, **kwargs)
+def cleanup_all_save(*args, **kwargs) -> dict[str, int]: return cleanup_all(*args, **kwargs)

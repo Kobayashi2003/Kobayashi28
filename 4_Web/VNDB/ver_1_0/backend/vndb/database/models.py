@@ -187,3 +187,16 @@ MODEL_MAP = {
     'trait': Trait, 
     'release': Release
 }
+
+
+class LogEntry(db.Model):
+    __tablename__ = 'logs'
+
+    id = Column(String, primary_key=True)
+    timestamp = Column(DateTime(timezone=True), default=func.now())
+    level = Column(String)
+    message = Column(Text)
+    details = Column(JSONB)
+
+    def __repr__(self):
+        return f"<LogEntry(id={self.id}, timestamp={self.timestamp}, level={self.level}, message={self.message})>"

@@ -1,7 +1,8 @@
 import re
 import httpx
-from typing import Dict, Any, List
+from typing import Any 
 from enum import Enum, auto
+from ..parse import validate_logical_expression
 
 
 class FilterType(Enum):
@@ -41,7 +42,7 @@ class VNDBFilters:
         "dtag": VNDBFilter("dtag", FilterType.ARRAY, "m"),
         "anime_id": VNDBFilter("anime_id", FilterType.INTEGER),
         "label": VNDBFilter("label", FilterType.ARRAY, "m"),
-        "release": VNDBFilter("release", FilterType.NESTED, "m"),
+        "release": VNDBFilter("release", FilterType.NESTED, "m", associated_domain="RELEASE"),
         "character": VNDBFilter("character", FilterType.NESTED, "m", associated_domain="CHARACTER"),
         "staff": VNDBFilter("staff", FilterType.NESTED, "m", associated_domain="STAFF"),
         "developer": VNDBFilter("developer", FilterType.NESTED, "m", associated_domain="PRODUCER"),
@@ -123,32 +124,94 @@ class VNDBFilters:
     }
 
 
-def normalize_expression(expression: str) -> str:
-    """
-    Normalize the expression by removing spaces around operators while preserving spaces within terms.
-        
-    Args:
-        expression (str): The tag expression with potential spaces around operators.
-            
-    Returns:
-        str: Normalized expression with spaces removed around operators.
-    """
-    # Replace spaces around operators
-    normalized = re.sub(r'\s*\+\s*', '+', expression)  # Remove spaces around '+'
-    normalized = re.sub(r'\s*,\s*', ',', normalized)   # Remove spaces around ','
-    normalized = re.sub(r'\s*\(\s+', '(', normalized)     # Remove spaces around '('
-    normalized = re.sub(r'\s+\)\s*', ')', normalized)     # Remove spaces around ')'
-        
-    return normalized
+def build_filter(filter_set: dict[str, VNDBFilter], key: str, value: Any) -> list:
+    if key not in filter_set:
+        raise ValueError(f"Invalid key: {key}")
 
-def parse_logical_expression(expression: str, field: str) -> Dict[str, Any]:
+    filter_def = filter_set[key]
+    
+    operator, filter_value = '=', value
+
+    if 'o' in filter_def.flags:
+        pattern = r'^(>=|<=|>|<|=|!=)(.+)$'
+        match = re.match(pattern, value.strip())
+        if match:
+            operator, filter_value = match.groups()
+   
+    if not filter_value:
+        raise ValueError(f"Invalid value: {value}")
+
+    if isinstance(filter_value, str):
+        filter_value = filter_value.strip()
+
+    if filter_def.filter_type == FilterType.NESTED:
+        if not isinstance(filter_value, dict):
+            raise ValueError(f"Invalid value: {value}")
+        if filter_def.associated_domain:
+            associated_filter_set = getattr(VNDBFilters, filter_def.associated_domain)
+            nested_filters = build_filters(associated_filter_set, filter_value)
+        else:
+            nested_filters = build_filters(filter_set, filter_value)
+        return [key, "=", nested_filters]
+    
+    if filter_def.filter_type == FilterType.ARRAY:
+        if key == 'tag' or key == 'dtag':
+            ...
+        elif key == 'trait' or key == 'dtrait':
+            ...
+        elif not isinstance(filter_value, list):
+            raise ValueError(f"Invalid value: {value}")
+
+    if filter_def.filter_type == FilterType.BOOLEAN:
+        operator = '='
+        if isinstance(filter_value, str) and filter_value.lower() == 'false':
+            operator = '!='
+        elif isinstance(filter_value, bool) and not filter_value:
+            operator = '!='
+        else:
+            raise ValueError(f"Invalid value: {value}")
+        filter_value = 1
+
+    if filter_def.filter_type == FilterType.INTEGER:
+        if isinstance(filter_value, str):
+            int(filter_value)
+        elif not isinstance(filter_value, int):
+            raise ValueError(f"Invalid value: {value}")
+
+    if filter_def.filter_type == FilterType.FLOAT:
+        if isinstance(filter_value, str):
+            float(filter_value)
+        elif not isinstance(filter_value, float):
+            raise ValueError(f"Invalid value: {value}")
+
+    if filter_def.filter_type == FilterType.VNDBID:
+        pattern = r'^([v|r|c|p|s|g|i]\d+)$'
+        match = re.match(pattern, filter_value)
+        if not match:
+            raise ValueError(f"Invalid value: {value}")
+
+    filter_value = str(filter_value)
+
+    return [key, operator, filter_value]
+
+def build_filters(filter_set: dict[str, VNDBFilter], filters: dict[str, Any]) -> list:
+    result = []
+    for key, value in filters.items():
+        if key in ['and', 'or']:
+            result.append([key] + [build_filters(filter_set, item) for item in value])
+        else:
+            result.append(build_filter(filter_set, key, value))
+    return result[0] if len(result) == 1 else ["and"] + result
+
+def parse_logical_expression(expression: str, field: str) -> dict[str, Any]:
     """
     Parse logical expression using two stacks.
     Operators: OR (',', lower precedence) and AND ('+', higher precedence)
     """
-    expression = normalize_expression(expression)
+    if not validate_logical_expression(expression):
+        raise ValueError(f"Invalid expression: {expression}")
 
-    def or_operation(left: Dict[str, Any], right: Dict[str, Any]) -> Dict[str, Any]:
+    def or_operation(left: dict[str, Any], right: dict[str, Any]) -> dict[str, Any]:
         """Merge OR operations"""
         if isinstance(left, dict) and "or" in left:
             if isinstance(right, dict) and "or" in right:
@@ -160,7 +223,7 @@ def parse_logical_expression(expression: str, field: str) -> Dict[str, Any]:
             return right
         return {"or": [left, right]}
 
-    def and_operation(left: Dict[str, Any], right: Dict[str, Any]) -> Dict[str, Any]:
+    def and_operation(left: dict[str, Any], right: dict[str, Any]) -> dict[str, Any]:
         """Merge AND operations"""
         if isinstance(left, dict) and "and" in left:
             if isinstance(right, dict) and "and" in right:
@@ -216,12 +279,11 @@ def parse_logical_expression(expression: str, field: str) -> Dict[str, Any]:
     
     return vals[0] if vals else {}
 
-def parse_tag_expression(expression: str, directly: bool = False) -> Dict[str, Any]:
-    expression = normalize_expression(expression)
+def parse_tag_expression(expression: str, directly: bool = False) -> dict[str, Any]:
     url = "https://api.vndb.org/kana/tag"
     client = httpx.Client()
 
-    def get_tag_ids(tag: str) -> List[str]:
+    def get_tag_ids(tag: str) -> list[str]:
         """Get tag IDs from tag name using unpaginated search"""
         results = []
         page =1 
@@ -276,8 +338,7 @@ def parse_tag_expression(expression: str, directly: bool = False) -> Dict[str, A
     field = 'dtag' if directly else 'tag'
     return parse_logical_expression(new_expression, field)
 
-def parse_trait_expression(expression: str, directly: bool = False) -> Dict[str, Any]:
-    expression = normalize_expression(expression)
+def parse_trait_expression(expression: str, directly: bool = False) -> dict[str, Any]:
     url = "https://api.vndb.org/kana/trait"
     client = httpx.Client()
 
@@ -299,7 +360,7 @@ def parse_trait_expression(expression: str, directly: bool = False) -> Dict[str,
     #         page += 1
     #     return [result['id'] for result in results]
 
-    def get_trait_ids(trait: str) -> List[str]:
+    def get_trait_ids(trait: str) -> list[str]:
         # Recently, there is no way to get trait ids from trait name and trait group name at the same time.
         # So, we don't process the trait here.
         return [trait]
@@ -336,7 +397,7 @@ def parse_int(value: str | None, comparable: bool = False) -> str | None:
         return value
     return None 
 
-def parse_birthday(value: str) -> List[int]:
+def parse_birthday(value: str) -> list[int] | None:
     value = value.replace(" ", "")
     pattern = r'^(\d{1,2})-(\d{1,2})$'
     match = re.match(pattern, value)
@@ -347,7 +408,7 @@ def parse_birthday(value: str) -> List[int]:
     return None
 
 
-def get_vn_additional_filters(params: Dict[str, Any]) -> Dict[str, Any]:
+def get_vn_additional_filters(params: dict[str, Any]) -> dict[str, Any]:
     filters = []
 
     if release_id := params.get('release_id'):
@@ -364,7 +425,7 @@ def get_vn_additional_filters(params: Dict[str, Any]) -> Dict[str, Any]:
 
     return filters
 
-def get_release_additional_filters(params: Dict[str, Any]) -> Dict[str, Any]:
+def get_release_additional_filters(params: dict[str, Any]) -> dict[str, Any]:
     filters = []
 
     if vn_id := params.get('vn_id'):
@@ -375,7 +436,7 @@ def get_release_additional_filters(params: Dict[str, Any]) -> Dict[str, Any]:
 
     return filters
 
-def get_character_additional_filters(params: Dict[str, Any]) -> Dict[str, Any]:
+def get_character_additional_filters(params: dict[str, Any]) -> dict[str, Any]:
     filters = []
 
     if vn_id := params.get('vn_id'):
@@ -383,36 +444,36 @@ def get_character_additional_filters(params: Dict[str, Any]) -> Dict[str, Any]:
 
     return filters
 
-def get_producer_additional_filters(params: Dict[str, Any]) -> Dict[str, Any]:
+def get_producer_additional_filters(params: dict[str, Any]) -> dict[str, Any]:
     filters = []
 
     return filters
 
-def get_staff_additional_filters(params: Dict[str, Any]) -> Dict[str, Any]:
+def get_staff_additional_filters(params: dict[str, Any]) -> dict[str, Any]:
     filters = []
 
     return filters
 
-def get_tag_additional_filters(params: Dict[str, Any]) -> Dict[str, Any]:
+def get_tag_additional_filters(params: dict[str, Any]) -> dict[str, Any]:
     filters = []
 
     return filters
 
-def get_trait_additional_filters(params: Dict[str, Any]) -> Dict[str, Any]:
+def get_trait_additional_filters(params: dict[str, Any]) -> dict[str, Any]:
     filters = []
 
     return filters
 
 
-def get_vn_filters(params: Dict[str, Any]) -> Dict[str, Any]:
+def get_vn_filters(params: dict[str, Any]) -> dict[str, Any]:
     """
     Generate filters for visual novel searches based on the provided parameters.
     
     Args:
-        params (Dict[str, Any]): The search parameters.
+        params (dict[str, Any]): The search parameters.
     
     Returns:
-        Dict[str, Any]: A dictionary of filters for visual novel searches.
+        dict[str, Any]: A dictionary of filters for visual novel searches.
     """
     filters = []
 
@@ -467,15 +528,15 @@ def get_vn_filters(params: Dict[str, Any]) -> Dict[str, Any]:
     # Wrap in 'and' if there are multiple filters
     return {"and": filters} if len(filters) > 1 else filters[0] if filters else {}
 
-def get_release_filters(params: Dict[str, Any]) -> Dict[str, Any]:
+def get_release_filters(params: dict[str, Any]) -> dict[str, Any]:
     """
     Generate filters for release searches based on the provided parameters.
     
     Args:
-        params (Dict[str, Any]): The search parameters.
+        params (dict[str, Any]): The search parameters.
     
     Returns:
-        Dict[str, Any]: A dictionary of filters for release searches.
+        dict[str, Any]: A dictionary of filters for release searches.
     """
     filters = []
 
@@ -549,15 +610,15 @@ def get_release_filters(params: Dict[str, Any]) -> Dict[str, Any]:
 
     return {"and": filters} if len(filters) > 1 else filters[0] if filters else {}
 
-def get_character_filters(params: Dict[str, Any]) -> Dict[str, Any]:
+def get_character_filters(params: dict[str, Any]) -> dict[str, Any]:
     """
     Generate filters for character searches based on the provided parameters.
     
     Args:
-        params (Dict[str, Any]): The search parameters.
+        params (dict[str, Any]): The search parameters.
     
     Returns:
-        Dict[str, Any]: A dictionary of filters for character searches.
+        dict[str, Any]: A dictionary of filters for character searches.
     """
     filters = []
 
@@ -605,15 +666,15 @@ def get_character_filters(params: Dict[str, Any]) -> Dict[str, Any]:
 
     return {"and": filters} if len(filters) > 1 else filters[0] if filters else {}
 
-def get_producer_filters(params: Dict[str, Any]) -> Dict[str, Any]:
+def get_producer_filters(params: dict[str, Any]) -> dict[str, Any]:
     """
     Generate filters for producer searches based on the provided parameters.
     
     Args:
-        params (Dict[str, Any]): The search parameters.
+        params (dict[str, Any]): The search parameters.
     
     Returns:
-        Dict[str, Any]: A dictionary of filters for producer searches.
+        dict[str, Any]: A dictionary of filters for producer searches.
     """
     filters = []
 
@@ -633,15 +694,15 @@ def get_producer_filters(params: Dict[str, Any]) -> Dict[str, Any]:
 
     return {"and": filters} if len(filters) > 1 else filters[0] if filters else {}
 
-def get_staff_filters(params: Dict[str, Any]) -> Dict[str, Any]:
+def get_staff_filters(params: dict[str, Any]) -> dict[str, Any]:
     """
     Generate filters for staff searches based on the provided parameters.
     
     Args:
-        params (Dict[str, Any]): The search parameters.
+        params (dict[str, Any]): The search parameters.
     
     Returns:
-        Dict[str, Any]: A dictionary of filters for staff searches.
+        dict[str, Any]: A dictionary of filters for staff searches.
     """
     filters = []
 
@@ -670,15 +731,15 @@ def get_staff_filters(params: Dict[str, Any]) -> Dict[str, Any]:
 
     return {"and": filters} if len(filters) > 1 else filters[0] if filters else {}
 
-def get_tag_filters(params: Dict[str, Any]) -> Dict[str, Any]:
+def get_tag_filters(params: dict[str, Any]) -> dict[str, Any]:
     """
     Generate filters for tag searches based on the provided parameters.
     
     Args:
-        params (Dict[str, Any]): The search parameters.
+        params (dict[str, Any]): The search parameters.
     
     Returns:
-        Dict[str, Any]: A dictionary of filters for tag searches.
+        dict[str, Any]: A dictionary of filters for tag searches.
     """
     filters = []
 
@@ -696,15 +757,15 @@ def get_tag_filters(params: Dict[str, Any]) -> Dict[str, Any]:
 
     return {"and": filters} if len(filters) > 1 else filters[0] if filters else {}
 
-def get_trait_filters(params: Dict[str, Any]) -> Dict[str, Any]:
+def get_trait_filters(params: dict[str, Any]) -> dict[str, Any]:
     """
     Generate filters for trait searches based on the provided parameters.
     
     Args:
-        params (Dict[str, Any]): The search parameters.
+        params (dict[str, Any]): The search parameters.
     
     Returns:
-        Dict[str, Any]: A dictionary of filters for trait searches.
+        dict[str, Any]: A dictionary of filters for trait searches.
     """
     filters = []
 
@@ -719,35 +780,35 @@ def get_trait_filters(params: Dict[str, Any]) -> Dict[str, Any]:
     return {"and": filters} if len(filters) > 1 else filters[0] if filters else {}
 
 
-def get_remote_filters(search_type: str, params: Dict[str, Any]) -> Dict[str, Any]:
+def get_remote_filters(search_type: str, params: dict[str, Any]) -> list:
     """
     Generate filters for remote searches based on the search type and provided parameters.
     
     Args:
         search_type (str): The type of search (e.g., 'vn', 'character', 'producer', etc.).
-        params (Dict[str, Any]): The search parameters.
+        params (dict[str, Any]): The search parameters.
     
     Returns:
-        Dict[str, Any]: A dictionary of filters for the specified search type.
+        dict[str, Any]: A dictionary of filters for the specified search type.
     
     Raises:
         ValueError: If an invalid search_type is provided.
     """
 
     if search_type == 'vn':
-        return get_vn_filters(params)
+        return build_filters(VNDBFilters.VN, get_vn_filters(params))
     elif search_type == 'release':
-        return get_release_filters(params)
+        return build_filters(VNDBFilters.RELEASE, get_release_filters(params))
     elif search_type == 'character':
-        return get_character_filters(params)
+        return build_filters(VNDBFilters.CHARACTER, get_character_filters(params))
     elif search_type == 'producer':
-        return get_producer_filters(params)
+        return build_filters(VNDBFilters.PRODUCER, get_producer_filters(params))
     elif search_type == 'staff':
-        return get_staff_filters(params)
+        return build_filters(VNDBFilters.STAFF, get_staff_filters(params))
     elif search_type == 'tag':
-        return get_tag_filters(params)
+        return build_filters(VNDBFilters.TAG, get_tag_filters(params))
     elif search_type == 'trait':
-        return get_trait_filters(params)
+        return build_filters(VNDBFilters.TRAIT, get_trait_filters(params))
     else:
         raise ValueError(f"Invalid search_type: {search_type}")
 
@@ -758,6 +819,6 @@ if __name__ == '__main__':
         params={
             'search': 'ai kiss',
             'id': '((v1,v2)+(v6,v7,v8))',
-            'tag': 'Gang Rape + Unavoidable Rape',
+            # 'tag': 'Gang Rape + Unavoidable Rape',
         }
     ))

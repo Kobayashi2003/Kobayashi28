@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Any
 
 from sqlalchemy import asc, desc 
 
@@ -7,9 +7,9 @@ from vndb.database.models import MODEL_MAP
 from .fields import get_local_fields, validate_sort
 from .filters import get_local_filters
 
-def search(resource_type: str, params: Dict[str, Any], 
+def search(resource_type: str, params: dict[str, Any], 
            response_size: str = 'small', page: int = 1, limit: int = 100,
-           sort: str = 'id', reverse: bool = False, count: bool = True) -> Dict[str, Any]:
+           sort: str = 'id', reverse: bool = False, count: bool = True) -> dict[str, Any]:
 
     model = MODEL_MAP.get(resource_type)
     if not model:
@@ -35,22 +35,30 @@ def search(resource_type: str, params: Dict[str, Any],
     limit = min(max(1, limit or 20), 100)
     query = query.offset((page - 1) * limit).limit(limit)
 
-    # Export sql query to current directory for debugging
-    import os
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    debug_file_path = os.path.join(current_dir, "../query.sql")
-    try:
-        with open(debug_file_path, 'w') as f:
-            f.write(str(query.statement.compile(compile_kwargs={"literal_binds": True})))
-    except Exception as e:
-        print(f"Failed to export SQL query: {e}")
+    # TODO:DEGUG
+    from vndb.logger import add_log_entry
+    add_log_entry(
+        level="info",
+        message=f"Search {resource_type} completed",
+        details={
+            "from": "local",
+            "query": str(query.statement.compile(compile_kwargs={"literal_binds": True})),
+            "params": params,
+            "response_size": response_size,
+            "page": page,
+            "limit": limit,
+            "sort": sort,
+            "reverse": reverse,
+            "count": count,
+        }
+    )
 
     results = [dict(zip(fields, result)) for result in query.all()]
 
     return {'results': results, 'more': more, 'count': total} if count else {'results': results, 'more': more}
 
 def search_resources_by_vnid(vnid: str, related_resource_type: str, response_size: str = 'small',
-                             page: int = 1, limit: int = 100, sort: str = 'id', reverse: bool = False, count: bool = True) -> Dict[str, Any]:
+                             page: int = 1, limit: int = 100, sort: str = 'id', reverse: bool = False, count: bool = True) -> dict[str, Any]:
     
     VN = MODEL_MAP['vn']
 
@@ -103,7 +111,7 @@ def search_resources_by_vnid(vnid: str, related_resource_type: str, response_siz
     return {'results': results, 'more': more, 'count': total} if count else {'results': results, 'more': more}
 
 def search_resources_by_charid(charid: str, related_resource_type: str, response_size: str = 'small',
-                               page: int = 1, limit: int = 100, sort: str = 'id', reverse: bool = False, count: bool = True) -> Dict[str, Any]:
+                               page: int = 1, limit: int = 100, sort: str = 'id', reverse: bool = False, count: bool = True) -> dict[str, Any]:
     Character = MODEL_MAP['character']
 
     character = Character.query.filter(Character.id == charid, Character.deleted_at == None).first()
@@ -147,7 +155,7 @@ def search_resources_by_charid(charid: str, related_resource_type: str, response
     return {'results': results, 'more': more, 'count': total} if count else {'results': results, 'more': more}
 
 def search_resources_by_release_id(release_id: str, related_resource_type: str, response_size: str = 'small',
-                                   page: int = 1, limit: int = 100, sort: str = 'id', reverse: bool = False, count: bool = True) -> Dict[str, Any]:
+                                   page: int = 1, limit: int = 100, sort: str = 'id', reverse: bool = False, count: bool = True) -> dict[str, Any]:
     Release = MODEL_MAP['release']
 
     release = Release.query.filter(Release.id == release_id, Release.deleted_at == None).first()
@@ -191,7 +199,7 @@ def search_resources_by_release_id(release_id: str, related_resource_type: str, 
     return {'results': results, 'more': more, 'count': total} if count else {'results': results, 'more': more}
 
 def search_vns_by_resource_id(resource_type: str, resource_id: str, response_size: str = 'small',
-                              page: int = 1, limit: int = 100, sort: str = 'id', reverse: bool = False, count: bool = True) -> Dict[str, Any]:
+                              page: int = 1, limit: int = 100, sort: str = 'id', reverse: bool = False, count: bool = True) -> dict[str, Any]:
     params = {{
         'tag': 'tag',
         'character': 'character',
@@ -206,7 +214,7 @@ def search_vns_by_resource_id(resource_type: str, resource_id: str, response_siz
     return results
 
 def search_characters_by_resource_id(resource_type: str, resource_id: str, response_size: str = 'small',
-                                     page: int = 1, limit: int = 100, sort: str = 'id', reverse: bool = False, count: bool = True) -> Dict[str, Any]:
+                                     page: int = 1, limit: int = 100, sort: str = 'id', reverse: bool = False, count: bool = True) -> dict[str, Any]:
     params = {{
         'vn': 'vn',
         'trait': 'trait'
@@ -218,11 +226,11 @@ def search_characters_by_resource_id(resource_type: str, resource_id: str, respo
     return results
 
 def search_releases_by_resource_id(resource_type: str, resource_id: str, response_size: str = 'small',
-                                   page: int = 1, limit: int = 100, sort: str = 'id', reverse: bool = False, count: bool = True) -> Dict[str, Any]:
-    params = {
+                                   page: int = 1, limit: int = 100, sort: str = 'id', reverse: bool = False, count: bool = True) -> dict[str, Any]:
+    params = {{
         'vn': 'vn',
         'producer': 'producer'
-    }.get(resource_type)
+    }.get(resource_type) : resource_id}
 
     if params is None:
         raise ValueError(f"Invalid resource_type: {resource_type}")

@@ -1,4 +1,4 @@
-from typing import Dict, Tuple, List, Callable, Any
+from typing import Any, Callable
 
 import re
 import uuid
@@ -9,6 +9,7 @@ from sqlalchemy.sql.expression import BinaryExpression
 
 from vndb.database.models import VN, Tag, Producer, Staff, Character, Trait, Release
 from vndb.database.operations import formatId
+from ..parse import validate_logical_expression
 
 def generate_unique_param_name(prefix: str) -> str:
     return f"{prefix}_{uuid.uuid4().hex[:8]}"
@@ -46,22 +47,6 @@ def array_string_match(column: Any, value: str) -> BinaryExpression:
         .where(text(f"array_item ILIKE :{param_value}"))
     ).params({param_value: f"%{value}%"})
 
-def normalize_expression(expression: str) -> str:
-    """
-    Normalize the expression by removing spaces around operators while preserving spaces within terms.
-    
-    Args:
-        expression (str): The tag expression with potential spaces around operators.
-    
-    Returns:
-        str: Normalized expression with spaces removed around operators.
-    """
-    normalized = re.sub(r'\s*\+\s*', '+', expression)
-    normalized = re.sub(r'\s*,\s*', ',', normalized)
-    normalized = re.sub(r'\s*\(\s+', '(', normalized)
-    normalized = re.sub(r'\s+\)\s*', ')', normalized)
-    return normalized
-
 def process_multi_value_expression(expression: str, value_processor: Callable[[str], BinaryExpression]) -> BinaryExpression:
     """
     Process a multi-value expression with OR/AND logic and parentheses using two stacks.
@@ -70,7 +55,8 @@ def process_multi_value_expression(expression: str, value_processor: Callable[[s
     :param value_processor: A function that takes a string value and returns a SQLAlchemy filter condition
     :return: A single SQLAlchemy filter condition
     """
-    expression = normalize_expression(expression)
+    if not validate_logical_expression(expression):
+        raise ValueError(f"Invalid expression: {expression}")
 
     def evaluate(ops: list, vals: list) -> None:
         if len(ops) > 0 and len(vals) >= 2:
@@ -163,7 +149,7 @@ def parse_released(value: str) -> str:
 
     raise ValueError(f"Invalid release date format: {value}. Use YYYY, YYYY-MM, or YYYY-MM-DD format.")
 
-def parse_resolution(value: str) -> Tuple[int, int]:
+def parse_resolution(value: str) -> tuple[int, int]:
     """
     Parse the resolution string.
     
@@ -177,7 +163,7 @@ def parse_resolution(value: str) -> Tuple[int, int]:
     
     raise ValueError(f"Invalid resolution format: {value}. Use 'WIDTHxHEIGHT' format (e.g., '640x480').")
 
-def parse_birthday(value: str) -> Tuple[int, int]:
+def parse_birthday(value: str) -> tuple[int, int]:
     """
     Parse the birthday string.
     
@@ -468,7 +454,7 @@ def create_sex_match_filter(value: str, spoil: bool = False) -> BinaryExpression
         Character.sex[index].cast(String) == value
     )
 
-def get_vn_additional_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
+def get_vn_additional_filters(params: dict[str, Any]) -> list[BinaryExpression]:
     filters = []
 
     if release_id := params.get('release_id'):
@@ -495,7 +481,7 @@ def get_vn_additional_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
 
     return filters
 
-def get_release_additional_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
+def get_release_additional_filters(params: dict[str, Any]) -> list[BinaryExpression]:
     filters = []
 
     if vn_id := params.get('vn_id'):
@@ -515,7 +501,7 @@ def get_release_additional_filters(params: Dict[str, Any]) -> List[BinaryExpress
 
     return filters
 
-def get_character_additional_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
+def get_character_additional_filters(params: dict[str, Any]) -> list[BinaryExpression]:
     filters = []
 
     if vn_id := params.get('vn_id'):
@@ -532,15 +518,15 @@ def get_character_additional_filters(params: Dict[str, Any]) -> List[BinaryExpre
 
     return filters
 
-def get_producer_additional_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
+def get_producer_additional_filters(params: dict[str, Any]) -> list[BinaryExpression]:
     filters = []
     return filters
 
-def get_staff_additional_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
+def get_staff_additional_filters(params: dict[str, Any]) -> list[BinaryExpression]:
     filters = []
     return filters
 
-def get_tag_additional_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
+def get_tag_additional_filters(params: dict[str, Any]) -> list[BinaryExpression]:
     filters = []
 
     if str(params.get('ero')).lower() == 'false' or str(params.get('ero')) == '0':
@@ -548,7 +534,7 @@ def get_tag_additional_filters(params: Dict[str, Any]) -> List[BinaryExpression]
 
     return filters
 
-def get_trait_additional_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
+def get_trait_additional_filters(params: dict[str, Any]) -> list[BinaryExpression]:
     filters = []
 
     if str(params.get('ero')).lower() == 'false' or str(params.get('ero')) == '0':
@@ -560,7 +546,7 @@ def get_trait_additional_filters(params: Dict[str, Any]) -> List[BinaryExpressio
     return filters
 
 
-def get_vn_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
+def get_vn_filters(params: dict[str, Any]) -> list[BinaryExpression]:
     filters = []
 
     if ids := params.get('id'):
@@ -690,7 +676,7 @@ def get_vn_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
 
     return filters
 
-def get_release_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
+def get_release_filters(params: dict[str, Any]) -> list[BinaryExpression]:
     filters = []
 
     if ids := params.get('id'):
@@ -811,7 +797,7 @@ def get_release_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
 
     return filters
 
-def get_character_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
+def get_character_filters(params: dict[str, Any]) -> list[BinaryExpression]:
     filters = []
 
     if ids := params.get('id'):
@@ -913,7 +899,7 @@ def get_character_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
 
     return filters
     
-def get_producer_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
+def get_producer_filters(params: dict[str, Any]) -> list[BinaryExpression]:
     filters = []
 
     if ids := params.get('id'):
@@ -947,7 +933,7 @@ def get_producer_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
 
     return filters
 
-def get_staff_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
+def get_staff_filters(params: dict[str, Any]) -> list[BinaryExpression]:
     filters = []
 
     if ids := params.get('id'):
@@ -997,7 +983,7 @@ def get_staff_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
 
     return filters
 
-def get_tag_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
+def get_tag_filters(params: dict[str, Any]) -> list[BinaryExpression]:
     filters = []
 
     if ids := params.get('id'):
@@ -1019,7 +1005,7 @@ def get_tag_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
 
     return filters
 
-def get_trait_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
+def get_trait_filters(params: dict[str, Any]) -> list[BinaryExpression]:
     filters = []
     
     if ids := params.get('id'):
@@ -1039,7 +1025,7 @@ def get_trait_filters(params: Dict[str, Any]) -> List[BinaryExpression]:
     return filters
 
 
-def get_local_filters(search_type: str, params: Dict[str, Any]) -> List[BinaryExpression]:
+def get_local_filters(search_type: str, params: dict[str, Any]) -> list[BinaryExpression]:
 
     filter_functions = {
         'vn': get_vn_filters,

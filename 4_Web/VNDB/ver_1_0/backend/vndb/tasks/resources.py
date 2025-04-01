@@ -1,4 +1,4 @@
-from typing import Dict, List, Any
+from typing import Any
 
 from vndb.search import (
     search_remote, search_local,
@@ -14,7 +14,7 @@ from .common import (
 )
 
 @task_with_memoize(timeout=600)
-def get_resource_task(resource_type: str, resource_id: str, response_size: str = 'small') -> Dict[str, Any]:
+def get_resource_task(resource_type: str, resource_id: str, response_size: str = 'small') -> dict[str, Any]:
     results = search_local(resource_type, {'id': resource_id}, response_size)
     if not results or not isinstance(results, dict) or not results.get('results'):
         return NOT_FOUND
@@ -24,8 +24,8 @@ def get_resource_task(resource_type: str, resource_id: str, response_size: str =
     return results
 
 @task_with_memoize(timeout=600)
-def get_resources_task(resource_type: str, args: Dict[str, Any], response_size: str = 'small',
-                       page: int = 1, limit: int = 20, sort: str = 'id', reverse: bool = False, count: bool = True) -> Dict[str, Any]:
+def get_resources_task(resource_type: str, args: dict[str, Any], response_size: str = 'small',
+                       page: int = 1, limit: int = 20, sort: str = 'id', reverse: bool = False, count: bool = True) -> dict[str, Any]:
     results = search_local(resource_type, args, response_size, page, limit, sort, reverse, count)
     if not results or not isinstance(results, dict) or not results.get('results'):
         return NOT_FOUND
@@ -35,7 +35,7 @@ def get_resources_task(resource_type: str, args: Dict[str, Any], response_size: 
     return results
 
 @task_with_memoize(timeout=600)
-def search_resource_task(resource_type: str, resource_id: str, response_size: str = 'small') -> Dict[str, Any]:
+def search_resource_task(resource_type: str, resource_id: str, response_size: str = 'small') -> dict[str, Any]:
     results = search_remote(resource_type, {'id': resource_id}, response_size)
     if not results or not isinstance(results, dict) or not results.get('results'):
         return NOT_FOUND
@@ -48,8 +48,8 @@ def search_resource_task(resource_type: str, resource_id: str, response_size: st
     return results
 
 @task_with_memoize(timeout=600)
-def search_resources_task(resource_type: str, params: Dict[str, Any], response_size: str = 'small',
-                           page: int = 1, limit: int = 20, sort: str = 'id', reverse: bool = False, count: bool = True) -> Dict[str, Any]:
+def search_resources_task(resource_type: str, params: dict[str, Any], response_size: str = 'small',
+                           page: int = 1, limit: int = 20, sort: str = 'id', reverse: bool = False, count: bool = True) -> dict[str, Any]:
     results = search_remote(resource_type, params, response_size, page, limit, sort, reverse, count)
     if not results or not isinstance(results, dict) or not results.get('results'):
         return NOT_FOUND
@@ -62,7 +62,7 @@ def search_resources_task(resource_type: str, params: Dict[str, Any], response_s
     return results
    
 @task_with_cache_clear
-def update_resource_task(resource_type: str, resource_id: str) -> Dict[str, Any]:
+def update_resource_task(resource_type: str, resource_id: str) -> dict[str, Any]:
     remote_result = search_remote(resource_type, {'id':resource_id}, 'large')
     if not remote_result or not remote_result.get('results'):
         return NOT_FOUND
@@ -77,7 +77,7 @@ def update_resource_task(resource_type: str, resource_id: str) -> Dict[str, Any]
     return format_results(data)
 
 @task_with_cache_clear
-def update_resources_task(resource_type: str) -> Dict[str, Any]:
+def update_resources_task(resource_type: str) -> dict[str, Any]:
     update_results = {}
 
     resources = get_all(resource_type)
@@ -88,22 +88,22 @@ def update_resources_task(resource_type: str) -> Dict[str, Any]:
     return format_results(update_results)
 
 @task_with_cache_clear
-def delete_resource_task(resource_type: str, resource_id: str) -> Dict[str, Any]:
+def delete_resource_task(resource_type: str, resource_id: str) -> dict[str, Any]:
     result = delete(resource_type, resource_id)
     return format_results(result)
 
 @task_with_cache_clear
-def delete_resources_task(resource_type: str) -> Dict[str, Any]:
+def delete_resources_task(resource_type: str) -> dict[str, Any]:
     deleted_count = delete_all(resource_type)
     return format_results(deleted_count)
 
 @task_with_cache_clear
-def edit_resource_task(resource_type: str, resource_id: str, update_data: Dict[str, Any]) -> Dict[str, Any]:
+def edit_resource_task(resource_type: str, resource_id: str, update_data: dict[str, Any]) -> dict[str, Any]:
     result = update(resource_type, resource_id, update_data)
     return format_results(result)
 
 @task_with_cache_clear
-def edit_resources_task(resouce_type: str, update_datas: List[Dict[str, Any]]) -> Dict[str, Any]:
+def edit_resources_task(resouce_type: str, update_datas: list[dict[str, Any]]) -> dict[str, Any]:
     update_results = {}
 
     for update_data in update_datas:
@@ -115,7 +115,7 @@ def edit_resources_task(resouce_type: str, update_datas: List[Dict[str, Any]]) -
 
 
 @task_with_cache_clear
-def synchronize_resources_task(resource_type: str, results: List[Dict[str, Any]]) -> Dict[str, Dict[str, bool]]:
+def synchronize_resources_task(resource_type: str, results: list[dict[str, Any]]) -> dict[str, dict[str, bool]]:
     created = {}
     updated = {}
     for result in results:

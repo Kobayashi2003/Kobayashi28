@@ -1,4 +1,4 @@
-from typing import Dict, Any, Callable
+from typing import Any, Callable
 
 from vndb.search import (
     search_resources_by_vnid_local,
@@ -22,7 +22,7 @@ from .common import (
     task_with_memoize, task_with_cache_clear, format_results
 ) 
 
-def unpaginated_search(search_function: Callable, **kwargs) -> Dict[str, Any]:
+def unpaginated_search(search_function: Callable, **kwargs) -> dict[str, Any]:
     results = []
     page = 1
     more = True
@@ -39,7 +39,7 @@ def unpaginated_search(search_function: Callable, **kwargs) -> Dict[str, Any]:
 
 @task_with_memoize(timeout=600)
 def get_related_resources_task(resource_type: str, resource_id: str, related_resource_type: str, response_size: str = 'small',
-                                page: int = 1, limit: int = 100, sort: str = 'id', reverse: bool = False, count: bool = True) -> Dict[str, Any]:
+                                page: int = 1, limit: int = 100, sort: str = 'id', reverse: bool = False, count: bool = True) -> dict[str, Any]:
 
     if resource_type in ['tag', 'character', 'staff', 'producer'] and related_resource_type == 'vn':
         results = search_vns_by_resource_id_local(
@@ -85,7 +85,7 @@ def get_related_resources_task(resource_type: str, resource_id: str, related_res
 
 @task_with_memoize(timeout=600)
 def search_related_resources_task(resource_type: str, resource_id: str, related_resource_type: str, response_size: str = 'small',
-                                   page: int = 1, limit: int = 100, sort: str = 'id', reverse: bool = False, count: bool = True) -> Dict[str, Any]:
+                                   page: int = 1, limit: int = 100, sort: str = 'id', reverse: bool = False, count: bool = True) -> dict[str, Any]:
 
     if resource_type in ['tag', 'dtag', 'producer', 'staff', 'character', 'release'] and related_resource_type == 'vn':
         results = search_vns_by_resource_id_remote(
@@ -130,7 +130,7 @@ def search_related_resources_task(resource_type: str, resource_id: str, related_
     return results
 
 @task_with_cache_clear
-def update_related_resources_task(resource_type: str, resource_id: str, related_resource_type: str) -> Dict[str, Any]:
+def update_related_resources_task(resource_type: str, resource_id: str, related_resource_type: str) -> dict[str, Any]:
 
     related_data = unpaginated_search(
         search_related_resources_task, 
@@ -159,7 +159,7 @@ def update_related_resources_task(resource_type: str, resource_id: str, related_
     return format_results(update_results)
 
 @task_with_cache_clear
-def delete_related_resources_task(resource_type: str, resource_id: str, related_resource_type: str) -> Dict[str, Any]:
+def delete_related_resources_task(resource_type: str, resource_id: str, related_resource_type: str) -> dict[str, Any]:
 
     related_data = unpaginated_search(
         get_related_resources_task,
