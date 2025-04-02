@@ -163,11 +163,22 @@ def build_filter(filter_set: dict[str, VNDBFilter], key: str, value: Any) -> lis
             raise ValueError(f"Invalid value: {value}")
 
     if filter_def.filter_type == FilterType.BOOLEAN:
-        operator = '='
-        if isinstance(filter_value, str) and filter_value.lower() == 'false':
-            operator = '!='
-        elif isinstance(filter_value, bool) and not filter_value:
-            operator = '!='
+        if isinstance(filter_value, bool):
+            operator = '=' if filter_value else '!='
+        elif isinstance(filter_value, str):
+            if filter_value.lower() == 'false' or filter_value.lower() == '0':
+                operator = '!='
+            elif filter_value.lower() == 'true' or filter_value.lower() == '1':
+                operator = '='
+            else:
+                raise ValueError(f"Invalid value: {value}")
+        elif isinstance(filter_value, int):
+            if filter_value == 0:
+                operator = '!='
+            elif filter_value == 1:
+                operator = '='
+            else:
+                raise ValueError(f"Invalid value: {value}")
         else:
             raise ValueError(f"Invalid value: {value}")
         filter_value = 1

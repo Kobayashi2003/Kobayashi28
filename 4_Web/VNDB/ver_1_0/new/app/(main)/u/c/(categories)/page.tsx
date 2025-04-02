@@ -435,7 +435,7 @@ export default function CategoriesPage() {
                 disabled={loadingResources}
               />
             </div>
-            {selectedType === "v" || selectedType === "c" && (
+            {(selectedType === "v" || selectedType === "c") && (
               <div className="flex flex-wrap justify-end gap-2">
                 <SexualLevelSelector
                   sexualLevel={sexualLevel}

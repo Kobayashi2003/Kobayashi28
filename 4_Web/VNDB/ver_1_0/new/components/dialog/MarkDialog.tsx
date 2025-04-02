@@ -40,7 +40,6 @@ export function MarkDialog({ open, setOpen, className }: MarkDialogProps) {
   const [notFound, setNotFound] = useState(false)
   const [categories, setCategories] = useState<Category[]>([])
   const [toggledCategoryIds, setToggledCategoryIds] = useState<number[]>([])
-  const [newCategoryName, setNewCategoryName] = useState("")
 
   const fetchCategories = async () => {
     if (user) {
@@ -90,14 +89,13 @@ export function MarkDialog({ open, setOpen, className }: MarkDialogProps) {
     }
   }
 
-  const handleCreateCategory = async () => {
+  const handleCreateCategory = async (newCategoryName: string) => {
     if (user) {
       if (!newCategoryName.trim()) return
       if (type && id) {
         try {
           setLoading(true)
           await api.category.create(type, newCategoryName)
-          setNewCategoryName("")
         } catch (error) {
           setError(error as string)
         } finally {
@@ -178,8 +176,6 @@ export function MarkDialog({ open, setOpen, className }: MarkDialogProps) {
           </div>
         )}
         <CategoryCreator
-          newCategoryName={newCategoryName}
-          setNewCategoryName={setNewCategoryName}
           handleCreateCategory={handleCreateCategory}
           disabled={loading}
           className="bg-transparent hover:bg-transparent border-none w-full p-0"

@@ -65,9 +65,9 @@ export function VNDetailsPanel({ vn }: VNDetailsPanelProps) {
   return (
     <div className="container mx-auto">
       {mainTitle}
-      <div className="w-50">
+      {/* <div className="w-50">
         <Image url={image_url || ""} thumbnail={image_thumbnail} image_dims={image_dims} thumbnail_dims={image_thumbnail_dims} />
-      </div>
+      </div> */}
     </div>
   )
 }

@@ -25,6 +25,7 @@ export function CheckBox({ id, label, checked, onChange, disabled, className }: 
   )
 
   const labelStyle = cn(
+    "w-full h-full",
     "ml-1",
     "text-white",
     "font-normal group-hover:font-bold",
