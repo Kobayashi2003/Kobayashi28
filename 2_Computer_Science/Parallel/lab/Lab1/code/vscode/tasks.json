@@ -10,15 +10,44 @@
 				"${file}",
 				"-o",
 				"${fileDirname}/${fileBasenameNoExtension}.out",
-				"-std=c11" 
+				"-std=c11",
+				"-ggdb3",
+				"-Wall",
+				"-static-libgcc",
+				"-Wno-format",
+				"-finput-charset=UTF-8",
+				"-fexec-charset=UTF-8"
 			],
+			"presentation": {
+				"echo": true,
+				"reveal": "silent",
+				"focus": false,
+				"panel": "shared",
+				"clear": true,
+				"showReuseMessage": true
+			},
 			"options": {
 				"cwd": "${workspaceFolder}"
 			},
-			"problemMatcher": [
-				"$gcc"
-			],
-			"group": "build"
+			"problemMatcher": {
+				"owner": "cpp",
+				"fileLocation": [
+					"relative",
+					"\\"
+				],
+				"pattern": {
+					"regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+					"file": 1,
+					"line": 2,
+					"column": 3,
+					"severity": 4,
+					"message": 5
+				}
+			},
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
 		}
 	]
 }
