@@ -5,8 +5,13 @@
             "name": "Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${fileDirname}/${fileBasenameNoExtension}.out",
-            "args": [],
+            // "program": "${fileDirname}/${fileBasenameNoExtension}.out",
+            "program": "/usr/bin/mpirun",
+            "args": [
+                "-np",
+                "4",
+                "${fileDirname}/${fileBasenameNoExtension}.out"
+            ],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],

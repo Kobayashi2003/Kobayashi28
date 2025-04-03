@@ -75,6 +75,7 @@ export default function CategoriesPage() {
   const [notfoundResources, setNotfoundResources] = useState<boolean>(false)
 
   const [currentPageItemsCount, setCurrentPageItemsCount] = useState(0)
+  const [totalItemsCount, setTotalItemsCount] = useState(0)
   const [categories, setCategories] = useState<Category[]>([])
   const [vns, setVNs] = useState<VN_Small[]>([])
   const [characters, setCharacters] = useState<Character_Small[]>([])
@@ -147,6 +148,7 @@ export default function CategoriesPage() {
       setErrorResources("")
       setNotfoundResources(false)
       const marksResponse = await api.category.getMarks(selectedType, selectedCategoryId, newAbortController.signal)
+      setTotalItemsCount(marksResponse.results.length)
       if (marksResponse.results.length === 0) {
         setLoadingResources(false)
         setNotfoundResources(true)
@@ -156,7 +158,6 @@ export default function CategoriesPage() {
       switch (selectedType) {
         case "v":
           const vnsResponse = await api.small.vn({
-            from: "local",
             id: markIds,
             sort: sortBy,
             reverse: sortOrder === "desc",
@@ -434,6 +435,8 @@ export default function CategoriesPage() {
                 handleReload={() => { fetchResources() }}
                 disabled={loadingResources}
               />
+              {/* Total Items Count */}
+              <p className="text-gray-500 self-center select-none">Total: {totalItemsCount}</p>
             </div>
             {(selectedType === "v" || selectedType === "c") && (
               <div className="flex flex-wrap justify-end gap-2">

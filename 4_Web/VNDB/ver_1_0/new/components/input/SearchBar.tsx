@@ -22,6 +22,7 @@ export function SearchBar({ input, setInput, placeholder, disabled, className }:
   const inputTextSize = "text-xs sm:text-sm md:text-base"
   const inputTextColor = "text-white"
   const inputPlaceholderColor = "placeholder:text-white/60"
+  const inputSelectionColor = "selection:bg-blue-500 selection:text-white"
   const inputAnimation = "transition-all duration-300"
 
   return (
@@ -41,6 +42,7 @@ export function SearchBar({ input, setInput, placeholder, disabled, className }:
           inputTextSize,
           inputTextColor,
           inputPlaceholderColor,
+          inputSelectionColor,
           inputAnimation
         )}
       />
