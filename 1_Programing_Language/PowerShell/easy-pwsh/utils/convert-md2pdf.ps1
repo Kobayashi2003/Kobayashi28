@@ -1,5 +1,4 @@
-﻿
-<#
+﻿<#
 .SYNOPSIS
 	Converts a .md file into a pdf file
 .DESCRIPTION
@@ -13,7 +12,6 @@
 param([string]$Path = "")
 
 try {
-
     # pandoc and latex are required for this script to work
     if (-not (Get-Command "pandoc" -ErrorAction SilentlyContinue)) {
         throw "Pandoc is required for this script to work"

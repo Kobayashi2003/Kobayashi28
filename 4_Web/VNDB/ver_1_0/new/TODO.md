@@ -5,3 +5,9 @@
 - MarkButton
 - MenuButton
 - MenuDialog
+- 独立year selector 和 month selector组件
+- 调整selector大小
+- 删除u/layout中的nvibar
+- 将mark的部分移入到/[type]/[id]中
+- 新写categoriesSelector2 按钮下拉菜单的组件
+- 增加行模式的Switch
