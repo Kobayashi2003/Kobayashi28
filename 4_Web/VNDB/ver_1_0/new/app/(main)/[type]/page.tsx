@@ -5,23 +5,26 @@ import { useSearchParams, useParams } from "next/navigation"
 import { useUrlParams } from "@/hooks/useUrlParams"
 import { motion, AnimatePresence } from "motion/react"
 
+import { cn } from "@/lib/utils"
 import { SexualLevelSelector } from "@/components/selector/SexualLevelSelector"
 import { ViolenceLevelSelector } from "@/components/selector/ViolenceLevelSelector"
 import { CardTypeSwitch } from "@/components/selector/CardTypeSwtich"
+import { GridLayoutSwitch } from "@/components/selector/GridLayoutSwitch"
 import { PaginationButtons } from "@/components/button/PaginationButtons"
 
 import { Loading } from "@/components/status/Loading"
 import { Error } from "@/components/status/Error"
 import { NotFound } from "@/components/status/NotFound"
 
-import { 
-  VNsCardsGrid, ReleasesCardsGrid, CharactersCardsGrid, 
-  ProducersCardsGrid, StaffCardsGrid, TagsCardsGrid, TraitsCardsGrid } 
-from "@/components/card/CardsGrid"
+import {
+  VNsCardsGrid, ReleasesCardsGrid, CharactersCardsGrid,
+  ProducersCardsGrid, StaffCardsGrid, TagsCardsGrid, TraitsCardsGrid
+}
+  from "@/components/card/CardsGrid"
 
-import type { 
-  VN_Small, Character_Small, Producer_Small, Staff_Small, 
-  Tag_Small, Trait_Small, Release_Small, VNDBQueryParams 
+import type {
+  VN_Small, Character_Small, Producer_Small, Staff_Small,
+  Tag_Small, Trait_Small, Release_Small, VNDBQueryParams
 } from "@/lib/types"
 import { api } from "@/lib/api"
 
@@ -54,6 +57,7 @@ export default function SearchResults() {
   const [totalPages, setTotalPages] = useState(0)
 
   const [cardType, setCardType] = useState<"image" | "text">("image")
+  const [layout, setLayout] = useState<"single" | "grid">("grid")
   const [sexualLevel, setSexualLevel] = useState<"safe" | "suggestive" | "explicit">("safe")
   const [violenceLevel, setViolenceLevel] = useState<"tame" | "violent" | "brutal">("tame")
 
@@ -135,7 +139,7 @@ export default function SearchResults() {
       })
     }
   }
-  
+
   const handlePageChange = (page: number) => {
     updateKey("page", page.toString())
   }
@@ -152,29 +156,33 @@ export default function SearchResults() {
     }
   }, [abortController])
 
-  const fadeInAnimation = {
-    initial: { filter: "blur(20px)", opacity: 0 },
-    animate: { filter: "blur(0px)", opacity: 1 },
-    exit: { filter: "blur(20px)", opacity: 0 },
-    transition: { duration: 0.4, ease: "easeInOut" }
-  }
-  const statusStyle = "flex-grow flex justify-center items-center"
-
   return (
     <main className="container mx-auto min-h-screen flex flex-col p-4 pb-8">
       {/* Selectors for VNs and Characters */}
       {(type === "v" || type === "c") && (
-        <div className="flex flex-wrap overflow-x-auto items-center justify-between mb-4">
-          {/* Card Type Selector */}
-          <CardTypeSwitch
-            cardType={cardType}
-            setCardType={setCardType}
-          />
-          <div className="flex flex-wrap justify-end gap-2">
+        <div className={cn(
+          "flex mb-4",
+          "flex-col items-center gap-2",
+          "sm:flex-row sm:justify-between sm:gap-4"
+        )}>
+          <div className="w-full sm:flex-1 flex sm:justify-start gap-2">
+            {/* Card Type Selector */}
+            <CardTypeSwitch
+              cardType={cardType}
+              setCardType={setCardType}
+            />
+            {/* Grid Layout Switch */}
+            <GridLayoutSwitch
+              layout={layout}
+              setLayout={setLayout}
+            />
+          </div>
+          <div className="w-full sm:flex-1 flex sm:justify-end gap-2">
             {/* Sexual Level Selector */}
             <SexualLevelSelector
               sexualLevel={sexualLevel}
               setSexualLevel={(value: string) => setSexualLevel(value as "safe" | "suggestive" | "explicit")}
+              className="w-full sm:w-auto"
             />
             {/* Divider */}
             <div className="w-px bg-gray-300 dark:bg-gray-700 hidden sm:block" />
@@ -182,64 +190,60 @@ export default function SearchResults() {
             <ViolenceLevelSelector
               violenceLevel={violenceLevel}
               setViolenceLevel={(value: string) => setViolenceLevel(value as "tame" | "violent" | "brutal")}
+              className="w-full sm:w-auto"
             />
           </div>
         </div>
       )}
+      {(type === "r" || type === "p" || type === "s" || type === "g" || type === "i") && (
+        <GridLayoutSwitch
+          layout={layout}
+          setLayout={setLayout}
+          className="mb-4"
+        />
+      )}
       <AnimatePresence mode="wait">
-        {/* Loading */}
-        {resourceState.loading && (
+        {/* Status */}
+        {(resourceState.loading || resourceState.error || resourceState.notFound) && (
           <motion.div
-            key="loading"
-            {...fadeInAnimation}
-            className={statusStyle}
+            key="status"
+            initial={{ filter: "blur(20px)", opacity: 0 }}
+            animate={{ filter: "blur(0px)", opacity: 1 }}
+            exit={{ filter: "blur(20px)", opacity: 0 }}
+            transition={{ duration: 0.4, ease: "easeInOut" }}
+            className="flex-grow flex justify-center items-center"
           >
-            <Loading message="Loading..." />
-          </motion.div>
-        )}
-        {/* Error */}
-        {resourceState.error && (
-          <motion.div
-            key="error"
-            {...fadeInAnimation}
-            className={statusStyle}
-          >
-            <Error message={`Error: ${resourceState.error}`} />
-          </motion.div>
-        )}
-        {/* Not Found */}
-        {resourceState.notFound && (
-          <motion.div
-            key="notfound"
-            {...fadeInAnimation}
-            className={statusStyle}
-          >
-            <NotFound message="No items found" />
+            {/* loading */}
+            {resourceState.loading && <Loading message="Loading..." />}
+            {/* error */}
+            {resourceState.error && <Error message={`Error: ${resourceState.error}`} />}
+            {/* not found */}
+            {resourceState.notFound && <NotFound message="No items found" />}
           </motion.div>
         )}
         {/* Cards */}
         {!resourceState.loading && !resourceState.error && !resourceState.notFound && (
           <motion.div>
             {type === "v" && (
-              <VNsCardsGrid vns={resourceData.vns} cardType={cardType} sexualLevel={sexualLevel} violenceLevel={violenceLevel} />
+              <VNsCardsGrid vns={resourceData.vns} layout={layout} cardType={cardType} sexualLevel={sexualLevel} violenceLevel={violenceLevel} />
             )}
             {type === "c" && (
-              <CharactersCardsGrid characters={resourceData.characters} cardType={cardType} sexualLevel={sexualLevel} violenceLevel={violenceLevel} />
+              <CharactersCardsGrid characters={resourceData.characters} layout={layout} cardType={cardType} sexualLevel={sexualLevel} violenceLevel={violenceLevel} />
             )}
             {type === "r" && (
-              <ReleasesCardsGrid releases={resourceData.releases} />
+              <ReleasesCardsGrid releases={resourceData.releases} layout={layout} />
             )}
             {type === "p" && (
-              <ProducersCardsGrid producers={resourceData.producers} />
+              <ProducersCardsGrid producers={resourceData.producers} layout={layout} />
             )}
             {type === "s" && (
-              <StaffCardsGrid staff={resourceData.staff} />
+              <StaffCardsGrid staff={resourceData.staff} layout={layout} />
             )}
             {type === "g" && (
-              <TagsCardsGrid tags={resourceData.tags} />
+              <TagsCardsGrid tags={resourceData.tags} layout={layout} />
             )}
             {type === "i" && (
-              <TraitsCardsGrid traits={resourceData.traits} />
+              <TraitsCardsGrid traits={resourceData.traits} layout={layout} />
             )}
           </motion.div>
         )}

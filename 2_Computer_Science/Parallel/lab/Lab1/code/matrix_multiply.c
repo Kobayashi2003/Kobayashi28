@@ -23,7 +23,8 @@ void print_matrix(double *matrix, int rows, int cols) {
 }
 
 int main(int argc, char *argv[]) {
-    int rank, size, n;
+    int n = 128;
+    int rank, size;
     double *A = NULL, *B = NULL, *C = NULL;
     double *local_A = NULL, *local_C = NULL;
     double start_time, end_time;
@@ -32,18 +33,6 @@ int main(int argc, char *argv[]) {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
     
-    // Matrix size from command line or default to 128
-    if (argc > 1) {
-        n = atoi(argv[1]);
-        if (n < 128 || n > 2048) {
-            if (rank == 0) printf("Matrix size should be between 128 and 2048. Using default size 128.\n");
-            n = 128;
-        }
-    } else {
-        n = 128;
-    }
-    
-    // Check if n is divisible by size for simplicity
     if (n % size != 0) {
         if (rank == 0) {
             printf("Matrix size (%d) must be divisible by number of processes (%d)\n", n, size);
@@ -54,12 +43,12 @@ int main(int argc, char *argv[]) {
     
     int rows_per_proc = n / size;
     
-    // Allocate local portions
+    // Allocate memory for local matrices
     local_A = (double*)malloc(rows_per_proc * n * sizeof(double));
     local_C = (double*)malloc(rows_per_proc * n * sizeof(double));
     memset(local_C, 0, rows_per_proc * n * sizeof(double));
     
-    // Master process initializes matrices
+    // Root process initializes matrices
     if (rank == 0) {
         A = (double*)malloc(n * n * sizeof(double));
         B = (double*)malloc(n * n * sizeof(double));
@@ -79,17 +68,51 @@ int main(int argc, char *argv[]) {
     
     start_time = MPI_Wtime();
     
-    // Distribute matrix A among processes
-    MPI_Scatter(A, rows_per_proc * n, MPI_DOUBLE, 
-                local_A, rows_per_proc * n, MPI_DOUBLE, 
-                0, MPI_COMM_WORLD);
-    
-    // Broadcast matrix B to all processes
+    // Distribute matrix A using point-to-point communication
     if (rank == 0) {
-        MPI_Bcast(B, n * n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+        // Root process sends parts of A to other processes
+        for (int dest = 1; dest < size; dest++) {
+            MPI_Send(A + dest * rows_per_proc * n, 
+                    rows_per_proc * n, 
+                    MPI_DOUBLE, 
+                    dest, 
+                    0, 
+                    MPI_COMM_WORLD);
+        }
+        // Root process keeps its own part
+        memcpy(local_A, A, rows_per_proc * n * sizeof(double));
     } else {
+        // Other processes receive their part of A
+        MPI_Recv(local_A, 
+                rows_per_proc * n, 
+                MPI_DOUBLE, 
+                0, 
+                0, 
+                MPI_COMM_WORLD, 
+                MPI_STATUS_IGNORE);
+    }
+    
+    // Distribute matrix B using point-to-point communication
+    if (rank == 0) {
+        // Root process sends B to all other processes
+        for (int dest = 1; dest < size; dest++) {
+            MPI_Send(B, 
+                    n * n, 
+                    MPI_DOUBLE, 
+                    dest, 
+                    1, 
+                    MPI_COMM_WORLD);
+        }
+    } else {
+        // Other processes allocate memory for B and receive it
         B = (double*)malloc(n * n * sizeof(double));
-        MPI_Bcast(B, n * n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+        MPI_Recv(B, 
+                n * n, 
+                MPI_DOUBLE, 
+                0, 
+                1, 
+                MPI_COMM_WORLD, 
+                MPI_STATUS_IGNORE);
     }
     
     // Perform local matrix multiplication
@@ -101,10 +124,29 @@ int main(int argc, char *argv[]) {
         }
     }
     
-    // Gather results back to the root process
-    MPI_Gather(local_C, rows_per_proc * n, MPI_DOUBLE,
-               C, rows_per_proc * n, MPI_DOUBLE,
-               0, MPI_COMM_WORLD);
+    // Gather results using point-to-point communication
+    if (rank == 0) {
+        // Root process receives results from other processes
+        for (int src = 1; src < size; src++) {
+            MPI_Recv(C + src * rows_per_proc * n, 
+                    rows_per_proc * n, 
+                    MPI_DOUBLE, 
+                    src, 
+                    2, 
+                    MPI_COMM_WORLD, 
+                    MPI_STATUS_IGNORE);
+        }
+        // Root process copies its own result
+        memcpy(C, local_C, rows_per_proc * n * sizeof(double));
+    } else {
+        // Other processes send their results to root
+        MPI_Send(local_C, 
+                rows_per_proc * n, 
+                MPI_DOUBLE, 
+                0, 
+                2, 
+                MPI_COMM_WORLD);
+    }
     
     end_time = MPI_Wtime();
     
@@ -130,4 +172,4 @@ int main(int argc, char *argv[]) {
     
     MPI_Finalize();
     return 0;
-}
+} 

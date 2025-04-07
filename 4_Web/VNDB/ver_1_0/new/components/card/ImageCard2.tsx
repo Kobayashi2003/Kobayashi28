@@ -1,6 +1,5 @@
 "use client"
 
-
 import { useEffect, useState } from "react"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
@@ -11,11 +10,12 @@ interface ImageCardProps {
   url: string
   dims?: [number, number]
   msgs?: string[]
-  link?: string
+  link?: string    
   className?: string
 }
 
-export function ImageCard({ title, url, dims, msgs, link, className }: ImageCardProps) {
+
+export function ImageCard2({ title, url, dims, msgs, link, className }: ImageCardProps) {
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
@@ -47,13 +47,14 @@ export function ImageCard({ title, url, dims, msgs, link, className }: ImageCard
     "rounded-lg",
     "p-2",
     "border border-white/10",
+    "flex flex-row",
     "hover:scale-105 transition-transform duration-300",
     link ? "cursor-pointer" : "cursor-default",
     className
   )
 
   // Image area styles
-  const imageWrapperStyle = "relative w-full aspect-square"
+  const imageWrapperStyle = "relative h-full aspect-square min-w-[100px] w-[100px] md:min-w-[120px] md:w-[120px]"
   const imageContentStyle = cn(
     "object-contain transition-opacity duration-300",
     loading || error ? "opacity-0" : "opacity-100"
@@ -62,9 +63,9 @@ export function ImageCard({ title, url, dims, msgs, link, className }: ImageCard
   const iconStyle = "h-12 w-12"
 
   // Text area styles
-  const textWrapperStyle = "w-full p-2 border-t border-white/10"
-  const titleTextStyle = "truncate font-semibold text-xs sm:text-sm md:text-base"
-  const msgTextStyle = "truncate text-xs md:text-sm text-gray-400"
+  const textWrapperStyle = "flex-1 p-2 pl-4 flex flex-col justify-center"
+  const titleTextStyle = "font-semibold text-xs sm:text-sm md:text-base mb-1"
+  const msgTextStyle = "text-xs md:text-sm text-gray-400"
 
   return (
     <div 

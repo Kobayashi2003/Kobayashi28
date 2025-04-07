@@ -65,7 +65,7 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <div className="flex flex-row">
-      <div
+      {/* <div
         ref={navBarRef}
         className={cn(
           "fixed left-0 h-full",
@@ -85,7 +85,7 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
           !trigger && "mr-4"
         )}
         style={{ height: "100%", width: `${!trigger ? navBarWidth : 0}px` }}
-      />
+      /> */}
       {children}
     </div>
   )

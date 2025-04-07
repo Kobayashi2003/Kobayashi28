@@ -32,17 +32,17 @@ const violenceLevelSelectOptions = [
   {
     key: "violence-level-select-tame",
     value: "tame",
-    label: "🟢TA",
+    label: "🟢Tame",
   },
   {
     key: "violence-level-select-violent",
     value: "violent",
-    label: "🟡VI",
+    label: "🟡Violent",
   },
   {
     key: "violence-level-select-brutal",
     value: "brutal",
-    label: "🔴BR",
+    label: "🔴Brutal",
   }
 ]
 
@@ -50,9 +50,10 @@ interface ViolenceLevelSelectorProps {
   violenceLevel: string
   setViolenceLevel: (value: string) => void
   disabled?: boolean
+  className?: string
 }
 
-export function ViolenceLevelSelector({ violenceLevel, setViolenceLevel, disabled }: ViolenceLevelSelectorProps) {
+export function ViolenceLevelSelector({ violenceLevel, setViolenceLevel, disabled, className }: ViolenceLevelSelectorProps) {
   return (
     <>
       <LevelSelectorButton
@@ -63,7 +64,8 @@ export function ViolenceLevelSelector({ violenceLevel, setViolenceLevel, disable
         className={cn(
           "hidden sm:flex",
           "font-serif italic",
-          "border-b border-white/50"
+          "border-b border-white/50",
+          className
         )}
       />
       <LevelSelectorSelect
@@ -72,7 +74,8 @@ export function ViolenceLevelSelector({ violenceLevel, setViolenceLevel, disable
         setSelectedLevel={setViolenceLevel}
         disabled={disabled}
         className={cn(
-          "sm:hidden"
+          "sm:hidden",
+          className
         )}
       />
     </>

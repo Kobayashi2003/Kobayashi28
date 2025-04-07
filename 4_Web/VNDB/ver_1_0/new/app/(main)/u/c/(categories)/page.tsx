@@ -18,14 +18,15 @@ import { ReloadButton } from "@/components/button/ReloadButton"
 import { PaginationButtons } from "@/components/button/PaginationButtons"
 import { Settings2Button } from "@/components/button/Settings2Button"
 import { CardTypeSwitch } from "@/components/selector/CardTypeSwtich"
+import { GridLayoutSwitch } from "@/components/selector/GridLayoutSwitch"
 import { OrderSwitch } from "@/components/selector/OrderSwitch"
 import { SexualLevelSelector } from "@/components/selector/SexualLevelSelector"
 import { ViolenceLevelSelector } from "@/components/selector/ViolenceLevelSelector"
 import { SortByDialog } from "@/components/dialog/SortByDialog"
-import { VNsCardsGrid, CharactersCardsGrid, ProducersCardsGrid, StaffCardsGrid } from "@/components/card/CardsGrid"
+import { VNsCardsGrid, CharactersCardsGrid, ProducersCardsGrid, StaffCardsGrid, TagsCardsGrid, ReleasesCardsGrid, TraitsCardsGrid } from "@/components/card/CardsGrid"
 
 import {
-  VN_Small, Character_Small, Producer_Small, Staff_Small, 
+  VN_Small, Character_Small, Producer_Small, Staff_Small,
   Tag_Small, Trait_Small, Release_Small, Category
 } from "@/lib/types"
 import { api } from "@/lib/api"
@@ -68,24 +69,15 @@ export default function CategoriesPage() {
     traits: [] as Trait_Small[]
   })
 
-  const [loadingCategories, setLoadingCategories] = useState(false)
-  const [errorCategories, setErrorCategories] = useState<string>("")
-  const [loadingResources, setLoadingResources] = useState(false)
-  const [errorResources, setErrorResources] = useState<string>("")
-  const [notfoundResources, setNotfoundResources] = useState<boolean>(false)
-
   const [currentPageItemsCount, setCurrentPageItemsCount] = useState(0)
   const [totalItemsCount, setTotalItemsCount] = useState(0)
   const [categories, setCategories] = useState<Category[]>([])
-  const [vns, setVNs] = useState<VN_Small[]>([])
-  const [characters, setCharacters] = useState<Character_Small[]>([])
-  const [producers, setProducers] = useState<Producer_Small[]>([])
-  const [staff, setStaffs] = useState<Staff_Small[]>([])
 
   const [deleteCategoryMode, setDeleteCategoryMode] = useState<boolean>(false)
   const [deleteMarkMode, setDeleteMarkMode] = useState<boolean>(false)
 
   const [totalPages, setTotalPages] = useState(0)
+  const [layout, setLayout] = useState<"grid" | "single">("grid")
   const [cardType, setCardType] = useState<"image" | "text">("image")
   const [sexualLevel, setSexualLevel] = useState<"safe" | "suggestive" | "explicit">("safe")
   const [violenceLevel, setViolenceLevel] = useState<"tame" | "violent" | "brutal">("tame")
@@ -125,15 +117,33 @@ export default function CategoriesPage() {
       const newAbortController = new AbortController()
       setCategoriesAbortController(newAbortController)
 
-      setLoadingCategories(true)
-      setErrorCategories("")
+      setCategoryState({
+        loading: true,
+        error: null,
+        notFound: false
+      })
       const response = await api.category.get(selectedType, newAbortController.signal)
       const sortedCategories = response.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
       setCategories(sortedCategories)
+      if (sortedCategories.length === 0) {
+        setCategoryState({
+          loading: false,
+          error: null,
+          notFound: true
+        })
+      } else {
+        setCategoryState({
+          loading: false,
+          error: null,
+          notFound: false
+        })
+      }
     } catch (error) {
-      setErrorCategories(error as string)
-    } finally {
-      setLoadingCategories(false)
+      setCategoryState({
+        loading: false,
+        error: error as string,
+        notFound: false
+      })
     }
   }
 
@@ -144,76 +154,71 @@ export default function CategoriesPage() {
       const newAbortController = new AbortController()
       setResourcesAbortController(newAbortController)
 
-      setLoadingResources(true)
-      setErrorResources("")
-      setNotfoundResources(false)
+      setResourceState({
+        loading: true,
+        error: null,
+        notFound: false
+      })
+
       const marksResponse = await api.category.getMarks(selectedType, selectedCategoryId, newAbortController.signal)
       setTotalItemsCount(marksResponse.results.length)
       if (marksResponse.results.length === 0) {
-        setLoadingResources(false)
-        setNotfoundResources(true)
+        setResourceState({
+          loading: false,
+          error: null,
+          notFound: true
+        })
         return
       }
+
       const markIds = marksResponse.results.map(mark => mark.id).join(",")
-      switch (selectedType) {
-        case "v":
-          const vnsResponse = await api.small.vn({
-            id: markIds,
-            sort: sortBy,
-            reverse: sortOrder === "desc",
-            page: currentPage,
-            limit: itemsPerPage,
-            search: query,
-          }, newAbortController.signal)
-          setVNs(vnsResponse.results)
-          setTotalPages(Math.ceil(vnsResponse.count / itemsPerPage))
-          setCurrentPageItemsCount(vnsResponse.results.length)
-          break
-        case "c":
-          const charactersResponse = await api.small.character({
-            id: markIds,
-            sort: sortBy,
-            reverse: sortOrder === "desc",
-            page: currentPage,
-            limit: itemsPerPage,
-            search: query,
-          }, newAbortController.signal)
-          setCharacters(charactersResponse.results)
-          setTotalPages(Math.ceil(charactersResponse.count / itemsPerPage))
-          setCurrentPageItemsCount(charactersResponse.results.length)
-          break
-        case "p":
-          const producersResponse = await api.small.producer({
-            id: markIds,
-            sort: sortBy,
-            reverse: sortOrder === "desc",
-            page: currentPage,
-            limit: itemsPerPage,
-            search: query,
-          }, newAbortController.signal)
-          setProducers(producersResponse.results)
-          setTotalPages(Math.ceil(producersResponse.count / itemsPerPage))
-          setCurrentPageItemsCount(producersResponse.results.length)
-          break
-        case "s":
-          const staffsResponse = await api.small.staff({
-            id: markIds,
-            sort: sortBy,
-            reverse: sortOrder === "desc",
-            page: currentPage,
-            limit: itemsPerPage,
-            search: query,
-          }, newAbortController.signal)
-          setStaffs(staffsResponse.results)
-          setTotalPages(Math.ceil(staffsResponse.count / itemsPerPage))
-          setCurrentPageItemsCount(staffsResponse.results.length)
-          break
+      const requestFunction = {
+        v: api.small.vn,
+        r: api.small.release,
+        c: api.small.character,
+        p: api.small.producer,
+        s: api.small.staff,
+        g: api.small.tag,
+        i: api.small.trait
       }
-    }
-    catch (error) {
-      setErrorResources(error as string)
-    } finally {
-      setLoadingResources(false)
+
+      const requestResource = {
+        v: "vns",
+        r: "releases",
+        c: "characters",
+        p: "producers",
+        s: "staff",
+        g: "tags",
+        i: "traits"
+      }
+
+      const response = await requestFunction[selectedType as keyof typeof requestFunction]({
+        id: markIds,
+        sort: sortBy,
+        reverse: sortOrder === "desc",
+        page: currentPage,
+        limit: itemsPerPage,
+        search: query,
+      }, newAbortController.signal)
+
+      setResourceData({
+        ...resourceData,
+        [requestResource[selectedType as keyof typeof requestResource]]: response.results
+      })
+      setTotalPages(Math.ceil(response.count / itemsPerPage))
+      setCurrentPageItemsCount(response.results.length)
+
+      setResourceState({
+        loading: false,
+        error: null,
+        notFound: false
+      })
+    } catch (error) {
+      setResourceState({
+        loading: false,
+        error: error as string,
+        notFound: false
+      })
     }
   }
 
@@ -229,30 +234,40 @@ export default function CategoriesPage() {
   const handleCreateCategory = async (newCategoryName: string) => {
     if (!selectedType || !newCategoryName) return
     try {
-      setLoadingCategories(true)
-      setErrorCategories("")
+      setCategoryState({
+        loading: true,
+        error: null,
+        notFound: false
+      })
       await api.category.create(selectedType, newCategoryName)
       setSelectedCategoryId(undefined)
       fetchCategories()
     } catch (error) {
-      setErrorCategories(error as string)
-    } finally {
-      setLoadingCategories(false)
+      setCategoryState({
+        loading: false,
+        error: error as string,
+        notFound: false
+      })
     }
   }
 
   const handleDeleteCategory = async (categoryId: number) => {
     if (!selectedType || !categoryId) return
     try {
-      setLoadingCategories(true)
-      setErrorCategories("")
+      setCategoryState({
+        loading: true,
+        error: null,
+        notFound: false
+      })
       await api.category.delete(selectedType, categoryId)
       setSelectedCategoryId(undefined)
       fetchCategories()
     } catch (error) {
-      setErrorCategories(error as string)
-    } finally {
-      setLoadingCategories(false)
+      setCategoryState({
+        loading: false,
+        error: error as string,
+        notFound: false
+      })
     }
   }
 
@@ -260,15 +275,20 @@ export default function CategoriesPage() {
     if (!selectedType || !selectedCategoryId || !markId) return
     try {
       if (confirm(`Are you sure you want to delete ${markId}?`)) {
-        setLoadingResources(true)
-        setErrorResources("")
+        setResourceState({
+          loading: true,
+          error: null,
+          notFound: false
+        })
         await api.category.removeMark(selectedType, selectedCategoryId, markId)
         fetchResources()
       }
     } catch (error) {
-      setErrorResources(error as string)
-    } finally {
-      setLoadingResources(false)
+      setResourceState({
+        loading: false,
+        error: error as string,
+        notFound: false
+      })
     }
   }
 
@@ -282,84 +302,102 @@ export default function CategoriesPage() {
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      setErrorCategories("")
+      setCategoryState({
+        loading: false,
+        error: null,
+        notFound: false
+      })
     }, 5000)
     return () => clearTimeout(timeout)
-  }, [errorCategories])
+  }, [categoryState.error])
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      setErrorResources("")
+      setResourceState({
+        loading: false,
+        error: null,
+        notFound: false
+      })
     }, 5000)
     return () => clearTimeout(timeout)
-  }, [errorResources])
+  }, [resourceState.error])
 
 
   useEffect(() => {
     removeMultipleKeys(["cid", "q", "page", "sort", "order"])
     setTotalPages(0)
-    setVNs([])
-    setCharacters([])
-    setProducers([])
-    setStaffs([])
+    setResourceData({
+      vns: [],
+      releases: [],
+      characters: [],
+      producers: [],
+      staff: [],
+      tags: [],
+      traits: []
+    })
     fetchCategories()
   }, [selectedType])
 
   useEffect(() => {
     removeMultipleKeys(["q", "page", "sort", "order"])
     setTotalPages(0)
-    setVNs([])
-    setCharacters([])
-    setProducers([])
-    setStaffs([])
+    setResourceData({
+      vns: [],
+      releases: [],
+      characters: [],
+      producers: [],
+      staff: [],
+      tags: [],
+      traits: []
+    })
     fetchResources()
   }, [selectedCategoryId])
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" })
     setTotalPages(0)
-    setVNs([])
-    setCharacters([])
-    setProducers([])
-    setStaffs([])
+    setResourceData({
+      vns: [],
+      releases: [],
+      characters: [],
+      producers: [],
+      staff: [],
+      tags: [],
+      traits: []
+    })
     fetchResources()
   }, [currentPage, query, sortBy, sortOrder])
 
 
   const getItemId = (index: number) => {
-    if (selectedType === "v" && vns[index]) {
-      return vns[index].id;
-    } else if (selectedType === "c" && characters[index]) {
-      return characters[index].id;
-    } else if (selectedType === "p" && producers[index]) {
-      return producers[index].id;
-    } else if (selectedType === "s" && staff[index]) {
-      return staff[index].id;
+    if (selectedType === "v" && resourceData.vns[index]) {
+      return resourceData.vns[index].id;
+    } else if (selectedType === "r" && resourceData.releases[index]) {
+      return resourceData.releases[index].id;
+    } else if (selectedType === "c" && resourceData.characters[index]) {
+      return resourceData.characters[index].id;
+    } else if (selectedType === "p" && resourceData.producers[index]) {
+      return resourceData.producers[index].id;
+    } else if (selectedType === "s" && resourceData.staff[index]) {
+      return resourceData.staff[index].id;
+    } else if (selectedType === "g" && resourceData.tags[index]) {
+      return resourceData.tags[index].id;
+    } else if (selectedType === "i" && resourceData.traits[index]) {
+      return resourceData.traits[index].id;
     }
     return undefined;
   }
 
-  const gridClassName = (cardType: "image" | "text") => {
+  const gridClassName = (layout: "grid" | "single", cardType: "image" | "text") => {
+    if (layout === "single") {
+      return cardType === "image" ?
+        "grid grid-cols-1 gap-4" :
+        "grid grid-cols-1 gap-4"
+    }
     return cardType === "image" ?
       "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4" :
       "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
   }
-
-  const fadeInAnimation = {
-    initial: { filter: "blur(20px)", opacity: 0, scale: 0.95 },
-    animate: { filter: "blur(0px)", opacity: 1, scale: 1 },
-    exit: { filter: "blur(20px)", opacity: 0, scale: 0.95 },
-    transition: { duration: 0.5, ease: "easeInOut" }
-  }
-
-  const cardAnimation = {
-    initial: { opacity: 0, y: 20, scale: 0.98 },
-    animate: { opacity: 1, y: 0, scale: 1 },
-    exit: { opacity: 0, y: -20, scale: 0.98 },
-    transition: { duration: 0.3, delay: 0.1, ease: "easeInOut" }
-  }
-
-  const statusStyle = "flex-grow flex justify-center items-center"
 
   return (
     <div className="w-full min-h-screen flex flex-col md:flex-row gap-1">
@@ -381,27 +419,21 @@ export default function CategoriesPage() {
         handleDeleteCategory={handleDeleteCategory}
         handleCreateCategory={handleCreateCategory}
         handleSearch={handleSearch}
-        disabled={loadingCategories || loadingResources}
+        disabled={categoryState.loading || resourceState.loading}
         className={"z-10 md:fixed md:top-[10%]"}
       />
       {/* Placeholder for Control Panel */}
       <div className={cn("max-md:hidden h-full md:w-100 lg:w-120 xl:w-140", !open && "hidden")} />
 
       {/* Main Content */}
-      <div className="flex-1 p-4 flex flex-col gap-2 transition-all duration-300 justify-between items-center">
+      <div className="overflow-hidden flex-1 p-4 flex flex-col gap-2 transition-all duration-300 justify-between items-center">
         {selectedCategoryId && (
-          <div className={cn(
-            "w-full flex flex-row gap-2",
-            selectedType === "v" && "justify-between",
-            selectedType === "c" && "justify-between",
-            selectedType === "p" && "justify-start",
-            selectedType === "s" && "justify-start",
-          )}>
+          <div className="w-full flex justify-between gap-2">
             <div className="flex flex-wrap justify-start gap-2">
               {/* Sort By Dialog Button */}
               <Settings2Button
                 onClick={() => setSortByDialogOpen(true)}
-                disabled={loadingResources}
+                disabled={resourceState.loading}
               />
               {/* Sort By Dialog */}
               <SortByDialog
@@ -416,43 +448,51 @@ export default function CategoriesPage() {
               <OrderSwitch
                 order={sortOrder}
                 setOrder={setSortOrder}
-                disabled={loadingResources}
+                disabled={resourceState.loading}
               />
               {/* Card Type Button */}
               <CardTypeSwitch
                 cardType={cardType}
                 setCardType={(value) => setCardType(value as "image" | "text")}
-                disabled={loadingResources}
+                disabled={resourceState.loading}
+              />
+              {/* Layout Switch Button */}
+              <GridLayoutSwitch
+                layout={layout}
+                setLayout={(value) => setLayout(value as "grid" | "single")}
+                disabled={resourceState.loading}
               />
               {/* Delete Mode Button */}
               <DeleteModeButton
                 deleteMode={deleteMarkMode}
                 setDeleteMode={setDeleteMarkMode}
-                disabled={loadingResources}
+                disabled={resourceState.loading}
               />
               {/* Reload Button */}
               <ReloadButton
                 handleReload={() => { fetchResources() }}
-                disabled={loadingResources}
+                disabled={resourceState.loading}
               />
               {/* Total Items Count */}
               <p className="text-gray-500 self-center select-none">Total: {totalItemsCount}</p>
             </div>
-            {(selectedType === "v" || selectedType === "c") && (
+            {(selectedType === "v" || selectedType === "c") ? (
               <div className="flex flex-wrap justify-end gap-2">
                 <SexualLevelSelector
                   sexualLevel={sexualLevel}
                   setSexualLevel={(value) => setSexualLevel(value as "safe" | "suggestive" | "explicit")}
-                  disabled={loadingResources}
+                  disabled={resourceState.loading}
                 />
                 {/* Divider */}
                 <div className="w-px bg-gray-300 dark:bg-gray-700 hidden sm:block" />
                 <ViolenceLevelSelector
                   violenceLevel={violenceLevel}
                   setViolenceLevel={(value) => setViolenceLevel(value as "tame" | "violent" | "brutal")}
-                  disabled={loadingResources}
+                  disabled={resourceState.loading}
                 />
               </div>
+            ) : (
+              <div className="" />
             )}
           </div>
         )}
@@ -469,73 +509,70 @@ export default function CategoriesPage() {
               <p className="text-gray-500">Select a category to view resources</p>
             </motion.div>
           )}
-          {loadingResources && (
+          {(resourceState.loading || resourceState.error || resourceState.notFound) && (
             <motion.div
-              key="loading"
-              {...fadeInAnimation}
-              className={statusStyle}
+              key="status"
+              initial={{ filter: "blur(20px)", opacity: 0 }}
+              animate={{ filter: "blur(0px)", opacity: 1 }}
+              exit={{ filter: "blur(20px)", opacity: 0 }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+              className="flex-grow flex justify-center items-center"
             >
-              <Loading message="Loading..." />
+              {resourceState.loading && (
+                <Loading message="Loading..." />
+              )}
+              {resourceState.error && (
+                <Error message={`Error: ${resourceState.error}`} />
+              )}
+              {resourceState.notFound && (
+                <NotFound message="No resources found" />
+              )}
             </motion.div>
           )}
-          {errorResources && (
-            <motion.div
-              key="error"
-              {...fadeInAnimation}
-              className={statusStyle}
-            >
-              <Error message={`Error: ${errorResources}`} />
-            </motion.div>
-          )}
-          {notfoundResources && (
-            <motion.div
-              key="notfound"
-              {...fadeInAnimation}
-              className={statusStyle}
-            >
-              <NotFound message="No resources found" />
-            </motion.div>
-          )}
-          {(!loadingResources && !errorResources && !notfoundResources) && (
+          {(!resourceState.loading && !resourceState.error && !resourceState.notFound) && (
             <div className="relative w-full">
-              {selectedType === "v" ? (
-                <VNsCardsGrid
-                  vns={vns}
-                  cardType={cardType}
-                  sexualLevel={sexualLevel}
-                  violenceLevel={violenceLevel}
-                />
-              ) : selectedType === "c" ? (
-                <CharactersCardsGrid
-                  characters={characters}
-                  cardType={cardType}
-                  sexualLevel={sexualLevel}
-                  violenceLevel={violenceLevel}
-                />
-              ) : selectedType === "p" ? (
-                <ProducersCardsGrid
-                  producers={producers}
-                />
-              ) : selectedType === "s" ? (
-                <StaffCardsGrid
-                  staff={staff}
-                />
-              ) : <></>}
+              {selectedType === "v" && (
+                <VNsCardsGrid vns={resourceData.vns} layout={layout} cardType={cardType} sexualLevel={sexualLevel} violenceLevel={violenceLevel} />
+              )}
+              {selectedType === "c" && (
+                <CharactersCardsGrid characters={resourceData.characters} layout={layout} cardType={cardType} sexualLevel={sexualLevel} violenceLevel={violenceLevel} />
+              )}
+              {selectedType === "r" && (
+                <ReleasesCardsGrid releases={resourceData.releases} layout={layout} />
+              )}
+              {selectedType === "p" && (
+                <ProducersCardsGrid producers={resourceData.producers} layout={layout} />
+              )}
+              {selectedType === "s" && (
+                <StaffCardsGrid staff={resourceData.staff} layout={layout} />
+              )}
+              {selectedType === "g" && (
+                <TagsCardsGrid tags={resourceData.tags} layout={layout} />
+              )}
+              {selectedType === "i" && (
+                <TraitsCardsGrid traits={resourceData.traits} layout={layout} />
+              )}
               {deleteMarkMode && (
                 <motion.div
                   key={`delete-layer-${deleteMarkMode}-${currentPageItemsCount}`}
-                  {...fadeInAnimation}
+                  initial={{ filter: "blur(20px)", opacity: 0, scale: 0.95 }}
+                  animate={{ filter: "blur(0px)", opacity: 1, scale: 1 }}
+                  exit={{ filter: "blur(20px)", opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.5, ease: "easeInOut" }}
                   className={cn(
                     "absolute inset-0 pointer-events-auto z-10",
-                    (selectedType === "v" || selectedType === "c") && gridClassName(cardType),
-                    (selectedType === "p" || selectedType === "s") && gridClassName("text")
+                    (selectedType === "v" || selectedType === "c") && gridClassName(layout, cardType),
+                    (selectedType === "p" || selectedType === "s" || selectedType === "g" || selectedType === "i") && gridClassName(layout, "text")
                   )}
                 >
                   {Array.from({ length: currentPageItemsCount }).map((_, index) => (
                     <div key={`delete-container-${index}`} className="relative w-full">
                       <motion.div
                         key={`delete-ghost-card-${index}`}
-                        {...cardAnimation}
+                        initial={{ opacity: 0, y: 20, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -20, scale: 0.98 }}
+                        transition={{ duration: 0.3, delay: 0.1, ease: "easeInOut" }}
                         className="bg-black/20 w-full h-full rounded-lg"
                       >
                       </motion.div>

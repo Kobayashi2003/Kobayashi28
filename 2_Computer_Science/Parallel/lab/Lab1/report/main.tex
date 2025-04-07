@@ -1,0 +1,228 @@
+%!TeX program = xelatex
+\documentclass{SYSUReport}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\lstset{
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{green},
+    stringstyle=\color{red},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    frame=single,
+    breaklines=true,
+    tabsize=4
+}
+
+\headl{}
+\headc{}
+\headr{并行程序设计与算法实验}
+\lessonTitle{并行程序设计与算法实验}
+\reportTitle{Lab1-基于MPI的并行矩阵乘法}
+\stuname{林隽哲}
+\stuid{21312450}
+\inst{计算机学院}
+\major{计算机科学与技术}
+\date{2025年4月7日}
+
+\begin{document}
+
+\cover
+\thispagestyle{empty}
+\clearpage
+
+\section{实验目的}
+\begin{itemize}
+   \item 掌握 MPI 程序的编译和运行方法。
+    \item 理解 MPI 点对点通信的基本原理。
+    \item 了解 MPI 程序的 GDB 调试流程。
+\end{itemize}
+
+\section{实验内容}
+\begin{itemize}
+   \item 使用 MPI 点对点通信实现并行矩阵乘法。
+    \item 设置进程数量（1$\sim$16）及矩阵规模（128$\sim$2048）。
+    \item 根据运行时间，分析程序的并行性能。
+\end{itemize}
+
+
+\section{实验结果}
+
+\subsection{实验核心代码}
+% \lstinputlisting[language=C]{../code/matrix_multiply.c}
+\begin{lstlisting}[language=C]
+int main(int argc, char *argv[]) {
+    int n = 128;
+    int rank, size;
+    double *A = NULL, *B = NULL, *C = NULL;
+    double *local_A = NULL, *local_C = NULL;
+    double start_time, end_time;
+        
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+        
+    if (n % size != 0) {
+        if (rank == 0) {
+            printf("Matrix size (%d) must be divisible by number of processes (%d)\n", n, size);
+        }
+        MPI_Finalize();
+        return 1;
+    }
+        
+    int rows_per_proc = n / size;
+        
+    if (rank == 0) {
+        A = (double*)malloc(n * n * sizeof(double));
+        B = (double*)malloc(n * n * sizeof(double));
+        C = (double*)malloc(n * n * sizeof(double));
+            
+        srand(time(NULL));
+        initialize_matrix(A, n, n);
+        initialize_matrix(B, n, n);
+            
+        if (n <= 10) {
+            printf("Matrix A:\n");
+            print_matrix(A, n, n);
+            printf("Matrix B:\n");
+            print_matrix(B, n, n);
+        }
+    }
+    
+    local_A = (double*)malloc(rows_per_proc * n * sizeof(double));
+    local_C = (double*)malloc(rows_per_proc * n * sizeof(double));
+    memset(local_C, 0, rows_per_proc * n * sizeof(double));
+    
+        
+    start_time = MPI_Wtime();
+        
+    MPI_Scatter(A, rows_per_proc * n, MPI_DOUBLE, 
+                local_A, rows_per_proc * n, MPI_DOUBLE, 
+                0, MPI_COMM_WORLD);
+        
+    if (rank == 0) {
+        MPI_Bcast(B, n * n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    } else {
+        B = (double*)malloc(n * n * sizeof(double));
+        MPI_Bcast(B, n * n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    }
+        
+    // Perform local matrix multiplication
+    for (int i = 0; i < rows_per_proc; i++) {
+        for (int j = 0; j < n; j++) {
+            for (int k = 0; k < n; k++) {
+                local_C[i * n + j] += local_A[i * n + k] * B[k * n + j];
+            }
+        }
+    }
+        
+    // Gather results back to the root process
+    MPI_Gather(local_C, rows_per_proc * n, MPI_DOUBLE,
+                C, rows_per_proc * n, MPI_DOUBLE,
+                0, MPI_COMM_WORLD);
+        
+    end_time = MPI_Wtime();
+        
+    // Print result matrix if small enough
+    if (rank == 0) {
+        if (n <= 10) {
+            printf("Result Matrix C:\n");
+            print_matrix(C, n, n);
+        }
+        printf("Matrix size: %d x %d\n", n, n);
+        printf("Number of processes: %d\n", size);
+        printf("Execution time: %f seconds\n", end_time - start_time);
+    }
+        
+    // Free memory
+    if (rank == 0) {
+        free(A);
+        free(C);
+    }
+    free(B);
+    free(local_A);
+    free(local_C);
+        
+    MPI_Finalize();
+    return 0;
+}
+\end{lstlisting}
+
+\subsection{运行时间}
+根据运行结果，填入下表以记录不同进程数和矩阵规模下的运行时间：
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|lllll|}
+\hline
+\multirow{2}{*}{进程数} & \multicolumn{5}{c|}{矩阵规模}                                                                        \\ \cline{2-6} 
+ & \multicolumn{1}{l|}{128} & \multicolumn{1}{l|}{256} & \multicolumn{1}{l|}{512} & \multicolumn{1}{l|}{1024} & 2048 \\ \hline
+1                    & \multicolumn{1}{l|}{0.019479} & \multicolumn{1}{l|}{0.170543} & \multicolumn{1}{l|}{1.404218} & \multicolumn{1}{l|}{7.370951} & 71.796604 \\ \hline
+2                    & \multicolumn{1}{l|}{0.012254} & \multicolumn{1}{l|}{0.082274} & \multicolumn{1}{l|}{0.821596} & \multicolumn{1}{l|}{7.047319} & 68.997478 \\ \hline
+4                    & \multicolumn{1}{l|}{0.007633} & \multicolumn{1}{l|}{0.381321} & \multicolumn{1}{l|}{0.702947} & \multicolumn{1}{l|}{4.223849} & 35.688534 \\ \hline
+8                    & \multicolumn{1}{l|}{0.222525} & \multicolumn{1}{l|}{0.351655} & \multicolumn{1}{l|}{0.520122} & \multicolumn{1}{l|}{2.421282} & 19.263383 \\ \hline
+16                   & \multicolumn{1}{l|}{0.377614} & \multicolumn{1}{l|}{0.390133} & \multicolumn{1}{l|}{0.399883} & \multicolumn{1}{l|}{1.814683} & 9.326502 \\ \hline
+\end{tabular}
+\caption{不同进程数和矩阵规模下的运行时间(单位:秒)}
+\end{table}
+
+根据上表的结果数据，我可以进行以下性能分析：
+
+\subsection{加速比分析}
+将进程数为1的情况作为基准，计算不同进程数下的加速比：
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|lllll|}
+\hline
+\multirow{2}{*}{进程数} & \multicolumn{5}{c|}{矩阵规模}                                                                        \\ \cline{2-6} 
+ & \multicolumn{1}{l|}{128} & \multicolumn{1}{l|}{256} & \multicolumn{1}{l|}{512} & \multicolumn{1}{l|}{1024} & 2048 \\ \hline
+1                    & \multicolumn{1}{l|}{1.00} & \multicolumn{1}{l|}{1.00} & \multicolumn{1}{l|}{1.00} & \multicolumn{1}{l|}{1.00} & 1.00 \\ \hline
+2                    & \multicolumn{1}{l|}{1.59} & \multicolumn{1}{l|}{2.07} & \multicolumn{1}{l|}{1.71} & \multicolumn{1}{l|}{1.05} & 1.04 \\ \hline
+4                    & \multicolumn{1}{l|}{2.55} & \multicolumn{1}{l|}{0.45} & \multicolumn{1}{l|}{2.00} & \multicolumn{1}{l|}{1.74} & 2.01 \\ \hline
+8                    & \multicolumn{1}{l|}{0.09} & \multicolumn{1}{l|}{0.48} & \multicolumn{1}{l|}{2.70} & \multicolumn{1}{l|}{3.04} & 3.73 \\ \hline
+16                   & \multicolumn{1}{l|}{0.05} & \multicolumn{1}{l|}{0.44} & \multicolumn{1}{l|}{3.51} & \multicolumn{1}{l|}{4.06} & 7.70 \\ \hline
+\end{tabular}
+\caption{不同进程数和矩阵规模下的加速比}
+\end{table}
+
+\subsection{性能分析}
+
+\subsubsection{小规模矩阵（128~256）}
+\begin{itemize}
+    \item 观察小规模矩阵下的运行时间，可以发现，随着进程数的增加，运行时间减少直到进程数为16。
+    \item 观察小规模矩阵下的加速比，可以发现，随着进程数的增加，加速比先增加后减少。
+    \item 进程数的增加将会同时导致通信开销的增加，当通信开销大于计算收益时，运行时间将会不降反增，加速比也将会降低。
+\end{itemize}
+
+\subsubsection{中大规模矩阵（512~2048）}
+\begin{itemize}
+    \item 观察中大规模矩阵的运行时间与加速比，可以发现，随着矩阵规模的增加，进程数的增加所带来的收益将会愈发明显。
+\end{itemize}
+
+\section{讨论题}
+\begin{itemize}
+    \item 在内存受限情况下，如何进行大规模矩阵乘法计算？
+
+    \begin{itemize}
+        \item 分块计算：将大矩阵分成多个小块，每次只加载部分数据到内存中进行计算。这种方法可以显著减少内存使用量，但会增加I/O操作。
+        \item 分布式计算：将矩阵分布到多个计算节点上进行计算，每个节点只处理部分数据。
+        \item 数据压缩：对矩阵数据进行压缩存储，在计算时再解压。
+    \end{itemize}
+
+    
+    \item 如何提高大规模稀疏矩阵乘法性能？
+
+    \begin{itemize}
+        \item 使用稀疏矩阵存储格式：如CSR（Compressed Sparse Row）或CSC（Compressed Sparse Column）等压缩存储格式，只存储非零元素，减少内存使用和计算量。
+        \item 对数据预处理：在计算前对矩阵进行预处理，如矩阵重排序，将非零元素尽可能聚集在一起，减少计算量。
+        \item 并行计算：使用并行计算技术，如MPI，将矩阵分布到多个计算节点上进行计算，每个节点只处理部分数据。
+    \end{itemize}
+
+\end{itemize}
+\end{document}

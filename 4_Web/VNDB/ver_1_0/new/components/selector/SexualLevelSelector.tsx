@@ -32,17 +32,17 @@ const sexualLevelSelectOptions = [
   {
     key: "sexual-level-select-safe",
     value: "safe",
-    label: "🟢SA",
+    label: "🟢Safe",
   },
   {
     key: "sexual-level-select-suggestive",
     value: "suggestive",
-    label: "🟡SU",
+    label: "🟡Suggestive",
   },
   {
     key: "sexual-level-select-explicit",
     value: "explicit",
-    label: "🔴EX",
+    label: "🔴Explicit",
   }
 ]
 
@@ -50,9 +50,10 @@ interface SexualLevelSelectorProps {
   sexualLevel: string
   setSexualLevel: (value: string) => void
   disabled?: boolean
+  className?: string
 }
 
-export function SexualLevelSelector({ sexualLevel, setSexualLevel, disabled }: SexualLevelSelectorProps) {
+export function SexualLevelSelector({ sexualLevel, setSexualLevel, disabled, className }: SexualLevelSelectorProps) {
   return (
     <>
       <LevelSelectorButton
@@ -63,7 +64,8 @@ export function SexualLevelSelector({ sexualLevel, setSexualLevel, disabled }: S
         className={cn(
           "hidden sm:flex",
           "font-serif italic",
-          "border-b border-white/50"
+          "border-b border-white/50",
+          className
         )}
       />
       <LevelSelectorSelect
@@ -73,6 +75,7 @@ export function SexualLevelSelector({ sexualLevel, setSexualLevel, disabled }: S
         disabled={disabled}
         className={cn(
           "sm:hidden",
+          className
         )}
       />
     </>

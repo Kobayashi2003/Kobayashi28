@@ -44,13 +44,13 @@ export function LevelSelectorButton({ levelOptions, selectedLevel, setSelectedLe
   )
 }
 
-export function LevelSelectorSelect({ levelOptions, selectedLevel, setSelectedLevel, className }: LevelSelectorProps) {
+export function LevelSelectorSelect({ levelOptions, selectedLevel, setSelectedLevel, disabled, className }: LevelSelectorProps) {
   const triggerStyle = "bg-[#0F2942]/80 border-white/10 text-white font-bold"
   const contentStyle = "bg-[#0F2942]/80 border-white/10 text-white font-bold"
   const itemStyle = ""
 
   return (
-    <Select value={selectedLevel} onValueChange={setSelectedLevel}>
+    <Select value={selectedLevel} onValueChange={setSelectedLevel} disabled={disabled}>
       <SelectTrigger className={cn(triggerStyle, className)}>
         <SelectValue placeholder="Level" />
       </SelectTrigger>

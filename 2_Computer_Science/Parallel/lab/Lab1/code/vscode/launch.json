@@ -8,6 +8,7 @@
             // "program": "${fileDirname}/${fileBasenameNoExtension}.out",
             "program": "/usr/bin/mpirun",
             "args": [
+                "--oversubscribe",
                 "-np",
                 "4",
                 "${fileDirname}/${fileBasenameNoExtension}.out"

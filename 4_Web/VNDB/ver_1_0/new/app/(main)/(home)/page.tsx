@@ -5,11 +5,13 @@ import { useSearchParams } from "next/navigation"
 import { useUrlParams } from "@/hooks/useUrlParams"
 import { motion, AnimatePresence } from "motion/react"
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-
+import { cn } from "@/lib/utils"
+import { YearSelector } from "@/components/selector/YearSelector"
+import { MonthSelector } from "@/components/selector/MonthSelector"
 import { SexualLevelSelector } from "@/components/selector/SexualLevelSelector"
 import { ViolenceLevelSelector } from "@/components/selector/ViolenceLevelSelector"
 import { CardTypeSwitch } from "@/components/selector/CardTypeSwtich"
+import { GridLayoutSwitch } from "@/components/selector/GridLayoutSwitch"
 import { PaginationButtons } from "@/components/button/PaginationButtons"
 
 import { Loading } from "@/components/status/Loading"
@@ -27,30 +29,6 @@ export default function Home() {
 
   const itemsPerPage = 24
 
-  const currentYear = new Date().getFullYear()
-  const yearsSelectable = [
-    { value: "00", label: "ALL" },
-    ...Array.from({ length: 37 }, (_, i) => ({
-      value: (currentYear - 35 + i).toString(),
-      label: (currentYear - 35 + i).toString()
-    }))
-  ]
-  const monthsSelectable = [
-    { value: "00", label: "ALL" },
-    { value: "01", label: "JAN" },
-    { value: "02", label: "FEB" },
-    { value: "03", label: "MAR" },
-    { value: "04", label: "APR" },
-    { value: "05", label: "MAY" },
-    { value: "06", label: "JUN" },
-    { value: "07", label: "JUL" },
-    { value: "08", label: "AUG" },
-    { value: "09", label: "SEP" },
-    { value: "10", label: "OCT" },
-    { value: "11", label: "NOV" },
-    { value: "12", label: "DEC" }
-  ]
-
   const currentPage = searchParams.get("page") ? Number.parseInt(searchParams.get("page") as string) : 1
   const selectedYear = searchParams.get("year") || `${new Date().getFullYear().toString()}`
   const selectedMonth = searchParams.get("month") || `${(new Date().getMonth() + 1).toString().padStart(2, '0')}`
@@ -65,6 +43,7 @@ export default function Home() {
   const [vns, setVNs] = useState<VN_Small[]>([])
 
   const [cardType, setCardType] = useState<"image" | "text">("image")
+  const [layout, setLayout] = useState<"single" | "grid">("grid")
   const [sexualLevel, setSexualLevel] = useState<"safe" | "suggestive" | "explicit">("safe")
   const [violenceLevel, setViolenceLevel] = useState<"tame" | "violent" | "brutal">("tame")
 
@@ -164,53 +143,45 @@ export default function Home() {
     }
   }, [abortController])
 
-  const fadeInAnimation = {
-    initial: { filter: "blur(20px)", opacity: 0 },
-    animate: { filter: "blur(0px)", opacity: 1 },
-    exit: { filter: "blur(20px)", opacity: 0 },
-    transition: { duration: 0.4, ease: "easeInOut" }
-  }
-  const statusStyle = "flex-grow flex justify-center items-center"
-
   return (
     <main className="container mx-auto min-h-screen flex flex-col p-4 pb-8">
-      <div className="overflow-x-auto flex flex-col sm:flex-row items-end sm:items-center justify-center sm:justify-between mb-4 gap-4">
-        <div className="flex flex-wrap justify-end sm:justify-start gap-2">
+      <div className={cn(
+        "flex mb-4",
+        "flex-col items-center gap-2",
+        "sm:flex-row sm:justify-between sm:gap-4"
+      )}>
+        <div className="w-full sm:flex-1 flex justify-start gap-2">
           {/* Card Type Selector */}
           <CardTypeSwitch
             cardType={cardType}
             setCardType={setCardType}
           />
-          <div className="flex flex-wrap justify-start gap-2">
-            {/* Year Selector */}
-            <Select value={selectedYear} onValueChange={handleYearChange}>
-              <SelectTrigger className="bg-[#0F2942]/80 border-white/10 hover:border-white/20 text-white font-bold">
-                <SelectValue placeholder="Year" />
-              </SelectTrigger>
-              <SelectContent className="bg-[#0F2942]/80 border-white/10 hover:border-white/20 text-white font-bold">
-                {yearsSelectable.map((year) => (
-                  <SelectItem key={year.value} value={year.value}>{year.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {/* Month Selector */}
-            <Select value={selectedMonth} onValueChange={handleMonthChange}>
-              <SelectTrigger className={`bg-[#0F2942]/80 border-white/10 hover:border-white/20 text-white font-bold ${selectedYear === "00" ? "hidden" : ""}`}>
-                <SelectValue placeholder="Month" />
-              </SelectTrigger>
-              <SelectContent className={`bg-[#0F2942]/80 border-white/10 hover:border-white/20 text-white font-bold ${selectedYear === "00" ? "hidden" : ""}`}>
-                {monthsSelectable.map((month) => (
-                  <SelectItem key={month.value} value={month.value}>{month.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {/* Grid Layout Switch */}
+          <GridLayoutSwitch
+            layout={layout}
+            setLayout={setLayout}
+          />
         </div>
-        <div className="flex flex-wrap justify-end gap-2">
+        <div className="w-full sm:flex-1 flex justify-center gap-2">
+          {/* Year Selector */}
+          <YearSelector
+            selectedYear={selectedYear}
+            setSelectedYear={handleYearChange}
+            className="w-full sm:w-auto"
+          />
+          {/* Month Selector */}
+          <MonthSelector
+            selectedMonth={selectedMonth}
+            setSelectedMonth={handleMonthChange}
+            className="w-full sm:w-auto"
+          />
+        </div>
+        <div className="w-full sm:flex-1 flex justify-end gap-2">
           {/* Sexual Level Selector */}
           <SexualLevelSelector
             sexualLevel={sexualLevel}
             setSexualLevel={(value: string) => setSexualLevel(value as "safe" | "suggestive" | "explicit")}
+            className="w-full sm:w-auto"
           />
           {/* Divider */}
           <div className="w-px bg-gray-300 dark:bg-gray-700 hidden sm:block" />
@@ -218,44 +189,33 @@ export default function Home() {
           <ViolenceLevelSelector
             violenceLevel={violenceLevel}
             setViolenceLevel={(value: string) => setViolenceLevel(value as "tame" | "violent" | "brutal")}
+            className="w-full sm:w-auto"
           />
         </div>
       </div>
       <AnimatePresence mode="wait">
-        {/* Loading */}
-        {vnsState.loading && (
+        {(vns.length === 0 && !vnsState.loading && !vnsState.error && !vnsState.notFound) && (
           <motion.div
-            key="loading"
-            {...fadeInAnimation}
-            className={statusStyle}
+            key="status"
+            initial={{ filter: "blur(20px)", opacity: 0 }}
+            animate={{ filter: "blur(0px)", opacity: 1 }}
+            exit={{ filter: "blur(20px)", opacity: 0 }}
+            transition={{ duration: 0.4, ease: "easeInOut" }}
+            className="flex-grow flex justify-center items-center"
           >
-            <Loading message="Loading..." />
-          </motion.div>
-        )}
-        {/* Error */}
-        {vnsState.error && (
-          <motion.div
-            key="error"
-            {...fadeInAnimation}
-            className={statusStyle}
-          >
-            <Error message={`Error: ${vnsState.error}`} />
-          </motion.div>
-        )}
-        {/* Not Found */}
-        {vnsState.notFound && (
-          <motion.div
-            key="notfound"
-            {...fadeInAnimation}
-            className={statusStyle}
-          >
-            <NotFound message="No VNs found" />
+            {/* loading */}
+            {vnsState.loading && <Loading message="Loading..." />}
+            {/* error */}
+            {vnsState.error && <Error message={`Error: ${vnsState.error}`} />}
+            {/* not found */}
+            {vnsState.notFound && <NotFound message="No VNs found" />}
           </motion.div>
         )}
         {/* VN Cards */}
         {!vnsState.loading && !vnsState.error && !vnsState.notFound && (
           <VNsCardsGrid
             vns={vns}
+            layout={layout}
             cardType={cardType}
             sexualLevel={sexualLevel}
             violenceLevel={violenceLevel}
