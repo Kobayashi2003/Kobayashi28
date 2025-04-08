@@ -50,7 +50,7 @@ class VNDBAPIWrapper:
                 "url": url,
                 "payload": payload,
                 "status_code": response.status_code,
-                "response": response.json()
+                "response": response.text
             }
         else:
             level = "info"
@@ -196,7 +196,7 @@ def search(resource_type: str, params: dict[str, Any], response_size: str = 'sma
     sort = validate_sort(resource_type, sort)
 
     if not filters:
-        filters = {"search":""}
+        filters = ["search", "=", ""]
     if not fields:
         fields = "id"
 

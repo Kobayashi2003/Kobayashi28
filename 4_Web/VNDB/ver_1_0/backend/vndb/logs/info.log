@@ -966,3 +966,6 @@
 2025-03-29 14:29:42,661 - logger - ERROR - ExtSQLAchemy has not been initialized
 2025-03-29 14:29:42,661 - logger - ERROR - ExtSQLAchemy has not been initialized
 2025-03-29 14:29:42,662 - logger - ERROR - ExtSQLAchemy has not been initialized
+2025-04-08 15:41:00,315 - logger - ERROR - __iter__
+2025-04-08 15:42:26,814 - logger - ERROR - __iter__
+2025-04-08 15:43:22,369 - logger - ERROR - __iter__

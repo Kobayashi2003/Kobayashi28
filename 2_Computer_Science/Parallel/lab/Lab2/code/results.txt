@@ -1,0 +1,100 @@
+Matrix size: 128 x 128
+Number of processes: 1
+Execution time: 0.009239 seconds
+
+Matrix size: 256 x 256
+Number of processes: 1
+Execution time: 0.072149 seconds
+
+Matrix size: 512 x 512
+Number of processes: 1
+Execution time: 0.670923 seconds
+
+Matrix size: 1024 x 1024
+Number of processes: 1
+Execution time: 6.924118 seconds
+
+Matrix size: 2048 x 2048
+Number of processes: 1
+Execution time: 54.375005 seconds
+
+Matrix size: 128 x 128
+Number of processes: 2
+Execution time: 0.004372 seconds
+
+Matrix size: 256 x 256
+Number of processes: 2
+Execution time: 0.044670 seconds
+
+Matrix size: 512 x 512
+Number of processes: 2
+Execution time: 0.344490 seconds
+
+Matrix size: 1024 x 1024
+Number of processes: 2
+Execution time: 3.466872 seconds
+
+Matrix size: 2048 x 2048
+Number of processes: 2
+Execution time: 30.935780 seconds
+
+Matrix size: 128 x 128
+Number of processes: 4
+Execution time: 0.002561 seconds
+
+Matrix size: 256 x 256
+Number of processes: 4
+Execution time: 0.029424 seconds
+
+Matrix size: 512 x 512
+Number of processes: 4
+Execution time: 0.216383 seconds
+
+Matrix size: 1024 x 1024
+Number of processes: 4
+Execution time: 2.023358 seconds
+
+Matrix size: 2048 x 2048
+Number of processes: 4
+Execution time: 18.362430 seconds
+
+Matrix size: 128 x 128
+Number of processes: 8
+Execution time: 0.034996 seconds
+
+Matrix size: 256 x 256
+Number of processes: 8
+Execution time: 0.019056 seconds
+
+Matrix size: 512 x 512
+Number of processes: 8
+Execution time: 0.190298 seconds
+
+Matrix size: 1024 x 1024
+Number of processes: 8
+Execution time: 1.327365 seconds
+
+Matrix size: 2048 x 2048
+Number of processes: 8
+Execution time: 11.270439 seconds
+
+Matrix size: 128 x 128
+Number of processes: 16
+Execution time: 0.050508 seconds
+
+Matrix size: 256 x 256
+Number of processes: 16
+Execution time: 0.010465 seconds
+
+Matrix size: 512 x 512
+Number of processes: 16
+Execution time: 0.131064 seconds
+
+Matrix size: 1024 x 1024
+Number of processes: 16
+Execution time: 1.200326 seconds
+
+Matrix size: 2048 x 2048
+Number of processes: 16
+Execution time: 9.370801 seconds
+

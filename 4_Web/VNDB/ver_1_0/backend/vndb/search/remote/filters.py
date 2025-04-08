@@ -196,10 +196,11 @@ def build_filter(filter_set: dict[str, VNDBFilter], key: str, value: Any) -> lis
             raise ValueError(f"Invalid value: {value}")
 
     if filter_def.filter_type == FilterType.VNDBID:
-        pattern = r'^([v|r|c|p|s|g|i]\d+)$'
+        pattern = r'^([v|r|c|p|s|g|i]\d+|\d+)$'
         match = re.match(pattern, filter_value)
         if not match:
             raise ValueError(f"Invalid value: {value}")
+        filter_value = match.group(1)
 
     filter_value = str(filter_value)
 
@@ -212,7 +213,8 @@ def build_filters(filter_set: dict[str, VNDBFilter], filters: dict[str, Any]) ->
             result.append([key] + [build_filters(filter_set, item) for item in value])
         else:
             result.append(build_filter(filter_set, key, value))
-    return result[0] if len(result) == 1 else ["and"] + result
+    return [] if not result else result[0] if len(result) == 1 else ["and"] + result
+
 
 def parse_logical_expression(expression: str, field: str) -> dict[str, Any]:
     """
@@ -828,8 +830,9 @@ if __name__ == '__main__':
     print(get_remote_filters(
         search_type='vn',
         params={
-            'search': 'ai kiss',
-            'id': '((v1,v2)+(v6,v7,v8))',
+            'id': '17',
+            # 'search': 'ai kiss',
+            # 'id': '((v1,v2)+(v6,v7,v8))',
             # 'tag': 'Gang Rape + Unavoidable Rape',
         }
     ))
