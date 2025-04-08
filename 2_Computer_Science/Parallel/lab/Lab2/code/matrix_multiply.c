@@ -4,45 +4,29 @@
 #include <time.h>
 #include <string.h>
 
-typedef struct {
-    int rows;
-    int cols;
-    double *data;
-} Matrix;
-
-void initialize_matrix(Matrix *matrix, int rows, int cols) {
-    matrix->rows = rows;
-    matrix->cols = cols;
-    matrix->data = (double*)malloc(rows * cols * sizeof(double));
-    for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < cols; j++) {
-            matrix->data[i * cols + j] = rand() % 10;
+void initialize_matrix(double *matrix, int n) {
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            matrix[i * n + j] = rand() % 10;
         }
     }
 }
 
-void print_matrix(Matrix *matrix) {
-    for (int i = 0; i < matrix->rows; i++) {
-        for (int j = 0; j < matrix->cols; j++) {
-            printf("%.1f ", matrix->data[i * matrix->cols + j]);
+void print_matrix(double *matrix, int n) {
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            printf("%.1f ", matrix[i * n + j]);
         }
         printf("\n");
     }
     printf("\n");
 }
 
-void free_matrix(Matrix *matrix) {
-    if (matrix->data != NULL) {
-        free(matrix->data);
-        matrix->data = NULL;
-    }
-}
-
 int main(int argc, char *argv[]) {
     int n = 128;
     int rank, size;
-    Matrix A, B, C;
-    Matrix local_A, local_C;
+    double *A = NULL, *B = NULL, *C = NULL;
+    double *local_A = NULL, *local_C = NULL;
     double start_time, end_time;
     
     MPI_Init(&argc, &argv);
@@ -59,99 +43,55 @@ int main(int argc, char *argv[]) {
     
     int rows_per_proc = n / size;
     
-    MPI_Datatype matrix_type;
-    int blocklengths[3] = {1, 1, rows_per_proc * n};
-    MPI_Aint displacements[3];
-    MPI_Datatype types[3] = {MPI_INT, MPI_INT, MPI_DOUBLE};
-    
-    Matrix temp;
-    MPI_Aint base_address;
-    MPI_Get_address(&temp, &base_address);
-    MPI_Get_address(&temp.rows, &displacements[0]);
-    MPI_Get_address(&temp.cols, &displacements[1]);
-    MPI_Get_address(&temp.data, &displacements[2]);
-    
-    for (int i = 0; i < 3; i++) {
-        displacements[i] = MPI_Aint_diff(displacements[i], base_address);
-    }
-    
-    MPI_Type_create_struct(3, blocklengths, displacements, types, &matrix_type);
-    MPI_Type_commit(&matrix_type);
-    
     if (rank == 0) {
-        initialize_matrix(&A, n, n);
-        initialize_matrix(&B, n, n);
-        C.rows = n;
-        C.cols = n;
-        C.data = (double*)malloc(n * n * sizeof(double));
+        A = (double*)malloc(n * n * sizeof(double));
+        B = (double*)malloc(n * n * sizeof(double));
+        C = (double*)malloc(n * n * sizeof(double));
+        
+        srand(time(NULL));
+        initialize_matrix(A, n);
+        initialize_matrix(B, n);
         
         if (n <= 10) {
             printf("Matrix A:\n");
-            print_matrix(&A);
+            print_matrix(A, n);
             printf("Matrix B:\n");
-            print_matrix(&B);
+            print_matrix(B, n);
         }
+    } else {
+        B = (double*)malloc(n * n * sizeof(double));
     }
     
-    local_A.rows = rows_per_proc;
-    local_A.cols = n;
-    local_A.data = (double*)malloc(rows_per_proc * n * sizeof(double));
-    
-    local_C.rows = rows_per_proc;
-    local_C.cols = n;
-    local_C.data = (double*)malloc(rows_per_proc * n * sizeof(double));
-    memset(local_C.data, 0, rows_per_proc * n * sizeof(double));
+    local_A = (double*)malloc(rows_per_proc * n * sizeof(double));
+    local_C = (double*)malloc(rows_per_proc * n * sizeof(double));
+    memset(local_C, 0, rows_per_proc * n * sizeof(double));
     
     start_time = MPI_Wtime();
     
-    if (rank == 0) {
-        for (int dest = 1; dest < size; dest++) {
-            Matrix send_A;
-            send_A.rows = rows_per_proc;
-            send_A.cols = n;
-            send_A.data = A.data + dest * rows_per_proc * n;
-            MPI_Send(&send_A, 1, matrix_type, dest, 0, MPI_COMM_WORLD);
-        }
-        memcpy(local_A.data, A.data, rows_per_proc * n * sizeof(double));
-    } else {
-        MPI_Recv(&local_A, 1, matrix_type, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    }
+    MPI_Bcast(B, n * n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
     
-    if (rank == 0) {
-        for (int dest = 1; dest < size; dest++) {
-            MPI_Send(&B, 1, matrix_type, dest, 1, MPI_COMM_WORLD);
-        }
-    } else {
-        MPI_Recv(&B, 1, matrix_type, 0, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    }
+    MPI_Scatter(A, rows_per_proc * n, MPI_DOUBLE,
+                local_A, rows_per_proc * n, MPI_DOUBLE,
+                0, MPI_COMM_WORLD);
     
     for (int i = 0; i < rows_per_proc; i++) {
         for (int j = 0; j < n; j++) {
             for (int k = 0; k < n; k++) {
-                local_C.data[i * n + j] += local_A.data[i * n + k] * B.data[k * n + j];
+                local_C[i * n + j] += local_A[i * n + k] * B[k * n + j];
             }
         }
     }
     
-    if (rank == 0) {
-        for (int src = 1; src < size; src++) {
-            Matrix recv_C;
-            recv_C.rows = rows_per_proc;
-            recv_C.cols = n;
-            recv_C.data = C.data + src * rows_per_proc * n;
-            MPI_Recv(&recv_C, 1, matrix_type, src, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        }
-        memcpy(C.data, local_C.data, rows_per_proc * n * sizeof(double));
-    } else {
-        MPI_Send(&local_C, 1, matrix_type, 0, 2, MPI_COMM_WORLD);
-    }
+    MPI_Gather(local_C, rows_per_proc * n, MPI_DOUBLE,
+               C, rows_per_proc * n, MPI_DOUBLE,
+               0, MPI_COMM_WORLD);
     
     end_time = MPI_Wtime();
     
     if (rank == 0) {
         if (n <= 10) {
             printf("Result Matrix C:\n");
-            print_matrix(&C);
+            print_matrix(C, n);
         }
         printf("Matrix size: %d x %d\n", n, n);
         printf("Number of processes: %d\n", size);
@@ -159,13 +99,12 @@ int main(int argc, char *argv[]) {
     }
     
     if (rank == 0) {
-        free_matrix(&A);
-        free_matrix(&C);
+        free(A);
+        free(C);
     }
-    free_matrix(&B);
-    free_matrix(&local_A);
-    free_matrix(&local_C);
-    MPI_Type_free(&matrix_type);
+    free(B);
+    free(local_A);
+    free(local_C);
     
     MPI_Finalize();
     return 0;
