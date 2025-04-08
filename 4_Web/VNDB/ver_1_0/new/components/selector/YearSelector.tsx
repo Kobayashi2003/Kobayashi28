@@ -11,11 +11,12 @@ interface YearSelectorProps {
 export function YearSelector({ selectedYear, setSelectedYear, disabled, className }: YearSelectorProps) {
 
   const currentYear = new Date().getFullYear()
+
   const yearsSelectable = [
     { value: "00", label: "ALL" },
-    ...Array.from({ length: 37 }, (_, i) => ({
-      value: (currentYear - 35 + i).toString(),
-      label: (currentYear - 35 + i).toString()
+    ...Array.from({ length: currentYear - 1985 + 2 }, (_, i) => ({
+      value: (1985 + i).toString(),
+      label: (1985 + i).toString()
     }))
   ]
 

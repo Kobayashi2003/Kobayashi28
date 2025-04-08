@@ -1,13 +1,11 @@
 - bar的防抖
 - HeaderNavi
-- NaviBar
 - MarkDialog
 - MarkButton
 - MenuButton
 - Menu菜单
 - MenuDialog
-- 调整selector大小
-- 删除u/layout中的nvibar
 - 将mark的部分移入到/[type]/[id]中
-- 新写categoriesSelector2 按钮下拉菜单的组件
 - Group by
+- 将原本NaviBar的导航功能放入到userButton中
+- state问题

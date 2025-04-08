@@ -130,16 +130,21 @@ interface SortByDialogProps {
   from: string
   sortBy: string
   setSortBy: (sortBy: string) => void
+  additionalOptions?: { value: string, label: string }[]
   className?: string
 }
 
-export function SortByDialog({ open, setOpen, type, from, sortBy, setSortBy, className }: SortByDialogProps) {
+export function SortByDialog({ open, setOpen, type, from, sortBy, setSortBy, additionalOptions, className }: SortByDialogProps) {
 
-  const showSortByOptions = {
+  let showSortByOptions = {
     both: sortByOptions[type]?.both || [],
     remote: [...(sortByOptions[type]?.both || []), ...(sortByOptions[type]?.remote || [])],
     local: [...(sortByOptions[type]?.both || []), ...(sortByOptions[type]?.local || [])],
-  }[from]
+  }[from] ?? []
+
+  if (additionalOptions) {
+    showSortByOptions = [...showSortByOptions, ...additionalOptions]
+  }
 
   const handleSortByChange = (value: string) => {
     setOpen(false)

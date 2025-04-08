@@ -24,10 +24,7 @@ export function CategorySearcher({ isSearching, handleSearch, disabled, classNam
   const containerTransition = "transition-all duration-300"
 
   return (
-    <form onSubmit={(e) => {
-      e.preventDefault()
-      handleSearch(input.trim())
-    }} className={cn(
+    <div className={cn(
       "p-4",
       containerFlex,
       containerBgColor,
@@ -35,13 +32,18 @@ export function CategorySearcher({ isSearching, handleSearch, disabled, classNam
       containerTransition,
       className
     )}>
-      <InputBar
-        input={input}
-        setInput={setInput}
-        placeholder="Search in current category"
-        disabled={disabled}
-        className="w-full"
-      />
+      <form onSubmit={(e) => {
+        e.preventDefault()
+        handleSearch(input.trim())
+      }} className={cn("w-full")}>
+        <InputBar
+          input={input}
+          setInput={setInput}
+          placeholder="Search in current category"
+          disabled={disabled}
+          className="w-full"
+        />
+      </form>
       <SubmitButton
         handleSubmit={() => {
           handleSearch(input.trim())
@@ -57,6 +59,6 @@ export function CategorySearcher({ isSearching, handleSearch, disabled, classNam
           disabled={disabled}
         />
       )}
-    </form>
+    </div>
   )
 }

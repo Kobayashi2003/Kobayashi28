@@ -3,11 +3,13 @@
 import { useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
 import { useUrlParams } from "@/hooks/useUrlParams"
+import { useOnVisible } from "@/hooks/useOnVisible"
 import { motion, AnimatePresence } from "motion/react"
 
 import { cn } from "@/lib/utils"
 
 import { CategoryControlPanel } from "@/components/category/CategoryControlPanel"
+import { TogglePanelButton } from "@/components/button/TogglePanelButton"
 import { Loading } from "@/components/status/Loading"
 import { Error } from "@/components/status/Error"
 import { NotFound } from "@/components/status/NotFound"
@@ -36,6 +38,8 @@ export default function CategoriesPage() {
   const searchParams = useSearchParams()
   const { removeKey, removeMultipleKeys, updateKey, updateMultipleKeys } = useUrlParams()
 
+  const { isVisible } = useOnVisible("item-bar")
+
   const itemsPerPage = 24
 
   const selectedType = searchParams.get("type") || "v"
@@ -46,19 +50,18 @@ export default function CategoriesPage() {
   const sortOrder = searchParams.get("order") || "asc"
 
   const isSearching = query !== ""
-  const [open, setOpen] = useState(true)
+  const [openControlPanel, setOpenControlPanel] = useState(true)
   const [sortByDialogOpen, setSortByDialogOpen] = useState(false)
 
   const [categoryState, setCategoryState] = useState({
-    loading: false,
-    error: null as string | null,
-    notFound: false
+    state: null as "loading" | "error" | "notFound" | null,
+    message: null as string | null
   })
   const [resourceState, setResourceState] = useState({
-    loading: false,
-    error: null as string | null,
-    notFound: false
+    state: null as "loading" | "error" | "notFound" | null,
+    message: null as string | null
   })
+
   const [resourceData, setResourceData] = useState({
     vns: [] as VN_Small[],
     releases: [] as Release_Small[],
@@ -102,6 +105,13 @@ export default function CategoriesPage() {
   }
 
   const setSortBy = (value: string) => {
+    if (value === "marked_at" && query.trim() !== "") {
+      setResourceState({
+        state: "error",
+        message: "marked_at is not supported for search"
+      })
+      return
+    }
     updateKey("sort", value)
   }
 
@@ -118,57 +128,65 @@ export default function CategoriesPage() {
       setCategoriesAbortController(newAbortController)
 
       setCategoryState({
-        loading: true,
-        error: null,
-        notFound: false
+        state: "loading",
+        message: null
       })
       const response = await api.category.get(selectedType, newAbortController.signal)
       const sortedCategories = response.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
       setCategories(sortedCategories)
       if (sortedCategories.length === 0) {
         setCategoryState({
-          loading: false,
-          error: null,
-          notFound: true
+          state: "notFound",
+          message: null
         })
       } else {
         setCategoryState({
-          loading: false,
-          error: null,
-          notFound: false
+          state: null,
+          message: null
         })
       }
     } catch (error) {
       setCategoryState({
-        loading: false,
-        error: error as string,
-        notFound: false
+        state: "error",
+        message: error as string
       })
     }
   }
 
   const fetchResources = async () => {
-    if (!selectedType || !selectedCategoryId) return
+    if (!selectedType || !selectedCategoryId) {
+      setResourceState({
+        state: null,
+        message: null
+      })
+      return
+    }
+    
     try {
       resourcesAbortController?.abort()
       const newAbortController = new AbortController()
       setResourcesAbortController(newAbortController)
 
       setResourceState({
-        loading: true,
-        error: null,
-        notFound: false
+        state: "loading",
+        message: null
       })
 
       const marksResponse = await api.category.getMarks(selectedType, selectedCategoryId, newAbortController.signal)
       setTotalItemsCount(marksResponse.results.length)
+      setTotalPages(Math.ceil(marksResponse.results.length / itemsPerPage))
+
       if (marksResponse.results.length === 0) {
         setResourceState({
-          loading: false,
-          error: null,
-          notFound: true
+          state: "notFound",
+          message: null
         })
         return
+      }
+
+      if (sortBy === "marked_at") {
+        marksResponse.results.sort((a, b) => new Date(b.marked_at).getTime() - new Date(a.marked_at).getTime())
+        marksResponse.results = marksResponse.results.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
       }
 
       const markIds = marksResponse.results.map(mark => mark.id).join(",")
@@ -194,30 +212,35 @@ export default function CategoriesPage() {
 
       const response = await requestFunction[selectedType as keyof typeof requestFunction]({
         id: markIds,
-        sort: sortBy,
+        sort: sortBy === "marked_at" ? "id" : sortBy,
         reverse: sortOrder === "desc",
-        page: currentPage,
+        page: sortBy === "marked_at" ? 1 : currentPage,
         limit: itemsPerPage,
         search: query,
       }, newAbortController.signal)
+
+      if (sortBy === "marked_at") {
+        response.results.sort((a, b) => {
+          const aId = a.id.slice(1)
+          const bId = b.id.slice(1)
+          return markIds.indexOf(aId) - markIds.indexOf(bId)
+        })
+      }
 
       setResourceData({
         ...resourceData,
         [requestResource[selectedType as keyof typeof requestResource]]: response.results
       })
-      setTotalPages(Math.ceil(response.count / itemsPerPage))
       setCurrentPageItemsCount(response.results.length)
 
       setResourceState({
-        loading: false,
-        error: null,
-        notFound: false
+        state: null,
+        message: null
       })
     } catch (error) {
       setResourceState({
-        loading: false,
-        error: error as string,
-        notFound: false
+        state: "error",
+        message: error as string
       })
     }
   }
@@ -227,6 +250,13 @@ export default function CategoriesPage() {
     if (!query) {
       removeKey("q")
     } else {
+      if (sortBy === "marked_at") {
+        setResourceState({
+          state: "error",
+          message: "marked_at is not supported for search"
+        })
+        return
+      }
       updateMultipleKeys({ q: query, page: "1" })
     }
   }
@@ -235,18 +265,16 @@ export default function CategoriesPage() {
     if (!selectedType || !newCategoryName) return
     try {
       setCategoryState({
-        loading: true,
-        error: null,
-        notFound: false
+        state: "loading",
+        message: null
       })
       await api.category.create(selectedType, newCategoryName)
       setSelectedCategoryId(undefined)
       fetchCategories()
     } catch (error) {
       setCategoryState({
-        loading: false,
-        error: error as string,
-        notFound: false
+        state: "error",
+        message: error as string
       })
     }
   }
@@ -255,18 +283,16 @@ export default function CategoriesPage() {
     if (!selectedType || !categoryId) return
     try {
       setCategoryState({
-        loading: true,
-        error: null,
-        notFound: false
+        state: "loading",
+        message: null
       })
       await api.category.delete(selectedType, categoryId)
       setSelectedCategoryId(undefined)
       fetchCategories()
     } catch (error) {
       setCategoryState({
-        loading: false,
-        error: error as string,
-        notFound: false
+        state: "error",
+        message: error as string
       })
     }
   }
@@ -276,18 +302,16 @@ export default function CategoriesPage() {
     try {
       if (confirm(`Are you sure you want to delete ${markId}?`)) {
         setResourceState({
-          loading: true,
-          error: null,
-          notFound: false
+          state: "loading",
+          message: null
         })
         await api.category.removeMark(selectedType, selectedCategoryId, markId)
         fetchResources()
       }
     } catch (error) {
       setResourceState({
-        loading: false,
-        error: error as string,
-        notFound: false
+        state: "error",
+        message: error as string
       })
     }
   }
@@ -301,26 +325,28 @@ export default function CategoriesPage() {
 
 
   useEffect(() => {
+    if (categoryState.state !== "error") return
+    
     const timeout = setTimeout(() => {
       setCategoryState({
-        loading: false,
-        error: null,
-        notFound: false
+        state: null,
+        message: null
       })
     }, 5000)
     return () => clearTimeout(timeout)
-  }, [categoryState.error])
+  }, [categoryState.state])
 
   useEffect(() => {
+    if (resourceState.state !== "error") return
+    
     const timeout = setTimeout(() => {
       setResourceState({
-        loading: false,
-        error: null,
-        notFound: false
+        state: null,
+        message: null
       })
     }, 5000)
     return () => clearTimeout(timeout)
-  }, [resourceState.error])
+  }, [resourceState.state])
 
 
   useEffect(() => {
@@ -395,7 +421,7 @@ export default function CategoriesPage() {
         "grid grid-cols-1 gap-4"
     }
     return cardType === "image" ?
-      "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4" :
+      "grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4" :
       "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
   }
 
@@ -403,7 +429,7 @@ export default function CategoriesPage() {
     <div className="w-full min-h-screen flex flex-col md:flex-row gap-1">
       {/* Control Panel */}
       <CategoryControlPanel
-        open={open}
+        open={openControlPanel}
         type={selectedType}
         categoryOptions={categories.map(category => ({
           value: category.id,
@@ -412,28 +438,49 @@ export default function CategoriesPage() {
         selectedCategoryId={selectedCategoryId}
         deleteMode={deleteCategoryMode}
         isSearching={isSearching}
-        setOpen={setOpen}
+        setOpen={setOpenControlPanel}
         setType={setSelectedType}
         setSelectedCategoryId={setSelectedCategoryId}
         setDeleteMode={setDeleteCategoryMode}
         handleDeleteCategory={handleDeleteCategory}
         handleCreateCategory={handleCreateCategory}
         handleSearch={handleSearch}
-        disabled={categoryState.loading || resourceState.loading}
-        className={"z-10 md:fixed md:top-[10%]"}
+        disabled={categoryState.state === "loading" || resourceState.state === "loading"}
+        className={"md:pl-4 z-10 fixed top-[18%]"}
+      />
+      <TogglePanelButton
+        open={openControlPanel}
+        setOpen={setOpenControlPanel}
+        direction="left"
+        disabled={resourceState.state === "loading"}
+        className={cn(
+          "z-10 fixed top-[18%] left-0",
+          "opacity-60 hover:opacity-100",
+          "translate-x-[-50%] hover:translate-x-0",
+          isVisible && "hidden",
+          openControlPanel && "hidden"
+        )}
       />
       {/* Placeholder for Control Panel */}
-      <div className={cn("max-md:hidden h-full md:w-100 lg:w-120 xl:w-140", !open && "hidden")} />
+      <div className={cn("max-md:hidden h-full md:w-100 lg:w-120 xl:w-140", !openControlPanel && "hidden")} />
 
       {/* Main Content */}
       <div className="overflow-hidden flex-1 p-4 flex flex-col gap-2 transition-all duration-300 justify-between items-center">
         {selectedCategoryId && (
-          <div className="w-full flex justify-between gap-2">
+          <div id="item-bar" className="w-full flex max-md:flex-col justify-between gap-2">
             <div className="flex flex-wrap justify-start gap-2">
+              {/* Toggle Control Panel Button */}
+              <TogglePanelButton
+                open={openControlPanel}
+                setOpen={setOpenControlPanel}
+                direction="left"
+                disabled={resourceState.state === "loading"}
+                className={cn(openControlPanel && "hidden")}
+              />
               {/* Sort By Dialog Button */}
               <Settings2Button
                 onClick={() => setSortByDialogOpen(true)}
-                disabled={resourceState.loading}
+                disabled={resourceState.state === "loading"}
               />
               {/* Sort By Dialog */}
               <SortByDialog
@@ -443,52 +490,55 @@ export default function CategoriesPage() {
                 from={"local"}
                 sortBy={sortBy}
                 setSortBy={setSortBy}
+                additionalOptions={[{ value: "marked_at", label: "Marked At" }]}
               />
               {/* Order Switch Button */}
               <OrderSwitch
                 order={sortOrder}
                 setOrder={setSortOrder}
-                disabled={resourceState.loading}
+                disabled={resourceState.state === "loading"}
               />
               {/* Card Type Button */}
               <CardTypeSwitch
                 cardType={cardType}
                 setCardType={(value) => setCardType(value as "image" | "text")}
-                disabled={resourceState.loading}
+                disabled={resourceState.state === "loading"}
               />
               {/* Layout Switch Button */}
               <GridLayoutSwitch
                 layout={layout}
                 setLayout={(value) => setLayout(value as "grid" | "single")}
-                disabled={resourceState.loading}
+                disabled={resourceState.state === "loading"}
               />
               {/* Delete Mode Button */}
               <DeleteModeButton
                 deleteMode={deleteMarkMode}
                 setDeleteMode={setDeleteMarkMode}
-                disabled={resourceState.loading}
+                disabled={resourceState.state === "loading"}
               />
               {/* Reload Button */}
               <ReloadButton
                 handleReload={() => { fetchResources() }}
-                disabled={resourceState.loading}
+                disabled={resourceState.state === "loading"}
               />
               {/* Total Items Count */}
               <p className="text-gray-500 self-center select-none">Total: {totalItemsCount}</p>
             </div>
             {(selectedType === "v" || selectedType === "c") ? (
-              <div className="flex flex-wrap justify-end gap-2">
+              <div className="w-full md:flex-1 flex justify-end gap-2">
                 <SexualLevelSelector
                   sexualLevel={sexualLevel}
                   setSexualLevel={(value) => setSexualLevel(value as "safe" | "suggestive" | "explicit")}
-                  disabled={resourceState.loading}
+                  disabled={resourceState.state === "loading"}
+                  className="w-full md:w-auto"
                 />
                 {/* Divider */}
                 <div className="w-px bg-gray-300 dark:bg-gray-700 hidden sm:block" />
                 <ViolenceLevelSelector
                   violenceLevel={violenceLevel}
                   setViolenceLevel={(value) => setViolenceLevel(value as "tame" | "violent" | "brutal")}
-                  disabled={resourceState.loading}
+                  disabled={resourceState.state === "loading"}
+                  className="w-full md:w-auto"
                 />
               </div>
             ) : (
@@ -496,6 +546,7 @@ export default function CategoriesPage() {
             )}
           </div>
         )}
+        {JSON.stringify(resourceState)}
         <AnimatePresence mode="wait">
           {!selectedCategoryId && (
             <motion.div
@@ -509,27 +560,27 @@ export default function CategoriesPage() {
               <p className="text-gray-500">Select a category to view resources</p>
             </motion.div>
           )}
-          {(resourceState.loading || resourceState.error || resourceState.notFound) && (
+          {resourceState.state !== null && (
             <motion.div
-              key="status"
+              key={`status-${resourceState.state}-${resourceState.message}`}
               initial={{ filter: "blur(20px)", opacity: 0 }}
               animate={{ filter: "blur(0px)", opacity: 1 }}
               exit={{ filter: "blur(20px)", opacity: 0 }}
               transition={{ duration: 0.4, ease: "easeInOut" }}
               className="flex-grow flex justify-center items-center"
             >
-              {resourceState.loading && (
+              {resourceState.state === "loading" && (
                 <Loading message="Loading..." />
               )}
-              {resourceState.error && (
-                <Error message={`Error: ${resourceState.error}`} />
+              {resourceState.state === "error" && (
+                <Error message={`Error: ${resourceState.message}`} />
               )}
-              {resourceState.notFound && (
+              {resourceState.state === "notFound" && (
                 <NotFound message="No resources found" />
               )}
             </motion.div>
           )}
-          {(!resourceState.loading && !resourceState.error && !resourceState.notFound) && (
+          {resourceState.state === null && (
             <div className="relative w-full">
               {selectedType === "v" && (
                 <VNsCardsGrid vns={resourceData.vns} layout={layout} cardType={cardType} sexualLevel={sexualLevel} violenceLevel={violenceLevel} />

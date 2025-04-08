@@ -41,10 +41,10 @@ export const useOnScroll = ({
     const currentScrollY = window.scrollY;
     const direction = currentScrollY > lastScrollY.current ? 'down' : 'up';
     const scrollDifference = Math.abs(currentScrollY - lastScrollY.current);
-  
+
     if (scrollDifference >= 5) {
       setScrollState(prev => ({
-        trigger: direction === 'down' 
+        trigger: direction === 'down'
           ? (currentScrollY > scrollThreshold || prev.trigger)
           : false,
         scrollY: currentScrollY,
@@ -86,7 +86,7 @@ export const useOnScroll = ({
   // Set up scroll event listener
   useEffect(() => {
     window.addEventListener('scroll', combinedScrollHandler);
-    
+
     // Cleanup function
     return () => {
       window.removeEventListener('scroll', combinedScrollHandler);

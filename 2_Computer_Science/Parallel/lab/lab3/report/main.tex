@@ -1,0 +1,132 @@
+%!TeX program = xelatex
+\documentclass{SYSUReport}
+\usepackage{tabularx} % 在导言区添加此行
+\usepackage{float}
+% 根据个人情况修改
+\headl{}
+\headc{}
+\headr{并行程序设计与算法实验}
+\lessonTitle{并行程序设计与算法实验}
+\reportTitle{Lab3-Pthreads并行矩阵乘法与数组求和}
+\stuname{xxx}
+\stuid{xxx}
+\inst{计算机学院}
+\major{xxx}
+\date{2025年4月9日}
+
+\begin{document}
+
+% =============================================
+% Part 1: 封面
+% =============================================
+\cover
+\thispagestyle{empty} % 首页不显示页码
+\clearpage
+
+% % =============================================
+% % Part 4： 正文内容
+% % =============================================
+% % 重置页码，并使用阿拉伯数字
+% \pagenumbering{arabic}
+% \setcounter{page}{1}
+
+%%可选择这里也放一个标题
+%\begin{center}
+%    \title{ \Huge \textbf{{标题}}}
+%\end{center}
+
+\section{实验目的}
+\begin{itemize}
+    \item Pthreads程序编写、运行与调试
+    \item 多线程并行矩阵乘法
+    \item 多线程并行数组求和
+\end{itemize}
+
+\section{实验内容}
+\begin{itemize}
+    \item 掌握Pthreads编程的基本流程
+    \item 理解线程间通信与资源共享机制
+    \item 通过性能分析明确线程数、数据规模与加速比的关系
+\end{itemize}
+\subsection{并行矩阵乘法}
+\begin{itemize}
+    \item 使用Pthreads实现并行矩阵乘法
+    \item 随机生成$m \times n$的矩阵$A$及$n \times k$的矩阵$B$
+    \item 通过多线程计算矩阵乘积$C = A \times B$
+    \item 调整线程数量(1-16)和矩阵规模(128-2048)，记录计算时间
+    \item 分析并行性能(时间、效率、可扩展性)
+    \item 选做：分析不同数据划分方式的影响
+     \begin{itemize}
+        \item 请描述你的数据/任务划分方式。
+        \item 回答：......
+    \end{itemize}
+\end{itemize}
+\subsection{并行数组求和}
+\begin{itemize}
+    \item 使用Pthreads实现并行数组求和
+    \item 随机生成长度为$n$的整型数组$A$，$n$取值范围[1M, 128M]
+    \item 通过多线程计算数组元素和$s = \sum_{i=1}^{n}A_i$
+    \item 调整线程数量(1-16)和数组规模(1M-128M)，记录计算时间
+    \item 分析并行性能(时间、效率、可扩展性)
+    \item 选做：分析不同聚合方式的影响
+     \begin{itemize}
+        \item 请描述你的聚合方式。
+        \item 回答：......
+    \end{itemize}
+\end{itemize}
+\section{实验结果}
+\subsection{并行矩阵乘法}
+
+    \begin{table}[H]
+\centering
+\caption{并行矩阵乘法在不同线程数下的运行时间}
+\begin{tabular}{cccccc}
+\toprule
+矩阵规模 & 1线程 & 2线程 & 4线程 & 8线程 & 16线程 \\
+\midrule
+128×128 & & & & & \\
+256×256 & & & & & \\
+512×512 & & & & & \\
+1024×1024 & & & & & \\
+2048×2048 & & & & & \\
+\bottomrule
+\end{tabular}
+\end{table}
+\subsection{并行数组求和}
+\begin{table}[h]
+\centering
+\caption{数组求和不同线程数下的运行时间}
+\begin{tabular}{cccccc}
+\toprule
+数组规模 & 1线程 & 2线程 & 4线程 & 8线程 & 16线程 \\
+\midrule
+1M & & & & & \\
+4M & & & & & \\
+16M & & & & & \\
+64M & & & & & \\
+128M & & & & & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+
+
+\section{实验分析}
+\subsection{并行矩阵乘法}
+\begin{itemize}
+    \item 线程数量对性能的影响分析：
+    \item 矩阵规模对并行效率的影响：
+    \item 可扩展性分析：
+    \item (选做)不同数据划分方式的比较：
+\end{itemize}
+
+\subsection{并行数组求和}
+\begin{itemize}
+    \item 线程数量对性能的影响分析：
+    \item 数组规模对并行效率的影响：
+    \item 可扩展性分析：
+    \item (选做)不同聚合方式的比较：
+\end{itemize}
+注：实验代码以zip格式另提交；最终提交内容包括实验报告(pdf格式)和实验代码(zip压缩包格式)
+\end{document}

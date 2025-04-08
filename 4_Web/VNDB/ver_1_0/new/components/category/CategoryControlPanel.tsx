@@ -33,17 +33,7 @@ interface CategoryControlPanelProps {
 }
 
 export function CategoryControlPanel({ open, type, categoryOptions, selectedCategoryId, deleteMode, isSearching, setOpen, setType, setSelectedCategoryId, setDeleteMode, handleDeleteCategory, handleCreateCategory, handleSearch, disabled, className }: CategoryControlPanelProps) {
-  return (<>
-    <TogglePanelButton
-      open={open}
-      setOpen={setOpen}
-      direction="left"
-      disabled={disabled}
-      className={cn(
-        open && "hidden",
-        className
-      )}
-    />
+  return (
     <div className={cn(
       "w-full md:w-100 lg:w-120 xl:w-140",
       "flex flex-col gap-2",
@@ -104,5 +94,5 @@ export function CategoryControlPanel({ open, type, categoryOptions, selectedCate
         />
       </div>
     </div>
-  </>)
+  )
 }

@@ -1,0 +1,81 @@
+%!TeX program = xelatex
+\documentclass{SYSUReport}
+\usepackage{tabularx} % 在导言区添加此行
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{caption}
+% 根据个人情况修改
+\headl{}
+\headc{}
+\headr{并行程序设计与算法实验}
+\lessonTitle{并行程序设计与算法实验}
+\reportTitle{Lab1-基于MPI的并行矩阵乘法}
+\stuname{xxx}
+\stuid{xxx}
+\inst{计算机学院}
+\major{xxx}
+\date{2025年3月26日}
+
+\begin{document}
+
+% =============================================
+% Part 1: 封面
+% =============================================
+\cover
+\thispagestyle{empty} % 首页不显示页码
+\clearpage
+
+% % =============================================
+% % Part 4： 正文内容
+% % =============================================
+% % 重置页码，并使用阿拉伯数字
+% \pagenumbering{arabic}
+% \setcounter{page}{1}
+
+%%可选择这里也放一个标题
+%\begin{center}
+%    \title{ \Huge \textbf{{标题}}}
+%\end{center}
+
+\section{实验目的}
+\begin{itemize}
+   \item 掌握 MPI 程序的编译和运行方法。
+    \item 理解 MPI 点对点通信的基本原理。
+    \item 了解 MPI 程序的 GDB 调试流程。
+\end{itemize}
+
+\section{实验内容}
+\begin{itemize}
+   \item 使用 MPI 点对点通信实现并行矩阵乘法。
+    \item 设置进程数量（1$\sim$16）及矩阵规模（128$\sim$2048）。
+    \item 根据运行时间，分析程序的并行性能。
+\end{itemize}
+
+
+\section{实验结果}
+\subsection{性能分析}
+根据运行结果，填入下表以记录不同进程数和矩阵规模下的运行时间：
+\begin{table}[htpb]
+\centering
+\begin{tabular}{|c|lllll|}
+\hline
+\multirow{2}{*}{进程数} & \multicolumn{5}{c|}{矩阵规模}                                                                        \\ \cline{2-6} 
+ & \multicolumn{1}{l|}{128} & \multicolumn{1}{l|}{256} & \multicolumn{1}{l|}{512} & \multicolumn{1}{l|}{1024} & 2048 \\ \hline
+1                    & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} &  \\ \hline
+2                    & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} &  \\ \hline
+4                    & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} &  \\ \hline
+9                    & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} &  \\ \hline
+16                   & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} &  \\ \hline
+\end{tabular}
+\end{table}
+\section{讨论题}
+\begin{itemize}
+    \item 在内存受限情况下，如何进行大规模矩阵乘法计算？
+
+    回答：......
+    \item 如何提高大规模稀疏矩阵乘法性能？
+
+    回答：......
+\end{itemize}
+注：实验代码以zip格式另提交；最终提交内容包括实验报告(pdf格式)和实验代码(zip压缩包格式)
+\end{document}

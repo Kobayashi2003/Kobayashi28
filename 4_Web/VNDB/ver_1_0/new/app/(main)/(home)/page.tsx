@@ -13,6 +13,8 @@ import { ViolenceLevelSelector } from "@/components/selector/ViolenceLevelSelect
 import { CardTypeSwitch } from "@/components/selector/CardTypeSwtich"
 import { GridLayoutSwitch } from "@/components/selector/GridLayoutSwitch"
 import { PaginationButtons } from "@/components/button/PaginationButtons"
+import { IconButton } from "@/components/button/IconButton"
+import { ArrowBigLeftIcon, ArrowBigRightIcon } from "lucide-react"
 
 import { Loading } from "@/components/status/Loading"
 import { Error } from "@/components/status/Error"
@@ -127,6 +129,45 @@ export default function Home() {
     updateMultipleKeys({ month: value, page: "1" })
   }
 
+  const handleMonthAdd = () => {
+    const currentSelectedMonth = Number.parseInt(selectedMonth)
+    const newMonth = currentSelectedMonth + 1
+    if (newMonth > 12) {
+      updateMultipleKeys({ month: "01", year: (Number.parseInt(selectedYear) + 1).toString() })
+    } else {
+      updateMultipleKeys({ month: newMonth.toString().padStart(2, "0"), year: selectedYear })
+    }
+  }
+
+  const handleMonthSub = () => {
+    const currentSelectedMonth = Number.parseInt(selectedMonth)
+    const newMonth = currentSelectedMonth - 1
+    if (newMonth < 1) {
+      updateMultipleKeys({ month: "12", year: (Number.parseInt(selectedYear) - 1).toString() })
+    } else {
+      updateMultipleKeys({ month: newMonth.toString().padStart(2, "0"), year: selectedYear })
+    }
+  }
+
+  const monthAddable = () => {
+    const currentYear = new Date().getFullYear()
+    const currentSelectedYear = Number.parseInt(selectedYear)
+    const currentSelectedMonth = Number.parseInt(selectedMonth)
+    if (currentSelectedYear === currentYear + 1) {
+      return currentSelectedMonth !== 12
+    }
+    return true
+  }
+
+  const monthSubable = () => {
+    const currentSelectedYear = Number.parseInt(selectedYear)
+    const currentSelectedMonth = Number.parseInt(selectedMonth)
+    if (currentSelectedYear === 1985) {
+      return currentSelectedMonth !== 1
+    }
+    return true
+  }
+
   const handlePageChange = (page: number) => {
     updateKey("page", page.toString())
   }
@@ -163,6 +204,13 @@ export default function Home() {
           />
         </div>
         <div className="w-full sm:flex-1 flex justify-center gap-2">
+          {/* Month Sub Button */}
+          <IconButton
+            icon={<ArrowBigLeftIcon className="w-4 h-4 fill-amber-100" />}
+            onClick={handleMonthSub}
+            disabled={!monthSubable()}
+            className="hover:bg-white/5 max-sm:hidden"
+          />
           {/* Year Selector */}
           <YearSelector
             selectedYear={selectedYear}
@@ -174,6 +222,13 @@ export default function Home() {
             selectedMonth={selectedMonth}
             setSelectedMonth={handleMonthChange}
             className="w-full sm:w-auto"
+          />
+          {/* Month Add Button */}
+          <IconButton
+            icon={<ArrowBigRightIcon className="w-4 h-4 fill-amber-100" />}
+            onClick={handleMonthAdd}
+            disabled={!monthAddable()}
+            className="hover:bg-white/5 max-sm:hidden"
           />
         </div>
         <div className="w-full sm:flex-1 flex justify-end gap-2">
