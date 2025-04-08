@@ -62,28 +62,96 @@
 \hline
 \multirow{2}{*}{进程数} & \multicolumn{5}{c|}{矩阵规模}                                                                        \\ \cline{2-6} 
  & \multicolumn{1}{l|}{128} & \multicolumn{1}{l|}{256} & \multicolumn{1}{l|}{512} & \multicolumn{1}{l|}{1024} & 2048 \\ \hline
-1                    & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} &  \\ \hline
-2                    & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} &  \\ \hline
-4                    & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} &  \\ \hline
-9                    & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} &  \\ \hline
-16                   & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} &  \\ \hline
+1                    & \multicolumn{1}{l|}{0.007141} & \multicolumn{1}{l|}{0.059567} & \multicolumn{1}{l|}{0.532740} & \multicolumn{1}{l|}{5.003699} & 52.291290 \\ \hline
+2                    & \multicolumn{1}{l|}{0.003733} & \multicolumn{1}{l|}{0.029872} & \multicolumn{1}{l|}{0.280494} & \multicolumn{1}{l|}{2.591877} & 26.501993 \\ \hline
+4                    & \multicolumn{1}{l|}{0.098602} & \multicolumn{1}{l|}{0.120185} & \multicolumn{1}{l|}{0.144042} & \multicolumn{1}{l|}{1.723110} & 15.240982 \\ \hline
+8                    & \multicolumn{1}{l|}{0.027828} & \multicolumn{1}{l|}{0.057403} & \multicolumn{1}{l|}{0.231252} & \multicolumn{1}{l|}{1.130620} & 10.078613 \\ \hline
+16                   & \multicolumn{1}{l|}{0.080558} & \multicolumn{1}{l|}{0.122373} & \multicolumn{1}{l|}{0.127154} & \multicolumn{1}{l|}{1.051537} & 8.649403 \\ \hline
 \end{tabular}
 \end{table}
 
 
 \section{实验分析}
-根据运行时间，分析程序并行性能及扩展性
+根据运行时间，分析程序并行性能及扩展性：
+
+\subsection{MPI集合通信实现}
+\begin{table}[H]
+\centering
+\caption{MPI集合通信实现的加速比}
+\label{表3}
+\begin{tabular}{|c|lllll|}
+\hline
+\multirow{2}{*}{进程数} & \multicolumn{5}{c|}{矩阵规模}                                                                        \\ \cline{2-6} 
+ & \multicolumn{1}{l|}{128} & \multicolumn{1}{l|}{256} & \multicolumn{1}{l|}{512} & \multicolumn{1}{l|}{1024} & 2048 \\ \hline
+1                    & \multicolumn{1}{l|}{1.00} & \multicolumn{1}{l|}{1.00} & \multicolumn{1}{l|}{1.00} & \multicolumn{1}{l|}{1.00} & 1.00 \\ \hline
+2                    & \multicolumn{1}{l|}{2.11} & \multicolumn{1}{l|}{1.61} & \multicolumn{1}{l|}{1.95} & \multicolumn{1}{l|}{2.00} & 1.76 \\ \hline
+4                    & \multicolumn{1}{l|}{3.61} & \multicolumn{1}{l|}{2.45} & \multicolumn{1}{l|}{3.10} & \multicolumn{1}{l|}{3.42} & 2.96 \\ \hline
+8                    & \multicolumn{1}{l|}{0.26} & \multicolumn{1}{l|}{3.79} & \multicolumn{1}{l|}{3.53} & \multicolumn{1}{l|}{5.22} & 4.83 \\ \hline
+16                   & \multicolumn{1}{l|}{0.18} & \multicolumn{1}{l|}{6.89} & \multicolumn{1}{l|}{5.12} & \multicolumn{1}{l|}{5.77} & 5.80 \\ \hline
+\end{tabular}
+\end{table}
+
 \begin{itemize}
-    \item 使用MPI集合通信实现并行矩阵乘法：
-
-
-
-
-    \item 使用MPI\_Type\_create\_struct聚合进程内变量后通信：
-
-
-
-
-
+    \item 小规模矩阵（128~256）：
+    \begin{itemize}
+        \item 进程数为2和4时，加速比随进程数增加而提高
+        \item 进程数为8和16时，由于通信开销增加，加速比反而下降
+        \item 256×256矩阵在16进程时达到最高加速比6.89
+    \end{itemize}
+    \item 中大规模矩阵（512~2048）：
+    \begin{itemize}
+        \item 随着矩阵规模增大，加速比整体呈上升趋势
+        \item 2048×2048矩阵在16进程时达到最高加速比5.80
+        \item 进程数增加带来的性能提升逐渐趋于稳定
+    \end{itemize}
 \end{itemize}
+
+\subsection{MPI\_Type\_create\_struct实现}
+\begin{table}[H]
+\centering
+\caption{MPI\_Type\_create\_struct实现的加速比}
+\label{表4}
+\begin{tabular}{|c|lllll|}
+\hline
+\multirow{2}{*}{进程数} & \multicolumn{5}{c|}{矩阵规模}                                                                        \\ \cline{2-6} 
+ & \multicolumn{1}{l|}{128} & \multicolumn{1}{l|}{256} & \multicolumn{1}{l|}{512} & \multicolumn{1}{l|}{1024} & 2048 \\ \hline
+1                    & \multicolumn{1}{l|}{1.00} & \multicolumn{1}{l|}{1.00} & \multicolumn{1}{l|}{1.00} & \multicolumn{1}{l|}{1.00} & 1.00 \\ \hline
+2                    & \multicolumn{1}{l|}{1.91} & \multicolumn{1}{l|}{1.99} & \multicolumn{1}{l|}{1.90} & \multicolumn{1}{l|}{1.93} & 1.97 \\ \hline
+4                    & \multicolumn{1}{l|}{0.07} & \multicolumn{1}{l|}{0.50} & \multicolumn{1}{l|}{3.70} & \multicolumn{1}{l|}{2.90} & 3.43 \\ \hline
+8                    & \multicolumn{1}{l|}{0.26} & \multicolumn{1}{l|}{1.04} & \multicolumn{1}{l|}{2.30} & \multicolumn{1}{l|}{4.42} & 5.19 \\ \hline
+16                   & \multicolumn{1}{l|}{0.09} & \multicolumn{1}{l|}{0.49} & \multicolumn{1}{l|}{4.19} & \multicolumn{1}{l|}{4.76} & 6.05 \\ \hline
+\end{tabular}
+\end{table}
+
+\begin{itemize}
+    \item 小规模矩阵（128~256）：
+    \begin{itemize}
+        \item 进程数为2时获得较好的加速比（1.91~1.99）
+        \item 进程数超过2后，由于结构体通信开销，加速比显著下降
+        \item 256×256矩阵在2进程时达到最高加速比1.99
+    \end{itemize}
+    \item 中大规模矩阵（512~2048）：
+    \begin{itemize}
+        \item 随着矩阵规模增大，结构体通信的开销影响逐渐减小
+        \item 512×512矩阵在16进程时达到最高加速比4.19
+        \item 2048×2048矩阵在16进程时达到最高加速比6.05
+    \end{itemize}
+\end{itemize}
+
+\subsection{扩展性分析}
+\begin{itemize}
+    \item MPI集合通信实现：
+    \begin{itemize}
+        \item 使用Bcast/Scatter/Gather进行数据分发和收集
+        \item 在小规模矩阵下，扩展性能随进程数增加而下降
+        \item 在大规模矩阵下表现出良好的扩展性
+    \end{itemize}
+    \item MPI\_Type\_create\_struct实现：
+    \begin{itemize}
+        \item 使用Bcast/Scatterv/Gather进行数据分发和收集
+        \item 在小规模矩阵下，扩展性能同样随进程数增加而下降
+        \item 在大规模矩阵下同样表现出良好的扩展性
+    \end{itemize}
+\end{itemize}
+
 \end{document}

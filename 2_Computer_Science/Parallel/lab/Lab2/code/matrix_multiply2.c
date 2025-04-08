@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
     int n = 128;
     int rank, size;
     double *A = NULL, *B = NULL, *C = NULL;
-    double *local_A = NULL, *local_C = NULL;
+    double *local_C = NULL;
     double start_time, end_time;
     
     MPI_Init(&argc, &argv);
