@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
     int rows_per_proc = n / size;
     
     MPI_Datatype matrix_row_type;
-    int blocklengths[3] = {1, 1, n};  // row_index, row_size, row_data
+    int blocklengths[3] = {1, 1, n};
     MPI_Aint displacements[3];
     MPI_Datatype types[3] = {MPI_INT, MPI_INT, MPI_DOUBLE};
     
@@ -68,6 +68,11 @@ int main(int argc, char *argv[]) {
     MPI_Type_create_struct(3, blocklengths, displacements, types, &matrix_row_type);
     MPI_Type_commit(&matrix_row_type);
     
+    MatrixRow *send_buffer = (MatrixRow*)malloc(size * (sizeof(MatrixRow) + n * sizeof(double)));
+    MatrixRow *recv_buffer = (MatrixRow*)malloc(rows_per_proc * (sizeof(MatrixRow) + n * sizeof(double)));
+    local_C = (double*)malloc(rows_per_proc * n * sizeof(double));
+    memset(local_C, 0, rows_per_proc * n * sizeof(double));
+    
     if (rank == 0) {
         A = (double*)malloc(n * n * sizeof(double));
         B = (double*)malloc(n * n * sizeof(double));
@@ -83,50 +88,41 @@ int main(int argc, char *argv[]) {
             printf("Matrix B:\n");
             print_matrix(B, n);
         }
+        
+        for (int proc = 0; proc < size; proc++) {
+            for (int i = 0; i < rows_per_proc; i++) {
+                int row_idx = proc * rows_per_proc + i;
+                MatrixRow *row = (MatrixRow*)((char*)send_buffer + proc * (sizeof(MatrixRow) + n * sizeof(double)));
+                row->row_index = row_idx;
+                row->row_size = n;
+                memcpy(row->row_data, &A[row_idx * n], n * sizeof(double));
+            }
+        }
     } else {
         B = (double*)malloc(n * n * sizeof(double));
     }
-    
-    MatrixRow *send_row = (MatrixRow*)malloc(sizeof(MatrixRow) + n * sizeof(double));
-    MatrixRow *recv_row = (MatrixRow*)malloc(sizeof(MatrixRow) + n * sizeof(double));
-    local_C = (double*)malloc(rows_per_proc * n * sizeof(double));
-    memset(local_C, 0, rows_per_proc * n * sizeof(double));
     
     start_time = MPI_Wtime();
     
     MPI_Bcast(B, n * n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
     
-    if (rank == 0) {
-        for (int dest = 1; dest < size; dest++) {
-            for (int i = 0; i < rows_per_proc; i++) {
-                int row_idx = dest * rows_per_proc + i;
-                send_row->row_index = row_idx;
-                send_row->row_size = n;
-                memcpy(send_row->row_data, &A[row_idx * n], n * sizeof(double));
-                MPI_Send(send_row, 1, matrix_row_type, dest, 0, MPI_COMM_WORLD);
-            }
-        }
-        for (int i = 0; i < rows_per_proc; i++) {
-            memcpy(send_row->row_data, &A[i * n], n * sizeof(double));
-            send_row->row_index = i;
-            send_row->row_size = n;
-            
-            for (int j = 0; j < n; j++) {
-                local_C[i * n + j] = 0;
-                for (int k = 0; k < n; k++) {
-                    local_C[i * n + j] += send_row->row_data[k] * B[k * n + j];
-                }
-            }
-        }
-    } else {
-        for (int i = 0; i < rows_per_proc; i++) {
-            MPI_Recv(recv_row, 1, matrix_row_type, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-            
-            for (int j = 0; j < n; j++) {
-                local_C[i * n + j] = 0;
-                for (int k = 0; k < n; k++) {
-                    local_C[i * n + j] += recv_row->row_data[k] * B[k * n + j];
-                }
+    int *sendcounts = (int*)malloc(size * sizeof(int));
+    int *displs = (int*)malloc(size * sizeof(int));
+    for (int i = 0; i < size; i++) {
+        sendcounts[i] = 1;
+        displs[i] = i;
+    }
+    
+    MPI_Scatterv(send_buffer, sendcounts, displs, matrix_row_type,
+                 recv_buffer, rows_per_proc, matrix_row_type,
+                 0, MPI_COMM_WORLD);
+    
+    for (int i = 0; i < rows_per_proc; i++) {
+        MatrixRow *row = (MatrixRow*)((char*)recv_buffer + i * (sizeof(MatrixRow) + n * sizeof(double)));
+        for (int j = 0; j < n; j++) {
+            local_C[i * n + j] = 0;
+            for (int k = 0; k < n; k++) {
+                local_C[i * n + j] += row->row_data[k] * B[k * n + j];
             }
         }
     }
@@ -150,10 +146,12 @@ int main(int argc, char *argv[]) {
     if (rank == 0) {
         free(A);
         free(C);
+        free(sendcounts);
+        free(displs);
     }
     free(B);
-    free(send_row);
-    free(recv_row);
+    free(send_buffer);
+    free(recv_buffer);
     free(local_C);
     MPI_Type_free(&matrix_row_type);
     
