@@ -223,6 +223,19 @@ def search(resource_type: str, params: dict[str, Any], response_size: str = 'sma
                 search_function=search_releases_by_resource_id,
                 resource_type='vn', resource_id=vnid, response_size='small', limit=100
             )['results']
+
+            publishers = [
+                {key: producer[key] for key in ['id', 'name', 'original']} 
+                for release in releases
+                for producer in release.get('producers', [])
+                if producer.get('publisher') is True
+            ]
+            publishers = list({
+                (d['id'], d['name'], d['original']): d 
+                for d in publishers
+            }.values())
+            vn['publishers'] = publishers if publishers else []
+
             releases = [{key: release[key] for key in ['id', 'title']} for release in releases]
             vn['releases'] = releases if releases else []
 

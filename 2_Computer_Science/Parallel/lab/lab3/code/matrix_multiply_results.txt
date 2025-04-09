@@ -1,0 +1,100 @@
+Matrix size: 128 x 128
+Number of threads: 1
+Time taken: 0.010000 seconds
+
+Matrix size: 256 x 256
+Number of threads: 1
+Time taken: 0.058000 seconds
+
+Matrix size: 512 x 512
+Number of threads: 1
+Time taken: 0.567000 seconds
+
+Matrix size: 1024 x 1024
+Number of threads: 1
+Time taken: 5.671000 seconds
+
+Matrix size: 2048 x 2048
+Number of threads: 1
+Time taken: 82.575000 seconds
+
+Matrix size: 128 x 128
+Number of threads: 2
+Time taken: 0.006000 seconds
+
+Matrix size: 256 x 256
+Number of threads: 2
+Time taken: 0.032000 seconds
+
+Matrix size: 512 x 512
+Number of threads: 2
+Time taken: 0.281000 seconds
+
+Matrix size: 1024 x 1024
+Number of threads: 2
+Time taken: 2.902000 seconds
+
+Matrix size: 2048 x 2048
+Number of threads: 2
+Time taken: 43.418000 seconds
+
+Matrix size: 128 x 128
+Number of threads: 4
+Time taken: 0.007000 seconds
+
+Matrix size: 256 x 256
+Number of threads: 4
+Time taken: 0.026000 seconds
+
+Matrix size: 512 x 512
+Number of threads: 4
+Time taken: 0.168000 seconds
+
+Matrix size: 1024 x 1024
+Number of threads: 4
+Time taken: 1.602000 seconds
+
+Matrix size: 2048 x 2048
+Number of threads: 4
+Time taken: 21.989000 seconds
+
+Matrix size: 128 x 128
+Number of threads: 8
+Time taken: 0.011000 seconds
+
+Matrix size: 256 x 256
+Number of threads: 8
+Time taken: 0.021000 seconds
+
+Matrix size: 512 x 512
+Number of threads: 8
+Time taken: 0.119000 seconds
+
+Matrix size: 1024 x 1024
+Number of threads: 8
+Time taken: 1.011000 seconds
+
+Matrix size: 2048 x 2048
+Number of threads: 8
+Time taken: 14.054000 seconds
+
+Matrix size: 128 x 128
+Number of threads: 16
+Time taken: 0.010000 seconds
+
+Matrix size: 256 x 256
+Number of threads: 16
+Time taken: 0.024000 seconds
+
+Matrix size: 512 x 512
+Number of threads: 16
+Time taken: 0.124000 seconds
+
+Matrix size: 1024 x 1024
+Number of threads: 16
+Time taken: 0.951000 seconds
+
+Matrix size: 2048 x 2048
+Number of threads: 16
+Time taken: 13.390000 seconds
+

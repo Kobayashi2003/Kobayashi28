@@ -41,6 +41,7 @@ class VN(db.Model):
     extlinks = Column(ARRAY(JSONB))
     characters = Column(ARRAY(JSONB))
     releases = Column(ARRAY(JSONB))
+    publishers = Column(ARRAY(JSONB))
 
     created_at = Column(DateTime(timezone=True), default=func.now())
     updated_at = Column(DateTime(timezone=True), default=func.now(), onupdate=func.now())

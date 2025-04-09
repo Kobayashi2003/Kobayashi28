@@ -10,6 +10,9 @@ interface Option {
   value: string
   label: string
   letter: string
+  disabled?: boolean
+  className?: string
+  onClick?: () => void
 }
 
 interface PopoverButtonProps {
@@ -59,6 +62,7 @@ export function PopoverButton({ options, selected, onSelect, disabled, className
             <Button
               key={option.value}
               variant="ghost"
+              disabled={option.disabled}
               className={cn(
                 "text-white hover:text-white",
                 "font-normal hover:font-bold",
@@ -66,8 +70,12 @@ export function PopoverButton({ options, selected, onSelect, disabled, className
                 "w-full justify-start",
                 "hover:bg-white/10",
                 selected === option.value ? "bg-white/10" : "",
+                option.className
               )}
               onClick={() => {
+                if (option.onClick) {
+                  option.onClick()
+                }
                 onSelect(option.value)
                 setOpen(false)
               }}

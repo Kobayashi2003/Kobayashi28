@@ -127,10 +127,12 @@ export default function CategoriesPage() {
       const newAbortController = new AbortController()
       setCategoriesAbortController(newAbortController)
 
+      setCategories([])
       setCategoryState({
         state: "loading",
         message: null
       })
+
       const response = await api.category.get(selectedType, newAbortController.signal)
       const sortedCategories = response.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
       setCategories(sortedCategories)
@@ -166,6 +168,19 @@ export default function CategoriesPage() {
       resourcesAbortController?.abort()
       const newAbortController = new AbortController()
       setResourcesAbortController(newAbortController)
+
+      setResourceData({
+        vns: [],
+        releases: [],
+        characters: [],
+        producers: [],
+        staff: [],
+        tags: [],
+        traits: []
+      })
+      setCurrentPageItemsCount(0)
+      setTotalItemsCount(0)
+      setTotalPages(0)
 
       setResourceState({
         state: "loading",
@@ -359,46 +374,17 @@ export default function CategoriesPage() {
 
   useEffect(() => {
     removeMultipleKeys(["cid", "q", "page", "sort", "order"])
-    setTotalPages(0)
-    setResourceData({
-      vns: [],
-      releases: [],
-      characters: [],
-      producers: [],
-      staff: [],
-      tags: [],
-      traits: []
-    })
     fetchCategories()
   }, [selectedType])
 
   useEffect(() => {
-    removeMultipleKeys(["q", "page", "sort", "order"])
-    setTotalPages(0)
-    setResourceData({
-      vns: [],
-      releases: [],
-      characters: [],
-      producers: [],
-      staff: [],
-      tags: [],
-      traits: []
-    })
+    // removeMultipleKeys(["q", "page", "sort", "order"])
+    removeMultipleKeys(["q", "page"])
     fetchResources()
   }, [selectedCategoryId])
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" })
-    setTotalPages(0)
-    setResourceData({
-      vns: [],
-      releases: [],
-      characters: [],
-      producers: [],
-      staff: [],
-      tags: [],
-      traits: []
-    })
     fetchResources()
   }, [currentPage, query, sortBy, sortOrder])
 
@@ -450,6 +436,7 @@ export default function CategoriesPage() {
         setType={setSelectedType}
         setSelectedCategoryId={setSelectedCategoryId}
         setDeleteMode={setDeleteCategoryMode}
+        handleReloadCategories={fetchCategories}
         handleDeleteCategory={handleDeleteCategory}
         handleCreateCategory={handleCreateCategory}
         handleSearch={handleSearch}
@@ -527,11 +514,9 @@ export default function CategoriesPage() {
               />
               {/* Reload Button */}
               <ReloadButton
-                handleReload={() => { fetchResources() }}
+                handleReload={fetchResources}
                 disabled={resourceState.state === "loading"}
               />
-              {/* Total Items Count */}
-              <p className="text-gray-500 self-center select-none">Total: {totalItemsCount}</p>
             </div>
             {(selectedType === "v" || selectedType === "c") ? (
               <div className="w-full md:flex-1 flex justify-end gap-2">
@@ -555,6 +540,13 @@ export default function CategoriesPage() {
             )}
           </div>
         )}
+        {/* Total Items Count */}
+        <p className={cn(
+          "w-full text-gray-500 self-center select-none",
+          (!selectedCategoryId || resourceState.state !== null) && "hidden"
+        )}>
+          Total: {totalItemsCount}
+        </p>
         <AnimatePresence mode="wait">
           <motion.div
             key="notselected"
@@ -577,7 +569,7 @@ export default function CategoriesPage() {
             transition={{ duration: 0.4, ease: "easeInOut" }}
             className={cn(
               "flex-grow flex justify-center items-center",
-              !selectedCategoryId && resourceState.state === null && "hidden"
+              (!selectedCategoryId || resourceState.state === null) && "hidden"
             )}
           >
             {resourceState.state === "loading" && (
@@ -591,8 +583,8 @@ export default function CategoriesPage() {
             )}
           </motion.div>
           <div className={cn(
-            "relative w-full",
-            !selectedCategoryId && resourceState.state !== null && "hidden"
+            "relative w-full h-full",
+            (!selectedCategoryId || resourceState.state !== null) && "hidden"
           )}>
             {selectedType === "v" && (
               <VNsCardsGrid vns={resourceData.vns} layout={layout} cardType={cardType} sexualLevel={sexualLevel} violenceLevel={violenceLevel} />

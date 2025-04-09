@@ -89,6 +89,11 @@ export interface VN {
     name: string
     original?: string
   }>
+  publishers: Array<{
+    id: string
+    name: string
+    original?: string
+  }>
   editions: Array<{
     eid: string
     lang?: string
@@ -143,6 +148,8 @@ export interface VN {
       id: string
       developer: boolean
       publisher: boolean
+      name: string
+      original?: string
     }>
   }>
 }
@@ -172,6 +179,8 @@ export interface Release {
     id: string
     developer: boolean
     publisher: boolean
+    name: string
+    original?: string
   }>
   images: Array<{
     id: string
@@ -372,6 +381,8 @@ export interface Release_Small {
     id: string
     developer: boolean
     publisher: boolean
+    name: string
+    original?: string
   }>
 }
 

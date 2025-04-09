@@ -56,6 +56,8 @@ export default function Home() {
       const newController = new AbortController()
       setAbortController(newController)
 
+      setVNs([])
+      setTotalPages(0)
       setVnsState({
         state: "loading",
         message: null
@@ -169,7 +171,6 @@ export default function Home() {
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" })
-    setVNs([])
     fetchVNs()
   }, [selectedYear, selectedMonth, currentPage])
 
@@ -203,26 +204,32 @@ export default function Home() {
           <IconButton
             icon={<ArrowBigLeftIcon className="w-4 h-4 fill-amber-100" />}
             onClick={handleMonthSub}
-            disabled={!monthSubable()}
+            disabled={vnsState.state === "loading" || selectedYear === "00" || selectedMonth === "00" || !monthSubable()}
+            tooltip="Previous Month"
+            tooltipPosition="top"
             className="hover:bg-white/5 max-sm:hidden"
           />
           {/* Year Selector */}
           <YearSelector
             selectedYear={selectedYear}
             setSelectedYear={handleYearChange}
+            disabled={vnsState.state === "loading"}
             className="w-full sm:w-auto"
           />
           {/* Month Selector */}
           <MonthSelector
-            selectedMonth={selectedMonth}
+            selectedMonth={selectedYear === "00" ? "00" : selectedMonth}
             setSelectedMonth={handleMonthChange}
+            disabled={vnsState.state === "loading" || selectedYear === "00"}
             className="w-full sm:w-auto"
           />
           {/* Month Add Button */}
           <IconButton
             icon={<ArrowBigRightIcon className="w-4 h-4 fill-amber-100" />}
             onClick={handleMonthAdd}
-            disabled={!monthAddable()}
+            disabled={vnsState.state === "loading" || selectedYear === "00" || selectedMonth === "00" || !monthAddable()}
+            tooltip="Next Month"
+            tooltipPosition="top"
             className="hover:bg-white/5 max-sm:hidden"
           />
         </div>

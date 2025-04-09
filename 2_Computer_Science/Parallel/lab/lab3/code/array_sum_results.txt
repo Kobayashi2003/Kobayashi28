@@ -1,0 +1,160 @@
+Array size: 1000000
+Number of threads: 1
+Time taken: 0.002000 seconds
+
+Array size: 2000000
+Number of threads: 1
+Time taken: 0.005000 seconds
+
+Array size: 4000000
+Number of threads: 1
+Time taken: 0.009000 seconds
+
+Array size: 8000000
+Number of threads: 1
+Time taken: 0.016000 seconds
+
+Array size: 16000000
+Number of threads: 1
+Time taken: 0.033000 seconds
+
+Array size: 32000000
+Number of threads: 1
+Time taken: 0.065000 seconds
+
+Array size: 64000000
+Number of threads: 1
+Time taken: 0.149000 seconds
+
+Array size: 128000000
+Number of threads: 1
+Time taken: 0.255000 seconds
+
+Array size: 1000000
+Number of threads: 2
+Time taken: 0.002000 seconds
+
+Array size: 2000000
+Number of threads: 2
+Time taken: 0.007000 seconds
+
+Array size: 4000000
+Number of threads: 2
+Time taken: 0.025000 seconds
+
+Array size: 8000000
+Number of threads: 2
+Time taken: 0.042000 seconds
+
+Array size: 16000000
+Number of threads: 2
+Time taken: 0.044000 seconds
+
+Array size: 32000000
+Number of threads: 2
+Time taken: 0.034000 seconds
+
+Array size: 64000000
+Number of threads: 2
+Time taken: 0.322000 seconds
+
+Array size: 128000000
+Number of threads: 2
+Time taken: 0.320000 seconds
+
+Array size: 1000000
+Number of threads: 4
+Time taken: 0.005000 seconds
+
+Array size: 2000000
+Number of threads: 4
+Time taken: 0.009000 seconds
+
+Array size: 4000000
+Number of threads: 4
+Time taken: 0.010000 seconds
+
+Array size: 8000000
+Number of threads: 4
+Time taken: 0.037000 seconds
+
+Array size: 16000000
+Number of threads: 4
+Time taken: 0.058000 seconds
+
+Array size: 32000000
+Number of threads: 4
+Time taken: 0.126000 seconds
+
+Array size: 64000000
+Number of threads: 4
+Time taken: 0.203000 seconds
+
+Array size: 128000000
+Number of threads: 4
+Time taken: 0.456000 seconds
+
+Array size: 1000000
+Number of threads: 8
+Time taken: 0.005000 seconds
+
+Array size: 2000000
+Number of threads: 8
+Time taken: 0.007000 seconds
+
+Array size: 4000000
+Number of threads: 8
+Time taken: 0.013000 seconds
+
+Array size: 8000000
+Number of threads: 8
+Time taken: 0.015000 seconds
+
+Array size: 16000000
+Number of threads: 8
+Time taken: 0.032000 seconds
+
+Array size: 32000000
+Number of threads: 8
+Time taken: 0.083000 seconds
+
+Array size: 64000000
+Number of threads: 8
+Time taken: 0.109000 seconds
+
+Array size: 128000000
+Number of threads: 8
+Time taken: 0.326000 seconds
+
+Array size: 1000000
+Number of threads: 16
+Time taken: 0.011000 seconds
+
+Array size: 2000000
+Number of threads: 16
+Time taken: 0.008000 seconds
+
+Array size: 4000000
+Number of threads: 16
+Time taken: 0.013000 seconds
+
+Array size: 8000000
+Number of threads: 16
+Time taken: 0.018000 seconds
+
+Array size: 16000000
+Number of threads: 16
+Time taken: 0.034000 seconds
+
+Array size: 32000000
+Number of threads: 16
+Time taken: 0.046000 seconds
+
+Array size: 64000000
+Number of threads: 16
+Time taken: 0.103000 seconds
+
+Array size: 128000000
+Number of threads: 16
+Time taken: 0.151000 seconds
+

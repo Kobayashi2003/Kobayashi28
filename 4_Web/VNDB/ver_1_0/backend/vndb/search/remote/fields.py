@@ -127,7 +127,7 @@ class VNDBFields:
         
         class PRODUCERS(FieldGroup):
             _prefix = "producers."
-            _fields = ['ID', 'DEVELOPER', 'PUBLISHER']
+            _fields = ['ID', 'DEVELOPER', 'PUBLISHER', 'NAME', 'ORIGINAL']
 
         class IMAGES(FieldGroup):
             _prefix = "images."
@@ -215,6 +215,8 @@ SMALL_FIELDS_RELEASE: list[str] = [
     VNDBFields.Release.PRODUCERS.ID,
     VNDBFields.Release.PRODUCERS.DEVELOPER,
     VNDBFields.Release.PRODUCERS.PUBLISHER,
+    VNDBFields.Release.PRODUCERS.NAME,
+    VNDBFields.Release.PRODUCERS.ORIGINAL,
 ]
 
 SMALL_FIELDS_CHARACTER: list[str] = [

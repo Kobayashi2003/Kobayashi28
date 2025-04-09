@@ -63,15 +63,6 @@ export default function SearchResults() {
   const [abortController, setAbortController] = useState<AbortController | null>(null)
 
   const clearItems = () => {
-    setResourceData({
-      vns: [],
-      releases: [],
-      characters: [],
-      producers: [],
-      staff: [],
-      tags: [],
-      traits: []
-    })
   }
 
   const fetchItems = async () => {
@@ -99,6 +90,17 @@ export default function SearchResults() {
         g: "tags",
         i: "traits"
       }
+
+      setResourceData({
+        vns: [],
+        releases: [],
+        characters: [],
+        producers: [],
+        staff: [],
+        tags: [],
+        traits: []
+      })
+      setTotalPages(0)
 
       setResourceState({
         state: "loading",
@@ -141,7 +143,6 @@ export default function SearchResults() {
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" })
-    clearItems()
     fetchItems()
   }, [currentPage, searchParams, type])
 

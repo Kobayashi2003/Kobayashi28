@@ -4,11 +4,19 @@ import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
 import { motion, AnimatePresence } from "motion/react"
 
+
+import { cn } from "@/lib/utils"
 import { Loading } from "@/components/status/Loading"
 import { Error } from "@/components/status/Error"
 import { NotFound } from "@/components/status/NotFound"
 
-import { VNDetailsPanel } from "@/components/panel/VNDetails/VNDetailsPanel"
+import { VNDetailsPanel } from "@/components/panel/VNDetailsPanel"
+import { ReleaseDetailsPanel } from "@/components/panel/ReleaseDetailsPanel"
+import { CharacterDetailsPanel } from "@/components/panel/CharacterDetailsPanel"
+import { ProducerDetailsPanel } from "@/components/panel/ProducerDetailsPanel"
+import { StaffDetailsPanel } from "@/components/panel/StaffDetailsPanel"
+import { TagDetailsPanel } from "@/components/panel/TagDetailsPanel"
+import { TraitDetailsPanel } from "@/components/panel/TraitDetailsPanel"
 
 import type {
   VN, Release, Character, Producer, Staff, Tag, Trait
@@ -18,32 +26,25 @@ import { api } from "@/lib/api"
 export default function ItemPage() {
 
   const params = useParams()
-  const type = params.type as string
+  const type = params.type as "v" | "r" | "c" | "p" | "s" | "g" | "i"
   const id = parseInt(params.id as string)
 
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [notFound, setNotFound] = useState(false)
+  const [resourceState, setResourceState] = useState({
+    state: null as "loading" | "error" | "notFound" | null,
+    message: null as string | null
+  })
 
-  const [vn, setVN] = useState<VN | null>(null)
-  const [release, setRelease] = useState<Release | null>(null)
-  const [character, setCharacter] = useState<Character | null>(null)
-  const [producer, setProducer] = useState<Producer | null>(null)
-  const [staff, setStaff] = useState<Staff | null>(null)
-  const [tag, setTag] = useState<Tag | null>(null)
-  const [trait, setTrait] = useState<Trait | null>(null)
+  const [resourceData, setResourceData] = useState({
+    vn: null as VN | null,
+    release: null as Release | null,
+    character: null as Character | null,
+    producer: null as Producer | null,
+    staff: null as Staff | null,
+    tag: null as Tag | null,
+    trait: null as Trait | null
+  })
 
   const [abortController, setAbortController] = useState<AbortController | null>(null)
-
-  const clearItems = () => {
-    setVN(null)
-    setRelease(null)
-    setCharacter(null)
-    setProducer(null)
-    setStaff(null)
-    setTag(null)
-    setTrait(null)
-  }
 
   const fetchItem = async () => {
     try {
@@ -51,75 +52,61 @@ export default function ItemPage() {
       const newController = new AbortController()
       setAbortController(newController)
 
-      setLoading(true)
-      setError(null)
-      setNotFound(false)
-
-      switch (type) {
-        case "v":
-          const vn = await api.by_id.vn(id, newController.signal)
-          if (!vn) {
-            setNotFound(true)
-            break;
-          }
-          setVN(vn)
-          break;
-        case "r":
-          const release = await api.by_id.release(id, newController.signal)
-          if (!release) {
-            setNotFound(true)
-            break;
-          }
-          setRelease(release)
-          break;
-        case "c":
-          const character = await api.by_id.character(id, newController.signal)
-          if (!character) {
-            setNotFound(true)
-            break;
-          }
-          setCharacter(character)
-          break;
-        case "p":
-          const producer = await api.by_id.producer(id, newController.signal)
-          if (!producer) {
-            setNotFound(true)
-            break;
-          }
-          setProducer(producer)
-          break;
-        case "s":
-          const staff = await api.by_id.staff(id, newController.signal)
-          if (!staff) {
-            setNotFound(true)
-            break;
-          }
-          setStaff(staff)
-          break;
-        case "g":
-          const tag = await api.by_id.tag(id, newController.signal)
-          if (!tag) {
-            setNotFound(true)
-            break;
-          }
-          setTag(tag)
-          break;
-        case "i":
-          const trait = await api.by_id.trait(id, newController.signal)
-          if (!trait) {
-            setNotFound(true)
-            break;
-          }
-          setTrait(trait)
-          break;
-        default:
-          setNotFound(true)
-          break;
+      const requestFunction = {
+        v: api.by_id.vn,
+        r: api.by_id.release,
+        c: api.by_id.character,
+        p: api.by_id.producer,
+        s: api.by_id.staff,
+        g: api.by_id.tag,
+        i: api.by_id.trait
       }
+
+      const requestResource = {
+        v: "vn",
+        r: "release",
+        c: "character",
+        p: "producer",
+        s: "staff",
+        g: "tag",
+        i: "trait"
+      }
+
+      setResourceData({
+        vn: null,
+        release: null,
+        character: null,
+        producer: null,
+        staff: null,
+        tag: null,
+        trait: null
+      })
+      setResourceState({
+        state: "loading",
+        message: null
+      })
+
+      const data = await requestFunction[type as keyof typeof requestFunction](id, newController.signal)
+      if (!data) {
+        setResourceState({
+          state: "notFound",
+          message: null
+        })
+        return
+      }
+      setResourceData({
+        ...resourceData,
+        [requestResource[type as keyof typeof requestResource]]: data
+      })
+      setResourceState({
+        state: null,
+        message: null
+      })
     } catch (error) {
-      setError(error as string)
-    } finally {
-      setLoading(false)
+      setResourceState({
+        state: "error",
+        message: error as string
+      })
     }
   }
 
@@ -130,53 +117,47 @@ export default function ItemPage() {
     }
   }, [])
 
-  const fadeInAnimation = {
-    initial: { filter: "blur(20px)", opacity: 0 },
-    animate: { filter: "blur(0px)", opacity: 1 },
-    exit: { filter: "blur(20px)", opacity: 0 },
-    transition: { duration: 0.4, ease: "easeInOut" }
-  }
-  const statusStyle = "flex-grow flex justify-center items-center"
-
   return (
     <main className="container mx-auto min-h-screen flex flex-col p-4 pb-8">
       <AnimatePresence mode="wait">
-        {/* Loading */}
-        {loading && (
-          <motion.div
-            key="loading"
-            {...fadeInAnimation}
-            className={statusStyle}
-          >
-            <Loading message="Loading..." />
-          </motion.div>
-        )}
-        {/* Error */}
-        {error && (
-          <motion.div
-            key="error"
-            {...fadeInAnimation}
-            className={statusStyle}
-          >
-            <Error message={`Error: ${error}`} />
-          </motion.div>
-        )}
-        {/* Not Found */}
-        {notFound && (
-          <motion.div
-            key="notfound"
-            {...fadeInAnimation}
-            className={statusStyle}
-          >
-            <NotFound message="No items found" />
-          </motion.div>
-        )}
-        {/* Item Test */}
-        {!loading && !error && !notFound && (
-          <motion.div>
-            {type === "v" && vn && <VNDetailsPanel vn={vn} />}
-          </motion.div>
-        )}
+        {/* Status */}
+        <motion.div
+          key="status"
+          initial={{ filter: "blur(20px)", opacity: 0 }}
+          animate={{ filter: "blur(0px)", opacity: 1 }}
+          exit={{ filter: "blur(20px)", opacity: 0 }}
+          transition={{ duration: 0.4, ease: "easeInOut" }}
+          className={cn(
+            "flex-grow flex justify-center items-center",
+            resourceState.state === null && "hidden"
+          )}
+        >
+          {/* Loading */}
+          {resourceState.state === "loading" && <Loading message="Loading..." />}
+          {/* Error */}
+          {resourceState.state === "error" && <Error message={`Error: ${resourceState.message}`} />}
+          {/* Not Found */}
+          {resourceState.state === "notFound" && <NotFound message="No items found" />}
+        </motion.div>
+        <motion.div
+          key="content"
+          initial={{ filter: "blur(20px)", opacity: 0 }}
+          animate={{ filter: "blur(0px)", opacity: 1 }}
+          exit={{ filter: "blur(20px)", opacity: 0 }}
+          transition={{ duration: 0.4, ease: "easeInOut" }}
+          className={cn(
+            "w-full",
+            resourceState.state !== null && "hidden"
+          )}
+        >
+          {type === "v" && resourceData.vn && <VNDetailsPanel vn={resourceData.vn} />}
+          {type === "r" && resourceData.release && <ReleaseDetailsPanel release={resourceData.release} />}
+          {type === "c" && resourceData.character && <CharacterDetailsPanel character={resourceData.character} />}
+          {type === "p" && resourceData.producer && <ProducerDetailsPanel producer={resourceData.producer} />}
+          {type === "s" && resourceData.staff && <StaffDetailsPanel staff={resourceData.staff} />}
+          {type === "g" && resourceData.tag && <TagDetailsPanel tag={resourceData.tag} />}
+          {type === "i" && resourceData.trait && <TraitDetailsPanel trait={resourceData.trait} />}
+        </motion.div>
       </AnimatePresence>
     </main>
   )
