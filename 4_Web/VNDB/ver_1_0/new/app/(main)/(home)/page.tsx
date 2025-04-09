@@ -31,7 +31,7 @@ export default function Home() {
 
   const itemsPerPage = 24
 
-  const currentPage = searchParams.get("page") ? Number.parseInt(searchParams.get("page") as string) : 1
+  const currentPage = searchParams.get("page") ? parseInt(searchParams.get("page") as string) : 1
   const selectedYear = searchParams.get("year") || `${new Date().getFullYear().toString()}`
   const selectedMonth = searchParams.get("month") || `${(new Date().getMonth() + 1).toString().padStart(2, '0')}`
 
@@ -67,25 +67,17 @@ export default function Home() {
       if (selectedYear === "00") {
         released = ""
       } else if (selectedYear !== "00" && selectedMonth === "00") {
-        const startYearStr1 = `${selectedYear}-01-01`
-        const endYearStr1 = `${selectedYear}-12-31`
+        const startYearStr = `${selectedYear}-01-01`
+        const endYearStr = `${selectedYear}-12-31`
 
-        const startYearStr2 = `${selectedYear}`
-        const endYearStr2 = `${String(Number.parseInt(selectedYear) + 1)}`
-
-        released = `(>=${startYearStr1}+<=${endYearStr1}),(>=${startYearStr2}+<${endYearStr2})`
+        released = `(>=${startYearStr}+<=${endYearStr}),(=${selectedYear})`
       } else if (selectedYear !== "00" && selectedMonth !== "00") {
-        const startDateStr1 = `${selectedYear}-${selectedMonth}-01`
-        const startDateStr2 = `${selectedYear}-${selectedMonth}-01`
+        const startDateStr = `${selectedYear}-${selectedMonth}-01`
 
         const lastDay = new Date(Number.parseInt(selectedYear), Number.parseInt(selectedMonth), 0).getDate()
-        const endDateStr1 = `${selectedYear}-${selectedMonth}-${lastDay}`
+        const endDateStr = `${selectedYear}-${selectedMonth}-${lastDay}`
 
-        const nextMonth = Number.parseInt(selectedMonth) === 12 ? "01" : String(Number.parseInt(selectedMonth) + 1).padStart(2, "0")
-        const nextMonthYear = Number.parseInt(selectedMonth) === 12 ? String(Number.parseInt(selectedYear) + 1) : selectedYear
-        const endDateStr2 = `${nextMonthYear}-${nextMonth}-01`
-
-        released = `(>=${startDateStr1}+<=${endDateStr1}),(>=${startDateStr2}+<${endDateStr2})`
+        released = `(>=${startDateStr}+<=${endDateStr}),(=${selectedYear}-${selectedMonth})`
       }
 
       const response = await api.small.vn({
@@ -130,9 +122,9 @@ export default function Home() {
     const currentSelectedMonth = Number.parseInt(selectedMonth)
     const newMonth = currentSelectedMonth + 1
     if (newMonth > 12) {
-      updateMultipleKeys({ month: "01", year: (Number.parseInt(selectedYear) + 1).toString() })
+      updateMultipleKeys({ month: "01", year: (Number.parseInt(selectedYear) + 1).toString(), page: "1" })
     } else {
-      updateMultipleKeys({ month: newMonth.toString().padStart(2, "0"), year: selectedYear })
+      updateMultipleKeys({ month: newMonth.toString().padStart(2, "0"), year: selectedYear, page: "1" })
     }
   }
 
@@ -140,9 +132,9 @@ export default function Home() {
     const currentSelectedMonth = Number.parseInt(selectedMonth)
     const newMonth = currentSelectedMonth - 1
     if (newMonth < 1) {
-      updateMultipleKeys({ month: "12", year: (Number.parseInt(selectedYear) - 1).toString() })
+      updateMultipleKeys({ month: "12", year: (Number.parseInt(selectedYear) - 1).toString(), page: "1" })
     } else {
-      updateMultipleKeys({ month: newMonth.toString().padStart(2, "0"), year: selectedYear })
+      updateMultipleKeys({ month: newMonth.toString().padStart(2, "0"), year: selectedYear, page: "1" })
     }
   }
 
@@ -172,7 +164,7 @@ export default function Home() {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" })
     fetchVNs()
-  }, [selectedYear, selectedMonth, currentPage])
+  }, [currentPage, selectedYear, selectedMonth])
 
   useEffect(() => {
     return () => {
