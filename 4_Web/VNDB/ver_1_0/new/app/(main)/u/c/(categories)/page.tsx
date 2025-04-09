@@ -161,7 +161,7 @@ export default function CategoriesPage() {
       })
       return
     }
-    
+
     try {
       resourcesAbortController?.abort()
       const newAbortController = new AbortController()
@@ -171,6 +171,14 @@ export default function CategoriesPage() {
         state: "loading",
         message: null
       })
+
+      if (sortBy === "marked_at" && query.trim() !== "") {
+        setResourceState({
+          state: "error",
+          message: "marked_at is not supported for search"
+        })
+        return
+      }
 
       const marksResponse = await api.category.getMarks(selectedType, selectedCategoryId, newAbortController.signal)
       setTotalItemsCount(marksResponse.results.length)
@@ -326,7 +334,7 @@ export default function CategoriesPage() {
 
   useEffect(() => {
     if (categoryState.state !== "error") return
-    
+
     const timeout = setTimeout(() => {
       setCategoryState({
         state: null,
@@ -338,7 +346,7 @@ export default function CategoriesPage() {
 
   useEffect(() => {
     if (resourceState.state !== "error") return
-    
+
     const timeout = setTimeout(() => {
       setResourceState({
         state: null,
@@ -457,6 +465,7 @@ export default function CategoriesPage() {
           "z-10 fixed top-[18%] left-0",
           "opacity-60 hover:opacity-100",
           "translate-x-[-50%] hover:translate-x-0",
+          "max-md:hidden",
           isVisible && "hidden",
           openControlPanel && "hidden"
         )}
@@ -546,102 +555,104 @@ export default function CategoriesPage() {
             )}
           </div>
         )}
-        {JSON.stringify(resourceState)}
         <AnimatePresence mode="wait">
-          {!selectedCategoryId && (
-            <motion.div
-              key="notselected"
-              initial={{ filter: "blur(20px)", opacity: 0 }}
-              animate={{ filter: "blur(0px)", opacity: 1 }}
-              exit={{ filter: "blur(20px)", opacity: 0 }}
-              transition={{ duration: 0.4 }}
-              className="flex-grow flex justify-center items-center"
-            >
-              <p className="text-gray-500">Select a category to view resources</p>
-            </motion.div>
-          )}
-          {resourceState.state !== null && (
-            <motion.div
-              key={`status-${resourceState.state}-${resourceState.message}`}
-              initial={{ filter: "blur(20px)", opacity: 0 }}
-              animate={{ filter: "blur(0px)", opacity: 1 }}
-              exit={{ filter: "blur(20px)", opacity: 0 }}
-              transition={{ duration: 0.4, ease: "easeInOut" }}
-              className="flex-grow flex justify-center items-center"
-            >
-              {resourceState.state === "loading" && (
-                <Loading message="Loading..." />
-              )}
-              {resourceState.state === "error" && (
-                <Error message={`Error: ${resourceState.message}`} />
-              )}
-              {resourceState.state === "notFound" && (
-                <NotFound message="No resources found" />
-              )}
-            </motion.div>
-          )}
-          {resourceState.state === null && (
-            <div className="relative w-full">
-              {selectedType === "v" && (
-                <VNsCardsGrid vns={resourceData.vns} layout={layout} cardType={cardType} sexualLevel={sexualLevel} violenceLevel={violenceLevel} />
-              )}
-              {selectedType === "c" && (
-                <CharactersCardsGrid characters={resourceData.characters} layout={layout} cardType={cardType} sexualLevel={sexualLevel} violenceLevel={violenceLevel} />
-              )}
-              {selectedType === "r" && (
-                <ReleasesCardsGrid releases={resourceData.releases} layout={layout} />
-              )}
-              {selectedType === "p" && (
-                <ProducersCardsGrid producers={resourceData.producers} layout={layout} />
-              )}
-              {selectedType === "s" && (
-                <StaffCardsGrid staff={resourceData.staff} layout={layout} />
-              )}
-              {selectedType === "g" && (
-                <TagsCardsGrid tags={resourceData.tags} layout={layout} />
-              )}
-              {selectedType === "i" && (
-                <TraitsCardsGrid traits={resourceData.traits} layout={layout} />
-              )}
-              {deleteMarkMode && (
-                <motion.div
-                  key={`delete-layer-${deleteMarkMode}-${currentPageItemsCount}`}
-                  initial={{ filter: "blur(20px)", opacity: 0, scale: 0.95 }}
-                  animate={{ filter: "blur(0px)", opacity: 1, scale: 1 }}
-                  exit={{ filter: "blur(20px)", opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.5, ease: "easeInOut" }}
-                  className={cn(
-                    "absolute inset-0 pointer-events-auto z-10",
-                    (selectedType === "v" || selectedType === "c") && gridClassName(layout, cardType),
-                    (selectedType === "p" || selectedType === "s" || selectedType === "g" || selectedType === "i") && gridClassName(layout, "text")
-                  )}
-                >
-                  {Array.from({ length: currentPageItemsCount }).map((_, index) => (
-                    <div key={`delete-container-${index}`} className="relative w-full">
-                      <motion.div
-                        key={`delete-ghost-card-${index}`}
-                        initial={{ opacity: 0, y: 20, scale: 0.98 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -20, scale: 0.98 }}
-                        transition={{ duration: 0.3, delay: 0.1, ease: "easeInOut" }}
-                        className="bg-black/20 w-full h-full rounded-lg"
-                      >
-                      </motion.div>
-                      <DeleteButton
-                        handleDelete={() => {
-                          const itemId = getItemId(index)
-                          if (itemId) {
-                            handleDeleteMark(parseInt(itemId.slice(1)))
-                          }
-                        }}
-                        className="absolute top-2 right-2"
-                      />
-                    </div>
-                  ))}
-                </motion.div>
-              )}
-            </div>
-          )}
+          <motion.div
+            key="notselected"
+            initial={{ filter: "blur(20px)", opacity: 0 }}
+            animate={{ filter: "blur(0px)", opacity: 1 }}
+            exit={{ filter: "blur(20px)", opacity: 0 }}
+            transition={{ duration: 0.4 }}
+            className={cn(
+              "flex-grow flex justify-center items-center",
+              selectedCategoryId && "hidden"
+            )}
+          >
+            <p className="text-gray-500">Select a category to view resources</p>
+          </motion.div>
+          <motion.div
+            key={`status-${resourceState.state}-${resourceState.message}`}
+            initial={{ filter: "blur(20px)", opacity: 0 }}
+            animate={{ filter: "blur(0px)", opacity: 1 }}
+            exit={{ filter: "blur(20px)", opacity: 0 }}
+            transition={{ duration: 0.4, ease: "easeInOut" }}
+            className={cn(
+              "flex-grow flex justify-center items-center",
+              !selectedCategoryId && resourceState.state === null && "hidden"
+            )}
+          >
+            {resourceState.state === "loading" && (
+              <Loading message="Loading..." />
+            )}
+            {resourceState.state === "error" && (
+              <Error message={`Error: ${resourceState.message}`} />
+            )}
+            {resourceState.state === "notFound" && (
+              <NotFound message="No resources found" />
+            )}
+          </motion.div>
+          <div className={cn(
+            "relative w-full",
+            !selectedCategoryId && resourceState.state !== null && "hidden"
+          )}>
+            {selectedType === "v" && (
+              <VNsCardsGrid vns={resourceData.vns} layout={layout} cardType={cardType} sexualLevel={sexualLevel} violenceLevel={violenceLevel} />
+            )}
+            {selectedType === "c" && (
+              <CharactersCardsGrid characters={resourceData.characters} layout={layout} cardType={cardType} sexualLevel={sexualLevel} violenceLevel={violenceLevel} />
+            )}
+            {selectedType === "r" && (
+              <ReleasesCardsGrid releases={resourceData.releases} layout={layout} />
+            )}
+            {selectedType === "p" && (
+              <ProducersCardsGrid producers={resourceData.producers} layout={layout} />
+            )}
+            {selectedType === "s" && (
+              <StaffCardsGrid staff={resourceData.staff} layout={layout} />
+            )}
+            {selectedType === "g" && (
+              <TagsCardsGrid tags={resourceData.tags} layout={layout} />
+            )}
+            {selectedType === "i" && (
+              <TraitsCardsGrid traits={resourceData.traits} layout={layout} />
+            )}
+            {deleteMarkMode && (
+              <motion.div
+                key={`delete-layer-${deleteMarkMode}-${currentPageItemsCount}`}
+                initial={{ filter: "blur(20px)", opacity: 0, scale: 0.95 }}
+                animate={{ filter: "blur(0px)", opacity: 1, scale: 1 }}
+                exit={{ filter: "blur(20px)", opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.5, ease: "easeInOut" }}
+                className={cn(
+                  "absolute inset-0 pointer-events-auto z-10",
+                  (selectedType === "v" || selectedType === "c") && gridClassName(layout, cardType),
+                  (selectedType === "p" || selectedType === "s" || selectedType === "g" || selectedType === "i") && gridClassName(layout, "text")
+                )}
+              >
+                {Array.from({ length: currentPageItemsCount }).map((_, index) => (
+                  <div key={`delete-container-${index}`} className="relative w-full">
+                    <motion.div
+                      key={`delete-ghost-card-${index}`}
+                      initial={{ opacity: 0, y: 20, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -20, scale: 0.98 }}
+                      transition={{ duration: 0.3, delay: 0.1, ease: "easeInOut" }}
+                      className="bg-black/20 w-full h-full rounded-lg"
+                    >
+                    </motion.div>
+                    <DeleteButton
+                      handleDelete={() => {
+                        const itemId = getItemId(index)
+                        if (itemId) {
+                          handleDeleteMark(parseInt(itemId.slice(1)))
+                        }
+                      }}
+                      className="absolute top-2 right-2"
+                    />
+                  </div>
+                ))}
+              </motion.div>
+            )}
+          </div>
         </ AnimatePresence>
         {/* Keep the footer at the bottom of the page */}
         <div className="flex-grow"></div>

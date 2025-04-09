@@ -39,9 +39,8 @@ export default function SearchResults() {
   const currentPage = parseInt(searchParams.get("page") || "1")
 
   const [resourceState, setResourceState] = useState({
-    loading: true,
-    error: null as string | null,
-    notFound: false
+    state: null as "loading" | "error" | "notFound" | null,
+    message: null as string | null
   })
 
   const [resourceData, setResourceData] = useState({
@@ -102,9 +101,8 @@ export default function SearchResults() {
       }
 
       setResourceState({
-        loading: true,
-        error: null,
-        notFound: false
+        state: "loading",
+        message: null
       })
 
       const params: VNDBQueryParams = { page: currentPage, limit: itemsPerPage }
@@ -120,22 +118,19 @@ export default function SearchResults() {
       setTotalPages(Math.ceil(response.count / itemsPerPage))
       if (response.results.length === 0) {
         setResourceState({
-          loading: false,
-          error: null,
-          notFound: true
+          state: "notFound",
+          message: null
         })
       } else {
         setResourceState({
-          loading: false,
-          error: null,
-          notFound: false
+          state: null,
+          message: null
         })
       }
     } catch (error) {
       setResourceState({
-        loading: false,
-        error: error as string,
-        notFound: false
+        state: "error",
+        message: error as string
       })
     }
   }
@@ -204,49 +199,56 @@ export default function SearchResults() {
       )}
       <AnimatePresence mode="wait">
         {/* Status */}
-        {(resourceState.loading || resourceState.error || resourceState.notFound) && (
-          <motion.div
-            key="status"
-            initial={{ filter: "blur(20px)", opacity: 0 }}
-            animate={{ filter: "blur(0px)", opacity: 1 }}
-            exit={{ filter: "blur(20px)", opacity: 0 }}
-            transition={{ duration: 0.4, ease: "easeInOut" }}
-            className="flex-grow flex justify-center items-center"
-          >
-            {/* loading */}
-            {resourceState.loading && <Loading message="Loading..." />}
-            {/* error */}
-            {resourceState.error && <Error message={`Error: ${resourceState.error}`} />}
-            {/* not found */}
-            {resourceState.notFound && <NotFound message="No items found" />}
-          </motion.div>
-        )}
+        <motion.div
+          key="status"
+          initial={{ filter: "blur(20px)", opacity: 0 }}
+          animate={{ filter: "blur(0px)", opacity: 1 }}
+          exit={{ filter: "blur(20px)", opacity: 0 }}
+          transition={{ duration: 0.4, ease: "easeInOut" }}
+          className={cn(
+            "flex-grow flex justify-center items-center",
+            resourceState.state === null && "hidden"
+          )}
+        >
+          {resourceState.state === "loading" && <Loading message="Loading..." />}
+          {resourceState.state === "error" && <Error message={`Error: ${resourceState.message}`} />}
+          {resourceState.state === "notFound" && <NotFound message="No items found" />}
+        </motion.div>
+        
         {/* Cards */}
-        {!resourceState.loading && !resourceState.error && !resourceState.notFound && (
-          <motion.div>
-            {type === "v" && (
-              <VNsCardsGrid vns={resourceData.vns} layout={layout} cardType={cardType} sexualLevel={sexualLevel} violenceLevel={violenceLevel} />
-            )}
-            {type === "c" && (
-              <CharactersCardsGrid characters={resourceData.characters} layout={layout} cardType={cardType} sexualLevel={sexualLevel} violenceLevel={violenceLevel} />
-            )}
-            {type === "r" && (
-              <ReleasesCardsGrid releases={resourceData.releases} layout={layout} />
-            )}
-            {type === "p" && (
-              <ProducersCardsGrid producers={resourceData.producers} layout={layout} />
-            )}
-            {type === "s" && (
-              <StaffCardsGrid staff={resourceData.staff} layout={layout} />
-            )}
-            {type === "g" && (
-              <TagsCardsGrid tags={resourceData.tags} layout={layout} />
-            )}
-            {type === "i" && (
-              <TraitsCardsGrid traits={resourceData.traits} layout={layout} />
-            )}
-          </motion.div>
-        )}
+        <motion.div
+          key="content"
+          initial={{ filter: "blur(20px)", opacity: 0 }}
+          animate={{ filter: "blur(0px)", opacity: 1 }}
+          exit={{ filter: "blur(20px)", opacity: 0 }}
+          transition={{ duration: 0.4, ease: "easeInOut" }}
+          className={cn(
+            "w-full",
+            resourceState.state !== null && "hidden"
+          )}
+        >
+          {type === "v" && (
+            <VNsCardsGrid vns={resourceData.vns} layout={layout} cardType={cardType} sexualLevel={sexualLevel} violenceLevel={violenceLevel} />
+          )}
+          {type === "c" && (
+            <CharactersCardsGrid characters={resourceData.characters} layout={layout} cardType={cardType} sexualLevel={sexualLevel} violenceLevel={violenceLevel} />
+          )}
+          {type === "r" && (
+            <ReleasesCardsGrid releases={resourceData.releases} layout={layout} />
+          )}
+          {type === "p" && (
+            <ProducersCardsGrid producers={resourceData.producers} layout={layout} />
+          )}
+          {type === "s" && (
+            <StaffCardsGrid staff={resourceData.staff} layout={layout} />
+          )}
+          {type === "g" && (
+            <TagsCardsGrid tags={resourceData.tags} layout={layout} />
+          )}
+          {type === "i" && (
+            <TraitsCardsGrid traits={resourceData.traits} layout={layout} />
+          )}
+        </motion.div>
       </AnimatePresence>
       {/* Keep the footer at the bottom of the page */}
       <div className="flex-grow" />

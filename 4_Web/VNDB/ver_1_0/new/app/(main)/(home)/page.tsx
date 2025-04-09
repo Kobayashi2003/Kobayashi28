@@ -36,9 +36,8 @@ export default function Home() {
   const selectedMonth = searchParams.get("month") || `${(new Date().getMonth() + 1).toString().padStart(2, '0')}`
 
   const [vnsState, setVnsState] = useState({
-    loading: false,
-    error: null as string | null,
-    notFound: false
+    state: null as "loading" | "error" | "notFound" | null,
+    message: null as string | null
   })
 
   const [totalPages, setTotalPages] = useState(0)
@@ -58,9 +57,8 @@ export default function Home() {
       setAbortController(newController)
 
       setVnsState({
-        loading: true,
-        error: null,
-        notFound: false
+        state: "loading",
+        message: null
       })
 
       let released = ""
@@ -101,22 +99,19 @@ export default function Home() {
       setTotalPages(Math.ceil(response.count / itemsPerPage) || 1)
       if (response.results.length === 0) {
         setVnsState({
-          loading: false,
-          error: null,
-          notFound: true
+          state: "notFound",
+          message: null
         })
       } else {
         setVnsState({
-          loading: false,
-          error: null,
-          notFound: false
+          state: null,
+          message: null
         })
       }
     } catch (error) {
       setVnsState({
-        loading: false,
-        error: "Failed to fetch VNs. Please try again.",
-        notFound: false
+        state: "error",
+        message: "Failed to fetch VNs. Please try again."
       })
     }
   }
@@ -249,25 +244,32 @@ export default function Home() {
         </div>
       </div>
       <AnimatePresence mode="wait">
-        {(vns.length === 0 && !vnsState.loading && !vnsState.error && !vnsState.notFound) && (
-          <motion.div
-            key="status"
-            initial={{ filter: "blur(20px)", opacity: 0 }}
-            animate={{ filter: "blur(0px)", opacity: 1 }}
-            exit={{ filter: "blur(20px)", opacity: 0 }}
-            transition={{ duration: 0.4, ease: "easeInOut" }}
-            className="flex-grow flex justify-center items-center"
-          >
-            {/* loading */}
-            {vnsState.loading && <Loading message="Loading..." />}
-            {/* error */}
-            {vnsState.error && <Error message={`Error: ${vnsState.error}`} />}
-            {/* not found */}
-            {vnsState.notFound && <NotFound message="No VNs found" />}
-          </motion.div>
-        )}
-        {/* VN Cards */}
-        {!vnsState.loading && !vnsState.error && !vnsState.notFound && (
+        <motion.div
+          key="status"
+          initial={{ filter: "blur(20px)", opacity: 0 }}
+          animate={{ filter: "blur(0px)", opacity: 1 }}
+          exit={{ filter: "blur(20px)", opacity: 0 }}
+          transition={{ duration: 0.4, ease: "easeInOut" }}
+          className={cn(
+            "flex-grow flex justify-center items-center",
+            vnsState.state === null && "hidden"
+          )}
+        >
+          {vnsState.state === "loading" && <Loading message="Loading..." />}
+          {vnsState.state === "error" && <Error message={`Error: ${vnsState.message}`} />}
+          {vnsState.state === "notFound" && <NotFound message="No VNs found" />}
+        </motion.div>
+        
+        <motion.div
+          key="vns-grid-container"
+          initial={{ filter: "blur(20px)", opacity: 0 }}
+          animate={{ filter: "blur(0px)", opacity: 1 }}
+          exit={{ filter: "blur(20px)", opacity: 0 }}
+          transition={{ duration: 0.4, ease: "easeInOut" }}
+          className={cn(
+            vnsState.state !== null && "hidden"
+          )}
+        >
           <VNsCardsGrid
             vns={vns}
             layout={layout}
@@ -275,7 +277,7 @@ export default function Home() {
             sexualLevel={sexualLevel}
             violenceLevel={violenceLevel}
           />
-        )}
+        </motion.div>
       </AnimatePresence>
       {/* Keep the footer at the bottom of the page */}
       <div className="flex-grow"></div>
