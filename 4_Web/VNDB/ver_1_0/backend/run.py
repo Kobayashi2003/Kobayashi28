@@ -6,17 +6,30 @@ import subprocess
 import threading
 import argparse
 import logging
+from logging.handlers import RotatingFileHandler
 from typing import List
 
 os.makedirs('logs', exist_ok=True)
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S',
-    filename='logs/run.log',
-    filemode='a'
-)
+
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+file_handler = RotatingFileHandler(
+    'logs/run.log', 
+    maxBytes=1024 * 1024 * 5, 
+    # backupCount=5
+)
+file_handler.setLevel(logging.INFO)
+
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.ERROR)
+
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+file_handler.setFormatter(formatter)
+console_handler.setFormatter(formatter)
+
+logger.addHandler(file_handler)
+logger.addHandler(console_handler)
 
 def run_redis_server():
     print("Starting Redis server")
