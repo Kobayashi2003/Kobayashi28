@@ -1,0 +1,25 @@
+# 核心数据处理和科学计算库
+numpy
+
+# 图像处理库
+opencv-python
+
+# 机器学习库
+scikit-learn
+
+# 可视化库
+matplotlib
+seaborn
+
+# 进度显示和工具
+tqdm
+joblib
+
+# 可选但推荐的包
+# pillow>=8.0.0  # 如果使用PIL/Pillow处理图像
+# pandas>=1.1.0  # 如果需要进行数据分析
+
+# 新增的包
+torch
+torchvision
+scikit-image 
