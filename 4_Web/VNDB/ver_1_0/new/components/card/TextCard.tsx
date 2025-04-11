@@ -1,4 +1,6 @@
+import Link from "next/link"
 import { cn } from "@/lib/utils"
+
 interface TextCardProps {
   title: string
   msgs: string[]
@@ -27,13 +29,15 @@ export function TextCard({ title, msgs, link, className }: TextCardProps) {
 
 
   return (
-    <div className={cn(containerStyle)}>
-      <div className={cn(textWrapperStyle)}>
-        <h2 className={cn(titleTextStyle)}>{title}</h2>
-        {msgs?.filter(Boolean).map((msg, index) => (
-          <p key={index} className={cn(msgTextStyle)}>{msg}</p>
-        ))}
+    <Link href={link || ""}>
+      <div className={cn(containerStyle)}>
+        <div className={cn(textWrapperStyle)}>
+          <h2 className={cn(titleTextStyle)}>{title}</h2>
+          {msgs?.filter(Boolean).map((msg, index) => (
+            <p key={index} className={cn(msgTextStyle)}>{msg}</p>
+          ))}
+        </div>
       </div>
-    </div>
+    </Link>
   )
 }

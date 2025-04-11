@@ -1,19 +1,37 @@
-# Hierarchical Rock Classification System
+# Image Classification with Optional Subclassing, Dimension Reduction
 
-This project implements a hierarchical rock classification system using various machine learning techniques. The system first divides each rock type into clusters, and then trains classifiers to predict both rock types and their subclasses.
+This project implements a flexible image classification system with the following features:
 
-## Features
+1. Dataset loading and validation
+2. Optional data augmentation and class balancing
+3. Optional dimension reduction (PCA or LDA)
+4. Optional subclass clustering before classification
+   - Fixed number of subclusters per class
+   - Automatic recursive subclass determination
+5. Multiple classifiers (KNN, SVM, CNN placeholder, DBSCAN)
 
-- Support for multiple classifier types (KNN, SVM, CNN)
-- Dimensionality reduction techniques (PCA, LDA)
-- Feature extraction for rock images
-- Evaluation tools including confusion matrices and classification reports
-- Hyperparameter optimization via grid search
+## Directory Structure
+
+```
+code/
+├── classifier/          # Classification algorithms
+│   ├── cnn.py           # CNN classifier (placeholder)
+│   ├── dbscan.py        # DBSCAN classifier with recursive clustering
+│   ├── knn.py           # KNN classifier
+│   └── svm.py           # SVM classifier
+├── dim_reducer/         # Dimension reduction methods
+│   ├── lda.py           # Linear Discriminant Analysis
+│   └── pca.py           # Principal Component Analysis
+├── utils/               # Utility functions
+│   ├── augmentate_dataset.py  # Data augmentation
+│   ├── check_dataset.py       # Dataset validation 
+│   └── load_dataset.py        # Dataset loading
+├── README.md            # This file
+├── requirements.txt     # Dependencies
+└── train.py             # Main training script
+```
 
 ## Installation
-
-1. Clone the repository
-2. Install the required dependencies:
 
 ```bash
 pip install -r requirements.txt
@@ -21,90 +39,112 @@ pip install -r requirements.txt
 
 ## Usage
 
-### Command Line Interface
+The main entry point is `train.py` which takes various command line arguments to configure the training process.
 
-The main script provides a command-line interface with various options:
+### Basic Usage
 
 ```bash
-python code/main.py --classifier knn --dim-reduction pca --pca-components 50 --data-path path/to/data --rock-types igneous sedimentary metamorphic
+python train.py --data_dir ../data
 ```
 
-### Common Options
+### Data Augmentation
 
-- `--classifier`: Type of classifier to use (`knn`, `svm`, or `cnn`)
-- `--data-path`: Path to the dataset
-- `--rock-types`: List of rock types to classify
-- `--dim-reduction`: Dimensionality reduction technique (`pca`, `lda`, or `none`)
-- `--pca-components`: Number of PCA components (if using PCA)
-- `--lda-components`: Number of LDA components (if using LDA)
-- `--subclasses`: Number of subclasses per rock type
-- `--output-dir`: Directory to save results
-- `--advanced-features`: Enable advanced feature extraction
-
-### KNN-specific Options
-
-For KNN classifier:
 ```bash
-python code/main.py --classifier knn --n-neighbors 5 --weights uniform --algorithm auto --p 2
+# Basic augmentation (doubles the dataset size)
+python train.py --data_dir ../data --augment
+
+# Specify the augmentation factor (creates 3x more data)
+python train.py --data_dir ../data --augment --augment_factor 3
+
+# Balance classes using augmentation
+python train.py --data_dir ../data --balance_classes
 ```
 
-### SVM-specific Options
+### Dimension Reduction
 
-For SVM classifier:
 ```bash
-python code/main.py --classifier svm --kernel rbf --C 1.0 --gamma scale
+# Using PCA (retain 95% of variance)
+python train.py --data_dir ../data --dim_reducer pca --pca_components 0.95
+
+# Using PCA (specific number of components)
+python train.py --data_dir ../data --dim_reducer pca --pca_components 50
+
+# Using LDA (specific number of components)
+python train.py --data_dir ../data --dim_reducer lda --lda_components 8
+
+# Using LDA with default components (n_classes-1)
+python train.py --data_dir ../data --dim_reducer lda
 ```
 
-### CNN-specific Options
+### Subclass Classification
 
-For CNN classifier:
+#### Fixed Subclass Clustering
+
 ```bash
-python code/main.py --classifier cnn --model-name resnet50 --batch-size 32 --epochs 10 --learning-rate 0.001
+# KNN with fixed subclass clustering (2 subclusters per class)
+python train.py --data_dir ../data --classifier knn --subclass --n_subclusters 2
+
+# SVM with fixed subclass clustering (3 subclusters per class)
+python train.py --data_dir ../data --classifier svm --kernel rbf --subclass --n_subclusters 3
 ```
 
-## Examples
+#### Recursive Automatic Subclass Clustering
 
-1. Basic KNN classification:
 ```bash
-python code/main.py --classifier knn --data-path data/rocks
+# Use recursive clustering with 2 levels of hierarchy
+python train.py --data_dir ../data --recursive_subclass --n_subclass_levels 2
+
+# Adjust minimum samples per cluster (affects cluster size)
+python train.py --data_dir ../data --recursive_subclass --min_samples 10
+
+# Use DBSCAN classifier directly
+python train.py --data_dir ../data --classifier dbscan
 ```
 
-2. SVM with grid search:
+### Image Preprocessing
+
 ```bash
-python code/main.py --classifier svm --grid-search --data-path data/rocks
+# Resize images to 128x128
+python train.py --data_dir ../data --img_size 128 128
+
+# Convert images to grayscale
+python train.py --data_dir ../data --grayscale
 ```
 
-3. CNN with transfer learning:
+### Full Example
+
 ```bash
-python code/main.py --classifier cnn --model-name resnet50 --freeze-backbone --data-path data/rocks
+# Example with fixed subclass clustering and PCA
+python train.py --data_dir ../data --img_size 224 224 --grayscale --augment --balance_classes --dim_reducer pca --pca_components 0.95 --classifier svm --kernel rbf --subclass --n_subclusters 3
+
+# Example with recursive subclass clustering and LDA
+python train.py --data_dir ../data --img_size 224 224 --grayscale --augment --balance_classes --dim_reducer lda --lda_components 8 --recursive_subclass --n_subclass_levels 3 --min_samples 5
 ```
 
-4. Hierarchical classification with PCA:
-```bash
-python code/main.py --classifier knn --dim-reduction pca --subclasses 3 --data-path data/rocks
-```
+## Command Line Arguments
 
-## Library Usage
+- `--data_dir`: Path to dataset directory
+- `--img_size`: Image size (width, height)
+- `--grayscale`: Convert images to grayscale
 
-You can also use the classifiers programmatically:
+#### Data Augmentation Options
+- `--augment`: Use data augmentation
+- `--augment_factor`: Number of augmented samples to create per original sample (default=2)
+- `--balance_classes`: Balance classes using augmentation
 
-```python
-from classifier.knn import KNNClassifier
-from classifier.svm import SVMClassifier
-from classifier.cnn import CNNClassifier
+#### Dimension Reduction Options
+- `--dim_reducer`: Dimension reduction method (none, pca, lda)
+- `--pca_components`: Number of components or variance ratio for PCA (default=0.95)
+- `--lda_components`: Number of components for LDA (default=n_classes-1)
 
-# KNN Example
-knn = KNNClassifier(output_dir='./output/knn')
-knn.train_standard(X_train, y_train, X_valid, y_valid, n_neighbors=5)
-accuracy = knn.evaluate(X_test, y_test, class_names)
+#### Classification Options
+- `--classifier`: Classifier type (knn, svm, cnn, dbscan)
+- `--n_neighbors`: Number of neighbors for KNN classifier
+- `--kernel`: Kernel type for SVM classifier
 
-# SVM Example
-svm = SVMClassifier(output_dir='./output/svm')
-svm.train_grid_search(X_train, y_train)
-accuracy = svm.evaluate(X_test, y_test, class_names)
-
-# CNN Example
-cnn = CNNClassifier(output_dir='./output/cnn')
-cnn.train(train_paths, train_labels, valid_paths, valid_labels, class_names, model_name='resnet50')
-accuracy = cnn.evaluate(test_paths, test_labels, class_names)
-``` 
+#### Subclass Options
+- `--subclass`: Use fixed subclass classification
+- `--recursive_subclass`: Use recursive subclass classification with automatic determination
+- `--n_subclusters`: Number of subclusters per class (for fixed subclass mode)
+- `--n_subclass_levels`: Number of recursive levels for subclass clustering (default=2)
+- `--min_samples`: Minimum samples per cluster for DBSCAN (default=5)

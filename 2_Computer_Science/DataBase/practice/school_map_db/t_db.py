@@ -1,4 +1,4 @@
-import pytest
+# import pytest
 import sqlite3
 
 con = sqlite3.connect('school_map.db')
@@ -85,4 +85,5 @@ def test_road_position():
 
 
 if __name__ == '__main__':
-    pytest.main(['-s', 'test_db.py'])
+    # pytest.main(['-s', 'test_db.py'])
+    ...

@@ -8,3 +8,5 @@
 - 将mark的部分移入到/[type]/[id]中
 - Group by
 - 将原本NaviBar的导航功能放入到userButton中
+- 改ImageCard逻辑
+- 改FilterDialog输入
