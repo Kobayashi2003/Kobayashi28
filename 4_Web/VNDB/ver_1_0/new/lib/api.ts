@@ -42,7 +42,7 @@ const fetchVNDB = async<T>(
   }
   const data: PaginatedResponse<T> = await response.json()
   if (data.status === "ERROR") {
-    throw new Error(`VNDB error! status: ${data.status}`)
+    throw new Error(`VNDB error! ${data.results}`)
   }
   if (data.status === "NOT_FOUND") {
     data.results = []

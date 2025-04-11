@@ -255,7 +255,8 @@ export function VNsCardsGrid({ vns, ...props }: VNsCardsGridProps) {
     title: vn.title,
     msgs: [
       vn.titles.find(title => title.main && title.official)?.title || vn.title,
-      `Released: ${vn.released}`
+      `Released: ${vn.released}`,
+      vn.developers.length > 0 ? `Developers: ${vn.developers.map(dev => dev.original || dev.name).join(" & ")}` : ""
     ],
     image: vn.image,
     link: `/v/${vn.id.slice(1)}`

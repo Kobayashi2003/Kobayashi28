@@ -101,8 +101,8 @@ export function ImageCard2({ title, url, dims, msgs, link, className }: ImageCar
       </div>
       <div className={cn(textWrapperStyle)}>
         <h2 className={cn(titleTextStyle)}>{title}</h2>
-        {msgs?.map((msg, index) => (
-          msg ? <p key={index} className={cn(msgTextStyle)}>{msg}</p> : <></>
+        {msgs?.filter(Boolean).map((msg, index) => (
+          <p key={index} className={cn(msgTextStyle)}>{msg}</p>
         ))}
       </div>
     </div>    

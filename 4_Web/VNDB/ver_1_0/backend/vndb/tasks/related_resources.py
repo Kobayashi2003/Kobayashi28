@@ -75,7 +75,7 @@ def get_related_resources_task(resource_type: str, resource_id: str, related_res
         raise ValueError(f"Invalid combination of resource_type and related_resource_type: {resource_type} and {related_resource_type}")
    
     if not results or not isinstance(results, dict) or not results.get('results'):
-        return {'status': 'NOT_FOUND', 'result': None}
+        return {'status': 'NOT_FOUND', 'results': None}
 
     results = format_results(results)
     results['status'] = 'SUCCESS'
@@ -121,7 +121,7 @@ def search_related_resources_task(resource_type: str, resource_id: str, related_
         raise ValueError(f"Invalid combination of resource_type and related_resource_type: {resource_type} and {related_resource_type}")
     
     if not results or not isinstance(results, dict) or not results.get('results'):
-        return {'status': 'NOT_FOUND', 'result': None}
+        return {'status': 'NOT_FOUND', 'results': None}
 
     results = format_results(results)
     results['status'] = 'SUCCESS'

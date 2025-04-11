@@ -1,9 +1,18 @@
+# Standard library imports
 import os
+
+# Third-party imports - data analysis and scientific computing
 import numpy as np
+
+# Third-party imports - image processing
 import cv2
-from tqdm import tqdm
 from skimage.feature import local_binary_pattern, graycomatrix, graycoprops
+
+# Third-party imports - machine learning
 from sklearn.preprocessing import StandardScaler
+
+# Third-party imports - utilities
+from tqdm import tqdm
 
 def load_data(data_dir, classes, feature_extractor=None):
     """
@@ -28,13 +37,17 @@ def load_data(data_dir, classes, feature_extractor=None):
     features = []
     labels = []
     
+    if not os.path.exists(data_dir):
+        print(f"Warning: Data directory does not exist: {data_dir}")
+        return np.array(features), np.array(labels)
+    
     for class_idx, class_name in enumerate(classes):
         class_dir = os.path.join(data_dir, class_name)
         if not os.path.isdir(class_dir):
-            print(f"警告: 类别目录不存在: {class_dir}")
+            print(f"Warning: Class directory does not exist: {class_dir}")
             continue
             
-        print(f"处理类别 '{class_name}'...")
+        print(f"Processing class '{class_name}'...")
         img_count = 0
         error_count = 0
             
@@ -47,14 +60,14 @@ def load_data(data_dir, classes, feature_extractor=None):
             # Extract features if a feature extractor is provided
             if feature_extractor:
                 try:
-                    # 先读取图像
+                    # Read image
                     img = cv2.imread(img_path)
                     if img is None:
-                        print(f"无法读取图像: {img_path}")
+                        print(f"Cannot read image: {img_path}")
                         error_count += 1
                         continue
                         
-                    # 提取特征
+                    # Extract features
                     feat = feature_extractor(img)
                     if feat is not None:
                         features.append(feat)
@@ -63,11 +76,11 @@ def load_data(data_dir, classes, feature_extractor=None):
                     else:
                         error_count += 1
                 except Exception as e:
-                    print(f"处理图像时出错 {img_path}: {str(e)}")
+                    print(f"Error processing image {img_path}: {str(e)}")
                     error_count += 1
             else:
                 # Just store the image path for later use (useful for CNN)
-                # 检查图像是否能够被正确读取
+                # Check if image can be read correctly
                 try:
                     img = cv2.imread(img_path)
                     if img is not None:
@@ -75,16 +88,16 @@ def load_data(data_dir, classes, feature_extractor=None):
                         labels.append(class_idx)
                         img_count += 1
                     else:
-                        print(f"无法读取图像: {img_path}")
+                        print(f"Cannot read image: {img_path}")
                         error_count += 1
                 except Exception as e:
-                    print(f"处理图像时出错 {img_path}: {str(e)}")
+                    print(f"Error processing image {img_path}: {str(e)}")
                     error_count += 1
         
-        print(f"  成功处理: {img_count} 图像, 错误: {error_count} 图像")
+        print(f"  Successfully processed: {img_count} images, Errors: {error_count} images")
     
     if len(features) == 0:
-        raise ValueError("没有成功加载任何图像！请检查数据路径和图像格式。")
+        raise ValueError("No images were successfully loaded! Check the data path and image formats.")
         
     return np.array(features), np.array(labels)
 
@@ -139,7 +152,7 @@ def extract_basic_features(img):
         Extracted color histogram features
     """
     try:
-        # 调整图像大小以确保一致性
+        # Resize image for consistency
         image_size = (128, 128)
         img_resized = cv2.resize(img, image_size)
         
@@ -158,7 +171,7 @@ def extract_basic_features(img):
         
         return features
     except Exception as e:
-        print(f"基础特征提取错误: {str(e)}")
+        print(f"Basic feature extraction error: {str(e)}")
         return None
 
 def extract_advanced_features(img):
@@ -176,7 +189,7 @@ def extract_advanced_features(img):
         Extracted features
     """
     try:
-        # 调整图像大小以确保一致性
+        # Resize image for consistency
         image_size = (128, 128)
         img = cv2.resize(img, image_size)
         
@@ -203,21 +216,22 @@ def extract_advanced_features(img):
         hist_s = cv2.normalize(hist_s, hist_s).flatten()
         hist_v = cv2.normalize(hist_v, hist_v).flatten()
         
-        # Color moments (mean, std, skewness)
-        means = np.mean(img, axis=(0, 1))
-        stds = np.std(img, axis=(0, 1))
-        skewness = np.mean(((img - means) / (stds + 1e-8)) ** 3, axis=(0, 1))
-        
         # 2. Texture features
-        # Resize for GLCM calculation (for speed)
-        img_gray_resized = cv2.resize(img_gray, (100, 100))
+        # Local Binary Pattern
+        radius = 3
+        n_points = 8 * radius
+        lbp = local_binary_pattern(img_gray, n_points, radius, method='uniform')
+        lbp_hist, _ = np.histogram(lbp.ravel(), bins=np.arange(0, n_points + 3), 
+                                 range=(0, n_points + 2))
+        lbp_hist = lbp_hist.astype(float)
+        lbp_hist /= (lbp_hist.sum() + 1e-6)  # Normalize
         
-        # GLCM (Gray Level Co-occurrence Matrix)
-        distances = [1, 3]
+        # GLCM (Gray-Level Co-Occurrence Matrix) features
+        distances = [1]
         angles = [0, np.pi/4, np.pi/2, 3*np.pi/4]
-        glcm = graycomatrix(img_gray_resized, distances, angles, 256, symmetric=True, normed=True)
+        glcm = graycomatrix(img_gray, distances, angles, 256, symmetric=True, normed=True)
         
-        # GLCM properties
+        # Extract properties from GLCM
         contrast = graycoprops(glcm, 'contrast').flatten()
         dissimilarity = graycoprops(glcm, 'dissimilarity').flatten()
         homogeneity = graycoprops(glcm, 'homogeneity').flatten()
@@ -227,60 +241,33 @@ def extract_advanced_features(img):
         # 3. Shape features
         # Edge detection
         edges = cv2.Canny(img_gray, 100, 200)
-        num_edges = np.sum(edges > 0)
-        edge_density = num_edges / (edges.shape[0] * edges.shape[1])
+        edge_ratio = np.sum(edges > 0) / (image_size[0] * image_size[1])
         
-        # Basic shape metrics
-        contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        
-        if contours:
-            # Sort contours by area and get the largest one
-            contours = sorted(contours, key=cv2.contourArea, reverse=True)[:5]  # Consider top 5 contours
-            
-            contour_areas = np.array([cv2.contourArea(cnt) for cnt in contours])
-            contour_perimeters = np.array([cv2.arcLength(cnt, True) for cnt in contours])
-            
-            # Calculate circularity: 4*pi*area/perimeter^2 (1 for perfect circle)
-            with np.errstate(divide='ignore', invalid='ignore'):
-                circularities = 4 * np.pi * contour_areas / (contour_perimeters**2)
-            circularities = np.nan_to_num(circularities)  # Replace NaN with 0
-            
-            # Mean and max circularity
-            mean_circularity = np.mean(circularities)
-            max_circularity = np.max(circularities)
-            
-            # Contour features
-            shape_features = np.array([
-                contour_areas.mean(), 
-                contour_areas.std() if len(contour_areas) > 1 else 0,
-                contour_perimeters.mean(),
-                mean_circularity,
-                max_circularity,
-                len(contours),
-                edge_density
-            ])
-        else:
-            # If no contours found, set default values
-            shape_features = np.zeros(7)
+        # Calculate moments
+        moments = cv2.moments(img_gray)
+        hu_moments = cv2.HuMoments(moments).flatten()
         
         # Combine all features
         features = np.concatenate([
-            hist_b, hist_g, hist_r,  # BGR color histograms
-            hist_h, hist_s, hist_v,  # HSV color histograms
-            means, stds, skewness,   # Color moments
-            contrast, dissimilarity, homogeneity, energy, correlation,  # Texture
-            shape_features  # Shape
+            hist_b, hist_g, hist_r,
+            hist_h, hist_s, hist_v,
+            lbp_hist,
+            contrast, dissimilarity, homogeneity, energy, correlation,
+            np.array([edge_ratio]),
+            hu_moments
         ])
         
+        # Handle NaN values
+        features = np.nan_to_num(features)
+        
         return features
-    
     except Exception as e:
-        print(f"高级特征提取错误: {str(e)}")
+        print(f"Advanced feature extraction error: {str(e)}")
         return None
 
 def standardize_features(X_train, X_valid=None, X_test=None):
     """
-    Standardize features using training set statistics
+    Standardize features to zero mean and unit variance
     
     Parameters:
     -----------
@@ -293,26 +280,26 @@ def standardize_features(X_train, X_valid=None, X_test=None):
         
     Returns:
     --------
-    (X_train_scaled, X_valid_scaled, X_test_scaled) : tuple
-        Standardized features
+    standardized_data : tuple
+        Tuple of standardized features (X_train_scaled, X_valid_scaled, X_test_scaled)
     scaler : StandardScaler
         Fitted scaler
     """
+    # Initialize scaler
     scaler = StandardScaler()
+    
+    # Fit on training data and transform
     X_train_scaled = scaler.fit_transform(X_train)
     
+    # Transform validation and test data if provided
     result = [X_train_scaled]
     
     if X_valid is not None:
         X_valid_scaled = scaler.transform(X_valid)
         result.append(X_valid_scaled)
-    else:
-        result.append(None)
-        
+    
     if X_test is not None:
         X_test_scaled = scaler.transform(X_test)
         result.append(X_test_scaled)
-    else:
-        result.append(None)
-        
-    return tuple(result), scaler 
+    
+    return tuple(result), scaler

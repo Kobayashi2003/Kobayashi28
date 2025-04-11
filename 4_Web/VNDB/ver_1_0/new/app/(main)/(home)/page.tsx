@@ -255,7 +255,7 @@ export default function Home() {
           )}
         >
           {vnsState.state === "loading" && <Loading message="Loading..." />}
-          {vnsState.state === "error" && <Error message={`Error: ${vnsState.message}`} />}
+          {vnsState.state === "error" && <Error message={`${vnsState.message || "Unknown error"}`} />}
           {vnsState.state === "notFound" && <NotFound message="No VNs found" />}
         </motion.div>
         

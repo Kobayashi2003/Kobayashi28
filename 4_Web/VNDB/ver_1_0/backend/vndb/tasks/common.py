@@ -26,7 +26,7 @@ def error_handler(func):
         try:
             return func(*args, **kwargs)
         except Exception as e:
-            return {"status": "ERROR", "result": str(e)}
+            return {"status": "ERROR", "results": str(e)}
     return wrapper
 
 def clear_caches(func):

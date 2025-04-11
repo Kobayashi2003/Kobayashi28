@@ -62,9 +62,6 @@ export default function SearchResults() {
 
   const [abortController, setAbortController] = useState<AbortController | null>(null)
 
-  const clearItems = () => {
-  }
-
   const fetchItems = async () => {
     try {
       abortController?.abort()
@@ -212,7 +209,7 @@ export default function SearchResults() {
           )}
         >
           {resourceState.state === "loading" && <Loading message="Loading..." />}
-          {resourceState.state === "error" && <Error message={`Error: ${resourceState.message}`} />}
+          {resourceState.state === "error" && <Error message={`${resourceState.message || "Unknown error"}`} />}
           {resourceState.state === "notFound" && <NotFound message="No items found" />}
         </motion.div>
         

@@ -42,7 +42,7 @@ def search(resource_type: str, params: dict[str, Any],
         message=f"Search {resource_type} completed",
         details={
             "from": "local",
-            "query": str(query.statement.compile(compile_kwargs={"literal_binds": True})),
+            "query": str(query.statement.compile(compile_kwargs={"render_postcompile": True})),
             "params": params,
             "response_size": response_size,
             "page": page,

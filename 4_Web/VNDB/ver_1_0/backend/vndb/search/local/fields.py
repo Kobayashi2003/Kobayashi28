@@ -9,7 +9,7 @@ class LocalFields:
     TAG = [column.key for column in Tag.__table__.columns]
     TRAIT = [column.key for column in Trait.__table__.columns]
 
-    SMALL_VN = ['id', 'title', 'titles', 'released', 'image']
+    SMALL_VN = ['id', 'title', 'titles', 'released', 'developers', 'image']
     SMALL_RELEASE = ['id', 'title', 'released', 'vns', 'producers']
     SMALL_CHARACTER = ['id', 'name', 'sex', 'original', 'vns', 'image']
     SMALL_PRODUCER = ['id', 'name', 'original']

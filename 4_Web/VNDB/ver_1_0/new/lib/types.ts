@@ -359,6 +359,11 @@ export interface VN_Small {
     main: boolean 
   }>
   released: string
+  developers: Array<{
+    id: string
+    name: string
+    original?: string
+  }>
   image?: {
     url: string
     dims: [number, number]

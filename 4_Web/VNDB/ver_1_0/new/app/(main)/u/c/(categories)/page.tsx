@@ -208,7 +208,11 @@ export default function CategoriesPage() {
       }
 
       if (sortBy === "marked_at") {
-        marksResponse.results.sort((a, b) => new Date(b.marked_at).getTime() - new Date(a.marked_at).getTime())
+        if (sortOrder === "asc") {
+          marksResponse.results.sort((a, b) => new Date(a.marked_at).getTime() - new Date(b.marked_at).getTime())
+        } else {
+          marksResponse.results.sort((a, b) => new Date(b.marked_at).getTime() - new Date(a.marked_at).getTime())
+        }
         marksResponse.results = marksResponse.results.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
       }
 
@@ -576,7 +580,7 @@ export default function CategoriesPage() {
               <Loading message="Loading..." />
             )}
             {resourceState.state === "error" && (
-              <Error message={`Error: ${resourceState.message}`} />
+              <Error message={`${resourceState.message || "Unknown error"}`} />
             )}
             {resourceState.state === "notFound" && (
               <NotFound message="No resources found" />

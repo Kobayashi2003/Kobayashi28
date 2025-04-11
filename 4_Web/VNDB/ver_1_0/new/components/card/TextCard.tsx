@@ -30,8 +30,8 @@ export function TextCard({ title, msgs, link, className }: TextCardProps) {
     <div className={cn(containerStyle)}>
       <div className={cn(textWrapperStyle)}>
         <h2 className={cn(titleTextStyle)}>{title}</h2>
-        {msgs?.map((msg, index) => (
-          msg ? <p key={index} className={cn(msgTextStyle)}>{msg}</p> : <></>
+        {msgs?.filter(Boolean).map((msg, index) => (
+          <p key={index} className={cn(msgTextStyle)}>{msg}</p>
         ))}
       </div>
     </div>
