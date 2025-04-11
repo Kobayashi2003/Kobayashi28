@@ -248,14 +248,13 @@ def main():
                 print("Applying PCA preprocessing before LDA...")
                 
                 # Determine number of components for PCA
-                n_classes = len(class_names)
                 n_features = X_train_reshaped.shape[1]
                 
                 if args.pca_for_lda_components is not None:
                     pca_n_components = min(n_features, args.pca_for_lda_components)
                 else:
-                    # Default: use enough components to capture class information
-                    pca_n_components = min(n_features, max(500, n_classes * 10))
+                    # Default: use 500 components or 90% of features, whichever is smaller
+                    pca_n_components = min(n_features, 500)
                 
                 print(f"Using {pca_n_components} components for PCA preprocessing")
                 
@@ -267,19 +266,14 @@ def main():
                 
                 print(f"PCA preprocessing: {X_train_reshaped.shape[1]} → {X_train_pca.shape[1]} dimensions")
                 
-                # Then apply LDA on PCA-reduced data
+                # Apply LDA with automatically determined components
+                # If user specifies components, use that; otherwise let LDA auto-decide
                 n_components = args.lda_components
                 
-                # If n_components is None, use n_classes-1 as default
                 if n_components is None:
-                    n_components = len(class_names) - 1
-                    print(f"Using default n_components={n_components} for LDA")
-                
-                # Ensure n_components doesn't exceed n_classes-1
-                max_components = len(class_names) - 1
-                if n_components > max_components:
-                    print(f"Warning: LDA components {n_components} exceeds maximum allowed ({max_components}). Adjusting.")
-                    n_components = max_components
+                    print("LDA will automatically determine optimal number of components")
+                    # When None is passed, sklearn's LDA uses min(n_features, n_classes-1)
+                    # This automatically accounts for both original classes and subclasses through y_train
                 
                 lda_reducer = LDAdimReducer(n_components=n_components)
                 X_train_reduced = lda_reducer.fit_transform(X_train_pca, y_train)
@@ -289,19 +283,13 @@ def main():
                 print(f"LDA: {X_train_pca.shape[1]} → {X_train_reduced.shape[1]} dimensions")
                 print(f"Total reduction: {X_train_reshaped.shape[1]} → {X_train_reduced.shape[1]} dimensions")
             else:
-                # Use LDA-specific parameter without PCA preprocessing
+                # Apply LDA directly with automatically determined components
                 n_components = args.lda_components
                 
-                # If n_components is None, use n_classes-1 as default
                 if n_components is None:
-                    n_components = len(class_names) - 1
-                    print(f"Using default n_components={n_components} for LDA")
-                
-                # Ensure n_components doesn't exceed n_classes-1
-                max_components = len(class_names) - 1
-                if n_components > max_components:
-                    print(f"Warning: LDA components {n_components} exceeds maximum allowed ({max_components}). Adjusting.")
-                    n_components = max_components
+                    print("LDA will automatically determine optimal number of components")
+                    # When None is passed, sklearn's LDA uses min(n_features, n_classes-1)
+                    # This automatically accounts for both original classes and subclasses through y_train
                 
                 lda_reducer = LDAdimReducer(n_components=n_components)
                 X_train_reduced = lda_reducer.fit_transform(X_train_reshaped, y_train)
@@ -354,6 +342,12 @@ def main():
             args.min_samples_per_subclass
         )
         
+        # Debug: Print subclass to original class mapping
+        print("\nDEBUG - Subclass to Original Class Mapping:")
+        for subclass_id, original_class in sorted(subclass_to_original.items()):
+            original_name = class_names[original_class] if original_class < len(class_names) else f"Unknown_{original_class}"
+            print(f"  Subclass {subclass_id} -> Original Class {original_class} ({original_name})")
+        
         # Train classifier on subclass data
         print(f"Training {args.classifier.upper()} classifier on subclass data...")
         classifier.fit(X_train, y_train_sub)
@@ -362,11 +356,123 @@ def main():
         print("Evaluating on validation set...")
         y_valid_subclass_pred = classifier.predict(X_valid)
         
+        # Debug: Show distribution of subclass predictions
+        print("\nDEBUG - Subclass Prediction Distribution:")
+        subclass_counts = {}
+        for subclass in y_valid_subclass_pred:
+            if subclass not in subclass_counts:
+                subclass_counts[subclass] = 0
+            subclass_counts[subclass] += 1
+        
+        for subclass, count in sorted(subclass_counts.items()):
+            if subclass in subclass_to_original:
+                original_class = subclass_to_original[subclass]
+                original_name = class_names[original_class] if original_class < len(class_names) else f"Unknown_{original_class}"
+                percentage = (count / len(y_valid_subclass_pred)) * 100
+                print(f"  Subclass {subclass} ({original_name}): {count} predictions ({percentage:.1f}%)")
+            else:
+                print(f"  Subclass {subclass} (UNKNOWN): {count} predictions")
+        
         # Map subclass predictions back to original classes
         y_valid_pred = map_predictions_to_original(y_valid_subclass_pred, subclass_to_original)
         
+        # Debug: Compare actual vs. predicted class distribution
+        print("\nDEBUG - Validation Ground Truth vs. Predicted Class Distribution:")
+        for i, class_name in enumerate(class_names):
+            true_count = np.sum(y_valid == i)
+            pred_count = np.sum(y_valid_pred == i)
+            true_percent = (true_count / len(y_valid)) * 100
+            pred_percent = (pred_count / len(y_valid_pred)) * 100
+            print(f"  Class {i} ({class_name}):")
+            print(f"    - Ground Truth: {true_count} samples ({true_percent:.1f}%)")
+            print(f"    - Predicted:    {pred_count} samples ({pred_percent:.1f}%)")
+        
+        # Compare predictions before and after mapping
+        correct_before = 0
+        correct_after = 0
+        improved = 0
+        worsened = 0
+        
+        for i in range(len(y_valid)):
+            true_class = y_valid[i]
+            subclass_pred = y_valid_subclass_pred[i]
+            mapped_pred = y_valid_pred[i]
+            
+            # Check if the subclass prediction is in the mapping
+            if subclass_pred in subclass_to_original:
+                original_from_subclass = subclass_to_original[subclass_pred]
+                
+                # Count correct predictions before and after mapping
+                if original_from_subclass == true_class:
+                    correct_before += 1
+                if mapped_pred == true_class:
+                    correct_after += 1
+                
+                # Check if mapping improved or worsened the prediction
+                if original_from_subclass != true_class and mapped_pred == true_class:
+                    improved += 1
+                elif original_from_subclass == true_class and mapped_pred != true_class:
+                    worsened += 1
+        
+        print("\nDEBUG - Mapping Effect Analysis:")
+        print(f"  Correct predictions based on subclass mapping: {correct_before}/{len(y_valid)} ({(correct_before/len(y_valid))*100:.2f}%)")
+        print(f"  Correct predictions after final mapping:       {correct_after}/{len(y_valid)} ({(correct_after/len(y_valid))*100:.2f}%)")
+        print(f"  Predictions improved by mapping: {improved}")
+        print(f"  Predictions worsened by mapping: {worsened}")
+        
+        # Calculate and display confusion matrix for subclasses
+        if np.unique(y_valid_subclass_pred).size <= 30:  # Only show if not too many subclasses
+            from sklearn.metrics import confusion_matrix
+            print("\nDEBUG - Selected Subclass Confusion Matrix (rows=true subclass, cols=predicted):")
+            
+            # Get the most frequent subclasses in predictions
+            top_subclasses = sorted(subclass_counts.items(), key=lambda x: x[1], reverse=True)[:10]
+            top_subclass_ids = [sc[0] for sc in top_subclasses]
+            
+            # Create a mapping from original classes to their subclasses
+            original_to_subclasses = {}
+            for subclass, original in subclass_to_original.items():
+                if original not in original_to_subclasses:
+                    original_to_subclasses[original] = []
+                original_to_subclasses[original].append(subclass)
+            
+            # Extract a ground truth "subclass" for each validation sample based on original class
+            # This is imperfect but helps visualize where the confusion happens
+            y_valid_pseudo_subclass = np.zeros_like(y_valid)
+            for i, original_class in enumerate(y_valid):
+                if original_class in original_to_subclasses and original_to_subclasses[original_class]:
+                    # Assign the first subclass of this original class
+                    y_valid_pseudo_subclass[i] = original_to_subclasses[original_class][0]
+                else:
+                    # Fallback - use original class (this shouldn't happen)
+                    y_valid_pseudo_subclass[i] = original_class
+            
+            # Compute confusion matrix for the top predicted subclasses
+            subclass_cm = confusion_matrix(
+                y_valid_pseudo_subclass, 
+                y_valid_subclass_pred,
+                labels=top_subclass_ids
+            )
+            
+            # Print the confusion matrix with labels
+            print("  Top predicted subclasses confusion matrix:")
+            header = "    "
+            for sc in top_subclass_ids:
+                original = subclass_to_original.get(sc, -1)
+                class_name = class_names[original][:3] if original < len(class_names) else "Unk"
+                header += f"{sc}({class_name}) "
+            print(header)
+            
+            for i, row in enumerate(subclass_cm):
+                original = subclass_to_original.get(top_subclass_ids[i], -1)
+                class_name = class_names[original][:3] if original < len(class_names) else "Unk"
+                row_str = f"  {top_subclass_ids[i]}({class_name}) "
+                for val in row:
+                    row_str += f"{val:8d} "
+                print(row_str)
+        
         val_accuracy = accuracy_score(y_valid, y_valid_pred)
-        print(f"Validation accuracy: {val_accuracy:.4f}")
+        print(f"\nValidation accuracy: {val_accuracy:.4f}")
         print("\nValidation report:")
         print(classification_report(y_valid, y_valid_pred, target_names=class_names))
         
@@ -374,14 +480,42 @@ def main():
         print("Evaluating on test set...")
         y_test_subclass_pred = classifier.predict(X_test)
         
+        # Debug: Show distribution of subclass predictions for test set
+        print("\nDEBUG - Test Set Subclass Prediction Distribution:")
+        test_subclass_counts = {}
+        for subclass in y_test_subclass_pred:
+            if subclass not in test_subclass_counts:
+                test_subclass_counts[subclass] = 0
+            test_subclass_counts[subclass] += 1
+        
+        for subclass, count in sorted(test_subclass_counts.items()):
+            if subclass in subclass_to_original:
+                original_class = subclass_to_original[subclass]
+                original_name = class_names[original_class] if original_class < len(class_names) else f"Unknown_{original_class}"
+                percentage = (count / len(y_test_subclass_pred)) * 100
+                print(f"  Subclass {subclass} ({original_name}): {count} predictions ({percentage:.1f}%)")
+            else:
+                print(f"  Subclass {subclass} (UNKNOWN): {count} predictions")
+        
         # Map subclass predictions back to original classes
         y_test_pred = map_predictions_to_original(y_test_subclass_pred, subclass_to_original)
         
+        # Debug: Compare actual vs. predicted class distribution for test set
+        print("\nDEBUG - Test Set Ground Truth vs. Predicted Class Distribution:")
+        for i, class_name in enumerate(class_names):
+            true_count = np.sum(y_test == i)
+            pred_count = np.sum(y_test_pred == i)
+            true_percent = (true_count / len(y_test)) * 100
+            pred_percent = (pred_count / len(y_test_pred)) * 100
+            print(f"  Class {i} ({class_name}):")
+            print(f"    - Ground Truth: {true_count} samples ({true_percent:.1f}%)")
+            print(f"    - Predicted:    {pred_count} samples ({pred_percent:.1f}%)")
+        
         test_accuracy = accuracy_score(y_test, y_test_pred)
-        print(f"Test accuracy: {test_accuracy:.4f}")
+        print(f"\nTest accuracy: {test_accuracy:.4f}")
         print("\nTest report:")
         print(classification_report(y_test, y_test_pred, target_names=class_names))
-        
+
     else:
         # Train classifier on original classes
         print(f"Training {args.classifier.upper()} classifier...")
