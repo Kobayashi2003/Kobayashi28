@@ -1,7 +1,4 @@
-import { cn } from "@/lib/utils"
-import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { RadioGroupDialog } from "@/components/dialog/RadioGroupDialog"
 
 const sortByOptions: Record<string, {
   both?: { value: string, label: string }[],
@@ -146,59 +143,15 @@ export function SortByDialog({ open, setOpen, type, from, sortBy, setSortBy, add
     showSortByOptions = [...showSortByOptions, ...additionalOptions]
   }
 
-  const handleSortByChange = (value: string) => {
-    setOpen(false)
-    setSortBy(value)
-  }
-
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className={cn(
-        "bg-[#0F2942]/80 border-white/10",
-        "data-[state=open]:animate-in data-[state=closed]:animate-out",
-        "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
-        "data-[state=closed]:slide-out-to-bottom-1/2 data-[state=open]:slide-in-from-bottom-1/2",
-        className
-      )}>
-        <DialogHeader>
-          <DialogTitle className="text-xl text-white">Sort By</DialogTitle>
-        </DialogHeader>
-        <RadioGroup
-          defaultValue={sortBy}
-          onValueChange={handleSortByChange}
-        >
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-1">
-            {showSortByOptions?.map((option) => (
-              <div key={`sortBy-option-${option.value}`} className={cn(
-                "group",
-                "flex flex-row justify-start items-center",
-                "border-b sm:border-r border-white/10",
-              )}>
-                <RadioGroupItem
-                  id={`sortBy-option-${option.value}`}
-                  value={option.value}
-                  className={cn(
-                    "border-white/60 group-hover:border-white",
-                    "data-[state=checked]:bg-white data-[state=checked]:text-[#0F2942]"
-                  )}
-                />
-                <Label
-                  htmlFor={`sortBy-option-${option.value}`}
-                  className={cn(
-                    "ml-1",
-                    "h-full w-full",
-                    "text-white truncate",
-                    "font-normal group-hover:font-bold",
-                    "text-xs sm:text-sm md:text-base",
-                    "cursor-pointer"
-                  )}>
-                  {option.label}
-                </Label>
-              </div>
-            ))}
-          </div>
-        </RadioGroup>
-      </DialogContent>
-    </Dialog>
+    <RadioGroupDialog
+      open={open}
+      setOpen={setOpen}
+      title="Sort By"
+      options={showSortByOptions}
+      selected={sortBy}
+      setSelected={setSortBy}
+      className={className}
+    />
   )
 }

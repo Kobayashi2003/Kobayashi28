@@ -12,8 +12,11 @@ import { OrderSwitch } from "@/components/selector/OrderSwitch"
 import { FilterButton } from "@/components/button/FilterButton"
 import { Settings2Button } from "@/components/button/Settings2Button"
 import { SubmitButton } from "@/components/button/SubmitButton"
+import { MenuButton } from "@/components/button/MenuButton"
 import { FiltersDialog } from "@/components/dialog/FiltersDialog"
 import { SortByDialog } from "@/components/dialog/SortByDialog"
+import { TypeDialog } from "@/components/dialog/TypeDialog"
+import { FromDialog } from "@/components/dialog/FromDialog"
 
 
 interface SearchHeaderProps {
@@ -37,6 +40,8 @@ export function SearchHeader({ className }: SearchHeaderProps) {
   const [filtersParams, setFiltersParams] = useState<Record<string, string>>({})
   const [filtersDialogOpen, setFiltersDialogOpen] = useState(false)
   const [sortByDialogOpen, setSortByDialogOpen] = useState(false)
+  const [typeDialogOpen, setTypeDialogOpen] = useState(false)
+  const [fromDialogOpen, setFromDialogOpen] = useState(false)
 
   const handleSubmit = (e?: React.FormEvent<HTMLFormElement>) => {
     if (e) e.preventDefault()
@@ -51,25 +56,46 @@ export function SearchHeader({ className }: SearchHeaderProps) {
     setLoading(false)
   }
 
-  // useEffect(() => {
-  //   if (isSearching) handleSubmit()
-  // }, [sortOrder])
-
   return (
-    <div className={cn("flex flex-row justify-center items-center gap-2", className)}>
+    <div className={cn("flex flex-row justify-center items-center gap-1", className)}>
       <FromSwitch
         selected={searchFrom}
         setSelected={setSearchFrom}
         disabled={loading}
+        className="max-md:hidden"
       />
       <TypeSelector1
         selected={searchType}
         onSelect={setSearchType}
         disabled={loading}
+        className="max-md:hidden"
       />
       <FilterButton
         onClick={() => setFiltersDialogOpen(true)}
         disabled={loading}
+        className="max-md:hidden"
+      />
+      <MenuButton
+        options={[
+          {
+            name: "Select Type",
+            onClick: () => setTypeDialogOpen(true),
+          },
+          {
+            name: "Select From",
+            onClick: () => setFromDialogOpen(true),
+          },
+          {
+            name: "Sort By",
+            onClick: () => setSortByDialogOpen(true),
+          },
+          {
+            name: "Filters",
+            onClick: () => setFiltersDialogOpen(true),
+          },
+        ]}
+        disabled={loading}
+        className="md:hidden"
       />
       <form onSubmit={handleSubmit}>
         <SearchBar
@@ -91,7 +117,9 @@ export function SearchHeader({ className }: SearchHeaderProps) {
       <Settings2Button
         onClick={() => setSortByDialogOpen(true)}
         disabled={loading}
+        className="max-md:hidden"
       />
+
       <FiltersDialog
         open={filtersDialogOpen}
         setOpen={setFiltersDialogOpen}
@@ -105,6 +133,18 @@ export function SearchHeader({ className }: SearchHeaderProps) {
         from={searchFrom}
         sortBy={sortBy}
         setSortBy={setSortBy}
+      />
+      <TypeDialog
+        open={typeDialogOpen}
+        setOpen={setTypeDialogOpen}
+        type={searchType}
+        setType={setSearchType}
+      />
+      <FromDialog
+        open={fromDialogOpen}
+        setOpen={setFromDialogOpen}
+        from={searchFrom}
+        setFrom={setSearchFrom}
       />
     </div>
   )

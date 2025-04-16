@@ -206,7 +206,7 @@ function TextFilter({ filter, value, onChange }: {
         value={value}
         onChange={(e) => onChange(filter.value, e.target.value)}
         placeholder={filter.placeholder}
-        className="bg-[#0A1929] border-white/10 hover:border-white/20 text-white placeholder:text-white/50"
+        className="bg-[#0A1929] border-white/10 hover:border-white/20 text-white placeholder:text-white/50 selection:bg-blue-500 selection:text-white selection:bg-blue-500 selection:text-white"
       />
     </div>
   )
@@ -234,7 +234,7 @@ function NumberFilter({ filter, value, onChange }: {
           }
         }}
         placeholder={filter.placeholder}
-        className="bg-[#0A1929] border-white/10 hover:border-white/20 text-white placeholder:text-white/50"
+        className="bg-[#0A1929] border-white/10 hover:border-white/20 text-white placeholder:text-white/50 selection:bg-blue-500 selection:text-white"
       />
     </div>
   )
@@ -282,7 +282,7 @@ function NumberFilterComparable({ filter, value, onChange }: {
             }
           }}
           placeholder={filter.placeholder}
-          className="bg-[#0A1929] border-white/10 hover:border-white/20 text-white placeholder:text-white/50"
+          className="bg-[#0A1929] border-white/10 hover:border-white/20 text-white placeholder:text-white/50 selection:bg-blue-500 selection:text-white"
         />
       </div>
     </div>
@@ -418,6 +418,7 @@ function DateFilter({ filter, value, onChange }: {
         placeholder={filter.placeholder}
         className={cn(
           "text-white placeholder:text-white/50",
+          "selection:bg-blue-500 selection:text-white",
           isCurrentInputValid ? "bg-[#0A1929]" : "bg-red-500/10",
           isCurrentInputValid ? "border-white/10" : "border-red-500",
           isCurrentInputValid ? "hover:border-white/20" : "hover:border-red-500",
@@ -477,6 +478,7 @@ function DateFilterComparable({ filter, value, onChange }: {
           placeholder={filter.placeholder}
           className={cn(
             "text-white placeholder:text-white/50",
+            "selection:bg-blue-500 selection:text-white",
             isCurrentInputValid ? "bg-[#0A1929]" : "bg-red-500/10",
             isCurrentInputValid ? "border-white/10" : "border-red-500",
             isCurrentInputValid ? "hover:border-white/20" : "hover:border-red-500",

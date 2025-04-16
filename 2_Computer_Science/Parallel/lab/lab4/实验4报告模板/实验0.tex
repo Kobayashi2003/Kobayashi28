@@ -1,0 +1,94 @@
+%!TeX program = xelatex
+\documentclass{SYSUReport}
+\usepackage{tabularx} % 在导言区添加此行
+
+% 根据个人情况修改
+\headl{}
+\headc{}
+\headr{并行程序设计与算法实验}
+\lessonTitle{并行程序设计与算法实验}
+\reportTitle{Lab0-环境设置与串行矩阵乘法}
+\stuname{xxx}
+\stuid{xxx}
+\inst{计算机学院}
+\major{xxx}
+\date{2025年3月19日}
+
+\begin{document}
+
+% =============================================
+% Part 1: 封面
+% =============================================
+\cover
+\thispagestyle{empty} % 首页不显示页码
+\clearpage
+
+% % =============================================
+% % Part 4： 正文内容
+% % =============================================
+% % 重置页码，并使用阿拉伯数字
+% \pagenumbering{arabic}
+% \setcounter{page}{1}
+
+%%可选择这里也放一个标题
+%\begin{center}
+%    \title{ \Huge \textbf{{标题}}}
+%\end{center}
+
+\section{实验目的}
+\begin{itemize}
+   \item 理解并行程序设计的基本概念与理论。
+    \item 掌握使用并行编程模型实现常见算法的能力。
+    \item 学习评估并行程序性能的指标及其优化方法。
+\end{itemize}
+
+\section{实验内容}
+\begin{itemize}
+    \item 设计并实现以下矩阵乘法版本：
+    \begin{itemize}
+        \item 使用C/C++语言实现一个串行矩阵乘法。
+        \item 比较不同编译选项、实现方式、算法或库对性能的影响：
+        \begin{itemize}
+            \item 使用Python实现的矩阵乘法。
+            \item 使用C/C++实现的基本矩阵乘法。
+            \item 调整循环顺序优化矩阵乘法。
+            \item 应用编译优化提高性能。
+            \item 使用循环展开技术优化矩阵乘法。
+            \item 使用Intel MKL库进行矩阵乘法运算。
+        \end{itemize}
+    \end{itemize}
+    \item 生成随机矩阵A和B，进行矩阵乘法运算得到矩阵C。
+    \item 衡量各版本的运行时间、加速比、浮点性能等。
+    \item 分析不同实现版本对性能的影响。
+\end{itemize}
+
+
+\section{实验结果}
+\begin{table}[h]
+    \centering
+    \begin{tabular}{|c|c|c|p{1.5cm}|p{1.5cm}|c|p{2cm}|}
+        \hline
+        版本 & 实现描述 & 运行时间& 相对加速比 & 绝对加速比 & 浮点性能 & 峰值性能百分比 \\
+        \hline
+        1 & Python &  &  &  &  &\\ 
+        \hline
+        2 & C/C++ &  &  &  & & \\ 
+        \hline
+        3 & 调整循环顺序 &  &  &  & & \\ 
+        \hline
+        4 & 编译优化 &  &  &  & & \\ 
+        \hline
+        5 & 循环展开 &  &  &  &  &\\ 
+        \hline
+        6 & Intel MKL &  &  &  & & \\ 
+        \hline
+    \end{tabular}
+\end{table}
+\section{实验分析}
+\begin{itemize}
+    \item ......
+    \item ......
+    \item ......
+\end{itemize}
+注：实验代码以zip格式另提交；最终提交内容包括实验报告(pdf格式)和实验代码(zip压缩包格式)
+\end{document}

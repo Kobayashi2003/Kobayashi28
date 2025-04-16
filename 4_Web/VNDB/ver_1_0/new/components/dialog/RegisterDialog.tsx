@@ -61,7 +61,7 @@ export function RegisterDialog({ open, setOpen, handleRegister, disabled, classN
               <Label htmlFor={field.id} className="text-white">{field.label}</Label>
               <Input id={field.id} type={field.type} placeholder={field.placeholder}
                 value={field.value} onChange={(e) => field.setValue(e.target.value)} required={field.required}
-                className="bg-[#0A1929] border-white/10 hover:border-white/20 text-white placeholder:text-white/50" />
+                className="bg-[#0A1929] border-white/10 hover:border-white/20 text-white placeholder:text-white/50 selection:bg-blue-500 selection:text-white" />
             </div>
           ))}
           <Button type="submit" disabled={disabled} className="w-full bg-[#1A3A5A] hover:bg-[#254B75] text-white font-bold transition-all duration-300">

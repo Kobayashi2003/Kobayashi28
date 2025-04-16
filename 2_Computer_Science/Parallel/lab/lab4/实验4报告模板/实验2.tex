@@ -1,0 +1,118 @@
+%!TeX program = xelatex
+\documentclass{SYSUReport}
+\usepackage{tabularx} % 在导言区添加此行
+\usepackage{float}
+% 根据个人情况修改
+\headl{}
+\headc{}
+\headr{并行程序设计与算法实验}
+\lessonTitle{并行程序设计与算法实验}
+\reportTitle{Lab2-基于MPI的并行矩阵乘法(进阶)}
+\stuname{xxx}
+\stuid{xxx}
+\inst{计算机学院}
+\major{xxx}
+\date{2025年4月2日}
+
+\begin{document}
+
+% =============================================
+% Part 1: 封面
+% =============================================
+\cover
+\thispagestyle{empty} % 首页不显示页码
+\clearpage
+
+% % =============================================
+% % Part 4： 正文内容
+% % =============================================
+% % 重置页码，并使用阿拉伯数字
+% \pagenumbering{arabic}
+% \setcounter{page}{1}
+
+%%可选择这里也放一个标题
+%\begin{center}
+%    \title{ \Huge \textbf{{标题}}}
+%\end{center}
+
+\section{实验目的}
+\begin{itemize}
+    \item 掌握MPI集合通信在并行矩阵乘法中的应用
+    \item 学习使用MPI\_Type\_create\_struct创建派生数据类型
+    \item 分析不同通信方式和任务划分对并行性能的影响
+    \item 研究并行程序的扩展性和性能优化方法
+\end{itemize}
+
+\section{实验内容}
+\begin{itemize}
+    \item 使用MPI集合通信实现并行矩阵乘法
+    \item 使用MPI\_Type\_create\_struct聚合进程内变量后通信
+    \item 选做：尝试不同数据/任务划分方式
+    \begin{itemize}
+        \item 请描述你的数据/任务划分方式。
+        \item 回答：......
+    \end{itemize}
+\end{itemize}
+
+
+\section{实验结果}
+\subsection{性能分析}
+根据运行结果，填入下表以记录不同线程数量和矩阵规模下的运行时间：
+\begin{table}[H]
+\centering
+\caption{用MPI集合通信实现}
+\label{表1}
+\begin{tabular}{|c|lllll|}
+\hline
+\multirow{2}{*}{进程数} & \multicolumn{5}{c|}{矩阵规模}                                                                        \\ \cline{2-6} 
+ & \multicolumn{1}{l|}{128} & \multicolumn{1}{l|}{256} & \multicolumn{1}{l|}{512} & \multicolumn{1}{l|}{1024} & 2048 \\ \hline
+1                    & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} &  \\ \hline
+2                    & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} &  \\ \hline
+4                    & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} &  \\ \hline
+8                    & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} &  \\ \hline
+16                   & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} &  \\ \hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{用MPI\_Type\_create\_struct聚合进程内变量后通信}
+\label{表2}
+\begin{tabular}{|c|lllll|}
+\hline
+\multirow{2}{*}{进程数} & \multicolumn{5}{c|}{矩阵规模}                                                                        \\ \cline{2-6} 
+ & \multicolumn{1}{l|}{128} & \multicolumn{1}{l|}{256} & \multicolumn{1}{l|}{512} & \multicolumn{1}{l|}{1024} & 2048 \\ \hline
+1                    & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} &  \\ \hline
+2                    & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} &  \\ \hline
+4                    & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} &  \\ \hline
+8                   & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} &  \\ \hline
+16                   & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} &  \\ \hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{选做题实验结果请填写在此表}
+\label{表3}
+\begin{tabular}{|c|lllll|}
+\hline
+\multirow{2}{*}{进程数} & \multicolumn{5}{c|}{矩阵规模}                                                                        \\ \cline{2-6} 
+ & \multicolumn{1}{l|}{128} & \multicolumn{1}{l|}{256} & \multicolumn{1}{l|}{512} & \multicolumn{1}{l|}{1024} & 2048 \\ \hline
+1                    & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} &  \\ \hline
+2                    & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} &  \\ \hline
+4                    & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} &  \\ \hline
+8                    & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} &  \\ \hline
+16                   & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{} &  \\ \hline
+\end{tabular}
+\end{table}
+
+
+\section{实验分析}
+根据运行时间，分析程序并行性能及扩展性
+\begin{itemize}
+    \item 使用MPI集合通信实现并行矩阵乘法：
+    \item 使用MPI\_Type\_create\_struct聚合进程内变量后通信：
+    \item 你的方法(选做)：
+\end{itemize}
+注：实验代码以zip格式另提交；最终提交内容包括实验报告(pdf格式)和实验代码(zip压缩包格式)
+\end{document}

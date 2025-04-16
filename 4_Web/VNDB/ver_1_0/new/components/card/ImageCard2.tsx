@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Image from "next/image"
+import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { ImageOff, RotateCw, RefreshCw } from "lucide-react"
 
@@ -10,7 +11,7 @@ interface ImageCardProps {
   url: string
   dims?: [number, number]
   msgs?: string[]
-  link?: string    
+  link?: string
   className?: string
 }
 
@@ -68,43 +69,49 @@ export function ImageCard2({ title, url, dims, msgs, link, className }: ImageCar
   const msgTextStyle = "text-xs md:text-sm text-gray-400"
 
   return (
-    <div 
+    <div
       className={cn(containerStyle)}
       onClick={handleCardClick}
     >
       <div className={cn(imageWrapperStyle)}>
         {imgUrl ? (<>
-          <Image
-            src={imgUrl}
-            alt={imgUrl}
-            fill
-            loading="lazy"
-            onLoad={() => {setLoading(false); setError(false)}}
-            onError={() => {setLoading(false); setError(true)}}
-            className={cn(imageContentStyle)}
-          />
+          <Link href={link || ""}>
+            <Image
+              src={imgUrl}
+              alt={imgUrl}
+              fill
+              loading="lazy"
+              onLoad={() => { setLoading(false); setError(false) }}
+              onError={() => { setLoading(false); setError(true) }}
+              className={cn(imageContentStyle)}
+            />
+            {loading && (
+              <div className={cn(iconWrapperStyle)}>
+                <RotateCw className={cn(iconStyle, "text-gray-500 animate-spin")} />
+              </div>
+            )}
+          </Link>
           {error && (
             <div onClick={handleRetry} className={cn(iconWrapperStyle)}>
               <RefreshCw className={cn(iconStyle, "text-red-400")} />
             </div>
           )}
-          {loading && (
-            <div className={cn(iconWrapperStyle)}>
-              <RotateCw className={cn(iconStyle, "text-gray-500 animate-spin")} />
-            </div>
-          )}
         </>) : (
-          <div className={cn(iconWrapperStyle)}>
-            <ImageOff className={cn(iconStyle)} />
-          </div>
+          <Link href={link || ""}>
+            <div className={cn(iconWrapperStyle)}>
+              <ImageOff className={cn(iconStyle)} />
+            </div>
+          </Link>
         )}
       </div>
-      <div className={cn(textWrapperStyle)}>
-        <h2 className={cn(titleTextStyle)}>{title}</h2>
-        {msgs?.filter(Boolean).map((msg, index) => (
-          <p key={index} className={cn(msgTextStyle)}>{msg}</p>
-        ))}
-      </div>
-    </div>    
+      <Link href={link || ""}>
+        <div className={cn(textWrapperStyle)}>
+          <h2 className={cn(titleTextStyle)}>{title}</h2>
+          {msgs?.filter(Boolean).map((msg, index) => (
+            <p key={index} className={cn(msgTextStyle)}>{msg}</p>
+          ))}
+        </div>
+      </Link>
+    </div>
   )
 }
