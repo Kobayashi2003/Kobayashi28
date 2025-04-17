@@ -11,6 +11,17 @@ export const ENUMS = {
     qa: "Quality assurance",
     staff: "Staff"
   },
+  'RELATION': {
+    ser: "Same series",
+    char: "Shares characters",
+    alt: "Alternative version",
+    preq: "Prequel",
+    seq: "Sequel",
+    side: "Side story",
+    set: "Same setting",
+    fan: "Fandisc",
+    orig: "Original game",
+  },
   "MEDIUM": {
     blr: "Blu-ray disc",
     mrt: "Cartridge",

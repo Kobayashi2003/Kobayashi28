@@ -158,6 +158,10 @@ export default function ItemPage() {
     }
   }
 
+  const handleRefreshCategories = async () => {
+    fetchCategories()
+  }
+
   const handleToggleCategory = async (categoryId: number) => {
     if (!user) return
     try {
@@ -170,20 +174,13 @@ export default function ItemPage() {
       } else {
         await api.category.addMark(type, categoryId, id)
       }
-      setCategoryState({
-        state: null,
-        message: null
-      })
+      handleRefreshCategories()
     } catch (error) {
       setCategoryState({
         state: "error",
         message: error as string
       })
     }
-  }
-
-  const handleRefreshCategories = async () => {
-    fetchCategories()
   }
 
   const handleCreateCategory = async (newCategoryName: string) => {
@@ -194,11 +191,7 @@ export default function ItemPage() {
         message: null
       })
       await api.category.create(type, newCategoryName)
-      setCategoryState({
-        state: null,
-        message: null
-      })
-      fetchCategories()
+      handleRefreshCategories()
     } catch (error) {
       setCategoryState({
         state: "error",
@@ -215,10 +208,7 @@ export default function ItemPage() {
         message: null
       })
       await api.category.delete(type, categoryId)
-      setCategoryState({
-        state: null,
-        message: null
-      })
+      handleRefreshCategories()
     } catch (error) {
       setCategoryState({
         state: "error",
@@ -229,12 +219,18 @@ export default function ItemPage() {
 
   useEffect(() => {
     fetchItem()
-    fetchCategories()
     return () => {
       resourceAbortController?.abort()
-      categoryAbortController?.abort()
     }
   }, [])
+
+  useEffect(() => {
+    if (!user) return
+    fetchCategories()
+    return () => {
+      categoryAbortController?.abort()
+    }
+  }, [user])
 
   return (
     <main className="container mx-auto min-h-screen flex flex-col p-4 pb-8">

@@ -1,5 +1,8 @@
 import { cn } from "@/lib/utils"
+import { Row } from "@/components/row/Row"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { ICON } from "@/lib/icons"
+import { ENUMS } from "@/lib/enums"
 
 interface Title {
   lang: string
@@ -15,7 +18,7 @@ interface TitlesRowProps {
 
 export function TitlesRow({ titles }: TitlesRowProps) {
 
-  if (!titles.length) return null
+  if (titles.length === 0) return null
 
   const sortedTitles = [...titles].sort((a, b) => {
     if (a.main && a.official) return -1
@@ -24,29 +27,36 @@ export function TitlesRow({ titles }: TitlesRowProps) {
   })
 
   return (
-    <div className="w-full flex flex-col gap-2">
-      <h3 className="text-sm text-white/60">Titles</h3>
-      <div className="w-full">
-        {sortedTitles.map((title, index) => {
-          const isMainAndOfficial = title.main && title.official
-          return (
-            <div key={index} className="flex gap-1">
-              <span className={cn(
-                ICON.LANGUAGE[title.lang as keyof typeof ICON.LANGUAGE]
-              )}/>
-              <div>
-                <p className={cn(
-                  "break-words text-white/90",
-                  isMainAndOfficial && "font-bold"
-                )}>{title.title}</p>
-                {title.latin && title.latin !== title.title && (
-                  <p className="text-white/60 break-words">{title.latin}</p>
-                )}
-              </div>
-            </div>
-          )
-        })}
+    <Row label="Titles" value={
+      <div className="flex flex-col gap-1">
+        {sortedTitles.map((title, index) => (
+          <div key={index} className="flex gap-1 items-center">
+            <Tooltip key={title.lang}>
+              <TooltipTrigger asChild>
+                <span className={cn(
+                  ICON.LANGUAGE[title.lang as keyof typeof ICON.LANGUAGE]
+                )} />
+              </TooltipTrigger>
+              <TooltipContent className="bg-black/50 text-white text-xs">
+                {ENUMS.LANGUAGE[title.lang as keyof typeof ENUMS.LANGUAGE]}
+              </TooltipContent>
+            </Tooltip>
+            <p className={cn(
+              "break-words text-white/90",
+              title.main && title.official && "font-bold"
+            )}>
+              {title.title}
+            </p>
+            {title.latin && (
+              <p className={cn(
+                "break-words text-white/60 text-xs"
+              )}>
+                ({title.latin})
+              </p>
+            )}
+          </div>
+        ))}
       </div>
-    </div>
+    } />
   )
 }
