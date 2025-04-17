@@ -25,11 +25,11 @@ export function useUserContext() {
 export function UserProvider({ children }: { children: React.ReactNode }) {
 
   const [user, setUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     const initializeUser = async () => {
-      setIsLoading(true)
+      // setIsLoading(true)
       const token = localStorage.getItem("access_token")
       const username = localStorage.getItem("username")
       if (token && username) {

@@ -1,0 +1,160 @@
+========== Testing Monte Carlo Pi Estimation ==========
+===== Test with 10000 points and 1 threads =====
+Please enter the number of random points to generate (range [1024, 65536]): Please enter the number of threads:
+Results:
+Total points n = 10000
+Points inside circle m = 7863
+Pi approximation = 3.1452000000
+Time spent: 0.000000000 seconds
+Number of threads: 1
+Difference from standard Pi: 0.0036073464
+
+===== Test with 10000 points and 4 threads =====
+Please enter the number of random points to generate (range [1024, 65536]): Please enter the number of threads:
+Results:
+Total points n = 10000
+Points inside circle m = 7923
+Pi approximation = 3.1692000000
+Time spent: 0.000000000 seconds
+Number of threads: 4
+Difference from standard Pi: 0.0276073464
+
+===== Test with 10000 points and 8 threads =====
+Please enter the number of random points to generate (range [1024, 65536]): Please enter the number of threads:
+Results:
+Total points n = 10000
+Points inside circle m = 7822
+Pi approximation = 3.1288000000
+Time spent: 0.001000000 seconds
+Number of threads: 8
+Difference from standard Pi: 0.0127926536
+
+===== Test with 10000 points and 16 threads =====
+Please enter the number of random points to generate (range [1024, 65536]): Please enter the number of threads:
+Results:
+Total points n = 10000
+Points inside circle m = 7849
+Pi approximation = 3.1396000000
+Time spent: 0.001000000 seconds
+Number of threads: 16
+Difference from standard Pi: 0.0019926536
+
+===== Test with 20000 points and 1 threads =====
+Please enter the number of random points to generate (range [1024, 65536]): Please enter the number of threads:
+Results:
+Total points n = 20000
+Points inside circle m = 15714
+Pi approximation = 3.1428000000
+Time spent: 0.001000000 seconds
+Number of threads: 1
+Difference from standard Pi: 0.0012073464
+
+===== Test with 20000 points and 4 threads =====
+Please enter the number of random points to generate (range [1024, 65536]): Please enter the number of threads:
+Results:
+Total points n = 20000
+Points inside circle m = 15755
+Pi approximation = 3.1510000000
+Time spent: 0.001000000 seconds
+Number of threads: 4
+Difference from standard Pi: 0.0094073464
+
+===== Test with 20000 points and 8 threads =====
+Please enter the number of random points to generate (range [1024, 65536]): Please enter the number of threads:
+Results:
+Total points n = 20000
+Points inside circle m = 15686
+Pi approximation = 3.1372000000
+Time spent: 0.000000000 seconds
+Number of threads: 8
+Difference from standard Pi: 0.0043926536
+
+===== Test with 20000 points and 16 threads =====
+Please enter the number of random points to generate (range [1024, 65536]): Please enter the number of threads:
+Results:
+Total points n = 20000
+Points inside circle m = 15633
+Pi approximation = 3.1266000000
+Time spent: 0.001000000 seconds
+Number of threads: 16
+Difference from standard Pi: 0.0149926536
+
+===== Test with 40000 points and 1 threads =====
+Please enter the number of random points to generate (range [1024, 65536]): Please enter the number of threads:
+Results:
+Total points n = 40000
+Points inside circle m = 31400
+Pi approximation = 3.1400000000
+Time spent: 0.000000000 seconds
+Number of threads: 1
+Difference from standard Pi: 0.0015926536
+
+===== Test with 40000 points and 4 threads =====
+Please enter the number of random points to generate (range [1024, 65536]): Please enter the number of threads:
+Results:
+Total points n = 40000
+Points inside circle m = 31362
+Pi approximation = 3.1362000000
+Time spent: 0.000000000 seconds
+Number of threads: 4
+Difference from standard Pi: 0.0053926536
+
+===== Test with 40000 points and 8 threads =====
+Please enter the number of random points to generate (range [1024, 65536]): Please enter the number of threads:
+Results:
+Total points n = 40000
+Points inside circle m = 31311
+Pi approximation = 3.1311000000
+Time spent: 0.000000000 seconds
+Number of threads: 8
+Difference from standard Pi: 0.0104926536
+
+===== Test with 40000 points and 16 threads =====
+Please enter the number of random points to generate (range [1024, 65536]): Please enter the number of threads:
+Results:
+Total points n = 40000
+Points inside circle m = 31335
+Pi approximation = 3.1335000000
+Time spent: 0.001000000 seconds
+Number of threads: 16
+Difference from standard Pi: 0.0080926536
+
+===== Test with 65536 points and 1 threads =====
+Please enter the number of random points to generate (range [1024, 65536]): Please enter the number of threads:
+Results:
+Total points n = 65536
+Points inside circle m = 51484
+Pi approximation = 3.1423339844
+Time spent: 0.001000000 seconds
+Number of threads: 1
+Difference from standard Pi: 0.0007413308
+
+===== Test with 65536 points and 4 threads =====
+Please enter the number of random points to generate (range [1024, 65536]): Please enter the number of threads:
+Results:
+Total points n = 65536
+Points inside circle m = 51480
+Pi approximation = 3.1420898438
+Time spent: 0.000000000 seconds
+Number of threads: 4
+Difference from standard Pi: 0.0004971902
+
+===== Test with 65536 points and 8 threads =====
+Please enter the number of random points to generate (range [1024, 65536]): Please enter the number of threads:
+Results:
+Total points n = 65536
+Points inside circle m = 51530
+Pi approximation = 3.1451416016
+Time spent: 0.001000000 seconds
+Number of threads: 8
+Difference from standard Pi: 0.0035489480
+
+===== Test with 65536 points and 16 threads =====
+Please enter the number of random points to generate (range [1024, 65536]): Please enter the number of threads:
+Results:
+Total points n = 65536
+Points inside circle m = 51409
+Pi approximation = 3.1377563477
+Time spent: 0.001000000 seconds
+Number of threads: 16
+Difference from standard Pi: 0.0038363059

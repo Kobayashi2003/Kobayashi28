@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { useSearchContext } from "@/context/SearchContext"
 
@@ -20,10 +20,11 @@ import { FromDialog } from "@/components/dialog/FromDialog"
 
 
 interface SearchHeaderProps {
+  hidden?: boolean
   className?: string
 }
 
-export function SearchHeader({ className }: SearchHeaderProps) {
+export function SearchHeader({ hidden = false, className }: SearchHeaderProps) {
 
   const pathname = usePathname()
   const isSearching = (
@@ -61,18 +62,18 @@ export function SearchHeader({ className }: SearchHeaderProps) {
       <FromSwitch
         selected={searchFrom}
         setSelected={setSearchFrom}
-        disabled={loading}
+        disabled={loading || hidden}
         className="max-md:hidden"
       />
       <TypeSelector1
         selected={searchType}
         onSelect={setSearchType}
-        disabled={loading}
+        disabled={loading || hidden}
         className="max-md:hidden"
       />
       <FilterButton
         onClick={() => setFiltersDialogOpen(true)}
-        disabled={loading}
+        disabled={loading || hidden}
         className="max-md:hidden"
       />
       <MenuButton
@@ -94,7 +95,7 @@ export function SearchHeader({ className }: SearchHeaderProps) {
             onClick: () => setFiltersDialogOpen(true),
           },
         ]}
-        disabled={loading}
+        disabled={loading || hidden}
         className="md:hidden"
       />
       <form onSubmit={handleSubmit}>
@@ -102,21 +103,21 @@ export function SearchHeader({ className }: SearchHeaderProps) {
           input={searchQuery}
           setInput={setSearchQuery}
           placeholder="Search..."
-          disabled={loading}
+          disabled={loading || hidden}
         />
       </form>
       <SubmitButton
         handleSubmit={handleSubmit}
-        disabled={loading}
+        disabled={loading || hidden}
       />
       <OrderSwitch
         order={sortOrder}
         setOrder={setSortOrder}
-        disabled={loading}
+        disabled={loading || hidden}
       />
       <Settings2Button
         onClick={() => setSortByDialogOpen(true)}
-        disabled={loading}
+        disabled={loading || hidden}
         className="max-md:hidden"
       />
 

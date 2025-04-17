@@ -14,11 +14,11 @@ export function DownloadButton({ handleDownload, disabled, className }: Download
 
   return (
     <IconButton
-      icon={<Download className="w-4 h-4" />}
+      icon={<Download className="w-4 h-4 group-hover:animate-bounce" />}
       variant="outline"
       onClick={handleDownload}
       disabled={disabled}
-      className={cn(buttonBgColor, className)}
+      className={cn("group", buttonBgColor, className)}
     />
   )
 }

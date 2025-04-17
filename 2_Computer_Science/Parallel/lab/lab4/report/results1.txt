@@ -1,0 +1,54 @@
+========== Testing Multiple Cases (Loop 1000000 times) ==========
+
+\n===== Test Case 1: a=1, b=-3, c=2 =====
+\n========== Sequential ==========
+Please enter the coefficients a, b, c of the quadratic equation (range [-100, 100]):
+Solving equation: 1.00x^2 + -3.00x + 2.00 = 0
+Discriminant: 1.00
+x1 = 2.00
+x2 = 1.00
+Time spent: 0.005 seconds
+
+\n========== Parallel ==========
+Please enter the coefficients a, b, c of the quadratic equation (range [-100, 100]):
+Solving equation: 1.00x^2 + -3.00x + 2.00 = 0
+Discriminant: 1.00
+x1 = 2.00
+x2 = 1.00
+Time spent: 116.536 seconds
+
+
+\n===== Test Case 2: a=2, b=4, c=2 =====
+\n========== Sequential ==========
+Please enter the coefficients a, b, c of the quadratic equation (range [-100, 100]):
+Solving equation: 2.00x^2 + 4.00x + 2.00 = 0
+Discriminant: 0.00
+x1 = -1.00
+x2 = -1.00
+Time spent: 0.004 seconds
+
+\n========== Parallel ==========
+Please enter the coefficients a, b, c of the quadratic equation (range [-100, 100]):
+Solving equation: 2.00x^2 + 4.00x + 2.00 = 0
+Discriminant: 0.00
+x1 = -1.00
+x2 = -1.00
+Time spent: 112.193 seconds
+
+
+\n===== Test Case 3: a=1, b=2, c=5 (Complex Roots) =====
+\n========== Sequential ==========
+Please enter the coefficients a, b, c of the quadratic equation (range [-100, 100]):
+Solving equation: 1.00x^2 + 2.00x + 5.00 = 0
+Discriminant: -16.00
+x1 = -1.00 + 2.00i
+x2 = -1.00 + -2.00i
+Time spent: 0.006 seconds
+
+\n========== Parallel ==========
+Please enter the coefficients a, b, c of the quadratic equation (range [-100, 100]):
+Solving equation: 1.00x^2 + 2.00x + 5.00 = 0
+Discriminant: -16.00
+x1 = -1.00 + 2.00i
+x2 = -1.00 + -2.00i
+Time spent: 115.230 seconds

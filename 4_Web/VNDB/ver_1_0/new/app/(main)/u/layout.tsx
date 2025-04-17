@@ -5,7 +5,6 @@ import { useRouter, usePathname } from "next/navigation"
 import { useUserContext } from "@/context/UserContext"
 
 import { cn } from "@/lib/utils"
-import { NavBar } from "@/components/common/NavBar"
 import { useOnScroll } from "@/hooks/useOnScroll"
 
 export default function UserLayout({ children }: { children: React.ReactNode }) {

@@ -16,19 +16,14 @@ export function HeaderNavi({ className }: HeaderNaviProps) {
   return (
     <div className={`flex flex-row justify-between items-center gap-1 ${className} select-none`}>
       {!isHomePage && (
-        <BackButton
-          handleBack={() => router.back()}
-          disabled={false}
-          className="text-white hover:text-white/80 hover:bg-white/10"
-        />
+        <BackButton handleBack={() => router.back()} />
       )}
       <Link 
         href="/" 
         className="hover:opacity-80 transition-opacity"
-        // onClick={() => isHomePage ? window.location.reload() : router.push("/")}
         onClick={() => isHomePage ? router.replace("/") : router.push("/")}
       >
-        <h1 className="font-serif italic font-black text-xl text-white">VNDB</h1>
+        <h1 className="font-serif font-black italic text-xl text-white">VNDB</h1>
       </Link>
     </div>
   )

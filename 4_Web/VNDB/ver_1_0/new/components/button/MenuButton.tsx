@@ -25,7 +25,7 @@ export function MenuButton({ options, disabled, className }: MenuButtonProps) {
   const [open, setOpen] = useState(false)
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open && !disabled} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"

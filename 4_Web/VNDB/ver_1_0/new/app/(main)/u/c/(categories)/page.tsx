@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
 import { useUrlParams } from "@/hooks/useUrlParams"
-import { useOnVisible } from "@/hooks/useOnVisible"
 import { motion, AnimatePresence } from "motion/react"
 
 import { cn } from "@/lib/utils"
@@ -38,8 +37,6 @@ export default function CategoriesPage() {
   const searchParams = useSearchParams()
   const { removeKey, removeMultipleKeys, updateKey, updateMultipleKeys } = useUrlParams()
 
-  const { isVisible } = useOnVisible("item-bar")
-
   const itemsPerPage = 24
 
   const selectedType = searchParams.get("type") || "v"
@@ -50,6 +47,7 @@ export default function CategoriesPage() {
   const sortOrder = searchParams.get("order") || "asc"
 
   const isSearching = query !== ""
+  const [itemBarVisible, setItemBarVisible] = useState(false)
   const [openControlPanel, setOpenControlPanel] = useState(true)
   const [sortByDialogOpen, setSortByDialogOpen] = useState(false)
 
@@ -57,6 +55,7 @@ export default function CategoriesPage() {
     state: null as "loading" | "error" | "notFound" | null,
     message: null as string | null
   })
+
   const [resourceState, setResourceState] = useState({
     state: null as "loading" | "error" | "notFound" | null,
     message: null as string | null
@@ -344,12 +343,38 @@ export default function CategoriesPage() {
   }
 
   useEffect(() => {
+    if (openControlPanel) {
+      setItemBarVisible(false);
+      return;
+    }
+    
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        setItemBarVisible(entry.isIntersecting);
+      },
+      { threshold: 0.1 }
+    );
+    
+    const timer = setTimeout(() => {
+      const itemBar = document.getElementById('item-bar');
+      if (itemBar) {
+        observer.observe(itemBar);
+      }
+    }, 100);
+    
+    return () => {
+      clearTimeout(timer);
+      observer.disconnect();
+    };
+  }, [openControlPanel]);
+
+  useEffect(() => {
     return () => {
       categoriesAbortController?.abort()
       resourcesAbortController?.abort()
     }
   }, [categoriesAbortController, resourcesAbortController])
-
 
   useEffect(() => {
     if (categoryState.state !== "error") return
@@ -374,7 +399,6 @@ export default function CategoriesPage() {
     }, 5000)
     return () => clearTimeout(timeout)
   }, [resourceState.state])
-
 
   useEffect(() => {
     removeMultipleKeys(["cid", "q", "page", "sort", "order"])
@@ -456,8 +480,7 @@ export default function CategoriesPage() {
           "z-10 fixed top-[18%] left-0",
           "opacity-60 hover:opacity-100",
           "translate-x-[-50%] hover:translate-x-0",
-          "max-md:hidden",
-          isVisible && "hidden",
+          itemBarVisible && "hidden",
           openControlPanel && "hidden"
         )}
       />
