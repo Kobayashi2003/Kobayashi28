@@ -1,0 +1,1 @@
+- vns中publishers的languages字段，需要从releases的languages.lang中获得

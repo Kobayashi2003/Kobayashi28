@@ -1,16 +1,7 @@
 import type { NextConfig } from "next";
 
-const nextConfig = {
-  images: {
-    remotePatterns: [
-      {
-        protocol: "http",
-        hostname: "localhost",
-        port: "5001",
-        pathname: "/**",
-      }
-    ],
-  },
+const nextConfig: NextConfig = {
+  /* config options here */
   async rewrites() {
     return [
       {
@@ -26,7 +17,7 @@ const nextConfig = {
         destination: `${process.env.USERSERVE_BASE_URL || "http://localhost:5002"}/:path*`,
       },
     ]
-  },
-}
+  }
+};
 
 export default nextConfig;

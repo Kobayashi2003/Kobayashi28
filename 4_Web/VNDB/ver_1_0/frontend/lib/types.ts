@@ -1,24 +1,30 @@
-export type SearchType = "vn" | "release" | "character" | "producer" | "staff" | "tag" | "trait"
-export type ResourceType = VN |  Release  |  Character  |  Producer  |  Staff  |  Tag  |  Trait
-
-export interface VisualNovelDataBaseQueryParams {
+export interface PaginationParams {
   page?: number
   limit?: number
   sort?: string
   reverse?: boolean
-  count?: boolean
+}
+
+export interface PaginatedResponse<T> {
+  results: T[]
+  status: string
+  source: string
+  more: boolean
+  count: number
+}
+
+
+export interface VNDBQueryParams extends PaginationParams {
   from?: 'local' | 'remote'
   size?: 'small' | 'large'
   [key: string]: any
 }
 
-export interface VisualNovelDataBaseQueryResponse<T> {
-  results: T[]
-  more?: boolean
-  count?: number
-  source?: string
-  status?: string
+export interface MarksQueryParams extends PaginationParams {
+  type: 'vn' | 'character' | 'producer' | 'staff'
+  category_id: number
 }
+
 
 export interface VN {
   id: string
@@ -83,6 +89,11 @@ export interface VN {
     name: string
     original?: string
   }>
+  publishers: Array<{
+    id: string
+    name: string
+    original?: string
+  }>
   editions: Array<{
     eid: string
     lang?: string
@@ -137,6 +148,8 @@ export interface VN {
       id: string
       developer: boolean
       publisher: boolean
+      name: string
+      original?: string
     }>
   }>
 }
@@ -166,6 +179,8 @@ export interface Release {
     id: string
     developer: boolean
     publisher: boolean
+    name: string
+    original?: string
   }>
   images: Array<{
     id: string
@@ -222,7 +237,7 @@ export interface Character {
   cup?: string
   age?: number
   birthday?: string
-  sex?: string[]
+  sex?: [string, string]
   vns: Array<{
     id: string
     role: string
@@ -331,4 +346,90 @@ export interface Category {
 export interface Mark {
   id: number
   marked_at: string // ISO 8601 date string
+}
+
+export interface VN_Small {
+  id: string
+  title: string
+  titles: Array<{
+    lang: string
+    title: string
+    latin?: string
+    official: boolean
+    main: boolean 
+  }>
+  released: string
+  developers: Array<{
+    id: string
+    name: string
+    original?: string
+  }>
+  image?: {
+    url: string
+    dims: [number, number]
+    thumbnail: string
+    thumbnail_dims: [number, number]
+    sexual: number
+    violence: number
+  }
+}
+
+export interface Release_Small {
+  id: string
+  title: string
+  released: string
+  vns: Array<{
+    id: string
+    rtype: string
+  }>
+  producers: Array<{
+    id: string
+    developer: boolean
+    publisher: boolean
+    name: string
+    original?: string
+  }>
+}
+
+export interface Character_Small {
+  id: string
+  name: string 
+  original?: string
+  sex?: [string, string]
+  vns: Array<{
+    id: string
+    role: string
+    spoiler: number
+  }>
+  image?: {
+    url: string
+    dims: [number, number]
+    sexual: number
+    violence: number
+  }
+}
+
+export interface Producer_Small {
+  id: string
+  name: string 
+  original?: string
+}
+
+export interface Staff_Small {
+  id: string
+  name: string
+  original?: string
+}
+
+export interface Tag_Small {
+  id: string 
+  name: string
+  category: string
+}
+
+export interface Trait_Small {
+  id: string  
+  name: string
+  group_id?: string
+  group_name?: string
 }
