@@ -9,6 +9,7 @@ import { RelationsRow } from "@/components/row/RelationsRow"
 import { ExtlinksRow } from "@/components/row/ExtlinksRow"
 import { VN } from "@/lib/types"
 import { ENUMS } from "@/lib/enums"
+
 export function VNDetailsPanel({ vn }: { vn: VN }) {
 
   const mainTitle = vn.title
